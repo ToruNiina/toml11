@@ -203,6 +203,8 @@ class value
 {
   public:
 
+    value() : type_(value_t::Unknown){}
+
     template<typename T, typename std::enable_if<
         value_traits<T>::is_toml_value, std::nullptr_t>::type = nullptr>
     value(T&& v)
@@ -216,7 +218,82 @@ class value
         switch_clean(this->type_);
     }
 
-    type t() const {return type_;}
+    value(const value& v)
+        : type_(v.type())
+    {
+        switch(v.type())
+        {
+            case value_t::Boolean : boolean_  = v.cast<value_t::Boolean>();  break;
+            case value_t::Integer : integer_  = v.cast<value_t::Integer>();  break;
+            case value_t::Float   : float_    = v.cast<value_t::Float>();    break;
+            case value_t::String  : string_   = v.cast<value_t::String>();   break;
+            case value_t::Datetime: datetime_ = v.cast<value_t::Datetime>(); break;
+            case value_t::Array   : array_    = v.cast<value_t::Array>();    break;
+            case value_t::Table   : table_    = v.cast<value_t::Table>();    break;
+            case value_t::Unknown : break;
+            default: break;
+        }
+    }
+
+    value(value&& v)
+        : type_(std::move(v.type_))
+    {
+        switch(v.type())
+        {
+            case value_t::Boolean : boolean_  = std::move(v.cast<value_t::Boolean>());  break;
+            case value_t::Integer : integer_  = std::move(v.cast<value_t::Integer>());  break;
+            case value_t::Float   : float_    = std::move(v.cast<value_t::Float>());    break;
+            case value_t::String  : string_   = std::move(v.cast<value_t::String>());   break;
+            case value_t::Datetime: datetime_ = std::move(v.cast<value_t::Datetime>()); break;
+            case value_t::Array   : array_    = std::move(v.cast<value_t::Array>());    break;
+            case value_t::Table   : table_    = std::move(v.cast<value_t::Table>());    break;
+            case value_t::Unknown : break;
+            default: break;
+        }
+    }
+
+    value& operator=(const value& v)
+    {
+        if(this->type_ != value_t::Unknown) this->switch_clean(this->type_);
+
+        this->type_ = v.type();
+        switch(v.type())
+        {
+            case value_t::Boolean : boolean_  = v.cast<value_t::Boolean>();  break;
+            case value_t::Integer : integer_  = v.cast<value_t::Integer>();  break;
+            case value_t::Float   : float_    = v.cast<value_t::Float>();    break;
+            case value_t::String  : string_   = v.cast<value_t::String>();   break;
+            case value_t::Datetime: datetime_ = v.cast<value_t::Datetime>(); break;
+            case value_t::Array   : array_    = v.cast<value_t::Array>();    break;
+            case value_t::Table   : table_    = v.cast<value_t::Table>();    break;
+            case value_t::Unknown : break;
+            default: break;
+        }
+        return *this;
+    }
+
+    value& operator=(value&& v)
+    {
+        if(this->type_ != value_t::Unknown) this->switch_clean(this->type_);
+
+        this->type_ = std::move(v.type_);
+        switch(v.type())
+        {
+            case value_t::Boolean : boolean_  = std::move(v.cast<value_t::Boolean>());  break;
+            case value_t::Integer : integer_  = std::move(v.cast<value_t::Integer>());  break;
+            case value_t::Float   : float_    = std::move(v.cast<value_t::Float>());    break;
+            case value_t::String  : string_   = std::move(v.cast<value_t::String>());   break;
+            case value_t::Datetime: datetime_ = std::move(v.cast<value_t::Datetime>()); break;
+            case value_t::Array   : array_    = std::move(v.cast<value_t::Array>());    break;
+            case value_t::Table   : table_    = std::move(v.cast<value_t::Table>());    break;
+            case value_t::Unknown : break;
+            default: break;
+        }
+        return *this;
+    }
+
+
+    value_t type() const {return type_;}
 
     template<value_t T>
     typename detail::toml_default_type<T>::type const& cast() const
