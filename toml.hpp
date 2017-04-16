@@ -50,7 +50,7 @@ using Datetime = std::chrono::system_clock::time_point;
 using Array    = std::vector<value>;
 using Table    = std::map<key, value>;
 
-enum class type
+enum class value_t
 {
     Boolean,
     Integer,
@@ -64,18 +64,18 @@ enum class type
 
 template<typename charT, typename traits>
 inline std::basic_ostream<charT, traits>&
-operator<<(std::basic_ostream<charT, traits>& os, type t)
+operator<<(std::basic_ostream<charT, traits>& os, value_t t)
 {
     switch(t)
     {
-        case toml::type::Boolean : os << "Boolean";  return os;
-        case toml::type::Integer : os << "Integer";  return os;
-        case toml::type::Float   : os << "Float";    return os;
-        case toml::type::String  : os << "String";   return os;
-        case toml::type::Datetime: os << "Datetime"; return os;
-        case toml::type::Array   : os << "Array";    return os;
-        case toml::type::Table   : os << "Table";    return os;
-        case toml::type::Unknown : os << "Unknown";  return os;
+        case toml::value_t::Boolean : os << "Boolean";  return os;
+        case toml::value_t::Integer : os << "Integer";  return os;
+        case toml::value_t::Float   : os << "Float";    return os;
+        case toml::value_t::String  : os << "String";   return os;
+        case toml::value_t::Datetime: os << "Datetime"; return os;
+        case toml::value_t::Array   : os << "Array";    return os;
+        case toml::value_t::Table   : os << "Table";    return os;
+        case toml::value_t::Unknown : os << "Unknown";  return os;
         default                  : os << "Nothing";  return os;
     }
 }
@@ -83,19 +83,19 @@ operator<<(std::basic_ostream<charT, traits>& os, type t)
 template<typename charT, typename traits = std::char_traits<charT>,
          typename alloc = std::allocator<charT>>
 inline std::basic_string<charT, traits, alloc>
-stringize(type t)
+stringize(value_t t)
 {
     switch(t)
     {
-        case toml::type::Boolean : return "Boolean";
-        case toml::type::Integer : return "Integer";
-        case toml::type::Float   : return "Float";
-        case toml::type::String  : return "String";
-        case toml::type::Datetime: return "Datetime";
-        case toml::type::Array   : return "Array";
-        case toml::type::Table   : return "Table";
-        case toml::type::Unknown : return "Unknown";
-        default                  : return "Nothing";
+        case toml::value_t::Boolean : return "Boolean";
+        case toml::value_t::Integer : return "Integer";
+        case toml::value_t::Float   : return "Float";
+        case toml::value_t::String  : return "String";
+        case toml::value_t::Datetime: return "Datetime";
+        case toml::value_t::Array   : return "Array";
+        case toml::value_t::Table   : return "Table";
+        case toml::value_t::Unknown : return "Unknown";
+        default                     : return "Nothing";
     }
 }
 
@@ -125,36 +125,27 @@ template<typename hT, typename pT, typename aT>
 struct is_table<std::unordered_map<toml::key, toml::value, hT, pT, aT>> : std::true_type{};
 
 template<typename T>
-constexpr inline type check_type()
+constexpr inline value_t check_type()
 {
-    return std::is_same<unwrap_t<T>, bool>::value        ? type::Boolean :
-           std::is_integral<unwrap_t<T>>::value          ? type::Integer :
-           std::is_floating_point<unwrap_t<T>>::value    ? type::Float   :
-           std::is_same<unwrap_t<T>, std::string>::value ? type::String  :
-           std::is_same<unwrap_t<T>, const char*>::value ? type::String  :
-           toml::detail::is_array<unwrap_t<T>>::value    ? type::Array   :
-           toml::detail::is_table<unwrap_t<T>>::value    ? type::Table   :
-           type::Unknown;
+    return std::is_same<unwrap_t<T>, bool>::value        ? value_t::Boolean :
+           std::is_integral<unwrap_t<T>>::value          ? value_t::Integer :
+           std::is_floating_point<unwrap_t<T>>::value    ? value_t::Float   :
+           std::is_same<unwrap_t<T>, std::string>::value ? value_t::String  :
+           std::is_same<unwrap_t<T>, const char*>::value ? value_t::String  :
+           toml::detail::is_array<unwrap_t<T>>::value    ? value_t::Array   :
+           toml::detail::is_table<unwrap_t<T>>::value    ? value_t::Table   :
+           value_t::Unknown;
 }
 
-template<type t>
-struct toml_default_type{};
-template<>
-struct toml_default_type<type::Boolean>{typedef Boolean type;};
-template<>
-struct toml_default_type<type::Integer>{typedef Integer type;};
-template<>
-struct toml_default_type<type::Float>{typedef Float type;};
-template<>
-struct toml_default_type<type::String>{typedef String type;};
-template<>
-struct toml_default_type<type::Datetime>{typedef Datetime type;};
-template<>
-struct toml_default_type<type::Array>{typedef Array type;};
-template<>
-struct toml_default_type<type::Table>{typedef Table type;};
-template<>
-struct toml_default_type<type::Unknown>{typedef void type;};
+template<value_t t> struct toml_default_type{};
+template<> struct toml_default_type<value_t::Boolean>{ typedef Boolean  type;};
+template<> struct toml_default_type<value_t::Integer>{ typedef Integer  type;};
+template<> struct toml_default_type<value_t::Float>{   typedef Float    type;};
+template<> struct toml_default_type<value_t::String>{  typedef String   type;};
+template<> struct toml_default_type<value_t::Datetime>{typedef Datetime type;};
+template<> struct toml_default_type<value_t::Array>{   typedef Array    type;};
+template<> struct toml_default_type<value_t::Table>{   typedef Table    type;};
+template<> struct toml_default_type<value_t::Unknown>{ typedef void     type;};
 
 } // detail
 
@@ -203,9 +194,9 @@ struct internal_error : public toml::exception
 template<typename T>
 struct value_traits
 {
-    constexpr static type type_index = detail::check_type<T>();
-    constexpr static bool is_toml_value = (type_index != type::Unknown);
-    typedef typename detail::toml_default_type<type_index>::type value_type;
+    constexpr static value_t type_index = detail::check_type<T>();
+    constexpr static bool is_toml_value = (type_index != value_t::Unknown);
+    typedef typename detail::toml_default_type<type_index>::type type;
 };
 
 class value
@@ -220,7 +211,6 @@ class value
         switch_assign<toml::detail::check_type<T>()>::invoke(
                 *this, std::forward<T>(v));
     }
-
     ~value()
     {
         switch_clean(this->type_);
@@ -228,7 +218,7 @@ class value
 
     type t() const {return type_;}
 
-    template<type T>
+    template<value_t T>
     typename detail::toml_default_type<T>::type const& cast() const
     {
         if(T != type_)
@@ -238,7 +228,7 @@ class value
         return switch_cast<T>::invoke(*this);
     }
 
-    template<type T>
+    template<value_t T>
     typename detail::toml_default_type<T>::type& cast()
     {
         if(T != type_)
@@ -259,28 +249,28 @@ class value
 
   private:
 
-    void switch_clean(type t)
+    void switch_clean(value_t t)
     {
         switch(t)
         {
-            case type::Boolean : boolean_.~Boolean();   return;
-            case type::Integer : integer_.~Integer();   return;
-            case type::Float   : float_.~Float();       return;
-            case type::String  : string_.~String();     return;
-            case type::Datetime: datetime_.~Datetime(); return;
-            case type::Array   : array_.~Array();       return;
-            case type::Table   : table_.~Table();       return;
-            case type::Unknown : return;
+            case value_t::Boolean : boolean_.~Boolean();   return;
+            case value_t::Integer : integer_.~Integer();   return;
+            case value_t::Float   : float_.~Float();       return;
+            case value_t::String  : string_.~String();     return;
+            case value_t::Datetime: datetime_.~Datetime(); return;
+            case value_t::Array   : array_.~Array();       return;
+            case value_t::Table   : table_.~Table();       return;
+            case value_t::Unknown : return;
             default: assert(false);
         }
     }
 
-    template<type t> struct switch_assign;
-    template<type t> struct switch_cast;
+    template<value_t t> struct switch_assign;
+    template<value_t t> struct switch_cast;
 
   private:
 
-    type type_;
+    value_t type_;
     union
     {
         Boolean  boolean_;
@@ -293,7 +283,7 @@ class value
     };
 };
 
-template<> struct value::switch_assign<type::Boolean>
+template<> struct value::switch_assign<value_t::Boolean>
 {
     template<typename valT>
     static void invoke(value& v, valT&& val)
@@ -301,7 +291,7 @@ template<> struct value::switch_assign<type::Boolean>
         v.boolean_ = std::forward<Boolean>(val);
     }
 };
-template<> struct value::switch_assign<type::Integer>
+template<> struct value::switch_assign<value_t::Integer>
 {
     template<typename valT>
     static void invoke(value& v, valT&& val)
@@ -309,7 +299,7 @@ template<> struct value::switch_assign<type::Integer>
         v.integer_ = std::forward<Integer>(val);
     }
 };
-template<> struct value::switch_assign<type::Float>
+template<> struct value::switch_assign<value_t::Float>
 {
     template<typename valT>
     static void invoke(value& v, valT&& val)
@@ -317,7 +307,7 @@ template<> struct value::switch_assign<type::Float>
         v.float_ = std::forward<Float>(val);
     }
 };
-template<> struct value::switch_assign<type::String>
+template<> struct value::switch_assign<value_t::String>
 {
     template<typename valT>
     static void invoke(value& v, valT&& val)
@@ -325,7 +315,7 @@ template<> struct value::switch_assign<type::String>
         new(&v.string_) String(val);
     }
 };
-template<> struct value::switch_assign<type::Datetime>
+template<> struct value::switch_assign<value_t::Datetime>
 {
     template<typename valT>
     static void invoke(value& v, valT&& val)
@@ -333,7 +323,7 @@ template<> struct value::switch_assign<type::Datetime>
         new(&v.datetime_) Datetime(val);
     }
 };
-template<> struct value::switch_assign<type::Array>
+template<> struct value::switch_assign<value_t::Array>
 {
     template<typename valT>
     static void invoke(value& v, valT&& val)
@@ -341,7 +331,7 @@ template<> struct value::switch_assign<type::Array>
         new(&v.array_) Array(val);
     }
 };
-template<> struct value::switch_assign<type::Table>
+template<> struct value::switch_assign<value_t::Table>
 {
     template<typename valT>
     static void invoke(value& v, valT&& val)
@@ -350,37 +340,37 @@ template<> struct value::switch_assign<type::Table>
     }
 };
 
-template<> struct value::switch_cast<type::Boolean>
+template<> struct value::switch_cast<value_t::Boolean>
 {
     static Boolean&       invoke(value& v)       {return v.boolean_;}
     static Boolean const& invoke(value const& v) {return v.boolean_;}
 };
-template<> struct value::switch_cast<type::Integer>
+template<> struct value::switch_cast<value_t::Integer>
 {
     static Integer&       invoke(value& v)       {return v.integer_;}
     static Integer const& invoke(value const& v) {return v.integer_;}
 };
-template<> struct value::switch_cast<type::Float>
+template<> struct value::switch_cast<value_t::Float>
 {
     static Float&       invoke(value& v)       {return v.float_;}
     static Float const& invoke(value const& v) {return v.float_;}
 };
-template<> struct value::switch_cast<type::String>
+template<> struct value::switch_cast<value_t::String>
 {
     static String&       invoke(value& v)       {return v.string_;}
     static String const& invoke(value const& v) {return v.string_;}
 };
-template<> struct value::switch_cast<type::Datetime>
+template<> struct value::switch_cast<value_t::Datetime>
 {
     static Datetime&       invoke(value& v)       {return v.datetime_;}
     static Datetime const& invoke(value const& v) {return v.datetime_;}
 };
-template<> struct value::switch_cast<type::Array>
+template<> struct value::switch_cast<value_t::Array>
 {
     static Array&       invoke(value& v)       {return v.array_;}
     static Array const& invoke(value const& v) {return v.array_;}
 };
-template<> struct value::switch_cast<type::Table>
+template<> struct value::switch_cast<value_t::Table>
 {
     static Table&       invoke(value& v)       {return v.table_;}
     static Table const& invoke(value const& v) {return v.table_;}
