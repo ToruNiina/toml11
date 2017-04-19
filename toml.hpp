@@ -108,23 +108,23 @@ namespace detail
 template<typename T>
 using unwrap_t = typename std::decay<T>::type;
 
+template<typename T>
+constexpr inline value_t check_type()
+{
+    return std::is_same<unwrap_t<T>,        toml::Boolean >::value ? value_t::Boolean :
+           std::is_integral<unwrap_t<T>>::value                    ? value_t::Integer :
+           std::is_floating_point<unwrap_t<T>>::value              ? value_t::Float   :
+           std::is_convertible<unwrap_t<T>, toml::String  >::value ? value_t::String  :
+           std::is_convertible<unwrap_t<T>, toml::Datetime>::value ? value_t::Datetime:
+           std::is_convertible<unwrap_t<T>, toml::Array   >::value ? value_t::Array   :
+           std::is_convertible<unwrap_t<T>, toml::Table   >::value ? value_t::Table   :
+           value_t::Unknown;
+}
+
 template<typename T> struct is_toml_array              : std::false_type{};
 template<>           struct is_toml_array<toml::Array> : std::true_type {};
 template<typename T> struct is_toml_table              : std::false_type{};
 template<>           struct is_toml_table<toml::Table> : std::true_type {};
-
-template<typename T>
-constexpr inline value_t check_type()
-{
-    return std::is_same<unwrap_t<T>, bool>::value          ? value_t::Boolean :
-           std::is_integral<unwrap_t<T>>::value            ? value_t::Integer :
-           std::is_floating_point<unwrap_t<T>>::value      ? value_t::Float   :
-           std::is_same<unwrap_t<T>, String>::value        ? value_t::String  :
-           std::is_same<unwrap_t<T>, const char*>::value   ? value_t::String  :
-           toml::detail::is_toml_array<unwrap_t<T>>::value ? value_t::Array   :
-           toml::detail::is_toml_table<unwrap_t<T>>::value ? value_t::Table   :
-           value_t::Unknown;
-}
 
 template<value_t t> struct toml_default_type{};
 template<> struct toml_default_type<value_t::Boolean >{typedef Boolean  type;};
@@ -136,6 +136,56 @@ template<> struct toml_default_type<value_t::Array   >{typedef Array    type;};
 template<> struct toml_default_type<value_t::Table   >{typedef Table    type;};
 template<> struct toml_default_type<value_t::Empty   >{typedef void     type;};
 template<> struct toml_default_type<value_t::Unknown >{typedef void     type;};
+
+struct has_iterator_impl
+{
+    template<typename T> static std::true_type  check(typename T::iterator*);
+    template<typename T> static std::false_type check(...);
+};
+struct has_value_type_impl
+{
+    template<typename T> static std::true_type  check(typename T::value_type*);
+    template<typename T> static std::false_type check(...);
+};
+struct has_key_type_impl
+{
+    template<typename T> static std::true_type  check(typename T::key_type*);
+    template<typename T> static std::false_type check(...);
+};
+struct has_mapped_type_impl
+{
+    template<typename T> static std::true_type  check(typename T::mapped_type*);
+    template<typename T> static std::false_type check(...);
+};
+
+template<typename T>
+struct has_iterator    : decltype(has_iterator_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_value_type  : decltype(has_value_type_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_key_type    : decltype(has_key_type_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
+
+template<typename T>
+struct is_container : std::integral_constant<bool,
+    has_iterator<T>::value && has_value_type<T>::value>{};
+
+template<typename T>
+struct is_map : std::integral_constant<bool,
+    has_iterator<T>::value && has_key_type<T>::value &&
+    has_mapped_type<T>::value>{};
+
+struct is_key_convertible_impl
+{
+    template<typename T>
+    static std::is_convertible<typename T::key_type, toml::key>
+    check(typename T::key_type*);
+
+    template<typename T> static std::false_type check(...);
+};
+template<typename T>
+struct is_key_convertible : decltype(is_key_convertible_impl::check<T>(nullptr)){};
 
 struct storage_base
 {
@@ -165,6 +215,33 @@ struct storage : public storage_base
     value_type value;
 };
 } // detail
+
+// `is_castable` is used for explicit cast of values.
+// implicit conversion is achieved by the same manner as value::ctor.
+// so it allows integer->bool conversion.
+template<typename T, value_t vT>
+struct is_castable : std::false_type{};
+template<typename T>
+struct is_castable<T, toml::value_t::Boolean> : std::integral_constant<bool,
+    std::is_convertible<T, toml::Boolean>::value>{};
+template<typename T>
+struct is_castable<T, toml::value_t::Integer> : std::integral_constant<bool,
+    std::is_convertible<T, toml::Integer>::value>{};
+template<typename T>
+struct is_castable<T, toml::value_t::Float> : std::integral_constant<bool,
+    std::is_convertible<T, toml::Float>::value>{};
+template<typename T>
+struct is_castable<T, toml::value_t::String> : std::integral_constant<bool,
+    std::is_convertible<T, toml::String>::value>{};
+template<typename T>
+struct is_castable<T, toml::value_t::Datetime> : std::integral_constant<bool,
+    std::is_convertible<T, toml::Datetime>::value>{};
+template<typename T>
+struct is_castable<T, toml::value_t::Array> : std::integral_constant<bool,
+    std::is_array<T>::value || toml::detail::is_container<T>::value>{};
+template<typename T>
+struct is_castable<T, toml::value_t::Table> : std::integral_constant<bool,
+    toml::detail::is_map<T>::value && toml::detail::is_key_convertible<T>::value>{};
 
 /* -------------------------------------------------------------------------- */
 template<typename T, typename ... Ts>
@@ -241,6 +318,7 @@ class value
     template<typename T, typename std::enable_if<
         value_traits<T>::is_toml_type, std::nullptr_t>::type = nullptr>
     value(T&& v);
+
     template<typename T, typename std::enable_if<
         value_traits<T>::is_toml_type, std::nullptr_t>::type = nullptr>
     value& operator=(T&& v);
@@ -676,83 +754,49 @@ value::cast()
 namespace detail
 {
 
-struct has_iterator_impl
+template<typename T, toml::value_t vT>
+struct to_toml_impl
 {
-    template<typename T> static std::true_type  check(typename T::iterator*);
-    template<typename T> static std::false_type check(...);
-};
-struct has_value_type_impl
-{
-    template<typename T> static std::true_type  check(typename T::value_type*);
-    template<typename T> static std::false_type check(...);
-};
-struct has_key_type_impl
-{
-    template<typename T> static std::true_type  check(typename T::key_type*);
-    template<typename T> static std::false_type check(...);
-};
-struct has_mapped_type_impl
-{
-    template<typename T> static std::true_type  check(typename T::mapped_type*);
-    template<typename T> static std::false_type check(...);
+    typedef T result_type;
+    static_assert(toml::is_castable<T, vT>::value,
+                  "type is not castable to any toml value type");
+
+    static toml::value invoke(const T& v)
+    {
+        return toml::value(v);
+    }
+    static toml::value invoke(T&& v)
+    {
+        return toml::value(std::move(v));
+    }
 };
 
 template<typename T>
-struct has_iterator    : decltype(has_iterator_impl::check<T>(nullptr)){};
-template<typename T>
-struct has_value_type  : decltype(has_value_type_impl::check<T>(nullptr)){};
-template<typename T>
-struct has_key_type    : decltype(has_key_type_impl::check<T>(nullptr)){};
-template<typename T>
-struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
-
-template<typename T>
-struct is_container : std::integral_constant<bool,
-    has_iterator<T>::value && has_value_type<T>::value>{};
-
-template<typename T>
-struct is_map : std::integral_constant<bool,
-    has_iterator<T>::value && has_key_type<T>::value &&
-    has_mapped_type<T>::value>{};
-
-struct is_key_convertible_impl
+struct to_toml_impl<T, toml::value_t::Unknown>
 {
-    template<typename T>
-    static std::is_convertible<typename T::key_type, toml::key>
-    check(typename T::key_type*);
+    typedef T result_type;
 
-    template<typename T> static std::false_type check(...);
+    static toml::value invoke(const T& v)
+    {
+        return toml::is_same<T,  toml::value>::value ? v :
+            toml::is_castable<T, toml::value_t::Table>::value ? invoke_table(v) :
+            toml::is_castable<T, toml::value_t::Array>::value ? invoke_array(v) :
+            toml::value();
+    }
+    static toml::value invoke(T&& v)
+    {
+    }
 };
-template<typename T>
-struct is_key_convertible : decltype(is_key_convertible_impl::check<T>(nullptr)){};
 
-} // detail
+}
 
-template<typename T, value_t vT>
-struct is_castable : std::false_type{};
-template<typename T>
-struct is_castable<T, toml::value_t::Boolean> : std::integral_constant<bool,
-    std::is_convertible<T, toml::Boolean>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::Integer> : std::integral_constant<bool,
-    std::is_convertible<T, toml::Integer>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::Float> : std::integral_constant<bool,
-    std::is_convertible<T, toml::Float>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::String> : std::integral_constant<bool,
-    std::is_convertible<T, toml::String>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::Datetime> : std::integral_constant<bool,
-    std::is_convertible<T, toml::Datetime>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::Array> : std::integral_constant<bool,
-    std::is_array<T>::value || toml::detail::is_container<T>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::Table> : std::integral_constant<bool,
-    toml::detail::is_map<T>::value && toml::detail::is_key_convertible<T>::value>{};
-template<value_t vT>
-struct is_castable<toml::value, vT> : std::true_type{};// XXX
+template<typename T, toml::value_t vT = toml::detail::check_type<T>()>
+inline toml::value to_toml(T&& x)
+{
+    return detail::to_toml_impl<T, vT>::invoke(std::forward<T>(x));
+}
+
+
 
 }// toml
 #endif// TOML_FOR_MODERN_CPP
