@@ -1,4 +1,6 @@
 #include "toml.hpp"
+#include <map>
+#include <list>
 
 int main()
 {
@@ -68,6 +70,7 @@ int main()
     std::cout << toml::is_castable<std::map<std::string, int>, toml::value_t::Table>::value << std::endl;
     std::cout << toml::is_castable<int, toml::value_t::Table>::value << std::endl;
     std::cout << toml::is_castable<std::map<int, std::string>, toml::value_t::Table>::value << std::endl;
+    std::cout << toml::is_castable<std::list<int>, toml::value_t::Array>::value << std::endl;
 
     return 0;
 }
