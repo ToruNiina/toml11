@@ -1,0 +1,3 @@
+*.out
+callgrind.out.*
+Makefile
