@@ -751,50 +751,12 @@ value::cast()
 
 /* -------------------------------------------------------------------------- */
 
-namespace detail
-{
 
-template<typename T, toml::value_t vT>
-struct to_toml_impl
-{
-    typedef T result_type;
-    static_assert(toml::is_castable<T, vT>::value,
-                  "type is not castable to any toml value type");
-
-    static toml::value invoke(const T& v)
-    {
-        return toml::value(v);
-    }
-    static toml::value invoke(T&& v)
-    {
-        return toml::value(std::move(v));
-    }
-};
-
-template<typename T>
-struct to_toml_impl<T, toml::value_t::Unknown>
-{
-    typedef T result_type;
-
-    static toml::value invoke(const T& v)
-    {
-        return toml::is_same<T,  toml::value>::value ? v :
-            toml::is_castable<T, toml::value_t::Table>::value ? invoke_table(v) :
-            toml::is_castable<T, toml::value_t::Array>::value ? invoke_array(v) :
-            toml::value();
-    }
-    static toml::value invoke(T&& v)
-    {
-    }
-};
-
-}
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>()>
-inline toml::value to_toml(T&& x)
-{
-    return detail::to_toml_impl<T, vT>::invoke(std::forward<T>(x));
-}
+// template<typename T, toml::value_t vT = toml::detail::check_type<T>()>
+// inline toml::value to_toml(T&& x)
+// {
+//     return detail::to_toml_impl<T, vT>::invoke(std::forward<T>(x));
+// }
 
 
 
