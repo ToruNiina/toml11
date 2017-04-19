@@ -1,6 +1,6 @@
 set(TEST_NAMES
     test_traits
-#     test_value
+    test_value
     )
 
 add_definitions("-Wall -Wpedantic")
