@@ -216,33 +216,6 @@ struct storage : public storage_base
 };
 } // detail
 
-// `is_castable` is used for explicit cast of values.
-// implicit conversion is achieved by the same manner as value::ctor.
-// so it allows integer->bool conversion.
-template<typename T, value_t vT>
-struct is_castable : std::false_type{};
-template<typename T>
-struct is_castable<T, toml::value_t::Boolean> : std::integral_constant<bool,
-    std::is_convertible<T, toml::Boolean>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::Integer> : std::integral_constant<bool,
-    std::is_convertible<T, toml::Integer>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::Float> : std::integral_constant<bool,
-    std::is_convertible<T, toml::Float>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::String> : std::integral_constant<bool,
-    std::is_convertible<T, toml::String>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::Datetime> : std::integral_constant<bool,
-    std::is_convertible<T, toml::Datetime>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::Array> : std::integral_constant<bool,
-    std::is_array<T>::value || toml::detail::is_container<T>::value>{};
-template<typename T>
-struct is_castable<T, toml::value_t::Table> : std::integral_constant<bool,
-    toml::detail::is_map<T>::value && toml::detail::is_key_convertible<T>::value>{};
-
 /* -------------------------------------------------------------------------- */
 template<typename T, typename ... Ts>
 inline std::unique_ptr<T> make_unique(Ts&& ... args)
@@ -750,7 +723,6 @@ value::cast()
 }
 
 /* -------------------------------------------------------------------------- */
-
 
 // template<typename T, toml::value_t vT = toml::detail::check_type<T>()>
 // inline toml::value to_toml(T&& x)
