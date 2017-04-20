@@ -775,6 +775,7 @@ inline bool operator==(const toml::value& lhs, const toml::value& rhs)
             return lhs.cast<value_t::Table   >() == rhs.cast<value_t::Table   >();
         case value_t::Empty   : return true;
         case value_t::Unknown : return false;
+        default: return false;
     }
 }
 inline bool operator<(const toml::value& lhs, const toml::value& rhs)
@@ -798,6 +799,7 @@ inline bool operator<(const toml::value& lhs, const toml::value& rhs)
             return lhs.cast<value_t::Table   >() < rhs.cast<value_t::Table   >();
         case value_t::Empty   : return false;
         case value_t::Unknown : return false;
+        default: return false;
     }
 }
 
