@@ -40,6 +40,48 @@
 namespace toml
 {
 
+template<typename unsignedT, typename intT, typename floatT>
+struct basic_datetime
+{
+    unsignedT year;
+    unsignedT month;
+    unsignedT day;
+    unsignedT hour;
+    unsignedT minute;
+    unsignedT second;
+    floatT    subsecond;
+    intT      offset_hour;
+    intT      offset_minute;
+
+    basic_datetime(intT y, intT m, intT d)
+        : year(y), month(m), day(d), hour(0), minute(0), second(0),
+          subsecond(0.), offset_hour(0), offset_minute(0)
+    {}
+    basic_datetime(intT h, intT m, intT s, floatT ss)
+        : year(0), month(0), day(0), hour(h), minute(m), second(s),
+          subsecond(ss), offset_hour(0), offset_minute(0)
+    {}
+    basic_datetime(intT y, intT mth, intT d,
+                   intT h, intT min, intT s, floatT ss)
+        : year(y), month(mth), day(d), hour(h), minute(min), second(s),
+          subsecond(ss), offset_hour(0), offset_minute(0)
+    {}
+    basic_datetime(intT y, intT mth, intT d,
+                   intT h, intT min, intT s, floatT ss, intT oh, intT om)
+        : year(y), month(mth), day(d), hour(h), minute(min), second(s),
+          subsecond(ss), offset_hour(oh), offset_minute(om)
+    {}
+
+    basic_datetime(const std::chrono::system_clock::time_point& tp);
+    basic_datetime(std::chrono::system_clock::time_point&&      tp);
+
+    operator std::chrono::system_clock::time_point() const;
+    operator std::time_t() const;
+    operator std::tm() const;
+};
+
+typedef basic_datetime<unsigned, int, double> Datetime;
+
 class value;
 using key = std::string;
 
@@ -271,38 +313,6 @@ struct internal_error : public toml::exception
     std::string what_;
 };
 /* -------------------------------------------------------------------------- */
-
-// template<typename intT, typename floatT>
-// struct basic_datetime
-// {
-//     intT   year;
-//     intT   month;
-//     intT   day;
-//     intT   hour;
-//     intT   minite;
-//     intT   second;
-//     floatT subsecond;
-//     intT   offset_hour;
-//     intT   offset_minute;
-//
-//     basic_datetime(intT y, intT m, intT d);
-//     basic_datetime(intT h, intT m, intT s, floatT ss);
-//     basic_datetime(intT y, intT mth, intT d,
-//                    intT h, intT min, intT s, floatT ss);
-//     basic_datetime(intT y, intT mth, intT d,
-//                    intT h, intT min, intT s, floatT ss, intT oh, intT om);
-//
-//     basic_datetime(const std::chrono::system_clock::time_point& tp);
-//     basic_datetime(std::chrono::system_clock::time_point&&      tp);
-//
-//     operator std::chrono::system_clock::time_point() const;
-//     operator std::time_t() const;
-//     operator std::tm() const;
-//
-//   private:
-//     void validate()
-// };
-
 
 template<typename T>
 struct value_traits
@@ -1035,6 +1045,10 @@ T get(const toml::value& v)
     from_toml(tmp, v);
     return tmp;
 }
+
+
+
+
 
 }// toml
 #endif// TOML_FOR_MODERN_CPP
