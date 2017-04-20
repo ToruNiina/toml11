@@ -296,6 +296,12 @@ class value
         value_traits<T>::is_toml_type, std::nullptr_t>::type = nullptr>
     value& operator=(T&& v);
 
+    template<typename T, typename std::enable_if<
+        value_traits<T>::is_toml_type, std::nullptr_t>::type = nullptr>
+    value(std::initializer_list<T> init);
+
+    value(std::initializer_list<std::pair<toml::key, toml::value>> init);
+
     value_t type() const {return type_;}
 
     template<value_t T>
@@ -701,6 +707,27 @@ value& value::operator=(T&& v)
     switch_assign<toml::detail::check_type<T>()>::invoke(
             *this, std::forward<T>(v));
     return *this;
+}
+
+template<typename T, typename std::enable_if<
+    value_traits<T>::is_toml_type, std::nullptr_t>::type>
+value::value(std::initializer_list<T> init)
+    : type_(toml::value_t::Array)
+{
+    toml::Array arr; arr.reserve(init.size());
+    for(auto&& item : init)
+        arr.emplace_back(std::move(item));
+    switch_assign<toml::value_t::Array>::invoke(*this, std::move(arr));
+}
+
+inline value::value(
+        std::initializer_list<std::pair<toml::key, toml::value>> init)
+    : type_(toml::value_t::Table)
+{
+    toml::Table tmp;
+    for(auto&& item : init)
+        tmp.emplace(std::move(item.first), std::move(item.second));
+    switch_assign<toml::value_t::Table>::invoke(*this, std::move(tmp));
 }
 
 template<value_t T>
