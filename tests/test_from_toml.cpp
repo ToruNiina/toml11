@@ -63,6 +63,10 @@ BOOST_AUTO_TEST_CASE(test_from_toml_exact)
     BOOST_CHECK_EQUAL(u6.at(2).cast<toml::value_t::Integer>(), a.at(2).cast<toml::value_t::Integer>());
     BOOST_CHECK_EQUAL(u6.at(3).cast<toml::value_t::Integer>(), a.at(3).cast<toml::value_t::Integer>());
     BOOST_CHECK_EQUAL(u6.at(4).cast<toml::value_t::Integer>(), a.at(4).cast<toml::value_t::Integer>());
+    BOOST_CHECK_EQUAL(u7.at("val1").cast<toml::value_t::Boolean>(), true);
+    BOOST_CHECK_EQUAL(u7.at("val2").cast<toml::value_t::Integer>(), 42);
+    BOOST_CHECK_CLOSE_FRACTION(u7.at("val3").cast<toml::value_t::Float>(),3.14, 1e-3);
+    BOOST_CHECK_EQUAL(u7.at("val4").cast<toml::value_t::String>(),  "piyo");
 }
 
 BOOST_AUTO_TEST_CASE(test_from_toml_cast)
