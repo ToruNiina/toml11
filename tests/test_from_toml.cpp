@@ -131,3 +131,53 @@ BOOST_AUTO_TEST_CASE(test_from_toml_cast)
 
 }
 
+BOOST_AUTO_TEST_CASE(test_from_toml_tie)
+{
+    toml::Boolean  b(42);
+    toml::Integer  i(42);
+    toml::Float    f(3.14);
+    toml::Array    a;
+    a.emplace_back(2);
+    a.emplace_back(7);
+    a.emplace_back(1);
+    a.emplace_back(8);
+    a.emplace_back(2);
+    toml::Table    t;
+    t.emplace("val1", true);
+    t.emplace("val2", 42);
+    t.emplace("val3", 3.14);
+    t.emplace("val4", "piyo");
+
+    toml::value vb(b);
+    toml::value vi(i);
+    toml::value vf(f);
+    toml::value va(a);
+    toml::value vt(t);
+
+    bool            ub;
+    int             ui;
+    float           uf;
+    std::deque<int> ua;
+    std::map<std::string, toml::value> ut;
+
+    toml::from_toml(std::tie(ub, ui, uf, ua, ut), vb);
+    toml::from_toml(std::tie(ub, ui, uf, ua, ut), vi);
+    toml::from_toml(std::tie(ub, ui, uf, ua, ut), vf);
+    toml::from_toml(std::tie(ub, ui, uf, ua, ut), va);
+    toml::from_toml(std::tie(ub, ui, uf, ua, ut), va);
+    toml::from_toml(std::tie(ub, ui, uf, ua, ut), vt);
+
+    BOOST_CHECK_EQUAL(ub, true);
+    BOOST_CHECK_EQUAL(ui, 42);
+    BOOST_CHECK_CLOSE_FRACTION(uf, 3.14, 1e-3);
+    BOOST_CHECK_EQUAL(ua.at(0), 2);
+    BOOST_CHECK_EQUAL(ua.at(1), 7);
+    BOOST_CHECK_EQUAL(ua.at(2), 1);
+    BOOST_CHECK_EQUAL(ua.at(3), 8);
+    BOOST_CHECK_EQUAL(ua.at(4), 2);
+    BOOST_CHECK_EQUAL(ut["val1"].cast<toml::value_t::Boolean>(), true);
+    BOOST_CHECK_EQUAL(ut["val2"].cast<toml::value_t::Integer>(), 42);
+    BOOST_CHECK_CLOSE_FRACTION(ut["val3"].cast<toml::value_t::Float>(), 3.14, 1e-3);
+    BOOST_CHECK_EQUAL(ut["val4"].cast<toml::value_t::String >(), "piyo");
+}
+

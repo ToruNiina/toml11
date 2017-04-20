@@ -30,6 +30,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <tuple>
 #include <unordered_map>
 #include <chrono>
 #include <iomanip>
@@ -270,6 +271,38 @@ struct internal_error : public toml::exception
     std::string what_;
 };
 /* -------------------------------------------------------------------------- */
+
+// template<typename intT, typename floatT>
+// struct basic_datetime
+// {
+//     intT   year;
+//     intT   month;
+//     intT   day;
+//     intT   hour;
+//     intT   minite;
+//     intT   second;
+//     floatT subsecond;
+//     intT   offset_hour;
+//     intT   offset_minute;
+//
+//     basic_datetime(intT y, intT m, intT d);
+//     basic_datetime(intT h, intT m, intT s, floatT ss);
+//     basic_datetime(intT y, intT mth, intT d,
+//                    intT h, intT min, intT s, floatT ss);
+//     basic_datetime(intT y, intT mth, intT d,
+//                    intT h, intT min, intT s, floatT ss, intT oh, intT om);
+//
+//     basic_datetime(const std::chrono::system_clock::time_point& tp);
+//     basic_datetime(std::chrono::system_clock::time_point&&      tp);
+//
+//     operator std::chrono::system_clock::time_point() const;
+//     operator std::time_t() const;
+//     operator std::tm() const;
+//
+//   private:
+//     void validate()
+// };
+
 
 template<typename T>
 struct value_traits
@@ -867,6 +900,7 @@ to_toml(std::initializer_list<std::pair<std::string, toml::value>> init)
 
 /* ------------------------------ from_toml --------------------------------- */
 
+
 template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
          typename std::enable_if<(vT != toml::value_t::Unknown &&
          vT != value_t::Empty), std::nullptr_t>::type = nullptr>
@@ -916,6 +950,57 @@ void from_toml(T& x, const toml::value& v)
     return;
 }
 
+namespace detail
+{
+
+template<typename T>
+constexpr toml::value_t determine_castable_type()
+{
+    return check_type<T>() != toml::value_t::Unknown ? check_type<T>() :
+           toml::detail::is_map<T>::value            ? toml::value_t::Table :
+           toml::detail::is_container<T>::value      ? toml::value_t::Array :
+           toml::value_t::Unknown;
+}
+
+template<std::size_t N, typename ... Ts>
+struct from_toml_tie_impl
+{
+    constexpr static std::size_t   index = sizeof...(Ts) - N;
+    constexpr static toml::value_t type_index =
+        determine_castable_type<
+            typename std::tuple_element<index, std::tuple<Ts...>>::type>();
+
+    static void invoke(std::tuple<Ts& ...> tie, const toml::value& v)
+    {
+        if(type_index == v.type())
+        {
+            from_toml(std::get<index>(tie), v);
+            return;
+        }
+        return from_toml_tie_impl<N-1, Ts...>::invoke(tie, v);
+    }
+};
+
+template<typename ... Ts>
+struct from_toml_tie_impl<0, Ts...>
+{
+    static void invoke(std::tuple<Ts& ...> tie, const toml::value& v)
+    {
+        throw type_error("from_toml(tie, value): no match");
+    }
+};
+
+} // detail
+
+template<typename ... Ts>
+void from_toml(std::tuple<Ts& ...> tie, const toml::value& v)
+{
+    detail::from_toml_tie_impl<sizeof...(Ts), Ts...>::invoke(tie, v);
+    return;
+}
+
+/* ------------------------------ get --------------------------------- */
+
 template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
          typename std::enable_if<(vT != toml::value_t::Unknown &&
          vT != value_t::Empty), std::nullptr_t>::type = nullptr>
@@ -950,7 +1035,6 @@ T get(const toml::value& v)
     from_toml(tmp, v);
     return tmp;
 }
-
 
 }// toml
 #endif// TOML_FOR_MODERN_CPP
