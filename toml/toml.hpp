@@ -50,17 +50,17 @@ using Datetime = std::chrono::system_clock::time_point;
 using Array    = std::vector<value>;
 using Table    = std::unordered_map<key, value>;
 
-enum class value_t
+enum class value_t : std::uint8_t
 {
-    Boolean,
-    Integer,
-    Float,
-    String,
-    Datetime,
-    Array,
-    Table,
-    Empty,
-    Unknown,
+    Boolean  = 1,
+    Integer  = 2,
+    Float    = 3,
+    String   = 4,
+    Datetime = 5,
+    Array    = 6,
+    Table    = 7,
+    Empty    = 0,
+    Unknown  = 255,
 };
 
 template<typename charT, typename traits>
@@ -119,6 +119,11 @@ constexpr inline value_t check_type()
            std::is_convertible<unwrap_t<T>, toml::Array   >::value ? value_t::Array   :
            std::is_convertible<unwrap_t<T>, toml::Table   >::value ? value_t::Table   :
            value_t::Unknown;
+}
+
+constexpr inline bool is_valid(value_t vt)
+{
+    return vt != value_t::Unknown;
 }
 
 template<typename T> struct is_toml_array              : std::false_type{};
@@ -270,7 +275,7 @@ template<typename T>
 struct value_traits
 {
     constexpr static value_t type_index = detail::check_type<T>();
-    constexpr static bool is_toml_type  = (type_index != value_t::Unknown);
+    constexpr static bool is_toml_type  = detail::is_valid(type_index);
     typedef typename detail::toml_default_type<type_index>::type type;
 };
 
@@ -747,6 +752,70 @@ value::cast()
         throw type_error("current type: " + stringize(this->type_) +
                          std::string(" is not query type: ") + stringize(T));
     return switch_cast<T>::invoke(*this);
+}
+
+inline bool operator==(const toml::value& lhs, const toml::value& rhs)
+{
+    if(lhs.type() != rhs.type()) return false;
+    switch(lhs.type())
+    {
+        case value_t::Boolean :
+            return lhs.cast<value_t::Boolean >() == rhs.cast<value_t::Boolean >();
+        case value_t::Integer :
+            return lhs.cast<value_t::Integer >() == rhs.cast<value_t::Integer >();
+        case value_t::Float   :
+            return lhs.cast<value_t::Float   >() == rhs.cast<value_t::Float   >();
+        case value_t::String  :
+            return lhs.cast<value_t::String  >() == rhs.cast<value_t::String  >();
+        case value_t::Datetime:
+            return lhs.cast<value_t::Datetime>() == rhs.cast<value_t::Datetime>();
+        case value_t::Array   :
+            return lhs.cast<value_t::Array   >() == rhs.cast<value_t::Array   >();
+        case value_t::Table   :
+            return lhs.cast<value_t::Table   >() == rhs.cast<value_t::Table   >();
+        case value_t::Empty   : return true;
+        case value_t::Unknown : return false;
+    }
+}
+inline bool operator<(const toml::value& lhs, const toml::value& rhs)
+{
+    if(lhs.type() != rhs.type()) return (lhs.type() < rhs.type());
+    switch(lhs.type())
+    {
+        case value_t::Boolean :
+            return lhs.cast<value_t::Boolean >() < rhs.cast<value_t::Boolean >();
+        case value_t::Integer :
+            return lhs.cast<value_t::Integer >() < rhs.cast<value_t::Integer >();
+        case value_t::Float   :
+            return lhs.cast<value_t::Float   >() < rhs.cast<value_t::Float   >();
+        case value_t::String  :
+            return lhs.cast<value_t::String  >() < rhs.cast<value_t::String  >();
+        case value_t::Datetime:
+            return lhs.cast<value_t::Datetime>() < rhs.cast<value_t::Datetime>();
+        case value_t::Array   :
+            return lhs.cast<value_t::Array   >() < rhs.cast<value_t::Array   >();
+        case value_t::Table   :
+            return lhs.cast<value_t::Table   >() < rhs.cast<value_t::Table   >();
+        case value_t::Empty   : return false;
+        case value_t::Unknown : return false;
+    }
+}
+
+inline bool operator!=(const toml::value& lhs, const toml::value& rhs)
+{
+    return !(lhs == rhs);
+}
+inline bool operator<=(const toml::value& lhs, const toml::value& rhs)
+{
+    return (lhs < rhs) || (lhs == rhs);
+}
+inline bool operator>(const toml::value& lhs, const toml::value& rhs)
+{
+    return !(lhs <= rhs);
+}
+inline bool operator>=(const toml::value& lhs, const toml::value& rhs)
+{
+    return !(lhs < rhs);
 }
 
 /* ------------------------------- to_toml ---------------------------------- */
