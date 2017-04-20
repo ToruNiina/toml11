@@ -199,3 +199,29 @@ BOOST_AUTO_TEST_CASE(test_value_copy_move_substitution)
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Float   >(), f);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::String  >(), s);
 }
+
+BOOST_AUTO_TEST_CASE(test_value_initializer_list)
+{
+    toml::value v1{3,1,4,1,5};
+    toml::value v2{{"hoge", 1}, {"piyo", 3.14}, {"fuga", "string"}};
+
+    BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Array);
+    BOOST_CHECK_EQUAL(v2.type(), toml::value_t::Table);
+
+    const auto& ar = v1.cast<toml::value_t::Array>();
+    BOOST_CHECK_EQUAL(ar.at(0).cast<toml::value_t::Integer>(), 3);
+    BOOST_CHECK_EQUAL(ar.at(1).cast<toml::value_t::Integer>(), 1);
+    BOOST_CHECK_EQUAL(ar.at(2).cast<toml::value_t::Integer>(), 4);
+    BOOST_CHECK_EQUAL(ar.at(3).cast<toml::value_t::Integer>(), 1);
+    BOOST_CHECK_EQUAL(ar.at(4).cast<toml::value_t::Integer>(), 5);
+
+    const auto& tb = v2.cast<toml::value_t::Table>();
+
+    BOOST_CHECK_EQUAL(tb.at("hoge").type(), toml::value_t::Integer);
+    BOOST_CHECK_EQUAL(tb.at("piyo").type(), toml::value_t::Float);
+    BOOST_CHECK_EQUAL(tb.at("fuga").type(), toml::value_t::String);
+
+    BOOST_CHECK_EQUAL(tb.at("hoge").cast<toml::value_t::Integer>(), 1);
+    BOOST_CHECK_CLOSE_FRACTION(tb.at("piyo").cast<toml::value_t::Float>(), 3.14, 1e-3);
+    BOOST_CHECK_EQUAL(tb.at("fuga").cast<toml::value_t::String>(),  "string");
+}
