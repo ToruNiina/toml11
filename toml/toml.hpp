@@ -82,7 +82,7 @@ operator<<(std::basic_ostream<charT, traits>& os, value_t t)
     }
 }
 
-template<typename charT, typename traits = std::char_traits<charT>,
+template<typename charT = char, typename traits = std::char_traits<charT>,
          typename alloc = std::allocator<charT>>
 inline std::basic_string<charT, traits, alloc>
 stringize(value_t t)
@@ -735,8 +735,8 @@ inline typename detail::toml_default_type<T>::type const&
 value::cast() const
 {
     if(T != this->type_)
-        throw type_error("current type: " + stringize<char>(this->type_) +
-                         std::string(" is not query type: ") + stringize<char>(T));
+        throw type_error("current type: " + stringize(this->type_) +
+                         std::string(" is not query type: ") + stringize(T));
     return switch_cast<T>::invoke(*this);
 }
 template<value_t T>
@@ -744,12 +744,12 @@ inline typename detail::toml_default_type<T>::type&
 value::cast()
 {
     if(T != this->type_)
-        throw type_error("current type: " + stringize<char>(this->type_) +
-                         std::string(" is not query type: ") + stringize<char>(T));
+        throw type_error("current type: " + stringize(this->type_) +
+                         std::string(" is not query type: ") + stringize(T));
     return switch_cast<T>::invoke(*this);
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------- to_toml ---------------------------------- */
 
 template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
          typename std::enable_if<(vT != toml::value_t::Unknown &&
@@ -793,6 +793,93 @@ to_toml(std::initializer_list<std::pair<std::string, toml::value>> init)
 {
     return toml::value(std::move(init));
 }
+
+/* ------------------------------ from_toml --------------------------------- */
+
+template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
+         typename std::enable_if<(vT != toml::value_t::Unknown &&
+         vT != value_t::Empty), std::nullptr_t>::type = nullptr>
+void from_toml(T& x, const toml::value& v)
+{
+    if(v.type() != vT)
+        throw type_error("from_toml: value type: " + stringize(v.type()) +
+                std::string(" is not type of arguemnt: ") + stringize(vT));
+    x = v.cast<vT>();
+    return;
+}
+
+template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
+         typename std::enable_if<(vT == toml::value_t::Unknown) &&
+         (!toml::detail::is_map<T>::value) &&
+         toml::detail::is_container<T>::value, std::nullptr_t>::type = nullptr>
+void from_toml(T& x, const toml::value& v)
+{
+    // TODO the case of x is not dynamic container case
+    if(v.type() != value_t::Array)
+        throw type_error("from_toml: value type: " + stringize(v.type()) +
+                         std::string(" is not type of argument type Array"));
+    const auto& ar = v.cast<value_t::Array>();
+    for(const auto& val : ar)
+    {
+        typename T::value_type v;
+        from_toml(v, val);
+        x.push_back(std::move(v));
+    }
+    return;
+}
+
+template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
+         typename std::enable_if<(vT == toml::value_t::Unknown) &&
+         toml::detail::is_map<T>::value, std::nullptr_t>::type = nullptr>
+void from_toml(T& x, const toml::value& v)
+{
+    if(v.type() != value_t::Table)
+        throw type_error("from_toml: value type: " + stringize(v.type()) +
+                         std::string(" is not type of argument type Table"));
+    x.clear();
+    const auto& tb = v.cast<value_t::Table>();
+    for(const auto& kv : tb)
+    {
+        x.insert(kv);
+    }
+    return;
+}
+
+template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
+         typename std::enable_if<(vT != toml::value_t::Unknown &&
+         vT != value_t::Empty), std::nullptr_t>::type = nullptr>
+inline T get(const toml::value& v)
+{
+    return static_cast<T>(v.cast<vT>());
+}
+
+template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
+         typename std::enable_if<(vT == toml::value_t::Unknown) &&
+         (!toml::detail::is_map<T>::value) &&
+         toml::detail::is_container<T>::value, std::nullptr_t>::type = nullptr>
+T get(const toml::value& v)
+{
+    if(v.type() != value_t::Array)
+        throw type_error("from_toml: value type: " + stringize(v.type()) +
+                         std::string(" is not type of argument type Array"));
+    T tmp;
+    from_toml(tmp, v);
+    return tmp;
+}
+
+template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
+         typename std::enable_if<(vT == toml::value_t::Unknown) &&
+         toml::detail::is_map<T>::value, std::nullptr_t>::type = nullptr>
+T get(const toml::value& v)
+{
+    if(v.type() != value_t::Table)
+        throw type_error("from_toml: value type: " + stringize(v.type()) +
+                         std::string(" is not type of argument type Table"));
+    T tmp;
+    from_toml(tmp, v);
+    return tmp;
+}
+
 
 }// toml
 #endif// TOML_FOR_MODERN_CPP

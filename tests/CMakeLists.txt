@@ -2,6 +2,7 @@ set(TEST_NAMES
     test_traits
     test_value
     test_to_toml
+    test_from_toml
     )
 
 add_definitions("-Wall -Wpedantic")
