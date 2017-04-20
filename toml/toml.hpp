@@ -803,7 +803,7 @@ void from_toml(T& x, const toml::value& v)
 {
     if(v.type() != vT)
         throw type_error("from_toml: value type: " + stringize(v.type()) +
-                std::string(" is not type of arguemnt: ") + stringize(vT));
+                std::string(" is not arguemnt type: ") + stringize(vT));
     x = v.cast<vT>();
     return;
 }
@@ -817,7 +817,7 @@ void from_toml(T& x, const toml::value& v)
     // TODO the case of x is not dynamic container case
     if(v.type() != value_t::Array)
         throw type_error("from_toml: value type: " + stringize(v.type()) +
-                         std::string(" is not type of argument type Array"));
+                         std::string(" is not argument type: Array"));
     const auto& ar = v.cast<value_t::Array>();
     for(const auto& val : ar)
     {
@@ -835,7 +835,7 @@ void from_toml(T& x, const toml::value& v)
 {
     if(v.type() != value_t::Table)
         throw type_error("from_toml: value type: " + stringize(v.type()) +
-                         std::string(" is not type of argument type Table"));
+                         std::string(" is not argument type: Table"));
     x.clear();
     const auto& tb = v.cast<value_t::Table>();
     for(const auto& kv : tb)
@@ -861,7 +861,7 @@ T get(const toml::value& v)
 {
     if(v.type() != value_t::Array)
         throw type_error("from_toml: value type: " + stringize(v.type()) +
-                         std::string(" is not type of argument type Array"));
+                         std::string(" is not argument type: Array"));
     T tmp;
     from_toml(tmp, v);
     return tmp;
@@ -874,7 +874,7 @@ T get(const toml::value& v)
 {
     if(v.type() != value_t::Table)
         throw type_error("from_toml: value type: " + stringize(v.type()) +
-                         std::string(" is not type of argument type Table"));
+                         std::string(" is not argument type: Table"));
     T tmp;
     from_toml(tmp, v);
     return tmp;
