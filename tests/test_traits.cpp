@@ -5,7 +5,7 @@
 #define BOOST_TEST_NO_LIB
 #include <boost/test/included/unit_test.hpp>
 #endif
-#include <toml/toml.hpp>
+#include <toml.hpp>
 
 #include <list>
 #include <forward_list>

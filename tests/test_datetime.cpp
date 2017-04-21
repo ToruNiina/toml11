@@ -5,7 +5,7 @@
 #define BOOST_TEST_NO_LIB
 #include <boost/test/included/unit_test.hpp>
 #endif
-#include <toml/toml.hpp>
+#include <toml.hpp>
 
 BOOST_AUTO_TEST_CASE(test_datetime_convertible)
 {
