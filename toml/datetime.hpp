@@ -84,12 +84,8 @@ struct basic_datetime
         auto tp = std::chrono::system_clock::from_time_t(mktime(&time));
         tp += std::chrono::milliseconds(this->millisecond);
         tp += std::chrono::microseconds(this->microsecond);
+        // mktime regards the tm struct as localtime. so adding offset is not needed.
 
-        if(this->offset_hour != nooffset && this->offset_minute != nooffset)
-        {
-            tp += std::chrono::hours(this->offset_hour);
-            tp += std::chrono::minutes(this->offset_minute);
-        }
         return tp;
     }
     operator std::time_t() const
@@ -171,8 +167,8 @@ operator<<(std::basic_ostream<charT, traits>& os, basic_datetime<uT, iT> const& 
             if(om > 0) sign = '+'; else sign='-';
             oh =  om / 60;
             om -= oh * 60;
-            os << sign << std::setfill('0') << std::setw(2) << oh << ':'
-                       << std::setfill('0') << std::setw(2) << om;
+            os << sign << std::setfill('0') << std::setw(2) << std::abs(oh) << ':'
+                       << std::setfill('0') << std::setw(2) << std::abs(om);
         }
     }
     return os;
