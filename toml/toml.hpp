@@ -24,6 +24,7 @@
 
 #ifndef TOML_FOR_MODERN_CPP
 #define TOML_FOR_MODERN_CPP
+#include "datetime.hpp"
 #include <type_traits>
 #include <utility>
 #include <stdexcept>
@@ -32,55 +33,11 @@
 #include <vector>
 #include <tuple>
 #include <unordered_map>
-#include <chrono>
-#include <iomanip>
-#include <iostream>
 #include <cassert>
+#include <cstdint>
 
 namespace toml
 {
-
-template<typename unsignedT, typename intT, typename floatT>
-struct basic_datetime
-{
-    unsignedT year;
-    unsignedT month;
-    unsignedT day;
-    unsignedT hour;
-    unsignedT minute;
-    unsignedT second;
-    floatT    subsecond;
-    intT      offset_hour;
-    intT      offset_minute;
-
-    basic_datetime(intT y, intT m, intT d)
-        : year(y), month(m), day(d), hour(0), minute(0), second(0),
-          subsecond(0.), offset_hour(0), offset_minute(0)
-    {}
-    basic_datetime(intT h, intT m, intT s, floatT ss)
-        : year(0), month(0), day(0), hour(h), minute(m), second(s),
-          subsecond(ss), offset_hour(0), offset_minute(0)
-    {}
-    basic_datetime(intT y, intT mth, intT d,
-                   intT h, intT min, intT s, floatT ss)
-        : year(y), month(mth), day(d), hour(h), minute(min), second(s),
-          subsecond(ss), offset_hour(0), offset_minute(0)
-    {}
-    basic_datetime(intT y, intT mth, intT d,
-                   intT h, intT min, intT s, floatT ss, intT oh, intT om)
-        : year(y), month(mth), day(d), hour(h), minute(min), second(s),
-          subsecond(ss), offset_hour(oh), offset_minute(om)
-    {}
-
-    basic_datetime(const std::chrono::system_clock::time_point& tp);
-    basic_datetime(std::chrono::system_clock::time_point&&      tp);
-
-    operator std::chrono::system_clock::time_point() const;
-    operator std::time_t() const;
-    operator std::tm() const;
-};
-
-typedef basic_datetime<unsigned, int, double> Datetime;
 
 class value;
 using key = std::string;
@@ -89,7 +46,7 @@ using Boolean  = bool;
 using Integer  = std::int64_t;
 using Float    = double;
 using String   = std::string;
-using Datetime = std::chrono::system_clock::time_point;
+using Datetime = basic_datetime<unsigned int, int>;
 using Array    = std::vector<value>;
 using Table    = std::unordered_map<key, value>;
 

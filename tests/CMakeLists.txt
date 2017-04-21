@@ -5,6 +5,7 @@ set(TEST_NAMES
     test_from_toml
     test_get
     test_value_operator
+    test_datetime
     )
 
 add_definitions("-Wall -Wpedantic")
