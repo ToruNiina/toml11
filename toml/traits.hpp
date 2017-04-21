@@ -1,0 +1,54 @@
+#ifndef TOML11_TRAITS
+#define TOML11_TRAITS
+#include <type_traits>
+
+namespace toml
+{
+namespace detail
+{
+
+template<typename T>
+using unwrap_t = typename std::decay<T>::type;
+
+struct has_iterator_impl
+{
+    template<typename T> static std::true_type  check(typename T::iterator*);
+    template<typename T> static std::false_type check(...);
+};
+struct has_value_type_impl
+{
+    template<typename T> static std::true_type  check(typename T::value_type*);
+    template<typename T> static std::false_type check(...);
+};
+struct has_key_type_impl
+{
+    template<typename T> static std::true_type  check(typename T::key_type*);
+    template<typename T> static std::false_type check(...);
+};
+struct has_mapped_type_impl
+{
+    template<typename T> static std::true_type  check(typename T::mapped_type*);
+    template<typename T> static std::false_type check(...);
+};
+
+template<typename T>
+struct has_iterator    : decltype(has_iterator_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_value_type  : decltype(has_value_type_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_key_type    : decltype(has_key_type_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
+
+template<typename T>
+struct is_container : std::integral_constant<bool,
+    has_iterator<T>::value && has_value_type<T>::value>{};
+
+template<typename T>
+struct is_map : std::integral_constant<bool,
+    has_iterator<T>::value && has_key_type<T>::value &&
+    has_mapped_type<T>::value>{};
+
+}// detail
+}//toml
+#endif // TOML_TRAITS

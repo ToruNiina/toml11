@@ -1,35 +1,9 @@
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2017 Toru Niina
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-#ifndef TOML_FOR_MODERN_CPP
-#define TOML_FOR_MODERN_CPP
+#ifndef TOML11_VALUE
+#define TOML11_VALUE
 #include "datetime.hpp"
-#include <type_traits>
-#include <utility>
-#include <stdexcept>
-#include <memory>
-#include <string>
+#include "traits.hpp"
+#include "utility.hpp"
+#include "exception.hpp"
 #include <vector>
 #include <tuple>
 #include <unordered_map>
@@ -106,9 +80,6 @@ namespace detail
 {
 
 template<typename T>
-using unwrap_t = typename std::decay<T>::type;
-
-template<typename T>
 constexpr inline value_t check_type()
 {
     return std::is_same<unwrap_t<T>,        toml::Boolean >::value ? value_t::Boolean :
@@ -131,56 +102,6 @@ template<>           struct is_toml_array<toml::Array> : std::true_type {};
 template<typename T> struct is_toml_table              : std::false_type{};
 template<>           struct is_toml_table<toml::Table> : std::true_type {};
 
-template<value_t t> struct toml_default_type{};
-template<> struct toml_default_type<value_t::Boolean >{typedef Boolean  type;};
-template<> struct toml_default_type<value_t::Integer >{typedef Integer  type;};
-template<> struct toml_default_type<value_t::Float   >{typedef Float    type;};
-template<> struct toml_default_type<value_t::String  >{typedef String   type;};
-template<> struct toml_default_type<value_t::Datetime>{typedef Datetime type;};
-template<> struct toml_default_type<value_t::Array   >{typedef Array    type;};
-template<> struct toml_default_type<value_t::Table   >{typedef Table    type;};
-template<> struct toml_default_type<value_t::Empty   >{typedef void     type;};
-template<> struct toml_default_type<value_t::Unknown >{typedef void     type;};
-
-struct has_iterator_impl
-{
-    template<typename T> static std::true_type  check(typename T::iterator*);
-    template<typename T> static std::false_type check(...);
-};
-struct has_value_type_impl
-{
-    template<typename T> static std::true_type  check(typename T::value_type*);
-    template<typename T> static std::false_type check(...);
-};
-struct has_key_type_impl
-{
-    template<typename T> static std::true_type  check(typename T::key_type*);
-    template<typename T> static std::false_type check(...);
-};
-struct has_mapped_type_impl
-{
-    template<typename T> static std::true_type  check(typename T::mapped_type*);
-    template<typename T> static std::false_type check(...);
-};
-
-template<typename T>
-struct has_iterator    : decltype(has_iterator_impl::check<T>(nullptr)){};
-template<typename T>
-struct has_value_type  : decltype(has_value_type_impl::check<T>(nullptr)){};
-template<typename T>
-struct has_key_type    : decltype(has_key_type_impl::check<T>(nullptr)){};
-template<typename T>
-struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
-
-template<typename T>
-struct is_container : std::integral_constant<bool,
-    has_iterator<T>::value && has_value_type<T>::value>{};
-
-template<typename T>
-struct is_map : std::integral_constant<bool,
-    has_iterator<T>::value && has_key_type<T>::value &&
-    has_mapped_type<T>::value>{};
-
 struct is_key_convertible_impl
 {
     template<typename T>
@@ -191,6 +112,17 @@ struct is_key_convertible_impl
 };
 template<typename T>
 struct is_key_convertible : decltype(is_key_convertible_impl::check<T>(nullptr)){};
+
+template<value_t t> struct toml_default_type{};
+template<> struct toml_default_type<value_t::Boolean >{typedef Boolean  type;};
+template<> struct toml_default_type<value_t::Integer >{typedef Integer  type;};
+template<> struct toml_default_type<value_t::Float   >{typedef Float    type;};
+template<> struct toml_default_type<value_t::String  >{typedef String   type;};
+template<> struct toml_default_type<value_t::Datetime>{typedef Datetime type;};
+template<> struct toml_default_type<value_t::Array   >{typedef Array    type;};
+template<> struct toml_default_type<value_t::Table   >{typedef Table    type;};
+template<> struct toml_default_type<value_t::Empty   >{typedef void     type;};
+template<> struct toml_default_type<value_t::Unknown >{typedef void     type;};
 
 struct storage_base
 {
@@ -220,56 +152,6 @@ struct storage : public storage_base
     value_type value;
 };
 } // detail
-
-/* -------------------------------------------------------------------------- */
-template<typename T, typename ... Ts>
-inline std::unique_ptr<T> make_unique(Ts&& ... args)
-{
-    return std::unique_ptr<T>(new T(std::forward<Ts>(args)...));
-}
-
-struct exception : public std::exception
-{
-  public:
-    virtual ~exception() override = default;
-    virtual const char* what() const noexcept override {return "";}
-};
-
-struct syntax_error : public toml::exception
-{
-  public:
-    explicit syntax_error(const std::string& what_arg) : what_(what_arg){}
-    explicit syntax_error(const char* what_arg)        : what_(what_arg){}
-    virtual ~syntax_error() override = default;
-    virtual const char* what() const noexcept override {return what_.c_str();}
-
-  protected:
-    std::string what_;
-};
-
-struct type_error : public toml::exception
-{
-  public:
-    explicit type_error(const std::string& what_arg) : what_(what_arg){}
-    explicit type_error(const char* what_arg)        : what_(what_arg){}
-    virtual ~type_error() override = default;
-    virtual const char* what() const noexcept override {return what_.c_str();}
-
-  protected:
-    std::string what_;
-};
-
-struct internal_error : public toml::exception
-{
-  public:
-    explicit internal_error(const std::string& what_arg) : what_(what_arg){}
-    explicit internal_error(const char* what_arg)        : what_(what_arg){}
-    virtual ~internal_error() override = default;
-    virtual const char* what() const noexcept override {return what_.c_str();}
-  protected:
-    std::string what_;
-};
-/* -------------------------------------------------------------------------- */
 
 template<typename T>
 struct value_traits
@@ -820,192 +702,5 @@ inline bool operator>=(const toml::value& lhs, const toml::value& rhs)
     return !(lhs < rhs);
 }
 
-/* ------------------------------- to_toml ---------------------------------- */
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT != toml::value_t::Unknown &&
-         vT != value_t::Empty), std::nullptr_t>::type = nullptr>
-inline toml::value to_toml(T&& x)
-{
-    return toml::value(std::forward<T>(x));
-}
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT == toml::value_t::Unknown) &&
-         (!toml::detail::is_map<T>::value) &&
-         toml::detail::is_container<T>::value, std::nullptr_t>::type = nullptr>
-toml::value to_toml(T&& x)
-{
-    toml::Array tmp; tmp.reserve(std::distance(std::begin(x), std::end(x)));
-    for(auto iter = std::begin(x); iter != std::end(x); ++iter)
-        tmp.emplace_back(*iter);
-    return toml::value(std::move(tmp));
-}
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT == toml::value_t::Unknown) &&
-         toml::detail::is_map<T>::value, std::nullptr_t>::type = nullptr>
-toml::value to_toml(T&& x)
-{
-    toml::Table tmp;
-    for(auto iter = std::begin(x); iter != std::end(x); ++iter)
-        tmp.emplace(iter->first, to_toml(iter->second));
-    return toml::value(std::move(tmp));
-}
-
-template<typename T>
-inline toml::value to_toml(std::initializer_list<T> init)
-{
-    return toml::value(std::move(init));
-}
-
-inline toml::value
-to_toml(std::initializer_list<std::pair<std::string, toml::value>> init)
-{
-    return toml::value(std::move(init));
-}
-
-/* ------------------------------ from_toml --------------------------------- */
-
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT != toml::value_t::Unknown &&
-         vT != value_t::Empty), std::nullptr_t>::type = nullptr>
-void from_toml(T& x, const toml::value& v)
-{
-    if(v.type() != vT)
-        throw type_error("from_toml: value type: " + stringize(v.type()) +
-                std::string(" is not arguemnt type: ") + stringize(vT));
-    x = v.cast<vT>();
-    return;
-}
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT == toml::value_t::Unknown) &&
-         (!toml::detail::is_map<T>::value) &&
-         toml::detail::is_container<T>::value, std::nullptr_t>::type = nullptr>
-void from_toml(T& x, const toml::value& v)
-{
-    // TODO the case of x is not dynamic container case
-    if(v.type() != value_t::Array)
-        throw type_error("from_toml: value type: " + stringize(v.type()) +
-                         std::string(" is not argument type: Array"));
-    const auto& ar = v.cast<value_t::Array>();
-    for(const auto& val : ar)
-    {
-        typename T::value_type v;
-        from_toml(v, val);
-        x.push_back(std::move(v));
-    }
-    return;
-}
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT == toml::value_t::Unknown) &&
-         toml::detail::is_map<T>::value, std::nullptr_t>::type = nullptr>
-void from_toml(T& x, const toml::value& v)
-{
-    if(v.type() != value_t::Table)
-        throw type_error("from_toml: value type: " + stringize(v.type()) +
-                         std::string(" is not argument type: Table"));
-    x.clear();
-    const auto& tb = v.cast<value_t::Table>();
-    for(const auto& kv : tb)
-    {
-        x.insert(kv);
-    }
-    return;
-}
-
-namespace detail
-{
-
-template<typename T>
-constexpr toml::value_t determine_castable_type()
-{
-    return check_type<T>() != toml::value_t::Unknown ? check_type<T>() :
-           toml::detail::is_map<T>::value            ? toml::value_t::Table :
-           toml::detail::is_container<T>::value      ? toml::value_t::Array :
-           toml::value_t::Unknown;
-}
-
-template<std::size_t N, typename ... Ts>
-struct from_toml_tie_impl
-{
-    constexpr static std::size_t   index = sizeof...(Ts) - N;
-    constexpr static toml::value_t type_index =
-        determine_castable_type<
-            typename std::tuple_element<index, std::tuple<Ts...>>::type>();
-
-    static void invoke(std::tuple<Ts& ...> tie, const toml::value& v)
-    {
-        if(type_index == v.type())
-        {
-            from_toml(std::get<index>(tie), v);
-            return;
-        }
-        return from_toml_tie_impl<N-1, Ts...>::invoke(tie, v);
-    }
-};
-
-template<typename ... Ts>
-struct from_toml_tie_impl<0, Ts...>
-{
-    static void invoke(std::tuple<Ts& ...> tie, const toml::value& v)
-    {
-        throw type_error("from_toml(tie, value): no match");
-    }
-};
-
-} // detail
-
-template<typename ... Ts>
-void from_toml(std::tuple<Ts& ...> tie, const toml::value& v)
-{
-    detail::from_toml_tie_impl<sizeof...(Ts), Ts...>::invoke(tie, v);
-    return;
-}
-
-/* ------------------------------ get --------------------------------- */
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT != toml::value_t::Unknown &&
-         vT != value_t::Empty), std::nullptr_t>::type = nullptr>
-inline T get(const toml::value& v)
-{
-    return static_cast<T>(v.cast<vT>());
-}
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT == toml::value_t::Unknown) &&
-         (!toml::detail::is_map<T>::value) &&
-         toml::detail::is_container<T>::value, std::nullptr_t>::type = nullptr>
-T get(const toml::value& v)
-{
-    if(v.type() != value_t::Array)
-        throw type_error("from_toml: value type: " + stringize(v.type()) +
-                         std::string(" is not argument type: Array"));
-    T tmp;
-    from_toml(tmp, v);
-    return tmp;
-}
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT == toml::value_t::Unknown) &&
-         toml::detail::is_map<T>::value, std::nullptr_t>::type = nullptr>
-T get(const toml::value& v)
-{
-    if(v.type() != value_t::Table)
-        throw type_error("from_toml: value type: " + stringize(v.type()) +
-                         std::string(" is not argument type: Table"));
-    T tmp;
-    from_toml(tmp, v);
-    return tmp;
-}
-
-
-
-
-
 }// toml
-#endif// TOML_FOR_MODERN_CPP
+#endif// TOML11_VALUE
