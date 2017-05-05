@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(test_datetime_convertible)
 
     BOOST_CHECK_EQUAL(d3, d4);
 
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     const auto later = std::chrono::system_clock::now();
     toml::Datetime d5(later);
     BOOST_CHECK(d1 < d5);
