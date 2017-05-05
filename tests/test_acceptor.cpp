@@ -413,8 +413,7 @@ BOOST_AUTO_TEST_CASE(test_array)
     }
 }
 
-
-BOOST_AUTO_TEST_CASE(test_table)
+BOOST_AUTO_TEST_CASE(test_inline_table)
 {
     using is_valid = toml::is_inline_table<char>;
     {
@@ -434,6 +433,16 @@ BOOST_AUTO_TEST_CASE(test_table)
         BOOST_CHECK(is_valid::invoke(tab6.cbegin()) == tab6.cend());
         const std::string tab7("{hoge = 1, piyo = 2, fuga = 3, }");
         BOOST_CHECK(is_valid::invoke(tab7.cbegin()) == tab7.cend());
+    }
+    {
+        const std::string tab0("{hoge = [1,2,3], piyo = {fuga = {}}}");
+        BOOST_CHECK(is_valid::invoke(tab0.cbegin()) == tab0.cend());
+        const std::string tab1("{hoge = \"}\", piyo = \"#\"}");
+        BOOST_CHECK(is_valid::invoke(tab1.cbegin()) == tab1.cend());
+    }
+    {
+        const std::string tab0("{hoge = \"}\",\n piyo = \"#\"}");
+        BOOST_CHECK(is_valid::invoke(tab0.cbegin()) == tab0.cbegin());
     }
 }
 
