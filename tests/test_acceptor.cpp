@@ -281,3 +281,127 @@ BOOST_AUTO_TEST_CASE(test_float)
     }
 }
 
+BOOST_AUTO_TEST_CASE(test_boolean)
+{
+    using is_valid = toml::is_boolean<char>;
+    {
+        const std::string t("true");
+        BOOST_CHECK(is_valid::invoke(t.cbegin()) == t.cend());
+        const std::string f("false");
+        BOOST_CHECK(is_valid::invoke(f.cbegin()) == f.cend());
+    }
+    {
+        const std::string t("True");
+        BOOST_CHECK(is_valid::invoke(t.cbegin()) == t.cbegin());
+        const std::string f("False");
+        BOOST_CHECK(is_valid::invoke(f.cbegin()) == f.cbegin());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_localtime)
+{
+    using is_valid = toml::is_local_time<char>;
+    {
+        const std::string t("07:32:00");
+        BOOST_CHECK(is_valid::invoke(t.cbegin()) == t.cend());
+        const std::string tf("07:32:00.0000");
+        BOOST_CHECK(is_valid::invoke(tf.cbegin()) == tf.cend());
+    }
+    {
+        const std::string d("1907-32-00");
+        BOOST_CHECK(is_valid::invoke(d.cbegin()) == d.cbegin());
+        const std::string f("1907:32:00");
+        BOOST_CHECK(is_valid::invoke(f.cbegin()) == f.cbegin());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_localdate)
+{
+    using is_valid = toml::is_local_date<char>;
+    {
+        const std::string d("1907-32-00");
+        BOOST_CHECK(is_valid::invoke(d.cbegin()) == d.cend());
+    }
+    {
+        const std::string t("07:32:00");
+        BOOST_CHECK(is_valid::invoke(t.cbegin()) == t.cbegin());
+        const std::string f("1907:32:00");
+        BOOST_CHECK(is_valid::invoke(f.cbegin()) == f.cbegin());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_localdatetime)
+{
+    using is_valid = toml::is_local_date_time<char>;
+    {
+        const std::string dt("1907-32-00T07:32:00");
+        BOOST_CHECK(is_valid::invoke(dt.cbegin()) == dt.cend());
+        const std::string dtf("1907-32-00T07:32:00.0000");
+        BOOST_CHECK(is_valid::invoke(dtf.cbegin()) == dtf.cend());
+    }
+    {
+        const std::string d("1907-32-00");
+        BOOST_CHECK(is_valid::invoke(d.cbegin()) == d.cbegin());
+        const std::string t("07:32:00");
+        BOOST_CHECK(is_valid::invoke(t.cbegin()) == t.cbegin());
+        const std::string f("1907-32-00 07:32:00");
+        BOOST_CHECK(is_valid::invoke(f.cbegin()) == f.cbegin());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_offsetdatetime)
+{
+    using is_valid = toml::is_offset_date_time<char>;
+    {
+        const std::string dtZ("1907-32-00T07:32:00Z");
+        BOOST_CHECK(is_valid::invoke(dtZ.cbegin()) == dtZ.cend());
+        const std::string dtfZ("1907-32-00T07:32:00.0000Z");
+        BOOST_CHECK(is_valid::invoke(dtfZ.cbegin()) == dtfZ.cend());
+        const std::string dtp("1907-32-00T07:32:00+12:34");
+        BOOST_CHECK(is_valid::invoke(dtp.cbegin()) == dtp.cend());
+        const std::string dtfp("1907-32-00T07:32:00.0000+12:34");
+        BOOST_CHECK(is_valid::invoke(dtfp.cbegin()) == dtfp.cend());
+        const std::string dtn("1907-32-00T07:32:00-12:34");
+        BOOST_CHECK(is_valid::invoke(dtn.cbegin()) == dtn.cend());
+        const std::string dtfn("1907-32-00T07:32:00.0000-12:34");
+        BOOST_CHECK(is_valid::invoke(dtfn.cbegin()) == dtfn.cend());
+    }
+    {
+        const std::string d("1907-32-00");
+        BOOST_CHECK(is_valid::invoke(d.cbegin()) == d.cbegin());
+        const std::string t("07:32:00");
+        BOOST_CHECK(is_valid::invoke(t.cbegin()) == t.cbegin());
+        const std::string l("1907-32-00T07:32:00");
+        BOOST_CHECK(is_valid::invoke(l.cbegin()) == l.cbegin());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_array)
+{
+    using is_valid = toml::is_array<char>;
+    {
+        const std::string arr1("[1,2,3]");
+        BOOST_CHECK(is_valid::invoke(arr1.cbegin()) == arr1.cend());
+        const std::string arr2("[ 1,2,3 ]");
+        BOOST_CHECK(is_valid::invoke(arr2.cbegin()) == arr2.cend());
+        const std::string arr3("[ 1, 2, 3 ]");
+        BOOST_CHECK(is_valid::invoke(arr3.cbegin()) == arr3.cend());
+        const std::string arr4("[ 1, 2, 3, ]");
+        BOOST_CHECK(is_valid::invoke(arr4.cbegin()) == arr4.cend());
+        const std::string arr5("[ 1, 2, 3,]");
+        BOOST_CHECK(is_valid::invoke(arr5.cbegin()) == arr5.cend());
+    }
+    {
+        const std::string arr1("[\"red\", \"yellow\", \"green\"]");
+        BOOST_CHECK(is_valid::invoke(arr1.cbegin()) == arr1.cend());
+        const std::string arr2("[\"]\", \"#\", \"  \"]");
+        BOOST_CHECK(is_valid::invoke(arr2.cbegin()) == arr2.cend());
+    }
+}
+
+
+
+
+
+
+

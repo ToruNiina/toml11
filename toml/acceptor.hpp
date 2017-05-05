@@ -447,8 +447,12 @@ using is_local_time =
         is_repeat_of<is_number<charT>, 2>,
         is_charactor<charT, ':'>,
         is_repeat_of<is_number<charT>, 2>,
-        is_ignorable<is_repeat_of<is_number<charT>,
-                         std::numeric_limits<charT>::infinity()>
+        is_ignorable<
+            is_chain_of<
+                is_charactor<charT, '.'>,
+                is_repeat_of<is_number<charT>,
+                             std::numeric_limits<charT>::infinity()>
+            >
         >
     >;
 
@@ -499,10 +503,10 @@ using is_elemental_type =
         is_integer<charT>,
         is_float<charT>,
         is_boolean<charT>,
-        is_local_time<charT>,
-        is_local_date<charT>,
+        is_offset_date_time<charT>,
         is_local_date_time<charT>,
-        is_offset_date_time<charT>
+        is_local_date<charT>,
+        is_local_time<charT>
     >;
 
 template<typename charT>
@@ -527,14 +531,16 @@ using is_array =
         is_ignorable<
             is_repeat_of<
                 is_chain_of<is_array_component<charT>, is_charactor<charT, ','>>,
-                std::numeric_limits<charT>::infinite()
+                std::numeric_limits<charT>::infinity()
             >
         >,
         is_ignorable<
             is_chain_of<
-                is_array_component<charT>, is_ignorable<is_charactor<charT, ','>>
+                is_array_component<charT>,
+                is_ignorable<is_charactor<charT, ','>>
             >
         >,
+        is_ignorable<is_skippable_in_array<charT>>,
         is_charactor<charT, ']'>
     >;
 
