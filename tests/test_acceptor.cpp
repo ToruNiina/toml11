@@ -380,6 +380,8 @@ BOOST_AUTO_TEST_CASE(test_array)
 {
     using is_valid = toml::is_array<char>;
     {
+        const std::string arr0("[]");
+        BOOST_CHECK(is_valid::invoke(arr0.cbegin()) == arr0.cend());
         const std::string arr1("[1,2,3]");
         BOOST_CHECK(is_valid::invoke(arr1.cbegin()) == arr1.cend());
         const std::string arr2("[ 1,2,3 ]");
@@ -390,16 +392,50 @@ BOOST_AUTO_TEST_CASE(test_array)
         BOOST_CHECK(is_valid::invoke(arr4.cbegin()) == arr4.cend());
         const std::string arr5("[ 1, 2, 3,]");
         BOOST_CHECK(is_valid::invoke(arr5.cbegin()) == arr5.cend());
+        const std::string arr6("[ 1 , 2 , 3 ,]");
+        BOOST_CHECK(is_valid::invoke(arr6.cbegin()) == arr6.cend());
     }
     {
         const std::string arr1("[\"red\", \"yellow\", \"green\"]");
         BOOST_CHECK(is_valid::invoke(arr1.cbegin()) == arr1.cend());
         const std::string arr2("[\"]\", \"#\", \"  \"]");
         BOOST_CHECK(is_valid::invoke(arr2.cbegin()) == arr2.cend());
+        const std::string arr3("[[1, 2, 3], ['a', 'b', 'c']]");
+        BOOST_CHECK(is_valid::invoke(arr3.cbegin()) == arr3.cend());
+        const std::string arr4("[{hoge = 1}, {piyo = 'a'}, {fuga = [1,2,3]}]");
+        BOOST_CHECK(is_valid::invoke(arr4.cbegin()) == arr4.cend());
+    }
+    {
+        const std::string arr1("[1,\n2,#comment\n3]");
+        BOOST_CHECK(is_valid::invoke(arr1.cbegin()) == arr1.cend());
+        const std::string arr2("[1,\n2,#comment\r\n3]");
+        BOOST_CHECK(is_valid::invoke(arr2.cbegin()) == arr2.cend());
     }
 }
 
 
+BOOST_AUTO_TEST_CASE(test_table)
+{
+    using is_valid = toml::is_inline_table<char>;
+    {
+        const std::string tab0("{}");
+        BOOST_CHECK(is_valid::invoke(tab0.cbegin()) == tab0.cend());
+        const std::string tab1("{hoge=1,piyo=2,fuga=3}");
+        BOOST_CHECK(is_valid::invoke(tab1.cbegin()) == tab1.cend());
+        const std::string tab2("{hoge=1, piyo=2, fuga=3}");
+        BOOST_CHECK(is_valid::invoke(tab2.cbegin()) == tab2.cend());
+        const std::string tab3("{ hoge=1, piyo=2, fuga=3 }");
+        BOOST_CHECK(is_valid::invoke(tab3.cbegin()) == tab3.cend());
+        const std::string tab4("{ hoge = 1, piyo = 2, fuga = 3 }");
+        BOOST_CHECK(is_valid::invoke(tab4.cbegin()) == tab4.cend());
+        const std::string tab5("{hoge = 1, piyo = 2, fuga = 3}");
+        BOOST_CHECK(is_valid::invoke(tab5.cbegin()) == tab5.cend());
+        const std::string tab6("{hoge = 1, piyo = 2, fuga = 3,}");
+        BOOST_CHECK(is_valid::invoke(tab6.cbegin()) == tab6.cend());
+        const std::string tab7("{hoge = 1, piyo = 2, fuga = 3, }");
+        BOOST_CHECK(is_valid::invoke(tab7.cbegin()) == tab7.cend());
+    }
+}
 
 
 

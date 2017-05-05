@@ -144,6 +144,8 @@ struct is_chain_of
     }
 };
 
+constexpr inline std::size_t repeat_infinite(){return 0ul;}
+
 template<typename condT, std::size_t N>
 struct is_repeat_of
 {
@@ -167,8 +169,7 @@ struct is_repeat_of
 };
 
 template<typename condT>
-struct is_repeat_of<condT,
-    std::numeric_limits<typename condT::value_type>::infinity()>
+struct is_repeat_of<condT, 0>
 {
     typedef typename condT::value_type value_type;
 
@@ -261,14 +262,12 @@ template<typename charT>
 using is_barekey_component = is_one_of<is_alphabet<charT>, is_number<charT>,
     is_charactor<charT, '_'>, is_charactor<charT, '-'>>;
 template<typename charT>
-using is_barekey = is_repeat_of<is_barekey_component<charT>,
-                                std::numeric_limits<charT>::infinity()>;
+using is_barekey = is_repeat_of<is_barekey_component<charT>, repeat_infinite()>;
 template<typename charT>
 using is_comment =
     is_chain_of<
         is_charactor<charT, '#'>,
-        is_repeat_of<is_none_of<is_newline<charT>>,
-                     std::numeric_limits<charT>::infinity()>,
+        is_repeat_of<is_none_of<is_newline<charT>>, repeat_infinite()>,
         is_newline<charT>
     >;
 
@@ -296,7 +295,7 @@ using is_basic_inline_string =
         is_chain_of<
             is_charactor<charT, '\"'>,
             is_ignorable<is_repeat_of<is_basic_inline_string_component<charT>,
-                             std::numeric_limits<charT>::infinity()>>,
+                                      repeat_infinite()>>,
             is_charactor<charT, '\"'>
         >
     >;
@@ -325,7 +324,7 @@ using is_basic_multiline_string =
     is_chain_of<
         is_repeat_of<is_charactor<charT, '\"'>, 3>,
         is_ignorable<is_repeat_of<is_basic_multiline_string_component<charT>,
-                         std::numeric_limits<charT>::infinity()>>,
+                                  repeat_infinite()>>,
         is_repeat_of<is_charactor<charT, '\"'>, 3>
     >;
 
@@ -340,7 +339,7 @@ using is_literal_inline_string =
         is_chain_of<
             is_charactor<charT, '\''>,
             is_ignorable<is_repeat_of<is_literal_inline_string_component<charT>,
-                         std::numeric_limits<charT>::infinity()>>,
+                                      repeat_infinite()>>,
             is_charactor<charT, '\''>
         >
     >;
@@ -358,7 +357,7 @@ using is_literal_multiline_string =
     is_chain_of<
         is_repeat_of<is_charactor<charT, '\''>, 3>,
         is_ignorable<is_repeat_of<is_literal_multiline_string_component<charT>,
-                         std::numeric_limits<charT>::infinity()>>,
+                                  repeat_infinite()>>,
         is_repeat_of<is_charactor<charT, '\''>, 3>
     >;
 
@@ -384,7 +383,7 @@ using is_integer =
             is_chain_of<
                 is_nonzero_number<charT>,
                 is_ignorable<is_repeat_of<is_integer_component<charT>,
-                                 std::numeric_limits<charT>::infinity()>
+                                          repeat_infinite()>
                 >
             >
         >
@@ -394,8 +393,7 @@ template<typename charT>
 using is_fractional_part =
     is_chain_of<
         is_charactor<charT, '.'>,
-        is_repeat_of<is_integer_component<charT>,
-                     std::numeric_limits<charT>::infinity()>
+        is_repeat_of<is_integer_component<charT>, repeat_infinite()>
     >;
 template<typename charT>
 using is_exponent_part =
@@ -450,8 +448,7 @@ using is_local_time =
         is_ignorable<
             is_chain_of<
                 is_charactor<charT, '.'>,
-                is_repeat_of<is_number<charT>,
-                             std::numeric_limits<charT>::infinity()>
+                is_repeat_of<is_number<charT>, repeat_infinite()>
             >
         >
     >;
@@ -494,7 +491,7 @@ using is_offset_date_time =
     >;
 
 template<typename charT>
-using is_elemental_type =
+using is_fundamental_type =
     is_one_of<
         is_basic_inline_string<charT>,
         is_basic_multiline_string<charT>,
@@ -513,36 +510,122 @@ template<typename charT>
 using is_skippable_in_array =
     is_repeat_of<
         is_one_of<is_whitespace<charT>, is_newline<charT>, is_comment<charT>>,
-        std::numeric_limits<charT>::infinity()
+        repeat_infinite()
     >;
 
 template<typename charT>
-using is_array_component =
-    is_chain_of<
-        is_ignorable<is_skippable_in_array<charT>>,
-        is_elemental_type<charT>,
-        is_ignorable<is_skippable_in_array<charT>>
+struct is_inline_table;
+
+template<typename charT>
+using is_key =
+    is_one_of<
+        is_barekey<charT>,
+        is_basic_inline_string<charT>,
+        is_literal_inline_string<charT>
     >;
 
 template<typename charT>
-using is_array =
-    is_chain_of<
-        is_charactor<charT, '['>,
-        is_ignorable<
-            is_repeat_of<
-                is_chain_of<is_array_component<charT>, is_charactor<charT, ','>>,
-                std::numeric_limits<charT>::infinity()
-            >
-        >,
-        is_ignorable<
-            is_chain_of<
-                is_array_component<charT>,
-                is_ignorable<is_charactor<charT, ','>>
-            >
-        >,
-        is_ignorable<is_skippable_in_array<charT>>,
-        is_charactor<charT, ']'>
-    >;
+using is_skippable_in_inline_table =
+    is_repeat_of<is_whitespace<charT>, repeat_infinite()>;
+
+
+template<typename charT>
+struct is_array
+{
+    typedef charT value_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static Iterator invoke(Iterator iter)
+    {
+        typedef is_one_of<is_fundamental_type<charT>,
+                          is_array<charT>, is_inline_table<charT>> is_component;
+
+        typedef is_chain_of<
+            is_charactor<charT, '['>,
+            is_ignorable<
+                is_repeat_of<
+                    is_chain_of<
+                        is_ignorable<is_skippable_in_array<charT>>,
+                        is_component,
+                        is_ignorable<is_skippable_in_array<charT>>,
+                        is_charactor<charT, ','>
+                    >,
+                    repeat_infinite()
+                >
+            >,
+            is_ignorable<
+                    is_chain_of<
+                        is_ignorable<is_skippable_in_array<charT>>,
+                        is_component,
+                        is_ignorable<is_skippable_in_array<charT>>,
+                        is_ignorable<is_charactor<charT, ','>>
+                    >
+                >,
+            is_ignorable<is_skippable_in_array<charT>>,
+            is_charactor<charT, ']'>
+        > entity;
+        return entity::invoke(iter);
+    }
+};
+
+template<typename charT>
+struct is_inline_table
+{
+    typedef charT value_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static Iterator invoke(Iterator iter)
+    {
+        typedef is_one_of<is_fundamental_type<charT>,
+                          is_array<charT>, is_inline_table<charT>> is_component;
+        typedef is_chain_of<
+            is_ignorable<is_skippable_in_inline_table<charT>>,
+            is_key<charT>,
+            is_ignorable<is_skippable_in_inline_table<charT>>,
+            is_charactor<charT, '='>,
+            is_ignorable<is_skippable_in_inline_table<charT>>,
+            is_component,
+            is_ignorable<is_skippable_in_inline_table<charT>>
+        > is_inline_key_value_pair;
+
+        typedef is_chain_of<
+            is_charactor<charT, '{'>,
+            is_ignorable<
+                is_repeat_of<
+                    is_chain_of<
+                        is_ignorable<is_skippable_in_inline_table<charT>>,
+                        is_inline_key_value_pair,
+                        is_ignorable<is_skippable_in_inline_table<charT>>,
+                        is_charactor<charT, ','>
+                    >,
+                    repeat_infinite()
+                >
+            >,
+            is_ignorable<
+                    is_chain_of<
+                        is_ignorable<is_skippable_in_inline_table<charT>>,
+                        is_inline_key_value_pair,
+                        is_ignorable<is_skippable_in_inline_table<charT>>,
+                        is_ignorable<is_charactor<charT, ','>>
+                    >
+                >,
+            is_ignorable<is_skippable_in_inline_table<charT>>,
+            is_charactor<charT, '}'>
+            > entity;
+        return entity::invoke(iter);
+    }
+};
+
+
+
+
+
+
+
 
 }//toml
 #endif// TOML11_ACCEPTOR
