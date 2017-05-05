@@ -408,7 +408,7 @@ BOOST_AUTO_TEST_CASE(test_array)
     {
         const std::string arr1("[1,\n2,#comment\n3]");
         BOOST_CHECK(is_valid::invoke(arr1.cbegin()) == arr1.cend());
-        const std::string arr2("[1,\n2,#comment\r\n3]");
+        const std::string arr2("[#c\n1,\n2,#comment\r\n3]");
         BOOST_CHECK(is_valid::invoke(arr2.cbegin()) == arr2.cend());
     }
 }
@@ -446,7 +446,36 @@ BOOST_AUTO_TEST_CASE(test_inline_table)
     }
 }
 
+BOOST_AUTO_TEST_CASE(test_table_definition)
+{
+    using is_valid = toml::is_table_definition<char>;
+    {
+        const std::string simple("[hoge]");
+        BOOST_CHECK(is_valid::invoke(simple.cbegin()) == simple.cend());
+        const std::string dotted("[hoge.piyo.fuga]");
+        BOOST_CHECK(is_valid::invoke(dotted.cbegin()) == dotted.cend());
+        const std::string spaced_dotted("[hoge . piyo .fuga. foo]");
+        BOOST_CHECK(is_valid::invoke(spaced_dotted.cbegin()) == spaced_dotted.cend());
+        const std::string quoted("[\"hoge\"]");
+        BOOST_CHECK(is_valid::invoke(quoted.cbegin()) == quoted.cend());
+        const std::string quoted_dot("[\"hoge\".'piyo'.fuga]");
+        BOOST_CHECK(is_valid::invoke(quoted_dot.cbegin()) == quoted_dot.cend());
+    }
+}
 
-
-
-
+BOOST_AUTO_TEST_CASE(test_array_of_table_definition)
+{
+    using is_valid = toml::is_array_of_table_definition<char>;
+    {
+        const std::string simple("[[hoge]]");
+        BOOST_CHECK(is_valid::invoke(simple.cbegin()) == simple.cend());
+        const std::string dotted("[[hoge.piyo.fuga]]");
+        BOOST_CHECK(is_valid::invoke(dotted.cbegin()) == dotted.cend());
+        const std::string spaced_dotted("[[hoge . piyo .fuga. foo]]");
+        BOOST_CHECK(is_valid::invoke(spaced_dotted.cbegin()) == spaced_dotted.cend());
+        const std::string quoted("[[\"hoge\"]]");
+        BOOST_CHECK(is_valid::invoke(quoted.cbegin()) == quoted.cend());
+        const std::string quoted_dot("[[\"hoge\".'piyo'.fuga]]");
+        BOOST_CHECK(is_valid::invoke(quoted_dot.cbegin()) == quoted_dot.cend());
+    }
+}

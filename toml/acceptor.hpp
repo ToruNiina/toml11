@@ -256,6 +256,10 @@ using is_hex = is_one_of<is_number<charT>, is_in_range<charT, 'a', 'f'>,
 template<typename charT>
 using is_whitespace = is_one_of<is_space<charT>, is_tab<charT>>;
 template<typename charT>
+using is_any_num_of_ws =
+    is_ignorable<is_repeat_of<is_whitespace<charT>, repeat_infinite()>>;
+
+template<typename charT>
 using is_newline    = is_one_of<is_charactor<charT, '\n'>,
     is_chain_of<is_charactor<charT, '\r'>, is_charactor<charT, '\n'>>>;
 template<typename charT>
@@ -525,11 +529,6 @@ using is_key =
     >;
 
 template<typename charT>
-using is_skippable_in_inline_table =
-    is_repeat_of<is_whitespace<charT>, repeat_infinite()>;
-
-
-template<typename charT>
 struct is_array
 {
     typedef charT value_type;
@@ -583,13 +582,13 @@ struct is_inline_table
         typedef is_one_of<is_fundamental_type<charT>,
                           is_array<charT>, is_inline_table<charT>> is_component;
         typedef is_chain_of<
-            is_ignorable<is_skippable_in_inline_table<charT>>,
+            is_any_num_of_ws<charT>,
             is_key<charT>,
-            is_ignorable<is_skippable_in_inline_table<charT>>,
+            is_any_num_of_ws<charT>,
             is_charactor<charT, '='>,
-            is_ignorable<is_skippable_in_inline_table<charT>>,
+            is_any_num_of_ws<charT>,
             is_component,
-            is_ignorable<is_skippable_in_inline_table<charT>>
+            is_any_num_of_ws<charT>
         > is_inline_key_value_pair;
 
         typedef is_chain_of<
@@ -597,9 +596,9 @@ struct is_inline_table
             is_ignorable<
                 is_repeat_of<
                     is_chain_of<
-                        is_ignorable<is_skippable_in_inline_table<charT>>,
+                        is_any_num_of_ws<charT>,
                         is_inline_key_value_pair,
-                        is_ignorable<is_skippable_in_inline_table<charT>>,
+                        is_any_num_of_ws<charT>,
                         is_charactor<charT, ','>
                     >,
                     repeat_infinite()
@@ -607,25 +606,79 @@ struct is_inline_table
             >,
             is_ignorable<
                     is_chain_of<
-                        is_ignorable<is_skippable_in_inline_table<charT>>,
+                        is_any_num_of_ws<charT>,
                         is_inline_key_value_pair,
-                        is_ignorable<is_skippable_in_inline_table<charT>>,
+                        is_any_num_of_ws<charT>,
                         is_ignorable<is_charactor<charT, ','>>
                     >
                 >,
-            is_ignorable<is_skippable_in_inline_table<charT>>,
+            is_any_num_of_ws<charT>,
             is_charactor<charT, '}'>
             > entity;
         return entity::invoke(iter);
     }
 };
 
+template<typename charT>
+using is_value =
+    is_one_of<is_fundamental_type<charT>, is_array<charT>, is_inline_table<charT>>;
 
+// []
+template<typename charT>
+using is_table_definition =
+    is_chain_of<
+        is_any_num_of_ws<charT>,
+        is_charactor<charT, '['>,
+        is_any_num_of_ws<charT>,
+        is_ignorable<
+            is_repeat_of<
+                is_chain_of<
+                    is_any_num_of_ws<charT>,
+                    is_key<charT>,
+                    is_any_num_of_ws<charT>,
+                    is_charactor<charT, '.'>,
+                    is_any_num_of_ws<charT>
+                >,
+            repeat_infinite()>
+            >,
+        is_key<charT>,
+        is_charactor<charT, ']'>
+    >;
 
+template<typename charT>
+using is_array_of_table_definition =
+    is_chain_of<
+        is_any_num_of_ws<charT>,
+        is_repeat_of<is_charactor<charT, '['>, 2>,
+        is_ignorable<
+            is_repeat_of<
+                is_chain_of<
+                    is_any_num_of_ws<charT>,
+                    is_key<charT>,
+                    is_any_num_of_ws<charT>,
+                    is_charactor<charT, '.'>,
+                    is_any_num_of_ws<charT>
+                >,
+            repeat_infinite()>
+            >,
+        is_key<charT>,
+        is_repeat_of<is_charactor<charT, ']'>, 2>
+    >;
 
-
-
-
+template<typename charT>
+using is_key_value_pair =
+    is_chain_of<
+        is_any_num_of_ws<charT>,
+        is_key<charT>,
+        is_any_num_of_ws<charT>,
+        is_charactor<charT, '='>,
+        is_any_num_of_ws<charT>,
+        is_value<charT>,
+        is_any_num_of_ws<charT>,
+        is_ignorable<is_comment<charT>>,
+        is_any_num_of_ws<charT>,
+        is_newline<charT>
+    >;
 
 }//toml
 #endif// TOML11_ACCEPTOR
