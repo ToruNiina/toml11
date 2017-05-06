@@ -298,7 +298,6 @@ template<typename charT>
 struct parse_local_time
 {
     typedef charT value_type;
-    typedef parse_local_time<charT> this_type;
     typedef std::basic_string<value_type> string_type;
     typedef toml::Datetime result_type;
     typedef typename result_type::number_type number_type;
@@ -330,8 +329,8 @@ struct parse_local_time
         }
         else
         {
-            result.millisecond = this_type::parse_number(iter, iter + 3);
-            result.microsecond = this_type::parse_number(iter + 3, end);
+            result.millisecond = parse_number(iter, iter + 3);
+            result.microsecond = parse_number(iter + 3, end);
         }
         result.offset_hour   = result_type::nooffset;
         result.offset_minute = result_type::nooffset;
@@ -454,17 +453,6 @@ struct parse_offset_date_time
         return result;
     }
 };
-
-
-
-
-
-// template<typename Iterator>
-// toml::key parse_key(Iterator iter, Iterator end)
-// {
-//     const auto bare = accept_barekey_letter<Iterator>();
-//
-// }
 
 
 
