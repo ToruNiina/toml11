@@ -11,6 +11,8 @@ namespace toml
 template<typename unsignedT, typename intT>
 struct basic_datetime
 {
+    typedef unsignedT number_type;
+    typedef intT      offset_type;
     constexpr static unsignedT undef    = std::numeric_limits<unsignedT>::max();
     constexpr static intT      nooffset = std::numeric_limits<intT>::max();
 
@@ -37,7 +39,8 @@ struct basic_datetime
           millisecond(undef), microsecond(undef),
           offset_hour(nooffset), offset_minute(nooffset)
     {}
-    basic_datetime(unsignedT h, unsignedT m, unsignedT s, unsignedT ms, unsignedT us)
+    basic_datetime(unsignedT h, unsignedT m, unsignedT s,
+                   unsignedT ms, unsignedT us)
         : year(undef), month(undef), day(undef), hour(h), minute(m), second(s),
           millisecond(ms), microsecond(us),
           offset_hour(nooffset), offset_minute(nooffset)
