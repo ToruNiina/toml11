@@ -7,6 +7,7 @@ set(TEST_NAMES
     test_value_operator
     test_datetime
     test_acceptor
+    test_parser
     )
 
 add_definitions("-Wall -Wpedantic")
