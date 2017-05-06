@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <list>
 #include <deque>
-
+#include <array>
 
 
 BOOST_AUTO_TEST_CASE(test_get_exact)
@@ -86,33 +86,27 @@ BOOST_AUTO_TEST_CASE(test_get_cast)
     toml::value v6(a);
     toml::value v7(t);
 
-    std::size_t     u2 = toml::get<std::size_t>(v2);
-    float           u3 = toml::get<float>(v3);
-    std::deque<int> u4 = toml::get<std::deque<int>>(v6);
-    std::list<int>  u5 = toml::get<std::list<int> >(v6);
-    std::map<std::string, toml::value> u6 = toml::get<std::map<std::string, toml::value>>(v7);
+    const auto u2 = toml::get<std::size_t>(v2);
+    const auto u3 = toml::get<float>(v3);
+    const auto u4 = toml::get<std::deque<int>>(v6);
+    const auto u5 = toml::get<std::list<int> >(v6);
+    const auto u6 = toml::get<std::array<int,5>>(v6);
+    std::map<std::string, toml::value> u7 = toml::get<std::map<std::string, toml::value>>(v7);
 
-    std::deque<int> r4;
-    r4.push_back(2);
-    r4.push_back(7);
-    r4.push_back(1);
-    r4.push_back(8);
-    r4.push_back(2);
-    std::list<int>  r5;
-    r5.push_back(2);
-    r5.push_back(7);
-    r5.push_back(1);
-    r5.push_back(8);
-    r5.push_back(2);
+    std::deque<int> r4{2,7,1,8,2};
+    std::list<int>  r5{2,7,1,8,2};
+    std::array<int, 5> r6{{2,7,1,8,2}};
 
     BOOST_CHECK_EQUAL(u2, 42ul);
     BOOST_CHECK_CLOSE_FRACTION(u3, 3.14, 1e-3);
     const bool dq = r4 == u4;
     const bool ls = r5 == u5;
+    const bool ar = r6 == u6;
     BOOST_CHECK(dq);
     BOOST_CHECK(ls);
-    BOOST_CHECK_EQUAL(u6.at("val1").cast<toml::value_t::Boolean>(), true);
-    BOOST_CHECK_EQUAL(u6.at("val2").cast<toml::value_t::Integer>(), 42);
-    BOOST_CHECK_CLOSE_FRACTION(u6.at("val3").cast<toml::value_t::Float>(),3.14, 1e-3);
-    BOOST_CHECK_EQUAL(u6.at("val4").cast<toml::value_t::String>(),  "piyo");
+    BOOST_CHECK(ar);
+    BOOST_CHECK_EQUAL(u7.at("val1").cast<toml::value_t::Boolean>(), true);
+    BOOST_CHECK_EQUAL(u7.at("val2").cast<toml::value_t::Integer>(), 42);
+    BOOST_CHECK_CLOSE_FRACTION(u7.at("val3").cast<toml::value_t::Float>(),3.14, 1e-3);
+    BOOST_CHECK_EQUAL(u7.at("val4").cast<toml::value_t::String>(),  "piyo");
 }
