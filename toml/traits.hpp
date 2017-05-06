@@ -30,6 +30,12 @@ struct has_mapped_type_impl
     template<typename T> static std::true_type  check(typename T::mapped_type*);
     template<typename T> static std::false_type check(...);
 };
+struct has_resize_method_impl
+{
+    constexpr static std::size_t dummy=0;
+    template<typename T> static std::true_type  check(decltype(std::declval<T>().resize(dummy))*);
+    template<typename T> static std::false_type check(...);
+};
 
 template<typename T>
 struct has_iterator    : decltype(has_iterator_impl::check<T>(nullptr)){};
@@ -39,6 +45,8 @@ template<typename T>
 struct has_key_type    : decltype(has_key_type_impl::check<T>(nullptr)){};
 template<typename T>
 struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_resize_method : decltype(has_resize_method_impl::check<T>(nullptr)){};
 
 template<typename T>
 struct is_container : std::integral_constant<bool,
