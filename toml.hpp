@@ -30,7 +30,7 @@
 #endif
 
 #if __cplusplus < 201103L
-#    error "cannot use C++11"
+#    error "toml11 requires C++11 or later."
 #endif
 
 #include "toml/traits.hpp"
