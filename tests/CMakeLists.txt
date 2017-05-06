@@ -1,5 +1,6 @@
 set(TEST_NAMES
     test_traits
+    test_utility
     test_value
     test_to_toml
     test_from_toml
