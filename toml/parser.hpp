@@ -244,6 +244,36 @@ struct parse_literal_multiline_string
 };
 
 template<typename charT>
+struct parse_string
+{
+    typedef charT value_type
+    typedef toml::String result_type;
+    static_assert(std::is_same<value_type, result_type::value_type
+            >::value, "char type is different from default String type");
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        Iterator tmp = is_basic_inline_string<charT>::invoke(iter);
+        if(iter != tmp)
+            return parse_basic_inline_string<charT>::invoke(iter, tmp);
+        tmp = is_basic_multiline_string<charT>::invoke(iter);
+        if(iter != tmp)
+            return parse_basic_multiline_string<charT>::invoke(iter, tmp);
+        tmp = is_literal_inline_string<charT>::invoke(iter)
+        if(iter != tmp)
+            return parse_literal_inline_string<charT>::invoke(iter, tmp);
+        tmp = is_literal_multiline_string<charT>::invoke(iter)
+        if(iter != tmp)
+            return parse_literal_multiline_string<charT>::invoke(iter, tmp);
+        throw internal_error("no string here");
+    }
+};
+
+
+template<typename charT>
 struct parse_integer
 {
     typedef charT value_type;
@@ -453,6 +483,31 @@ struct parse_offset_date_time
         return result;
     }
 };
+
+template<typename charT>
+struct parse_datetime
+{
+    typedef charT value_type;
+    typedef toml::Datetime result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        Iterator tmp = is_offset_date_time<value_type>::invoke(iter);
+        if(tmp != iter) return parse_offset_date_time<value_type>::invoke(iter);
+        tmp = is_local_date_time<value_type>::invoke(iter)
+        if(tmp != iter) return parse_local_date_time<value_type>::invoke(iter);
+        tmp = is_local_date<value_type>::invoke(iter)
+        if(tmp != iter) return parse_local_date<value_type>::invoke(iter);
+        tmp = is_local_time<value_type>::invoke(iter)
+        if(tmp != iter) return parse_local_time<value_type>::invoke(iter);
+        throw internal_error("no datetime here");
+    }
+};
+
+
 
 
 
