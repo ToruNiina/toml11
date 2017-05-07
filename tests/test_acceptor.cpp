@@ -411,6 +411,14 @@ BOOST_AUTO_TEST_CASE(test_array)
         const std::string arr2("[#c\n1,\n2,#comment\r\n3]");
         BOOST_CHECK(is_valid::invoke(arr2.cbegin()) == arr2.cend());
     }
+
+    {
+        const std::string invalid("[1, 3.14, 'string']");
+        BOOST_CHECK(is_valid::invoke(invalid.cbegin()) == invalid.cbegin());
+        const std::string valid("[[1,2,3], [3.14, 2.71, 1.414], ['foo', 'bar']]");
+        BOOST_CHECK(is_valid::invoke(valid.cbegin()) == valid.cend());
+    }
+
 }
 
 BOOST_AUTO_TEST_CASE(test_inline_table)

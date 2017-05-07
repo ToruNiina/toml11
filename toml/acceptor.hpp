@@ -547,6 +547,34 @@ using is_key =
         is_literal_inline_string<charT>
     >;
 
+
+template<typename charT, typename is_array_component>
+using is_fixed_type_array =
+    is_chain_of<
+        is_charactor<charT, '['>,
+        is_ignorable<
+            is_repeat_of<
+                is_chain_of<
+                    is_ignorable<is_skippable_in_array<charT>>,
+                    is_array_component,
+                    is_ignorable<is_skippable_in_array<charT>>,
+                    is_charactor<charT, ','>
+                >,
+                repeat_infinite()
+            >
+        >,
+        is_ignorable<
+            is_chain_of<
+                is_ignorable<is_skippable_in_array<charT>>,
+                is_array_component,
+                is_ignorable<is_skippable_in_array<charT>>,
+                is_ignorable<is_charactor<charT, ','>>
+            >
+        >,
+        is_ignorable<is_skippable_in_array<charT>>,
+        is_charactor<charT, ']'>
+    >;
+
 template<typename charT>
 struct is_array
 {
@@ -557,34 +585,15 @@ struct is_array
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter)
     {
-        typedef is_one_of<is_fundamental_type<charT>,
-                          is_array<charT>, is_inline_table<charT>> is_component;
-
-        typedef is_chain_of<
-            is_charactor<charT, '['>,
-            is_ignorable<
-                is_repeat_of<
-                    is_chain_of<
-                        is_ignorable<is_skippable_in_array<charT>>,
-                        is_component,
-                        is_ignorable<is_skippable_in_array<charT>>,
-                        is_charactor<charT, ','>
-                    >,
-                    repeat_infinite()
-                >
-            >,
-            is_ignorable<
-                    is_chain_of<
-                        is_ignorable<is_skippable_in_array<charT>>,
-                        is_component,
-                        is_ignorable<is_skippable_in_array<charT>>,
-                        is_ignorable<is_charactor<charT, ','>>
-                    >
-                >,
-            is_ignorable<is_skippable_in_array<charT>>,
-            is_charactor<charT, ']'>
-        > entity;
-        return entity::invoke(iter);
+        return is_one_of<
+                is_fixed_type_array<charT, is_boolean<charT>>,
+                is_fixed_type_array<charT, is_integer<charT>>,
+                is_fixed_type_array<charT, is_float<charT>>,
+                is_fixed_type_array<charT, is_string<charT>>,
+                is_fixed_type_array<charT, is_datetime<charT>>,
+                is_fixed_type_array<charT, is_array<charT>>,
+                is_fixed_type_array<charT, is_inline_table<charT>>
+            >::invoke(iter);
     }
 };
 
