@@ -28,11 +28,21 @@ void from_toml(T& x, const toml::value& v)
         throw type_error("from_toml: value type: " + stringize(v.type()) +
                          std::string(" is not argument type: Array"));
     const auto& ar = v.cast<value_t::Array>();
+    try
+    {
+        toml::resize(x, ar.size());
+    }
+    catch(std::invalid_argument& iv)
+    {
+        throw toml::type_error("toml::from_toml: static array size is not enough");
+    }
+    auto iter = x.begin();
     for(const auto& val : ar)
     {
         typename T::value_type v;
         from_toml(v, val);
-        x.push_back(std::move(v));
+        *iter = std::move(v);
+        ++iter;
     }
     return;
 }

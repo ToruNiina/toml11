@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <list>
 #include <deque>
+#include <array>
 
 BOOST_AUTO_TEST_CASE(test_from_toml_exact)
 {
@@ -73,17 +74,8 @@ BOOST_AUTO_TEST_CASE(test_from_toml_cast)
 {
     toml::Integer  i(42);
     toml::Float    f(3.14);
-    toml::Array    a;
-    a.emplace_back(2);
-    a.emplace_back(7);
-    a.emplace_back(1);
-    a.emplace_back(8);
-    a.emplace_back(2);
-    toml::Table    t;
-    t.emplace("val1", true);
-    t.emplace("val2", 42);
-    t.emplace("val3", 3.14);
-    t.emplace("val4", "piyo");
+    toml::Array    a{2, 7, 1, 8, 2};
+    toml::Table    t{{"val1", true}, {"val2", 42}, {"val3", 3.14}, {"val4", "piyo"}};
 
     toml::value vi(i);
     toml::value vf(f);
@@ -95,39 +87,36 @@ BOOST_AUTO_TEST_CASE(test_from_toml_cast)
     float                   u3;
     std::list<int>          u4;
     std::deque<std::size_t> u5;
-    std::map<std::string, toml::value> u6;
+    std::array<long, 5>     u6;
+    std::map<std::string, toml::value> u7;
 
-    std::list<int> expect_list;
-    expect_list.push_back(2);
-    expect_list.push_back(7);
-    expect_list.push_back(1);
-    expect_list.push_back(8);
-    expect_list.push_back(2);
+    std::list<int>          expect_list{2,7,1,8,2};
+    std::deque<std::size_t> expect_deque{2,7,1,8,2};
+    std::array<long, 5>     expect_array{{2,7,1,8,2}};
 
     toml::from_toml(u1, vi);
     toml::from_toml(u2, vi);
     toml::from_toml(u3, vf);
     toml::from_toml(u4, va);
     toml::from_toml(u5, va);
-    toml::from_toml(u6, vt);
+    toml::from_toml(u6, va);
+    toml::from_toml(u7, vt);
 
     BOOST_CHECK_EQUAL(u1, 42);
     BOOST_CHECK_EQUAL(u2, 42ul);
     BOOST_CHECK_CLOSE_FRACTION(u3, 3.14, 1e-3);
 
-    bool same_list = (u4 == expect_list);
+    const bool same_list  = (u4 == expect_list);
+    const bool same_deque = (u5 == expect_deque);
+    const bool same_array = (u6 == expect_array);
     BOOST_CHECK(same_list);
+    BOOST_CHECK(same_deque);
+    BOOST_CHECK(same_array);
 
-    BOOST_CHECK_EQUAL(u5.at(0), 2);
-    BOOST_CHECK_EQUAL(u5.at(1), 7);
-    BOOST_CHECK_EQUAL(u5.at(2), 1);
-    BOOST_CHECK_EQUAL(u5.at(3), 8);
-    BOOST_CHECK_EQUAL(u5.at(4), 2);
-
-    BOOST_CHECK_EQUAL(u6["val1"].cast<toml::value_t::Boolean>(), true);
-    BOOST_CHECK_EQUAL(u6["val2"].cast<toml::value_t::Integer>(), 42);
-    BOOST_CHECK_CLOSE_FRACTION(u6["val3"].cast<toml::value_t::Float>(), 3.14, 1e-3);
-    BOOST_CHECK_EQUAL(u6["val4"].cast<toml::value_t::String >(), "piyo");
+    BOOST_CHECK_EQUAL(u7["val1"].cast<toml::value_t::Boolean>(), true);
+    BOOST_CHECK_EQUAL(u7["val2"].cast<toml::value_t::Integer>(), 42);
+    BOOST_CHECK_CLOSE_FRACTION(u7["val3"].cast<toml::value_t::Float>(), 3.14, 1e-3);
+    BOOST_CHECK_EQUAL(u7["val4"].cast<toml::value_t::String >(), "piyo");
 
 }
 
