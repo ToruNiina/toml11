@@ -366,6 +366,16 @@ using is_literal_multiline_string =
     >;
 
 template<typename charT>
+using is_string =
+    is_one_of<
+        is_basic_inline_string<charT>,
+        is_basic_multiline_string<charT>,
+        is_literal_inline_string<charT>,
+        is_literal_multiline_string<charT>
+    >;
+
+
+template<typename charT>
 using is_sign = is_one_of<is_charactor<charT, '+'>, is_charactor<charT, '-'>>;
 template<typename charT>
 using is_nonzero_number = is_in_range<charT, '1', '9'>;
@@ -492,6 +502,15 @@ using is_offset_date_time =
     is_chain_of<
         is_local_date_time<charT>,
         is_offset<charT>
+    >;
+
+template<typename charT>
+using is_datetime =
+    is_one_of<
+        is_offset_date_time<charT>,
+        is_local_date_time<charT>,
+        is_local_date<charT>,
+        is_local_time<charT>
     >;
 
 template<typename charT>
