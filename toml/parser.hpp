@@ -8,23 +8,6 @@ namespace toml
 {
 
 template<typename charT>
-struct parse_barekey
-{
-    typedef charT value_type;
-    typedef toml::key result_type;
-    static_assert(std::is_same<value_type, result_type::value_type
-            >::value, "char type is different from default key type");
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static result_type invoke(Iterator iter, Iterator end)
-    {
-        return result_type(iter, end);
-    }
-};
-
-template<typename charT>
 struct parse_escape_sequence
 {
     typedef charT value_type;
@@ -506,6 +489,207 @@ struct parse_datetime
         throw internal_error("no datetime here");
     }
 };
+
+template<typename charT, typename acceptorT, typename parserT>
+struct parse_fixed_type_array
+{
+    typedef charT value_type;
+    typedef toml::Array result_type;
+    typedef acceptorT acceptor_type;
+    typedef parserT   parser_type;
+    typedef is_skippable_in_array<charT> skippable;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        result_type result;
+        assert(*iter == '[' && *end == ']');
+        ++iter; --end;
+        iter = skippable::invoke(iter);
+        while(iter != end)
+        {
+            const Iterator tmp = acceptor_type::invoke(iter);
+            result.emplace_back(parser_type::invoke(iter, tmp));
+            iter = tmp;
+            iter = skippable::invoke(iter);
+            iter = is_charactor<charT, ','>::invoke(iter);
+            iter = skippable::invoke(iter);
+        }
+        return result;
+    }
+};
+
+template<typename charT>
+struct parse_inline_table;
+
+template<typename charT>
+struct parse_array
+{
+    typedef charT value_type;
+    typedef toml::Array result_type;
+    typedef is_skippable_in_array<charT> skippable;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        const Iterator init = skippable::invoke(std::next(iter));
+        if(is_boolean<charT>::invoke(init) != init)
+            return parse_fixed_type_array<charT, is_boolean<charT>,
+                       parse_boolean<charT>>::invoke(iter, end);
+
+        if(is_integer<charT>::invoke(init) != init)
+            return parse_fixed_type_array<charT, is_integer<charT>,
+                       parse_integer<charT>>::invoke(iter, end);
+
+        if(is_float<charT>::invoke(init) != init)
+            return parse_fixed_type_array<charT, is_float<charT>,
+                       parse_float<charT>>::invoke(iter, end);
+
+        if(is_string<charT>::invoke(init) != init)
+            return parse_fixed_type_array<charT, is_string<charT>,
+                       parse_string<charT>>::invoke(iter, end);
+
+        if(is_datetime<charT>::invoke(init) != init)
+            return parse_fixed_type_array<charT, is_datetime<charT>,
+                       parse_datetime<charT>>::invoke(iter, end);
+
+        if(is_array<charT>::invoke(init) != init)
+            return parse_fixed_type_array<charT, is_array<charT>,
+                       parse_array<charT>>::invoke(iter, end);
+
+        if(is_inline_table<charT>::invoke(init) != init)
+            return parse_fixed_type_array<charT, is_inline_table<charT>,
+                        parse_inline_table<charT>>::invoke(iter, end);
+
+        throw internal_error("no valid array here");
+    }
+};
+
+template<typename charT>
+struct parse_value
+{
+    typedef charT value_type;
+    typedef toml::value result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        if(iter != is_string<charT>::invoke(iter))
+            return result_type(parse_string<charT>::invoke(iter, end));
+        else if(iter != is_integer<charT>::invoke(iter))
+            return result_type(parse_integer<charT>::invoke(iter, end));
+        else if(iter != is_float<charT>::invoke(iter))
+            return result_type(parse_float<charT>::invoke(iter, end));
+        else if(iter != is_boolean<charT>::invoke(iter))
+            return result_type(parse_boolean<charT>::invoke(iter, end));
+        else if(iter != is_datetime<charT>::invoke(iter))
+            return result_type(parse_datetime<charT>::invoke(iter, end));
+        else if(iter != is_array<charT>::invoke(iter))
+            return result_type(parse_array<charT>::invoke(iter, end));
+        else if(iter != is_inline_table<charT>::invoke(iter))
+            return result_type(parse_inline_table<charT>::invoke(iter, end));
+
+        throw internal_error("no valid value here");
+    }
+};
+
+template<typename charT>
+struct parse_barekey
+{
+    typedef charT value_type;
+    typedef toml::key result_type;
+    static_assert(std::is_same<value_type, result_type::value_type
+            >::value, "char type is different from default key type");
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        return result_type(iter, end);
+    }
+};
+
+template<typename charT>
+struct parse_key
+{
+    typedef charT value_type;
+    typedef toml::key result_type;
+    static_assert(std::is_same<value_type, result_type::value_type
+            >::value, "char type is different from default key type");
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        if(iter != is_barekey<charT>::invoke(iter))
+            return parse_barekey<charT>(iter, end);
+        else if(iter != is_string<charT>::invoke(iter))
+            return parse_string<charT>(iter, end);
+        throw internal_error("no valid key here");
+    }
+};
+
+template<typename charT>
+struct parse_key_value_pair
+{
+    typedef charT value_type;
+    typedef std::pair<toml::key, toml::value> result_type;
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        Iterator tmp = is_key<charT>::invoke(iter);
+        const toml::key k = parse_key<charT>::invoke(iter, tmp);
+        iter = tmp;
+        iter = is_any_num_of_ws<charT>::invoke(iter);
+        assert(*iter == '='); ++iter;
+        iter = is_any_num_of_ws<charT>::invoke(iter);
+        tmp = is_value<charT>::invoke(iter);
+        const toml::value v = parse_value<charT>::invoke(iter, tmp);
+        return std::make_pair(k, v);
+    }
+};
+
+template<typename charT>
+struct parse_inline_table
+{
+    typedef charT value_type;
+    typedef toml::Table result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        assert(*iter == '{' && *end == '}');
+        ++iter; --end;
+        iter = is_any_num_of_ws<charT>::invoke(iter);
+
+        result_type result;
+
+        while(iter != end)
+        {
+            Iterator tmp = is_key_value_pair<charT>::invoke(iter);
+            result.emplace(parse_key_value_pair<charT>::invoke(iter, tmp));
+            iter = tmp;
+
+            iter = is_any_num_of_ws<charT>::invoke(iter);
+            iter = is_charactor<charT, ','>::invoke(iter);
+            iter = is_any_num_of_ws<charT>::invoke(iter);
+        }
+        return result;
+    }
+};
+
 
 
 }// toml
