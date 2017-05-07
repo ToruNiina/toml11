@@ -543,8 +543,7 @@ template<typename charT>
 using is_key =
     is_one_of<
         is_barekey<charT>,
-        is_basic_inline_string<charT>,
-        is_literal_inline_string<charT>
+        is_string<charT>
     >;
 
 
@@ -702,10 +701,7 @@ using is_key_value_pair =
         is_charactor<charT, '='>,
         is_any_num_of_ws<charT>,
         is_value<charT>,
-        is_any_num_of_ws<charT>,
-        is_ignorable<is_comment<charT>>,
-        is_any_num_of_ws<charT>,
-        is_newline<charT>
+        is_any_num_of_ws<charT>
     >;
 
 }//toml
