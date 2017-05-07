@@ -117,9 +117,12 @@ basic_datetime<uT, iT>::basic_datetime(std::chrono::system_clock::time_point tp)
         >(diff).count() % 1000;
 
     std::tm *utc = std::gmtime(&t);
-
-    offset_hour   = this->hour   - utc->tm_hour;
-    offset_minute = this->minute - utc->tm_min;
+    int total_offset = (this->hour   - utc->tm_hour) * 60 +
+                       (this->minute - utc->tm_min);
+         if(total_offset >  720) total_offset -= 1440;
+    else if(total_offset < -720) total_offset += 1440;
+    offset_hour   = total_offset / 60;
+    offset_minute = total_offset - (offset_hour * 60);
 }
 
 template<typename uT, typename iT>
