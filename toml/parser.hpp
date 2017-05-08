@@ -505,8 +505,9 @@ struct parse_fixed_type_array
     static result_type invoke(Iterator iter, Iterator end)
     {
         result_type result;
+        --end;
         assert(*iter == '[' && *end == ']');
-        ++iter; --end;
+        ++iter;
         iter = skippable::invoke(iter);
         while(iter != end)
         {
@@ -565,6 +566,9 @@ struct parse_array
             return parse_fixed_type_array<charT, is_inline_table<charT>,
                         parse_inline_table<charT>>::invoke(iter, end);
 
+        if(is_skippable_in_array<charT>::invoke(init) == std::prev(end))
+            return result_type{}; // empty
+
         throw internal_error("no valid array here");
     }
 };
@@ -582,10 +586,10 @@ struct parse_value
     {
         if(iter != is_string<charT>::invoke(iter))
             return result_type(parse_string<charT>::invoke(iter, end));
-        else if(iter != is_integer<charT>::invoke(iter))
-            return result_type(parse_integer<charT>::invoke(iter, end));
         else if(iter != is_float<charT>::invoke(iter))
             return result_type(parse_float<charT>::invoke(iter, end));
+        else if(iter != is_integer<charT>::invoke(iter))
+            return result_type(parse_integer<charT>::invoke(iter, end));
         else if(iter != is_boolean<charT>::invoke(iter))
             return result_type(parse_boolean<charT>::invoke(iter, end));
         else if(iter != is_datetime<charT>::invoke(iter))
@@ -642,6 +646,7 @@ struct parse_key_value_pair
 {
     typedef charT value_type;
     typedef std::pair<toml::key, toml::value> result_type;
+
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>

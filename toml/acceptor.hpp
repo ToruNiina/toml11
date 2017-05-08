@@ -520,9 +520,9 @@ using is_fundamental_type =
         is_basic_multiline_string<charT>,
         is_literal_inline_string<charT>,
         is_literal_multiline_string<charT>,
-        is_integer<charT>,
-        is_float<charT>,
         is_boolean<charT>,
+        is_float<charT>,
+        is_integer<charT>,
         is_offset_date_time<charT>,
         is_local_date_time<charT>,
         is_local_date<charT>,
@@ -608,6 +608,7 @@ struct is_inline_table
     {
         typedef is_one_of<is_fundamental_type<charT>,
                           is_array<charT>, is_inline_table<charT>> is_component;
+
         typedef is_chain_of<
             is_any_num_of_ws<charT>,
             is_key<charT>,
@@ -632,13 +633,13 @@ struct is_inline_table
                 >
             >,
             is_ignorable<
-                    is_chain_of<
-                        is_any_num_of_ws<charT>,
-                        is_inline_key_value_pair,
-                        is_any_num_of_ws<charT>,
-                        is_ignorable<is_charactor<charT, ','>>
-                    >
-                >,
+                is_chain_of<
+                    is_any_num_of_ws<charT>,
+                    is_inline_key_value_pair,
+                    is_any_num_of_ws<charT>,
+                    is_ignorable<is_charactor<charT, ','>>
+                >
+            >,
             is_any_num_of_ws<charT>,
             is_charactor<charT, '}'>
             > entity;
@@ -657,18 +658,18 @@ using is_table_definition =
         is_any_num_of_ws<charT>,
         is_charactor<charT, '['>,
         is_any_num_of_ws<charT>,
+        is_key<charT>,
         is_ignorable<
             is_repeat_of<
                 is_chain_of<
                     is_any_num_of_ws<charT>,
-                    is_key<charT>,
-                    is_any_num_of_ws<charT>,
                     is_charactor<charT, '.'>,
+                    is_any_num_of_ws<charT>,
+                    is_key<charT>,
                     is_any_num_of_ws<charT>
                 >,
             repeat_infinite()>
             >,
-        is_key<charT>,
         is_charactor<charT, ']'>
     >;
 
@@ -677,18 +678,19 @@ using is_array_of_table_definition =
     is_chain_of<
         is_any_num_of_ws<charT>,
         is_repeat_of<is_charactor<charT, '['>, 2>,
+        is_any_num_of_ws<charT>,
+        is_key<charT>,
         is_ignorable<
             is_repeat_of<
                 is_chain_of<
                     is_any_num_of_ws<charT>,
-                    is_key<charT>,
-                    is_any_num_of_ws<charT>,
                     is_charactor<charT, '.'>,
+                    is_any_num_of_ws<charT>,
+                    is_key<charT>,
                     is_any_num_of_ws<charT>
                 >,
             repeat_infinite()>
             >,
-        is_key<charT>,
         is_repeat_of<is_charactor<charT, ']'>, 2>
     >;
 
