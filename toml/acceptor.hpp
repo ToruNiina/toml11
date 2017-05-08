@@ -706,5 +706,71 @@ using is_key_value_pair =
         is_any_num_of_ws<charT>
     >;
 
+template<typename charT>
+using is_empty_line =
+    is_chain_of<
+        is_any_num_of_ws<charT>,
+        is_one_of<is_comment<charT>, is_newline<charT>>
+    >;
+
+template<typename charT>
+using is_empty_lines =
+    is_repeat_of<
+        is_chain_of<
+            is_any_num_of_ws<charT>,
+            is_one_of<is_comment<charT>, is_newline<charT>>
+        >,
+        repeat_infinite()
+    >;
+
+template<typename charT>
+using is_table_contents =
+    is_repeat_of<
+        is_one_of<
+            is_empty_lines<charT>,
+            is_chain_of<
+                is_key_value_pair<charT>,
+                is_one_of<
+                    is_comment<charT>,
+                    is_newline<charT>
+                >
+            >
+        >,
+        repeat_infinite()
+    >;
+
+template<typename charT>
+using is_standard_table =
+    is_chain_of<
+        is_table_definition<charT>,
+        is_any_num_of_ws<charT>,
+        is_one_of<is_comment<charT>, is_newline<charT>>,
+        is_table_contents<charT>
+    >;
+
+template<typename charT>
+using is_array_of_table =
+    is_chain_of<
+        is_array_of_table_definition<charT>,
+        is_any_num_of_ws<charT>,
+        is_one_of<is_comment<charT>, is_newline<charT>>,
+        is_table_contents<charT>
+    >;
+
+template<typename charT>
+using is_toml_data =
+    is_chain_of<
+        is_ignorable<is_table_contents<charT>>,
+        is_ignorable<
+            is_repeat_of<
+                is_one_of<
+                    is_standard_table<charT>,
+                    is_array_of_table<charT>
+                >,
+                repeat_infinite()
+            >
+        >
+    >;
+
 }//toml
 #endif// TOML11_ACCEPTOR
