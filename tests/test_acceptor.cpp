@@ -443,10 +443,14 @@ BOOST_AUTO_TEST_CASE(test_inline_table)
         BOOST_CHECK(is_valid::invoke(tab7.cbegin()) == tab7.cend());
     }
     {
-        const std::string tab0("{hoge = [1,2,3], piyo = {fuga = {}}}");
+        const std::string tab0("{hoge = 1, piyo = 2.0}");
         BOOST_CHECK(is_valid::invoke(tab0.cbegin()) == tab0.cend());
-        const std::string tab1("{hoge = \"}\", piyo = \"#\"}");
+        const std::string tab1("{hoge = [1,2,3], piyo = {fuga = {}}}");
         BOOST_CHECK(is_valid::invoke(tab1.cbegin()) == tab1.cend());
+        const std::string tab2("{hoge = \"}\", piyo = \"#\"}");
+        BOOST_CHECK(is_valid::invoke(tab2.cbegin()) == tab2.cend());
+        const std::string tab3("{b=true, i=1, f=2.0, d=1907-03-02T07:32:00, s='str', a=[1,2,3], t={foo=1}}");
+        BOOST_CHECK(is_valid::invoke(tab3.cbegin()) == tab3.cend());
     }
     {
         const std::string tab0("{hoge = \"}\",\n piyo = \"#\"}");

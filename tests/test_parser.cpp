@@ -7,6 +7,7 @@
 #endif
 #include <toml/acceptor.hpp>
 #include <toml/parser.hpp>
+#include <toml/from_toml.hpp>
 #include <iostream>
 
 BOOST_AUTO_TEST_CASE(test_parse_barekey)
@@ -195,4 +196,149 @@ BOOST_AUTO_TEST_CASE(test_parse_offset_date_time)
         BOOST_CHECK_EQUAL(result, expected);
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_parse_array)
+{
+    typedef toml::parse_array<char> parser;
+    typedef toml::is_array<char>  acceptor;
+    {
+        const std::string source("[1,2,3]");
+        const toml::Array expected{1, 2, 3};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[1, 2, 3]");
+        const toml::Array expected{1, 2, 3};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[ 1,2,3 ]");
+        const toml::Array expected{1, 2, 3};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[ 1 , 2 , 3 ]");
+        const toml::Array expected{1, 2, 3};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[ 1 \n,#comment\n 2 ,\n 3\n ]");
+        const toml::Array expected{1, 2, 3};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[ # empty array\n ]");
+        const toml::Array expected{};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[ \"] \", ' # ', \n']', # ] \n]");
+        const toml::Array expected{"] ", " # ", "]"};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+
+    {
+        const std::string source("[ \"Test #11 ]proved that\", 'Experiment #9 was a success' ]");
+        const toml::Array expected{"Test #11 ]proved that", "Experiment #9 was a success"};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+
+    {
+        const std::string source("[ \"Test #11 ]proved that\", 'Experiment #9 was a success' ]");
+        const toml::Array expected{"Test #11 ]proved that", "Experiment #9 was a success"};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+
+    {
+        const std::string source("[ [1,2,3] , ['a', 'b', 'c'] ]");
+        const toml::Array expected{{1,2,3}, {"a", "b", "c"}};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+
+    {
+        const std::string source("[ {foo=1}, {foo=1, bar=2.0}, {foo=1, bar=2.0, baz='str'} ]");
+        const toml::Array expected{{{"foo", 1}}, {{"foo", 1}, {"bar", 2.0}}, {{"foo", 1}, {"bar", 2.0}, {"baz", "str"}}};
+        const toml::Array result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+}
+
+
+BOOST_AUTO_TEST_CASE(test_parse_inline_table)
+{
+    typedef toml::parse_inline_table<char> parser;
+    typedef toml::is_inline_table<char>  acceptor;
+    {
+        const std::string source("{foo=1,bar=2.0,baz='str'}");
+        const toml::Table expected{{"foo", 1}, {"bar", 2.0}, {"baz", "str"}};
+        const toml::Table result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("{ foo=1, bar=2.0, baz='str' }");
+        const toml::Table expected{{"foo", 1}, {"bar", 2.0}, {"baz", "str"}};
+        const toml::Table result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("{ foo = 1, bar = 2.0, baz = 'str' }");
+        const toml::Table expected{{"foo", 1}, {"bar", 2.0}, {"baz", "str"}};
+        const toml::Table result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+
+    {
+        const std::string source("{b=true, i=1, f=2.0, d=1907-03-02T07:32:00, s='str', a=[1,2,3], t={foo=1}}");
+        const toml::Table expected{{"b", true}, {"i", 1}, {"f", 2.0},
+                                   {"d", toml::Datetime(1907,3,2,7,32,0,0,0)},
+                                   {"s", "str"}, {"a", {1, 2, 3}},
+                                   {"t", {{"foo", 1}}}};
+        const toml::Table result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+}
+
+
+
 
