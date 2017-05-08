@@ -479,13 +479,13 @@ struct parse_datetime
     static result_type invoke(Iterator iter, Iterator end)
     {
         Iterator tmp = is_offset_date_time<value_type>::invoke(iter);
-        if(tmp != iter) return parse_offset_date_time<value_type>::invoke(iter);
+        if(tmp != iter) return parse_offset_date_time<value_type>::invoke(iter, tmp);
         tmp = is_local_date_time<value_type>::invoke(iter);
-        if(tmp != iter) return parse_local_date_time<value_type>::invoke(iter);
+        if(tmp != iter) return parse_local_date_time<value_type>::invoke(iter, tmp);
         tmp = is_local_date<value_type>::invoke(iter);
-        if(tmp != iter) return parse_local_date<value_type>::invoke(iter);
+        if(tmp != iter) return parse_local_date<value_type>::invoke(iter, tmp);
         tmp = is_local_time<value_type>::invoke(iter);
-        if(tmp != iter) return parse_local_time<value_type>::invoke(iter);
+        if(tmp != iter) return parse_local_time<value_type>::invoke(iter, tmp);
         throw internal_error("no datetime here");
     }
 };
@@ -634,9 +634,9 @@ struct parse_key
     static result_type invoke(Iterator iter, Iterator end)
     {
         if(iter != is_barekey<charT>::invoke(iter))
-            return parse_barekey<charT>(iter, end);
+            return parse_barekey<charT>::invoke(iter, end);
         else if(iter != is_string<charT>::invoke(iter))
-            return parse_string<charT>(iter, end);
+            return parse_string<charT>::invoke(iter, end);
         throw internal_error("no valid key here");
     }
 };
@@ -675,8 +675,9 @@ struct parse_inline_table
                      value_type>::value>::type>
     static result_type invoke(Iterator iter, Iterator end)
     {
+        --end;
         assert(*iter == '{' && *end == '}');
-        ++iter; --end;
+        ++iter;
         iter = is_any_num_of_ws<charT>::invoke(iter);
 
         result_type result;
