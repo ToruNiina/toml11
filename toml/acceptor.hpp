@@ -520,13 +520,13 @@ using is_fundamental_type =
         is_basic_multiline_string<charT>,
         is_literal_inline_string<charT>,
         is_literal_multiline_string<charT>,
-        is_boolean<charT>,
-        is_float<charT>,
-        is_integer<charT>,
         is_offset_date_time<charT>,
         is_local_date_time<charT>,
         is_local_date<charT>,
-        is_local_time<charT>
+        is_local_time<charT>,
+        is_boolean<charT>,
+        is_float<charT>,
+        is_integer<charT>
     >;
 
 template<typename charT>
