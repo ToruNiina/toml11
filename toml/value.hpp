@@ -13,13 +13,15 @@
 namespace toml
 {
 
+using charactor = char;
+
 class value;
-using key = std::string;
+using key = std::basic_string<charactor>;
 
 using Boolean  = bool;
 using Integer  = std::int64_t;
 using Float    = double;
-using String   = std::string;
+using String   = std::basic_string<charactor>;
 using Datetime = basic_datetime<unsigned int, int>;
 using Array    = std::vector<value>;
 using Table    = std::unordered_map<key, value>;
@@ -37,7 +39,7 @@ enum class value_t : std::uint8_t
     Unknown  = 255,
 };
 
-template<typename charT, typename traits>
+template<typename charT = charactor, typename traits = std::char_traits<charT>>
 inline std::basic_ostream<charT, traits>&
 operator<<(std::basic_ostream<charT, traits>& os, value_t t)
 {
@@ -56,7 +58,7 @@ operator<<(std::basic_ostream<charT, traits>& os, value_t t)
     }
 }
 
-template<typename charT = char, typename traits = std::char_traits<charT>,
+template<typename charT = charactor, typename traits = std::char_traits<charT>,
          typename alloc = std::allocator<charT>>
 inline std::basic_string<charT, traits, alloc>
 stringize(value_t t)
