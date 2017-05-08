@@ -491,3 +491,93 @@ BOOST_AUTO_TEST_CASE(test_array_of_table_definition)
         BOOST_CHECK(is_valid::invoke(quoted_dot.cbegin()) == quoted_dot.cend());
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_key)
+{
+    using is_valid = toml::is_key<char>;
+    {
+        const std::string simple("foobar");
+        BOOST_CHECK(is_valid::invoke(simple.cbegin()) == simple.cend());
+        const std::string quoted("\"foo#bar.baz\\n\"");
+        BOOST_CHECK(is_valid::invoke(quoted.cbegin()) == quoted.cend());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_value)
+{
+    using is_valid = toml::is_value<char>;
+    {
+        const std::string boolean("true");
+        BOOST_CHECK(is_valid::invoke(boolean.cbegin()) == boolean.cend());
+        const std::string integer("-42");
+        BOOST_CHECK(is_valid::invoke(integer.cbegin()) == integer.cend());
+        const std::string floating("-42e0");
+        BOOST_CHECK(is_valid::invoke(floating.cbegin()) == floating.cend());
+        const std::string string("\"string\"");
+        BOOST_CHECK(is_valid::invoke(string.cbegin()) == string.cend());
+        const std::string datetime("1901-01-01T00:00:00");
+        BOOST_CHECK(is_valid::invoke(datetime.cbegin()) == datetime.cend());
+        const std::string array("[1,2,3]");
+        BOOST_CHECK(is_valid::invoke(array.cbegin()) == array.cend());
+        const std::string table("{foo=1,bar=2.0,baz='3'}");
+        BOOST_CHECK(is_valid::invoke(table.cbegin()) == table.cend());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_key_value_pair)
+{
+    using is_valid = toml::is_key_value_pair<char>;
+    {
+        const std::string kv("key=1");
+        BOOST_CHECK(is_valid::invoke(kv.cbegin()) == kv.cend());
+    }
+    {
+        const std::string kv("key = 1");
+        BOOST_CHECK(is_valid::invoke(kv.cbegin()) == kv.cend());
+    }
+    {
+        const std::string kv("    key = 1");
+        BOOST_CHECK(is_valid::invoke(kv.cbegin()) == kv.cend());
+    }
+    {
+        const std::string kv("    key = 1   ");
+        BOOST_CHECK(is_valid::invoke(kv.cbegin()) == kv.cend());
+    }
+    {
+        const std::string boolean("key = true");
+        BOOST_CHECK(is_valid::invoke(boolean.cbegin()) == boolean.cend());
+        const std::string integer("key = -42");
+        BOOST_CHECK(is_valid::invoke(integer.cbegin()) == integer.cend());
+        const std::string floating("key = -42.0");
+        BOOST_CHECK(is_valid::invoke(floating.cbegin()) == floating.cend());
+        const std::string string("key = \"string\"");
+        BOOST_CHECK(is_valid::invoke(string.cbegin()) == string.cend());
+        const std::string datetime("key = 1901-01-01T00:00:00");
+        BOOST_CHECK(is_valid::invoke(datetime.cbegin()) == datetime.cend());
+        const std::string array("key = [1,2,3]");
+        BOOST_CHECK(is_valid::invoke(array.cbegin()) == array.cend());
+        const std::string table("key = {foo=1,bar=2.0,baz='3'}");
+        BOOST_CHECK(is_valid::invoke(table.cbegin()) == table.cend());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_empty_line)
+{
+    using is_valid = toml::is_empty_line<char>;
+    {
+        const std::string empty("\n");
+        BOOST_CHECK(is_valid::invoke(empty.cbegin()) == empty.cend());
+    }
+    {
+        const std::string empty("    \n");
+        BOOST_CHECK(is_valid::invoke(empty.cbegin()) == empty.cend());
+    }
+    {
+        const std::string empty("#comment\n");
+        BOOST_CHECK(is_valid::invoke(empty.cbegin()) == empty.cend());
+    }
+    {
+        const std::string empty("    #comment\n");
+        BOOST_CHECK(is_valid::invoke(empty.cbegin()) == empty.cend());
+    }
+}
