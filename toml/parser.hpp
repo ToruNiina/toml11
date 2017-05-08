@@ -587,14 +587,14 @@ struct parse_value
     {
         if(iter != is_string<charT>::invoke(iter))
             return result_type(parse_string<charT>::invoke(iter, end));
+        else if(iter != is_datetime<charT>::invoke(iter))
+            return result_type(parse_datetime<charT>::invoke(iter, end));
         else if(iter != is_float<charT>::invoke(iter))
             return result_type(parse_float<charT>::invoke(iter, end));
         else if(iter != is_integer<charT>::invoke(iter))
             return result_type(parse_integer<charT>::invoke(iter, end));
         else if(iter != is_boolean<charT>::invoke(iter))
             return result_type(parse_boolean<charT>::invoke(iter, end));
-        else if(iter != is_datetime<charT>::invoke(iter))
-            return result_type(parse_datetime<charT>::invoke(iter, end));
         else if(iter != is_array<charT>::invoke(iter))
             return result_type(parse_array<charT>::invoke(iter, end));
         else if(iter != is_inline_table<charT>::invoke(iter))
