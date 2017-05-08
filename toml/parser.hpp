@@ -3,6 +3,7 @@
 #include "value.hpp"
 #include "acceptor.hpp"
 #include <algorithm>
+#include <iostream>
 
 namespace toml
 {
@@ -696,7 +697,197 @@ struct parse_inline_table
     }
 };
 
+template<typename charT>
+struct parse_table_contents
+{
+    typedef charT value_type;
+    typedef toml::Table result_type;
 
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        result_type result;
+        while(iter != end)
+        {
+            iter = is_empty_lines<charT>::invoke(iter);
+
+            Iterator tmp = is_key_value_pair<charT>::invoke(iter);
+            result.emplace(parse_key_value_pair<charT>::invoke(iter, tmp));
+            iter = is_one_of<is_comment<charT>, is_newline<charT>>::invoke(tmp);
+
+            iter = is_empty_lines<charT>::invoke(iter);
+        }
+        return result;
+    }
+};
+
+template<typename charT>
+struct parse_standard_table_definition
+{
+    typedef charT value_type;
+    typedef std::vector<toml::key> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        result_type result;
+        iter = is_any_num_of_ws<charT>::invoke(iter);
+        --end;
+        assert(*iter == '[' && *end == ']');
+        ++iter;
+        iter = is_any_num_of_ws<charT>::invoke(iter);
+
+        Iterator tmp = is_key<charT>::invoke(iter);
+        result.emplace(parse_key<charT>::invoke(iter, tmp));
+        iter = is_any_num_of_ws<charT>::invoke(tmp);
+
+        while(iter != end)
+        {
+            iter = is_charactor<charT, '.'>::invoke(iter);
+            iter = is_any_num_of_ws<charT>::invoke(iter);
+
+            tmp  = is_key<charT>::invoke(iter);
+            result.emplace(parse_key<charT>::invoke(iter, tmp));
+            iter = is_any_num_of_ws<charT>::invoke(tmp);
+        }
+        return result;
+    }
+};
+
+template<typename charT>
+struct parse_array_of_table_definition
+{
+    typedef charT value_type;
+    typedef std::vector<toml::key> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        result_type result;
+        iter = is_any_num_of_ws<charT>::invoke(iter);
+        --end;
+        assert(*iter == '[' && *std::next(iter) == '[' &&
+               *end  == ']' && *std::prev(iter) == ']');
+        ++iter; ++iter; --end;
+
+        iter = is_any_num_of_ws<charT>::invoke(iter);
+
+        Iterator tmp = is_key<charT>::invoke(iter);
+        result.emplace(parse_key<charT>::invoke(iter, tmp));
+        iter = is_any_num_of_ws<charT>::invoke(tmp);
+
+        while(iter != end)
+        {
+            iter = is_charactor<charT, '.'>::invoke(iter);
+            iter = is_any_num_of_ws<charT>::invoke(iter);
+
+            tmp  = is_key<charT>::invoke(iter);
+            result.emplace(parse_key<charT>::invoke(iter, tmp));
+            iter = is_any_num_of_ws<charT>::invoke(tmp);
+        }
+        return result;
+    }
+};
+
+template<typename charT>
+struct parse_data
+{
+    typedef charT value_type;
+    typedef toml::Table result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static result_type invoke(Iterator iter, Iterator end)
+    {
+        result_type result;
+
+        Iterator tmp = is_table_contents<charT>::invoke(iter);
+        if(tmp != iter)
+        {
+            result = parse_table_contents<charT>::invoke(iter, tmp);
+        }
+
+        while(iter != end)
+        {
+            if(iter != (tmp = is_table_definition<charT>::invoke(iter)))
+            {
+                auto k = parse_standard_table_definition<charT>::invoke(iter, tmp);
+                iter = tmp;
+                tmp  = is_table_contents<charT>::invoke(iter);
+                auto tab = parse_table_contents<charT>::invoke(iter, tmp);
+                push_table(result, std::move(tab), std::begin(k), std::end(k));
+            }
+            else if(iter != (tmp=is_array_of_table_definition<charT>::invoke(iter)))
+            {
+                auto k = parse_array_of_table_definition<charT>::invoke(iter, tmp);
+                iter = tmp;
+                tmp  = is_table_contents<charT>::invoke(iter);
+                auto tab = parse_table_contents<charT>::invoke(iter, tmp);
+                push_array_of_table(result, std::move(tab),
+                                    std::begin(k), std::end(k));
+            }
+            else
+                throw internal_error("no array ");
+        }
+        return result;
+    }
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     toml::key>::value>::type>
+    static void
+    push_table(toml::Table& data, toml::Table&& v, Iterator iter, Iterator end)
+    {
+        if(iter == std::prev(end))
+        {
+            if(data.count(*iter) == 1)
+                throw syntax_error("duplicate key");
+            data.emplace(*iter, std::move(v));
+        }
+
+        if(data.count(*iter) == 0)
+            data.emplace(*iter, toml::Table());
+        else if(data[*iter].type() != value_t::Table)
+            throw syntax_error("duplicate key");
+
+        return push_table(data[*iter].template cast<value_t::Table>(),
+                          std::move(v), std::next(iter), end);
+    }
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     toml::key>::value>::type>
+    static void
+    push_array_of_table(toml::Table& data, toml::Table&& v,
+                        Iterator iter, Iterator end)
+    {
+        if(iter == std::prev(end))
+        {
+            if(data.count(*iter) == 0)
+                data.emplace(*iter, toml::Array());
+            else if(data.at(*iter).type() != value_t::Array)
+                throw syntax_error("duplicate key");
+
+            data[*iter].template cast<value_t::Array>().emplace_back(std::move(v));
+        }
+
+        if(data.count(*iter) == 0)
+            data.emplace(*iter, toml::Table());
+        else if(data[*iter].type() != value_t::Table)
+            throw syntax_error("duplicate key");
+
+        return push_array_of_table(data[*iter].template cast<value_t::Table>(),
+                                   std::move(v), std::next(iter), end);
+    }
+
+};
 
 }// toml
 #endif// TOML11_PARSER
