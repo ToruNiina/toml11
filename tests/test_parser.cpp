@@ -339,6 +339,81 @@ BOOST_AUTO_TEST_CASE(test_parse_inline_table)
     }
 }
 
-
-
-
+BOOST_AUTO_TEST_CASE(test_key_value_pair)
+{
+    typedef toml::parse_key_value_pair<char> parser;
+    typedef toml::is_key_value_pair<char>  acceptor;
+    {
+        const std::string source("key=1");
+        const std::pair<toml::key, toml::value> expected{"key", 1};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("key =\t1");
+        const std::pair<toml::key, toml::value> expected{"key", 1};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("key = true");
+        const std::pair<toml::key, toml::value> expected{"key", true};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("key = -42");
+        const std::pair<toml::key, toml::value> expected{"key", -42};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("key = -42.0");
+        const std::pair<toml::key, toml::value> expected{"key", -42.};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("key = \"string\"");
+        const std::pair<toml::key, toml::value> expected{"key", "string"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("key = 1901-01-01T00:00:00");
+        const std::pair<toml::key, toml::value> expected{"key", toml::Datetime(1901, 1,1,0,0,0,0,0)};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("key = [1,2,3]");
+        const std::pair<toml::key, toml::value> expected{"key", {1,2,3}};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("key = {foo=1,bar=2.0,baz='3'}");
+        const std::pair<toml::key, toml::value> expected{"key",
+            {{"foo", 1}, {"bar", 2.0}, {"baz", "3"}}};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+}
