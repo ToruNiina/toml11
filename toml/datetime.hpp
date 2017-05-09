@@ -2,7 +2,6 @@
 #define TOML11_DATETIME
 #include <chrono>
 #include <iomanip>
-#include <iostream>
 #include <ctime>
 
 namespace toml
@@ -84,7 +83,7 @@ struct basic_datetime
         time.tm_min  = (this->minute == undef) ? 0 : this->minute;
         time.tm_sec  = (this->second == undef) ? 0 : this->second;
 
-        auto tp = std::chrono::system_clock::from_time_t(mktime(&time));
+        auto tp = std::chrono::system_clock::from_time_t(std::mktime(&time));
         tp += std::chrono::milliseconds(this->millisecond);
         tp += std::chrono::microseconds(this->microsecond);
         // mktime regards the tm struct as localtime. so adding offset is not needed.
