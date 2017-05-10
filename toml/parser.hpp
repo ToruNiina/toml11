@@ -742,7 +742,7 @@ struct parse_standard_table_definition
         iter = is_any_num_of_ws<charT>::invoke(iter);
 
         Iterator tmp = is_key<charT>::invoke(iter);
-        result.emplace(parse_key<charT>::invoke(iter, tmp));
+        result.emplace_back(parse_key<charT>::invoke(iter, tmp));
         iter = is_any_num_of_ws<charT>::invoke(tmp);
 
         while(iter != end)
@@ -751,7 +751,7 @@ struct parse_standard_table_definition
             iter = is_any_num_of_ws<charT>::invoke(iter);
 
             tmp  = is_key<charT>::invoke(iter);
-            result.emplace(parse_key<charT>::invoke(iter, tmp));
+            result.emplace_back(parse_key<charT>::invoke(iter, tmp));
             iter = is_any_num_of_ws<charT>::invoke(tmp);
         }
         return result;
@@ -773,13 +773,13 @@ struct parse_array_of_table_definition
         iter = is_any_num_of_ws<charT>::invoke(iter);
         --end;
         assert(*iter == '[' && *std::next(iter) == '[' &&
-               *end  == ']' && *std::prev(iter) == ']');
+               *end  == ']' && *std::prev(end) == ']');
         ++iter; ++iter; --end;
 
         iter = is_any_num_of_ws<charT>::invoke(iter);
 
         Iterator tmp = is_key<charT>::invoke(iter);
-        result.emplace(parse_key<charT>::invoke(iter, tmp));
+        result.emplace_back(parse_key<charT>::invoke(iter, tmp));
         iter = is_any_num_of_ws<charT>::invoke(tmp);
 
         while(iter != end)
@@ -788,7 +788,7 @@ struct parse_array_of_table_definition
             iter = is_any_num_of_ws<charT>::invoke(iter);
 
             tmp  = is_key<charT>::invoke(iter);
-            result.emplace(parse_key<charT>::invoke(iter, tmp));
+            result.emplace_back(parse_key<charT>::invoke(iter, tmp));
             iter = is_any_num_of_ws<charT>::invoke(tmp);
         }
         return result;
