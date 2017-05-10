@@ -417,3 +417,97 @@ BOOST_AUTO_TEST_CASE(test_key_value_pair)
         BOOST_CHECK(check);
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_table_definition)
+{
+    typedef toml::parse_standard_table_definition<char> parser;
+    typedef toml::is_table_definition<char>  acceptor;
+    {
+        const std::string source("[foo]");
+        const std::vector<toml::key> expected{"foo"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[foo.bar.baz]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[foo . bar. baz]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[foo . \"bar\" . baz]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[foo . \"b\\tar\" . baz]");
+        const std::vector<toml::key> expected{"foo", "b\tar", "baz"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_array_of_table_definition)
+{
+    typedef toml::parse_array_of_table_definition<char> parser;
+    typedef toml::is_array_of_table_definition<char>  acceptor;
+    {
+        const std::string source("[[foo]]");
+        const std::vector<toml::key> expected{"foo"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[[foo.bar.baz]]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[[foo . bar. baz]]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[[foo . \"bar\" . baz]]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+    {
+        const std::string source("[[foo . \"b\\tar\" . baz]]");
+        const std::vector<toml::key> expected{"foo", "b\tar", "baz"};
+        const auto result = parser::invoke(
+                source.cbegin(), acceptor::invoke(source.cbegin()));
+        const bool check = result == expected;
+        BOOST_CHECK(check);
+    }
+}
+
+
