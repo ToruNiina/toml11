@@ -31,6 +31,12 @@ BOOST_AUTO_TEST_CASE(test_parse_basic_inline_string)
         BOOST_CHECK_EQUAL(result.first.get(), expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
     }
+    {
+        const std::string source("dummy");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
 }
 
 BOOST_AUTO_TEST_CASE(test_parse_basic_multiline_string)
@@ -61,6 +67,12 @@ BOOST_AUTO_TEST_CASE(test_parse_basic_multiline_string)
         BOOST_CHECK(result.first.ok());
         BOOST_CHECK_EQUAL(result.first.get(), expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("dummy");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
     }
 }
 
@@ -100,6 +112,12 @@ BOOST_AUTO_TEST_CASE(test_parse_literal_inline_string)
         BOOST_CHECK_EQUAL(result.first.get(), expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
     }
+    {
+        const std::string source("dummy");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
 }
 
 BOOST_AUTO_TEST_CASE(test_parse_literal_multiline_string)
@@ -121,6 +139,12 @@ BOOST_AUTO_TEST_CASE(test_parse_literal_multiline_string)
         BOOST_CHECK(result.first.ok());
         BOOST_CHECK_EQUAL(result.first.get(), expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("dummy");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
     }
 }
 
@@ -160,7 +184,147 @@ BOOST_AUTO_TEST_CASE(test_parse_string)
         BOOST_CHECK_EQUAL(result.first.get(), expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
     }
+    {
+        const std::string source("dummy");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
 }
+
+BOOST_AUTO_TEST_CASE(test_integer)
+{
+    typedef toml::parse_integer parser;
+    typedef toml::is_integer<toml::charactor> acceptor;
+    {
+        const std::string   source("42");
+        const toml::Integer expected(42);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string   source("+42");
+        const toml::Integer expected(42);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string   source("-42");
+        const toml::Integer expected(-42);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string   source("-4_2");
+        const toml::Integer expected(-42);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("dummy");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_float)
+{
+    typedef toml::parse_float parser;
+    typedef toml::is_float<toml::charactor> acceptor;
+    {
+        const std::string source("42.0");
+        const toml::Float expected(42.0);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("+42.0");
+        const toml::Float expected(42.0);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("-42.0");
+        const toml::Float expected(-42.0);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("-4_2.0");
+        const toml::Float expected(-42.0);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("-42e0");
+        const toml::Float expected(-42.0);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("-42.0e0");
+        const toml::Float expected(-42.0);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("dummy");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_parse_boolean)
+{
+    typedef toml::parse_boolean parser;
+    typedef toml::is_boolean<toml::charactor> acceptor;
+    {
+        const std::string   source("true");
+        const toml::Boolean expected(true);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string   source("false");
+        const toml::Boolean expected(false);
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK_EQUAL(result.first.get(), expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string   source("T");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
+}
+
+
 
 // BOOST_AUTO_TEST_CASE(test_parse_local_time)
 // {

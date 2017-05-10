@@ -284,58 +284,62 @@ struct parse_string
     }
 };
 
-//
-// template<typename charT>
-// struct parse_integer
-// {
-//     typedef charT value_type;
-//     typedef std::basic_string<value_type> string_type;
-//     typedef toml::Integer result_type;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         string_type result; result.resize(std::distance(iter, end));
-//         std::copy_if(iter, end, result.begin(), [](charT c){return c != '_';});
-//         return std::stoi(result);
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_float
-// {
-//     typedef charT value_type;
-//     typedef std::basic_string<value_type> string_type;
-//     typedef toml::Float result_type;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         string_type result; result.resize(std::distance(iter, end));
-//         std::copy_if(iter, end, result.begin(), [](charT c){return c != '_';});
-//         return std::stod(result);
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_boolean
-// {
-//     typedef charT value_type;
-//     typedef toml::Boolean result_type;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         return (std::distance(iter, end) == 4);
-//     }
-// };
-//
+struct parse_integer
+{
+    typedef toml::charactor value_type;
+    typedef std::basic_string<value_type> string_type;
+    typedef detail::result<toml::Integer> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        const Iterator end = is_integer<value_type>::invoke(iter);
+        if(iter == end) return std::make_pair(result_type{}, iter);
+
+        string_type result; result.resize(std::distance(iter, end));
+        std::copy_if(iter, end, result.begin(), [](value_type c){return c != '_';});
+        return std::make_pair(std::stoll(result), end);
+    }
+};
+
+struct parse_float
+{
+    typedef toml::charactor value_type;
+    typedef std::basic_string<value_type> string_type;
+    typedef detail::result<toml::Float> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        const Iterator end = is_float<value_type>::invoke(iter);
+        if(iter == end) return std::make_pair(result_type{}, iter);
+
+        string_type result; result.resize(std::distance(iter, end));
+        std::copy_if(iter, end, result.begin(), [](value_type c){return c != '_';});
+        return std::make_pair(std::stod(result), end);
+    }
+};
+
+struct parse_boolean
+{
+    typedef toml::charactor value_type;
+    typedef detail::result<toml::Boolean> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        const Iterator end = is_boolean<value_type>::invoke(iter);
+        if(iter == end) return std::make_pair(result_type{}, iter);
+        return std::make_pair((std::distance(iter, end) == 4), end);
+    }
+};
+
 // template<typename charT>
 // struct parse_local_time
 // {
