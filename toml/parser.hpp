@@ -27,13 +27,22 @@ struct result
     result& operator=(const T& rhs){ok_ = true; value_ = rhs; return *this;}
     result& operator=(T&& rhs)     {ok_ = true; value_ = rhs; return *this;}
 
+    template<typename U>
+    result& operator=(const result<U>& u) {ok_ = u.ok(); if(ok_)value_ = u.move(); return *this;}
+    template<typename U>
+    result& operator=(result<U>&& u) {ok_ = u.ok(); if(ok_)value_ = u.move(); return *this;}
+    template<typename U>
+    result(const result<U>& u): ok_(u.ok()){if(ok_)value_ = u.get();}
+    template<typename U>
+    result(result<U>&& u): ok_(u.ok()){if(ok_)value_ = u.move();}
+
     bool ok() const {return ok_;}
     operator bool() const {return ok_;}
 
-    T&       get()       {if(!ok_) throw std::logic_error("result"); return value_;}
-    T const& get() const {if(!ok_) throw std::logic_error("result"); return value_;}
+    T&       get()       {if(!ok_) throw std::logic_error("result::get"); return value_;}
+    T const& get() const {if(!ok_) throw std::logic_error("result::get"); return value_;}
     T&&      move()
-    {if(!ok_) throw std::logic_error("result"); ok_ = false; return std::move(value_);}
+    {if(!ok_) throw std::logic_error("result::move"); ok_ = false; return std::move(value_);}
 
   private:
     bool ok_;
