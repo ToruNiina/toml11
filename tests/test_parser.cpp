@@ -294,6 +294,12 @@ BOOST_AUTO_TEST_CASE(test_float)
         BOOST_CHECK(!result.first.ok());
         BOOST_CHECK(result.second == source.begin());
     }
+    {
+        const std::string source("42");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
 }
 
 BOOST_AUTO_TEST_CASE(test_parse_boolean)
@@ -354,6 +360,12 @@ BOOST_AUTO_TEST_CASE(test_parse_local_time)
         BOOST_CHECK_EQUAL(result.first.get(), expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
     }
+    {
+        const std::string source("10");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
 }
 
 BOOST_AUTO_TEST_CASE(test_parse_local_date)
@@ -367,6 +379,12 @@ BOOST_AUTO_TEST_CASE(test_parse_local_date)
         BOOST_CHECK(result.first.ok());
         BOOST_CHECK_EQUAL(result.first.get(), expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("10");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
     }
 }
 
@@ -389,6 +407,12 @@ BOOST_AUTO_TEST_CASE(test_parse_local_date_time)
         BOOST_CHECK(result.first.ok());
         BOOST_CHECK_EQUAL(result.first.get(), expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("1000-11-11");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
     }
 }
 
@@ -446,6 +470,12 @@ BOOST_AUTO_TEST_CASE(test_parse_offset_date_time)
         BOOST_CHECK_EQUAL(result.first.get(), expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
     }
+    {
+        const std::string source("1000-11-11");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
 }
 
 BOOST_AUTO_TEST_CASE(test_parse_datetime)
@@ -483,6 +513,12 @@ BOOST_AUTO_TEST_CASE(test_parse_datetime)
         BOOST_CHECK(result.first.ok());
         BOOST_CHECK_EQUAL(result.first.get(), expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("12");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
     }
 }
 
@@ -583,6 +619,12 @@ BOOST_AUTO_TEST_CASE(test_parse_array)
         BOOST_CHECK(result.first.get() == expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
     }
+    {
+        const std::string source("[dummy]");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
 }
 
 
@@ -626,207 +668,268 @@ BOOST_AUTO_TEST_CASE(test_parse_inline_table)
         BOOST_CHECK(result.first.get() == expected);
         BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
     }
+    {
+        const std::string source("{dummy}");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(!result.first.ok());
+        BOOST_CHECK(result.second == source.begin());
+    }
 }
-//
-// // BOOST_AUTO_TEST_CASE(test_parse_barekey)
-// // {
-// //     {
-// //         const std::string source("hoge");
-// //         const std::string result = toml::parse_barekey<char>::invoke(
-// //                 source.cbegin(), toml::is_barekey<char>::invoke(source.cbegin()));
-// //         BOOST_CHECK_EQUAL(source, result);
-// //     }
-// //     {
-// //         const std::string source("bare-key");
-// //         const std::string result = toml::parse_barekey<char>::invoke(
-// //                 source.cbegin(), toml::is_barekey<char>::invoke(source.cbegin()));
-// //         BOOST_CHECK_EQUAL(source, result);
-// //     }
-// //     {
-// //         const std::string source("bare_key");
-// //         const std::string result = toml::parse_barekey<char>::invoke(
-// //                 source.cbegin(), toml::is_barekey<char>::invoke(source.cbegin()));
-// //         BOOST_CHECK_EQUAL(source, result);
-// //     }
-// //     {
-// //         const std::string source("42");
-// //         const std::string result = toml::parse_barekey<char>::invoke(
-// //                 source.cbegin(), toml::is_barekey<char>::invoke(source.cbegin()));
-// //         BOOST_CHECK_EQUAL(source, result);
-// //     }
-// // }
-//
-//
-//
-// BOOST_AUTO_TEST_CASE(test_key_value_pair)
-// {
-//     typedef toml::parse_key_value_pair<char> parser;
-//     typedef toml::is_key_value_pair<char>  acceptor;
-//     {
-//         const std::string source("key=1");
-//         const std::pair<toml::key, toml::value> expected{"key", 1};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("key =\t1");
-//         const std::pair<toml::key, toml::value> expected{"key", 1};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("key = true");
-//         const std::pair<toml::key, toml::value> expected{"key", true};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("key = -42");
-//         const std::pair<toml::key, toml::value> expected{"key", -42};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("key = -42.0");
-//         const std::pair<toml::key, toml::value> expected{"key", -42.};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("key = \"string\"");
-//         const std::pair<toml::key, toml::value> expected{"key", "string"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("key = 1901-01-01T00:00:00");
-//         const std::pair<toml::key, toml::value> expected{"key", toml::Datetime(1901, 1,1,0,0,0,0,0)};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("key = [1,2,3]");
-//         const std::pair<toml::key, toml::value> expected{"key", {1,2,3}};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("key = {foo=1,bar=2.0,baz='3'}");
-//         const std::pair<toml::key, toml::value> expected{"key",
-//             {{"foo", 1}, {"bar", 2.0}, {"baz", "3"}}};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-// }
-//
-// BOOST_AUTO_TEST_CASE(test_table_definition)
-// {
-//     typedef toml::parse_standard_table_definition<char> parser;
-//     typedef toml::is_table_definition<char>  acceptor;
-//     {
-//         const std::string source("[foo]");
-//         const std::vector<toml::key> expected{"foo"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("[foo.bar.baz]");
-//         const std::vector<toml::key> expected{"foo", "bar", "baz"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("[foo . bar. baz]");
-//         const std::vector<toml::key> expected{"foo", "bar", "baz"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("[foo . \"bar\" . baz]");
-//         const std::vector<toml::key> expected{"foo", "bar", "baz"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("[foo . \"b\\tar\" . baz]");
-//         const std::vector<toml::key> expected{"foo", "b\tar", "baz"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-// }
-//
-// BOOST_AUTO_TEST_CASE(test_array_of_table_definition)
-// {
-//     typedef toml::parse_array_of_table_definition<char> parser;
-//     typedef toml::is_array_of_table_definition<char>  acceptor;
-//     {
-//         const std::string source("[[foo]]");
-//         const std::vector<toml::key> expected{"foo"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("[[foo.bar.baz]]");
-//         const std::vector<toml::key> expected{"foo", "bar", "baz"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("[[foo . bar. baz]]");
-//         const std::vector<toml::key> expected{"foo", "bar", "baz"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("[[foo . \"bar\" . baz]]");
-//         const std::vector<toml::key> expected{"foo", "bar", "baz"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-//     {
-//         const std::string source("[[foo . \"b\\tar\" . baz]]");
-//         const std::vector<toml::key> expected{"foo", "b\tar", "baz"};
-//         const auto result = parser::invoke(
-//                 source.cbegin(), acceptor::invoke(source.cbegin()));
-//         const bool check = result == expected;
-//         BOOST_CHECK(check);
-//     }
-// }
-//
 
+BOOST_AUTO_TEST_CASE(test_parse_barekey)
+{
+    typedef toml::parse_barekey parser;
+    typedef toml::is_barekey<toml::charactor> acceptor;
+    {
+        const std::string source("hoge");
+        const toml::key expected("hoge");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("bare-key");
+        const toml::key expected("bare-key");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("bare_key");
+        const toml::key expected("bare_key");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("42");
+        const toml::key expected("42");
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+}
+
+
+
+BOOST_AUTO_TEST_CASE(test_key_value_pair)
+{
+    typedef toml::parse_key_value_pair<char> parser;
+    typedef toml::is_key_value_pair<char>  acceptor;
+    {
+        const std::string source("key=1");
+        const std::pair<toml::key, toml::value> expected{"key", 1};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("key =\t1");
+        const std::pair<toml::key, toml::value> expected{"key", 1};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("key = true");
+        const std::pair<toml::key, toml::value> expected{"key", true};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("key = -42");
+        const std::pair<toml::key, toml::value> expected{"key", -42};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("key = -42.0");
+        const std::pair<toml::key, toml::value> expected{"key", -42.};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("key = \"string\"");
+        const std::pair<toml::key, toml::value> expected{"key", "string"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("key = 1901-01-01T00:00:00");
+        const std::pair<toml::key, toml::value> expected{"key", toml::Datetime(1901, 1,1,0,0,0,0,0)};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("key = [1,2,3]");
+        const std::pair<toml::key, toml::value> expected{"key", {1,2,3}};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("key = {foo=1,bar=2.0,baz='3'}");
+        const std::pair<toml::key, toml::value> expected{"key",
+            {{"foo", 1}, {"bar", 2.0}, {"baz", "3"}}};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_table_definition)
+{
+    typedef toml::parse_table_definition parser;
+    typedef toml::is_table_definition<char>  acceptor;
+    {
+        const std::string source("[foo]");
+        const std::vector<toml::key> expected{"foo"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("[foo.bar.baz]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("[foo . bar. baz]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("[foo . \"bar\" . baz]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("[foo . \"b\\tar\" . baz]");
+        const std::vector<toml::key> expected{"foo", "b\tar", "baz"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_array_of_table_definition)
+{
+    typedef toml::parse_array_of_table_definition parser;
+    typedef toml::is_array_of_table_definition<char>  acceptor;
+    {
+        const std::string source("[[foo]]");
+        const std::vector<toml::key> expected{"foo"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("[[foo.bar.baz]]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("[[foo . bar. baz]]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("[[foo . \"bar\" . baz]]");
+        const std::vector<toml::key> expected{"foo", "bar", "baz"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+    {
+        const std::string source("[[foo . \"b\\tar\" . baz]]");
+        const std::vector<toml::key> expected{"foo", "b\tar", "baz"};
+        const auto result = parser::invoke(source.cbegin());
+        BOOST_CHECK(result.first.ok());
+        BOOST_CHECK(result.first.get() == expected);
+        BOOST_CHECK(result.second == acceptor::invoke(source.begin()));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_parse_data)
+{
+    typedef toml::parse_data parser;
+    {
+        const std::string source("#hogehoge");
+        const toml::Table expected{};
+        const auto result = parser::invoke(source.cbegin(), source.cend());
+        BOOST_CHECK(result == expected);
+    }
+    {
+        const std::string source("key = 'value'");
+        const toml::Table expected{{"key", "value"}};
+        const auto result = parser::invoke(source.cbegin(), source.cend());
+        BOOST_CHECK(result == expected);
+    }
+    {
+        const std::string source("key = 'value' #hoge");
+        const toml::Table expected{{"key", "value"}};
+        const auto result = parser::invoke(source.cbegin(), source.cend());
+        BOOST_CHECK(result == expected);
+    }
+    {
+        const std::string source("[table]\nkey = 'value' #hoge");
+        const toml::Table expected{{"table", {{"key", "value"}} }};
+        const auto result = parser::invoke(source.cbegin(), source.cend());
+        BOOST_CHECK(result == expected);
+    }
+    {
+        const std::string source("[table]\n\tkey = 'value'\n\t#hoge");
+        const toml::Table expected{{"table", {{"key", "value"}} }};
+        const auto result = parser::invoke(source.cbegin(), source.cend());
+        BOOST_CHECK(result == expected);
+    }
+    {
+        const std::string source("[table]\n\tkey = 'value'\n\t#hoge");
+        const toml::Table expected{{"table", {{"key", "value"}} }};
+        const auto result = parser::invoke(source.cbegin(), source.cend());
+        BOOST_CHECK(result == expected);
+    }
+    {
+        const std::string source("[nested.table]\n\tkey = 'value'\n\t#hoge");
+        const toml::Table expected{{"nested", {{"table", {{"key", "value"}}}}}};
+        const auto result = parser::invoke(source.cbegin(), source.cend());
+        BOOST_CHECK(result == expected);
+    }
+}
