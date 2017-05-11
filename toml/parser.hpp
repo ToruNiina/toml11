@@ -349,395 +349,414 @@ struct parse_boolean
     }
 };
 
-// template<typename charT>
-// struct parse_local_time
-// {
-//     typedef charT value_type;
-//     typedef std::basic_string<value_type> string_type;
-//     typedef toml::Datetime result_type;
-//     typedef typename result_type::number_type number_type;
-//     typedef is_repeat_of<is_number<charT>, 2> nums;
-//     typedef is_charactor<charT, ':'> delim;
-//     typedef is_charactor<charT, '.'> fract;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         result_type result;
-//         result.hour   = std::stoi(string_type(iter, nums::invoke(iter)));
-//         iter = delim::invoke(nums::invoke(iter));
-//         result.minute = std::stoi(string_type(iter, nums::invoke(iter)));
-//         iter = delim::invoke(nums::invoke(iter));
-//         result.second = std::stoi(string_type(iter, nums::invoke(iter)));
-//         iter = fract::invoke(nums::invoke(iter));
-//         if(iter == end)
-//         {
-//             result.millisecond = 0.0;
-//             result.microsecond = 0.0;
-//         }
-//         else if(std::distance(iter, end) <= 3)
-//         {
-//             result.millisecond = parse_number(iter, end);
-//             result.microsecond = 0.0;
-//         }
-//         else
-//         {
-//             result.millisecond = parse_number(iter, iter + 3);
-//             result.microsecond = parse_number(iter + 3, end);
-//         }
-//         result.offset_hour   = result_type::nooffset;
-//         result.offset_minute = result_type::nooffset;
-//         result.year  = result_type::undef;
-//         result.month = result_type::undef;
-//         result.day   = result_type::undef;
-//         return result;
-//     }
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static number_type parse_number(Iterator iter, Iterator end)
-//     {
-//         if(std::distance(iter, end) > 3) end = iter + 3;
-//         string_type str(iter, end);
-//         while(str.size() < 3){str += '0';}
-//         return std::stoi(str);
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_local_date
-// {
-//     typedef charT value_type;
-//     typedef std::basic_string<value_type> string_type;
-//     typedef toml::Datetime result_type;
-//     template<std::size_t N>
-//     using nums = is_repeat_of<is_number<charT>, N>;
-//     typedef is_charactor<charT, '-'> delim;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         result_type result;
-//         result.year   = std::stoi(string_type(iter, nums<4>::invoke(iter)));
-//         iter = delim::invoke(nums<4>::invoke(iter));
-//         result.month  = std::stoi(string_type(iter, nums<2>::invoke(iter)));
-//         iter = delim::invoke(nums<2>::invoke(iter));
-//         result.day    = std::stoi(string_type(iter, nums<2>::invoke(iter)));
-//
-//         result.offset_hour   = result_type::nooffset;
-//         result.offset_minute = result_type::nooffset;
-//         result.hour   = result_type::undef;
-//         result.minute = result_type::undef;
-//         result.second = result_type::undef;
-//         result.millisecond = result_type::undef;
-//         result.microsecond = result_type::undef;
-//         return result;
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_local_date_time
-// {
-//     typedef charT value_type;
-//     typedef std::basic_string<value_type> string_type;
-//     typedef toml::Datetime result_type;
-//     template<std::size_t N>
-//     using nums = is_repeat_of<is_number<charT>, N>;
-//     typedef is_charactor<charT, 'T'> delim;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         const Iterator date = is_local_date<charT>::invoke(iter);
-//         result_type result = parse_local_date<charT>::invoke(iter, date);
-//         iter = delim::invoke(date);// 'T'
-//         const result_type time = parse_local_time<charT>::invoke(iter, end);
-//         result.hour          = time.hour;
-//         result.minute        = time.minute;
-//         result.second        = time.second;
-//         result.millisecond   = time.millisecond;
-//         result.microsecond   = time.microsecond;
-//         result.offset_hour   = result_type::nooffset;
-//         result.offset_minute = result_type::nooffset;
-//         return result;
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_offset_date_time
-// {
-//     typedef charT value_type;
-//     typedef std::basic_string<value_type> string_type;
-//     typedef toml::Datetime result_type;
-//     template<std::size_t N>
-//     using nums = is_repeat_of<is_number<charT>, N>;
-//     typedef is_charactor<charT, ':'> delim;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         const Iterator datetime = is_local_date_time<charT>::invoke(iter);
-//         result_type result = parse_local_date_time<charT>::invoke(iter, datetime);
-//         iter = datetime;
-//         if(*iter == 'Z')
-//         {
-//             result.offset_hour   = 0;
-//             result.offset_minute = 0;
-//         }
-//         else
-//         {
-//             if(*iter != '+' && *iter != '-')
-//                 throw syntax_error("invalid offset-datetime");
-//             const int sign = (*iter == '-') ? -1 : 1;
-//             ++iter;
-//             result.offset_hour   = sign *
-//                 std::stoi(string_type(iter, nums<2>::invoke(iter)));
-//             iter = delim::invoke(nums<2>::invoke(iter));
-//             result.offset_minute = sign *
-//                 std::stoi(string_type(iter, nums<2>::invoke(iter)));
-//         }
-//         return result;
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_datetime
-// {
-//     typedef charT value_type;
-//     typedef toml::Datetime result_type;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         Iterator tmp = is_offset_date_time<value_type>::invoke(iter);
-//         if(tmp != iter) return parse_offset_date_time<value_type>::invoke(iter, tmp);
-//         tmp = is_local_date_time<value_type>::invoke(iter);
-//         if(tmp != iter) return parse_local_date_time<value_type>::invoke(iter, tmp);
-//         tmp = is_local_date<value_type>::invoke(iter);
-//         if(tmp != iter) return parse_local_date<value_type>::invoke(iter, tmp);
-//         tmp = is_local_time<value_type>::invoke(iter);
-//         if(tmp != iter) return parse_local_time<value_type>::invoke(iter, tmp);
-//         throw internal_error("no datetime here");
-//     }
-// };
-//
-// template<typename charT, typename acceptorT, typename parserT>
-// struct parse_fixed_type_array
-// {
-//     typedef charT value_type;
-//     typedef toml::Array result_type;
-//     typedef acceptorT acceptor_type;
-//     typedef parserT   parser_type;
-//     typedef is_skippable_in_array<charT> skippable;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         result_type result;
-//         --end;
-//         assert(*iter == '[' && *end == ']');
-//         ++iter;
-//         iter = skippable::invoke(iter);
-//         while(iter != end)
-//         {
-//             const Iterator tmp = acceptor_type::invoke(iter);
-//             result.emplace_back(parser_type::invoke(iter, tmp));
-//             iter = tmp;
-//             iter = skippable::invoke(iter);
-//             iter = is_charactor<charT, ','>::invoke(iter);
-//             iter = skippable::invoke(iter);
-//         }
-//         return result;
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_inline_table;
-//
-// template<typename charT>
-// struct parse_array
-// {
-//     typedef charT value_type;
-//     typedef toml::Array result_type;
-//     typedef is_skippable_in_array<charT> skippable;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         const Iterator init = skippable::invoke(std::next(iter));
-//         if(is_boolean<charT>::invoke(init) != init)
-//             return parse_fixed_type_array<charT, is_boolean<charT>,
-//                        parse_boolean<charT>>::invoke(iter, end);
-//
-//         if(is_integer<charT>::invoke(init) != init)
-//             return parse_fixed_type_array<charT, is_integer<charT>,
-//                        parse_integer<charT>>::invoke(iter, end);
-//
-//         if(is_float<charT>::invoke(init) != init)
-//             return parse_fixed_type_array<charT, is_float<charT>,
-//                        parse_float<charT>>::invoke(iter, end);
-//
-//         if(is_string<charT>::invoke(init) != init)
-//             return parse_fixed_type_array<charT, is_string<charT>,
-//                        parse_string<charT>>::invoke(iter, end);
-//
-//         if(is_datetime<charT>::invoke(init) != init)
-//             return parse_fixed_type_array<charT, is_datetime<charT>,
-//                        parse_datetime<charT>>::invoke(iter, end);
-//
-//         if(is_array<charT>::invoke(init) != init)
-//             return parse_fixed_type_array<charT, is_array<charT>,
-//                        parse_array<charT>>::invoke(iter, end);
-//
-//         if(is_inline_table<charT>::invoke(init) != init)
-//             return parse_fixed_type_array<charT, is_inline_table<charT>,
-//                         parse_inline_table<charT>>::invoke(iter, end);
-//
-//         if(is_skippable_in_array<charT>::invoke(init) == std::prev(end))
-//             return result_type{}; // empty
-//
-//         throw internal_error("no valid array here");
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_value
-// {
-//     typedef charT value_type;
-//     typedef toml::value result_type;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         if(iter != is_string<charT>::invoke(iter))
-//             return result_type(parse_string<charT>::invoke(iter, end));
-//         else if(iter != is_datetime<charT>::invoke(iter))
-//             return result_type(parse_datetime<charT>::invoke(iter, end));
-//         else if(iter != is_float<charT>::invoke(iter))
-//             return result_type(parse_float<charT>::invoke(iter, end));
-//         else if(iter != is_integer<charT>::invoke(iter))
-//             return result_type(parse_integer<charT>::invoke(iter, end));
-//         else if(iter != is_boolean<charT>::invoke(iter))
-//             return result_type(parse_boolean<charT>::invoke(iter, end));
-//         else if(iter != is_array<charT>::invoke(iter))
-//             return result_type(parse_array<charT>::invoke(iter, end));
-//         else if(iter != is_inline_table<charT>::invoke(iter))
-//             return result_type(parse_inline_table<charT>::invoke(iter, end));
-//
-//         throw internal_error("no valid value here");
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_barekey
-// {
-//     typedef charT value_type;
-//     typedef toml::key result_type;
-//     static_assert(std::is_same<value_type, result_type::value_type
-//             >::value, "char type is different from default key type");
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         return result_type(iter, end);
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_key
-// {
-//     typedef charT value_type;
-//     typedef toml::key result_type;
-//     static_assert(std::is_same<value_type, result_type::value_type
-//             >::value, "char type is different from default key type");
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         if(iter != is_barekey<charT>::invoke(iter))
-//             return parse_barekey<charT>::invoke(iter, end);
-//         else if(iter != is_string<charT>::invoke(iter))
-//             return parse_string<charT>::invoke(iter, end);
-//         throw internal_error("no valid key here");
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_key_value_pair
-// {
-//     typedef charT value_type;
-//     typedef std::pair<toml::key, toml::value> result_type;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         Iterator tmp = is_key<charT>::invoke(iter);
-//         const toml::key k = parse_key<charT>::invoke(iter, tmp);
-//         iter = tmp;
-//         iter = is_any_num_of_ws<charT>::invoke(iter);
-//         assert(*iter == '='); ++iter;
-//         iter = is_any_num_of_ws<charT>::invoke(iter);
-//         tmp = is_value<charT>::invoke(iter);
-//         const toml::value v = parse_value<charT>::invoke(iter, tmp);
-//         return std::make_pair(k, v);
-//     }
-// };
-//
-// template<typename charT>
-// struct parse_inline_table
-// {
-//     typedef charT value_type;
-//     typedef toml::Table result_type;
-//
-//     template<typename Iterator, class = typename std::enable_if<
-//         std::is_same<typename std::iterator_traits<Iterator>::value_type,
-//                      value_type>::value>::type>
-//     static result_type invoke(Iterator iter, Iterator end)
-//     {
-//         --end;
-//         assert(*iter == '{' && *end == '}');
-//         ++iter;
-//         iter = is_any_num_of_ws<charT>::invoke(iter);
-//
-//         result_type result;
-//
-//         while(iter != end)
-//         {
-//             Iterator tmp = is_key_value_pair<charT>::invoke(iter);
-//             result.emplace(parse_key_value_pair<charT>::invoke(iter, tmp));
-//             iter = tmp;
-//
-//             iter = is_any_num_of_ws<charT>::invoke(iter);
-//             iter = is_charactor<charT, ','>::invoke(iter);
-//             iter = is_any_num_of_ws<charT>::invoke(iter);
-//         }
-//         return result;
-//     }
-// };
-//
+struct parse_local_time
+{
+    typedef toml::charactor value_type;
+    typedef std::basic_string<value_type>  string_type;
+    typedef detail::result<toml::Datetime> result_type;
+    typedef typename toml::Datetime::number_type number_type;
+    template<std::size_t N>
+    using nums = is_repeat_of<is_number<toml::charactor>, N>;
+    typedef is_charactor<toml::charactor, ':'> delim;
+    typedef is_charactor<toml::charactor, '.'> fract;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        const Iterator end = is_local_time<value_type>::invoke(iter);
+        if(iter == end) return std::make_pair(result_type{}, iter);
+
+        toml::Datetime result;
+        result.hour   = std::stoi(string_type(iter, nums<2>::invoke(iter)));
+        iter = delim::invoke(nums<2>::invoke(iter));
+        result.minute = std::stoi(string_type(iter, nums<2>::invoke(iter)));
+        iter = delim::invoke(nums<2>::invoke(iter));
+        result.second = std::stoi(string_type(iter, nums<2>::invoke(iter)));
+        iter = fract::invoke(nums<2>::invoke(iter));
+        if(iter == end)
+        {
+            result.millisecond = 0.0;
+            result.microsecond = 0.0;
+        }
+        else if(std::distance(iter, end) <= 3)
+        {
+            result.millisecond = parse_number(iter, end);
+            result.microsecond = 0.0;
+        }
+        else
+        {
+            result.millisecond = parse_number(iter, iter + 3);
+            result.microsecond = parse_number(iter + 3, end);
+        }
+        result.offset_hour   = toml::Datetime::nooffset;
+        result.offset_minute = toml::Datetime::nooffset;
+        result.year  = toml::Datetime::undef;
+        result.month = toml::Datetime::undef;
+        result.day   = toml::Datetime::undef;
+        return std::make_pair(result, end);
+    }
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static number_type parse_number(Iterator iter, Iterator end)
+    {
+        if(std::distance(iter, end) > 3) end = iter + 3;
+        string_type str(iter, end);
+        while(str.size() < 3){str += '0';}
+        return std::stoi(str);
+    }
+};
+
+struct parse_local_date
+{
+    typedef toml::charactor value_type;
+    typedef std::basic_string<value_type> string_type;
+    typedef detail::result<toml::Datetime> result_type;
+    template<std::size_t N>
+    using nums = is_repeat_of<is_number<value_type>, N>;
+    typedef is_charactor<value_type, '-'> delim;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        const Iterator end = is_local_date<value_type>::invoke(iter);
+        if(iter == end) return std::make_pair(result_type{}, iter);
+
+        toml::Datetime result;
+        result.year   = std::stoi(string_type(iter, nums<4>::invoke(iter)));
+        iter = delim::invoke(nums<4>::invoke(iter));
+        result.month  = std::stoi(string_type(iter, nums<2>::invoke(iter)));
+        iter = delim::invoke(nums<2>::invoke(iter));
+        result.day    = std::stoi(string_type(iter, nums<2>::invoke(iter)));
+
+        result.offset_hour   = toml::Datetime::nooffset;
+        result.offset_minute = toml::Datetime::nooffset;
+        result.hour   = toml::Datetime::undef;
+        result.minute = toml::Datetime::undef;
+        result.second = toml::Datetime::undef;
+        result.millisecond = toml::Datetime::undef;
+        result.microsecond = toml::Datetime::undef;
+        return std::make_pair(result, end);
+    }
+};
+
+struct parse_local_date_time
+{
+    typedef toml::charactor value_type;
+    typedef std::basic_string<value_type> string_type;
+    typedef detail::result<toml::Datetime> result_type;
+    template<std::size_t N>
+    using nums = is_repeat_of<is_number<toml::charactor>, N>;
+    typedef is_charactor<toml::charactor, 'T'> delim;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        const Iterator end = is_local_date_time<value_type>::invoke(iter);
+        if(iter == end) return std::make_pair(result_type{}, iter);
+
+        auto ld = parse_local_date::invoke(iter);
+        if(!ld.first.ok()) throw syntax_error("invalid local datetime");
+        toml::Datetime result(ld.first.move());
+        iter = delim::invoke(ld.second);// 'T'
+
+        const auto time = parse_local_time::invoke(iter);
+        result.hour          = time.first.get().hour;
+        result.minute        = time.first.get().minute;
+        result.second        = time.first.get().second;
+        result.millisecond   = time.first.get().millisecond;
+        result.microsecond   = time.first.get().microsecond;
+        result.offset_hour   = toml::Datetime::nooffset;
+        result.offset_minute = toml::Datetime::nooffset;
+        return std::make_pair(result, end);
+    }
+};
+
+struct parse_offset_date_time
+{
+    typedef toml::charactor value_type;
+    typedef std::basic_string<value_type> string_type;
+    typedef detail::result<toml::Datetime> result_type;
+    template<std::size_t N>
+    using nums = is_repeat_of<is_number<toml::charactor>, N>;
+    typedef is_charactor<toml::charactor, ':'> delim;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        const Iterator end = is_offset_date_time<value_type>::invoke(iter);
+        if(iter == end) return std::make_pair(result_type{}, iter);
+
+        auto ldt = parse_local_date_time::invoke(iter);
+        if(!ldt.first.ok()) throw syntax_error("invalid offset datetime");
+        toml::Datetime result(ldt.first.move());
+        iter = ldt.second;
+        if(*iter == 'Z')
+        {
+            result.offset_hour   = 0;
+            result.offset_minute = 0;
+        }
+        else
+        {
+            if(*iter != '+' && *iter != '-')
+                throw syntax_error("invalid offset-datetime");
+            const int sign = (*iter == '-') ? -1 : 1;
+            ++iter;
+            result.offset_hour   = sign *
+                std::stoi(string_type(iter, nums<2>::invoke(iter)));
+            iter = delim::invoke(nums<2>::invoke(iter));
+            result.offset_minute = sign *
+                std::stoi(string_type(iter, nums<2>::invoke(iter)));
+        }
+        return std::make_pair(result, end);
+    }
+};
+
+struct parse_datetime
+{
+    typedef toml::charactor value_type;
+    typedef detail::result<toml::Datetime> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        std::pair<result_type, Iterator> result;
+        if((result = parse_offset_date_time::invoke(iter)).first.ok())
+            return result;
+        else if((result = parse_local_date_time::invoke(iter)).first.ok())
+            return result;
+        else if((result = parse_local_date::invoke(iter)).first.ok())
+            return result;
+        else if((result = parse_local_time::invoke(iter)).first.ok())
+            return result;
+        else
+            return std::make_pair(result_type{}, iter);
+    }
+};
+
+template<typename acceptorT, typename parserT>
+struct parse_fixed_type_array
+{
+    typedef toml::charactor value_type;
+    typedef detail::result<toml::Array> result_type;
+    typedef acceptorT acceptor_type;
+    typedef parserT   parser_type;
+    typedef is_skippable_in_array<value_type> skippable;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        const Iterator end = is_fixed_type_array<value_type, acceptorT>::invoke(iter);
+        if(iter == end) return std::make_pair(result_type{}, iter);
+
+        toml::Array result;
+        const Iterator last = std::prev(end);
+        iter = skippable::invoke(std::next(iter));
+        while(iter != last)
+        {
+            const Iterator tmp = acceptor_type::invoke(iter);
+            if(tmp == iter) throw syntax_error("parse_array");
+            auto next = parser_type::invoke(iter);
+            if(!next.first.ok()) throw syntax_error("parse_array");
+            result.emplace_back(next.first.move());
+            iter = tmp;
+            iter = skippable::invoke(iter);
+            iter = is_charactor<value_type, ','>::invoke(iter);
+            iter = skippable::invoke(iter);
+        }
+        return std::make_pair(result, end);
+    }
+};
+
+template<typename charT>
+struct parse_inline_table;
+
+template<typename charT>
+struct parse_array
+{
+    typedef charT value_type;
+    static_assert(std::is_same<charT, toml::charactor>::value, "");
+    typedef detail::result<toml::Array> result_type;
+    typedef is_skippable_in_array<value_type> skippable;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        if(iter == is_array<value_type>::invoke(iter))
+            return std::make_pair(result_type{}, iter);
+
+        std::pair<result_type, Iterator> result;
+        if((result = parse_fixed_type_array<is_boolean<value_type>,
+                     parse_boolean>::invoke(iter)).first.ok()) return result;
+        else if((result = parse_fixed_type_array<is_string<value_type>,
+                parse_string>::invoke(iter)).first.ok()) return result;
+        else if((result = parse_fixed_type_array<is_datetime<value_type>,
+                parse_datetime>::invoke(iter)).first.ok()) return result;
+        else if((result = parse_fixed_type_array<is_float<value_type>,
+                parse_float>::invoke(iter)).first.ok()) return result;
+        else if((result = parse_fixed_type_array<is_integer<value_type>,
+                parse_integer>::invoke(iter)).first.ok()) return result;
+        else if((result = parse_fixed_type_array<is_array<value_type>,
+                parse_array<value_type>>::invoke(iter)).first.ok()) return result;
+        else if((result = parse_fixed_type_array<is_inline_table<value_type>,
+                parse_inline_table<value_type>>::invoke(iter)).first.ok())
+            return result;
+        else if(skippable::invoke(std::next(iter)) == // empty
+                std::prev(is_array<value_type>::invoke(iter))
+                ) return std::make_pair(
+                    toml::Array{}, is_array<value_type>::invoke(iter));
+        else throw syntax_error("no valid array here");
+    }
+};
+
+template<typename charT>
+struct parse_value
+{
+    typedef charT value_type;
+    static_assert(std::is_same<charT, toml::charactor>::value, "");
+    typedef detail::result<toml::value> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        std::pair<result_type, Iterator> result;
+        if((result = parse_boolean::invoke(iter)).first.ok())
+            return result;
+        else if((result = parse_string::invoke(iter)).first.ok())
+            return result;
+        else if((result = parse_datetime::invoke(iter)).first.ok())
+            return result;
+        else if((result = parse_float::invoke(iter)).first.ok())
+            return result;
+        else if((result = parse_integer::invoke(iter)).first.ok())
+            return result;
+        else if((result = parse_array<value_type>::invoke(iter)).first.ok())
+            return result;
+        else if((result = parse_inline_table<value_type>::invoke(iter)).first.ok())
+            return result;
+        else
+            return std::make_pair(result_type{}, iter);
+    }
+};
+
+struct parse_barekey
+{
+    typedef toml::charactor value_type;
+    typedef detail::result<toml::key> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        const Iterator end = is_barekey<value_type>::invoke(iter);
+        if(iter == end) return std::make_pair(result_type{}, iter);
+        return std::make_pair(toml::key(iter, end), end);
+    }
+};
+
+struct parse_key
+{
+    typedef toml::charactor value_type;
+    typedef detail::result<toml::key> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        std::pair<result_type, Iterator> result;
+        if((result = parse_barekey::invoke(iter)).first.ok())
+            return result;
+        else if((result = parse_string::invoke(iter)).first.ok())
+            return result;
+        else return std::make_pair(result_type{}, iter);
+    }
+};
+
+template<typename charT>
+struct parse_key_value_pair
+{
+    typedef charT value_type;
+    static_assert(std::is_same<charT, toml::charactor>::value, "");
+    typedef detail::result<std::pair<toml::key, toml::value>> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        auto tmp_key = parse_key::invoke(iter);
+        if(!tmp_key.first.ok())
+            return std::make_pair(result_type{}, iter);
+        iter = is_any_num_of_ws<charT>::invoke(tmp_key.second);
+        if(*iter != '=') throw syntax_error("invalid key value pair");
+        iter = is_any_num_of_ws<charT>::invoke(std::next(iter));
+
+        auto tmp_value = parse_value<toml::charactor>::invoke(iter);
+        if(!tmp_value.first.ok())
+            throw syntax_error("invalid key value pair");
+
+        iter = tmp_value.second;
+
+        return std::make_pair(std::make_pair(
+                    tmp_key.first.move(), tmp_value.first.move()),
+                is_any_num_of_ws<charT>::invoke(tmp_value.second));
+    }
+};
+
+template<typename charT>
+struct parse_inline_table
+{
+    typedef charT value_type;
+    static_assert(std::is_same<charT, toml::charactor>::value, "");
+    typedef detail::result<toml::Table> result_type;
+
+    template<typename Iterator, class = typename std::enable_if<
+        std::is_same<typename std::iterator_traits<Iterator>::value_type,
+                     value_type>::value>::type>
+    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    {
+        const Iterator end = is_inline_table<value_type>::invoke(iter);
+        if(iter == end) return std::make_pair(result_type{}, iter);
+
+        iter = is_any_num_of_ws<value_type>::invoke(std::next(iter));
+
+        const Iterator last = std::prev(end);
+        toml::Table result;
+        while(iter != last)
+        {
+            auto tmp = parse_key_value_pair<value_type>::invoke(iter);
+            if(!tmp.first.ok()) throw syntax_error("parse_inline_table");
+
+            result.emplace(tmp.first.move());
+            iter = tmp.second;
+
+            iter = is_any_num_of_ws<value_type>::invoke(iter);
+            iter = is_charactor<value_type, ','>::invoke(iter);
+            iter = is_any_num_of_ws<value_type>::invoke(iter);
+        }
+        return std::make_pair(result, end);
+    }
+};
+
 // template<typename charT>
 // struct parse_table_contents
 // {
