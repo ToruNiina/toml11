@@ -33,11 +33,7 @@
 #    error "toml11 requires C++11 or later."
 #endif
 
-#include "toml/traits.hpp"
-#include "toml/utility.hpp"
-#include "toml/exception.hpp"
-#include "toml/datetime.hpp"
-#include "toml/value.hpp"
+#include "toml/parser.hpp"
 #include "toml/to_toml.hpp"
 #include "toml/from_toml.hpp"
 #include "toml/get.hpp"
