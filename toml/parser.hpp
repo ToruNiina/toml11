@@ -944,12 +944,27 @@ struct parse_data
         }
 
         if(data.count(*iter) == 0)
+        {
             data.emplace(*iter, toml::Table());
-        else if(data[*iter].type() != value_t::Table)
-            throw syntax_error("duplicate key: " + *iter);
-
-        return push_table(data[*iter].template cast<value_t::Table>(),
-                          std::move(v), std::next(iter), end);
+            return push_table(data[*iter].template cast<value_t::Table>(),
+                              std::move(v), std::next(iter), end);
+        }
+        else if(data[*iter].type() == value_t::Table)
+        {
+            return push_table(data[*iter].template cast<value_t::Table>(),
+                              std::move(v), std::next(iter), end);
+        }
+        else if(data[*iter].type() == value_t::Array)
+        {
+            auto& ar = data[*iter].template cast<value_t::Array>();
+            if(ar.empty()) ar.emplace_back(toml::Table{});
+            if(ar.back().type() != value_t::Table)
+                throw syntax_error("assign table into array having non-table type: " + *iter);
+            return push_table(ar.back().template cast<value_t::Table>(),
+                              std::move(v), std::next(iter), end);
+        }
+        else
+            throw syntax_error("assign table into not table: " + *iter);
     }
 
     template<typename Iterator, class = typename std::enable_if<
@@ -971,12 +986,27 @@ struct parse_data
         }
 
         if(data.count(*iter) == 0)
+        {
             data.emplace(*iter, toml::Table());
-        else if(data[*iter].type() != value_t::Table)
-            throw syntax_error("duplicate key: " + *iter);
-
-        return push_array_of_table(data[*iter].template cast<value_t::Table>(),
-                                   std::move(v), std::next(iter), end);
+            return push_array_of_table(data[*iter].template cast<value_t::Table>(),
+                                       std::move(v), std::next(iter), end);
+        }
+        else if(data[*iter].type() == value_t::Table)
+        {
+            return push_array_of_table(data[*iter].template cast<value_t::Table>(),
+                              std::move(v), std::next(iter), end);
+        }
+        else if(data[*iter].type() == value_t::Array)
+        {
+            auto& ar = data[*iter].template cast<value_t::Array>();
+            if(ar.empty()) ar.emplace_back(toml::Table{});
+            if(ar.back().type() != value_t::Table)
+                throw syntax_error("assign table into array having non-table type: " + *iter);
+            return push_array_of_table(ar.back().template cast<value_t::Table>(),
+                              std::move(v), std::next(iter), end);
+        }
+        else
+            throw syntax_error("assign array of table into not table: " + *iter);
     }
 
 };

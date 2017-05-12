@@ -96,11 +96,34 @@ BOOST_AUTO_TEST_CASE(test_fruit)
     }
 }
 
-// BOOST_AUTO_TEST_CASE(test_hard_example)
-// {
-//
-// }
-//
+BOOST_AUTO_TEST_CASE(test_hard_example)
+{
+    const auto data = toml::parse("toml/tests/hard_example.toml");
+    const auto the = toml::get<toml::Table>(data.at("the"));
+    BOOST_CHECK_EQUAL(toml::get<std::string>(the.at("test_string")),
+                      "You'll hate me after this - #");
+
+    const auto hard = toml::get<toml::Table>(the.at("hard"));
+    const std::vector<std::string> expected_the_hard_test_array{"] ", " # "};
+    BOOST_CHECK(toml::get<std::vector<std::string>>(hard.at("test_array")) ==
+                expected_the_hard_test_array);
+    const std::vector<std::string> expected_the_hard_test_array2{
+        "Test #11 ]proved that", "Experiment #9 was a success"};
+    BOOST_CHECK(toml::get<std::vector<std::string>>(hard.at("test_array2")) ==
+                expected_the_hard_test_array2);
+    BOOST_CHECK_EQUAL(toml::get<std::string>(hard.at("another_test_string")),
+                      " Same thing, but with a string #");
+    BOOST_CHECK_EQUAL(toml::get<std::string>(hard.at("harder_test_string")),
+                      " And when \"'s are in the string, along with # \"");
+
+    const auto bit = toml::get<toml::Table>(hard.at("bit#"));
+    BOOST_CHECK_EQUAL(toml::get<std::string>(bit.at("what?")),
+                      "You don't think some user won't do that?");
+    const std::vector<std::string> expected_multi_line_array{"]"};
+    BOOST_CHECK(toml::get<std::vector<std::string>>(bit.at("multi_line_array")) ==
+                expected_multi_line_array);
+}
+
 // BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
 // {
 //     ;
