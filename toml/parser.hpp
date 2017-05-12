@@ -4,6 +4,7 @@
 #include "acceptor.hpp"
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 
 namespace toml
 {
@@ -329,7 +330,15 @@ struct parse_float
 
         string_type result; result.resize(std::distance(iter, end));
         std::copy_if(iter, end, result.begin(), [](value_type c){return c != '_';});
-        return std::make_pair(std::stod(result), end);
+        try{
+            return std::make_pair(std::stod(result), end);
+        }
+        catch(std::out_of_range& oor)
+        {
+            std::cout << "extremely large Float value appeared: "
+                      << result << "; it is negrected" << std::endl;
+            return std::make_pair(0, end);
+        }
     }
 };
 
@@ -929,7 +938,7 @@ struct parse_data
         if(iter == std::prev(end))
         {
             if(data.count(*iter) == 1)
-                throw syntax_error("duplicate key");
+                throw syntax_error("duplicate key: " + *iter);
             data.emplace(*iter, std::move(v));
             return;
         }
@@ -937,7 +946,7 @@ struct parse_data
         if(data.count(*iter) == 0)
             data.emplace(*iter, toml::Table());
         else if(data[*iter].type() != value_t::Table)
-            throw syntax_error("duplicate key");
+            throw syntax_error("duplicate key: " + *iter);
 
         return push_table(data[*iter].template cast<value_t::Table>(),
                           std::move(v), std::next(iter), end);
@@ -955,7 +964,7 @@ struct parse_data
             if(data.count(*iter) == 0)
                 data.emplace(*iter, toml::Array());
             else if(data.at(*iter).type() != value_t::Array)
-                throw syntax_error("duplicate key");
+                throw syntax_error("duplicate key: " + *iter);
 
             data[*iter].template cast<value_t::Array>().emplace_back(std::move(v));
             return;
@@ -964,13 +973,34 @@ struct parse_data
         if(data.count(*iter) == 0)
             data.emplace(*iter, toml::Table());
         else if(data[*iter].type() != value_t::Table)
-            throw syntax_error("duplicate key");
+            throw syntax_error("duplicate key: " + *iter);
 
         return push_array_of_table(data[*iter].template cast<value_t::Table>(),
                                    std::move(v), std::next(iter), end);
     }
 
 };
+
+template<typename traits = std::char_traits<toml::charactor>>
+toml::Table parse(std::basic_istream<toml::charactor, traits>& is)
+{
+    const auto initial = is.tellg();
+    is.seekg(0, std::ios::end);
+    const auto eofpos  = is.tellg();
+    const std::size_t size = eofpos - initial;
+    is.seekg(initial);
+    std::vector<toml::charactor> contents(size);
+    is.read(contents.data(), size);
+    return parse_data::invoke(contents.cbegin(), contents.cend());
+}
+
+toml::Table parse(const std::string& filename)
+{
+    std::ifstream ifs(filename);
+    if(!ifs.good()) throw std::runtime_error("file open error: " + filename);
+    return parse(ifs);
+}
+
 
 }// toml
 #endif// TOML11_PARSER
