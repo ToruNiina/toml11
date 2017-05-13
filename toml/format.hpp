@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <locale>
 
 namespace toml
 {
@@ -79,12 +80,9 @@ template<> struct format_impl<value_t::String>
     typedef detail::toml_default_type<value_t::String>::type type;
 
     std::size_t max_length;
-    std::size_t indent_length;
 
-    format_impl() : max_length(80), indent_length(0){}
-    format_impl(std::size_t mx) : max_length(mx), indent_length(0){}
-    format_impl(std::size_t mx, std::size_t idt)
-        : max_length(mx), indent_length(std::min(mx, idt)){}
+    format_impl() : max_length(80){}
+    format_impl(std::size_t mx) : max_length(mx){}
 
     std::basic_string<toml::charactor>
     operator()(const type& val)
@@ -117,8 +115,10 @@ template<> struct format_impl<value_t::String>
                     {
                         str += 'u';
                         std::basic_ostringstream<toml::charactor> oss;
-                        oss << std::setw(4) << std::fill(0) << std::hex
+                        oss << std::setw(4) << std::setfill('0') << std::hex
                             << static_cast<std::int8_t>(c);
+                        auto hexdig = oss.str();
+                        std::transform(hexdig.begin(), hexdig.end(), std::toupper);
                         str += oss.str();
                         break;
                     }
@@ -145,28 +145,27 @@ template<> struct format_impl<value_t::String>
     convert_multiline(std::basic_string<toml::charactor>&& val)
     {
         std::basic_string<toml::charactor> str; str.reserve(val.size() + 6);
-        std::basic_string<toml::charactor> indent(' ', indent_length);
-        str += "\"\"\"\n" + indent;
-        std::size_t current = indent_length;
+        str += "\"\"\"\n";
+        std::size_t current = 0;
         for(auto iter = val.begin()+1; iter != val.end()-1; ++iter)
         {
             if(*iter != '\\')
             {
-                if(current + 1 == max_length){str += "\\\n"; str += indent;}
+                if(current + 1 == max_length) str += "\\\n";
                 str += *iter; continue;
             }
             assert(std::next(iter) < val.end()-1);
             if(*std::next(iter) == 'u')
             {
-                if(current + 5 == max_length){str += "\\\n"; str += indent;}
+                if(current + 5 == max_length) str += "\\\n";
                 assert(iter + 5 < val.end()-1);
-                str += *iter; ++iter; // u
-                str += *iter; ++iter; // 0
-                str += *iter; ++iter; // 0
-                str += *iter; ++iter; // 0
-                str += *iter; continue;// 0
+                str += *iter; ++iter;  // u
+                str += *iter; ++iter;  // 0
+                str += *iter; ++iter;  // 1
+                str += *iter; ++iter;  // 2
+                str += *iter; continue;// 3
             }
-            if(current + 2 == max_length){str += "\\\n"; str += indent;}
+            if(current + 2 == max_length) str += "\\\n";
             str += *iter; ++iter; str += *iter;
         }
         str += "\"\"\"";
@@ -194,7 +193,6 @@ template<> struct format_impl<value_t::Array>
     typedef detail::toml_default_type<value_t::Array>::type type;
 
     std::size_t max_length;
-    std::size_t indent_length;
 
     std::basic_string<toml::charactor>
     operator()(const type& val)
@@ -203,7 +201,7 @@ template<> struct format_impl<value_t::Array>
         retval += '[';
         for(const auto&& item : val)
         {
-            auto tmp = format(val, max_length, indent_length);
+            auto tmp = format(val, max_length - 1);
             retval += tmp;
             retval += ", ";
             if(tmp.size() * 2 > max_length) retval += '\n';
@@ -218,8 +216,8 @@ template<> struct format_impl<value_t::Table>
 {
     typedef detail::toml_default_type<value_t::Table>::type type;
 
-    static std::basic_string<toml::charactor>
-    invoke(const type& val)
+    std::basic_string<toml::charactor>
+    operator()(const type& val)
     {
         std::basic_string<toml::charactor> retval;
         for(const auto&& item : val)
@@ -239,15 +237,15 @@ format(const value& v)
 {
     switch(v.type())
     {
-        case value_t::Boolean : return format_impl<value_t::Boolean >::invoke(v.template cast<value_t::Boolean >());
-        case value_t::Integer : return format_impl<value_t::Integer >::invoke(v.template cast<value_t::Integer >());
-        case value_t::Float   : return format_impl<value_t::Float   >::invoke(v.template cast<value_t::Float   >());
-        case value_t::String  : return format_impl<value_t::String  >::invoke(v.template cast<value_t::String  >());
-        case value_t::Datetime: return format_impl<value_t::Datetime>::invoke(v.template cast<value_t::Datetime>());
-        case value_t::Array   : return format_impl<value_t::Array   >::invoke(v.template cast<value_t::Array   >());
-        case value_t::Table   : return format_impl<value_t::Table   >::invoke(v.template cast<value_t::Table   >());
-        case value_t::Empty   : return format_impl<value_t::Empty   >::invoke(v.template cast<value_t::Empty   >());
-        case value_t::Unknown : return format_impl<value_t::Unknown >::invoke(v.template cast<value_t::Unknown >());
+        case value_t::Boolean : return format_impl<value_t::Boolean >{}(v.template cast<value_t::Boolean >());
+        case value_t::Integer : return format_impl<value_t::Integer >{}(v.template cast<value_t::Integer >());
+        case value_t::Float   : return format_impl<value_t::Float   >{}(v.template cast<value_t::Float   >());
+        case value_t::String  : return format_impl<value_t::String  >{}(v.template cast<value_t::String  >());
+        case value_t::Datetime: return format_impl<value_t::Datetime>{}(v.template cast<value_t::Datetime>());
+        case value_t::Array   : return format_impl<value_t::Array   >{}(v.template cast<value_t::Array   >());
+        case value_t::Table   : return format_impl<value_t::Table   >{}(v.template cast<value_t::Table   >());
+        case value_t::Empty   : return format_impl<value_t::Empty   >{}(v.template cast<value_t::Empty   >());
+        case value_t::Unknown : return format_impl<value_t::Unknown >{}(v.template cast<value_t::Unknown >());
         default throw std::logic_error("toml::format: unknown enum value");
     }
 }
