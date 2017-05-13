@@ -1,6 +1,8 @@
 toml11
 ======
 
+[![Build Status](https://travis-ci.org/ToruNiina/toml11.svg?branch=master)](https://travis-ci.org/ToruNiina/toml11)
+
 c++11 header-only toml parser depending only on c++11 standard library.
 
 compatible to TOML v0.4.0.
