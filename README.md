@@ -42,8 +42,7 @@ If there are syntax error in the toml file,
 
 #### toml::get()
 
-Then you can obtain the various value from the `data` using `toml::get` function
-no matter what the value type is.
+Then you can obtain the various value from the `data` using `toml::get` function.
 
 ``` cpp
 const auto answer    = toml::get<std::int64_t>(data.at("answer"));
@@ -60,13 +59,20 @@ const auto vc  = toml::get<std::vector<int>>(data.at("numbers"));
 const auto ls  = toml::get<std::list<int>>(data.at("numbers"));
 const auto dq  = toml::get<std::deque<int>>(data.at("numbers"));
 // if size of data.at("numbers") is larger than 3, it will throw toml::type_error.
+// because std::array is not resizable.
 const auto ar  = toml::get<std::array<int, 3>>(data.at("numbers"));
 ```
 
 If the type you passed as a template parameter is incorrect,
 it will throw `toml::type_error`.
 
-#### value\_t and toml::value::type()
+``` cpp
+const auto wrong1 = toml::get<bool>(data.at("integer")); // exception thrown!
+const auto wrong2 = toml::get<float>(data.at("integer"));        // ditto
+const auto wrong3 = toml::get<toml::Datetime>(data.at("array")); // ditto
+```
+
+#### toml::value\_t
 
 When you don't know the exact type of toml-value, you can get `enum` type from
 `toml::value`.
@@ -79,10 +85,10 @@ std::vector<int> a;
 const auto t = data.at("something").type();
 switch(t)
 {
-    case toml::value_t::Integer: i = toml::get<int>(data.at("something"));
-    case toml::value_t::Float  : d = toml::get<double>(data.at("something"));
-    case toml::value_t::String : s = toml::get<std::string>(data.at("something"));
-    case toml::value_t::Array  : a = toml::get<std::vector<int>>(data.at("something"));
+    case toml::value_t::Integer: i = toml::get<int>(data.at("something")); break;
+    case toml::value_t::Float  : d = toml::get<double>(data.at("something")); break;
+    case toml::value_t::String : s = toml::get<std::string>(data.at("something")); break;
+    case toml::value_t::Array  : a = toml::get<std::vector<int>>(data.at("something")); break;
     default : throw std::runtime_error("unexpected type : " + stringize(t));
 }
 ```
