@@ -42,8 +42,8 @@ template<> struct format_impl<value_t::Boolean>
 {
     typedef detail::toml_default_type<value_t::Boolean>::type type;
 
-    static std::basic_string<toml::charactor>
-    invoke(const type& val)
+    std::basic_string<toml::charactor>
+    operator()(const type& val)
     {
         return val ? "true" : "false";
     }
@@ -53,8 +53,8 @@ template<> struct format_impl<value_t::Integer>
 {
     typedef detail::toml_default_type<value_t::Integer>::type type;
 
-    static std::basic_string<toml::charactor>
-    invoke(const type& val)
+    std::basic_string<toml::charactor>
+    operator()(const type& val)
     {
         return std::to_string(val);
     }
@@ -64,8 +64,8 @@ template<> struct format_impl<value_t::Float>
 {
     typedef detail::toml_default_type<value_t::Float>::type type;
 
-    static std::basic_string<toml::charactor>
-    invoke(const type& val)
+    std::basic_string<toml::charactor>
+    operator()(const type& val)
     {
         std::basic_ostringstream<toml::charactor> oss;
         oss << std::showpoint << val;
@@ -78,20 +78,109 @@ template<> struct format_impl<value_t::String>
 {
     typedef detail::toml_default_type<value_t::String>::type type;
 
-    static std::basic_string<toml::charactor>
-    invoke(const type& val)
+    std::size_t max_length;
+    std::size_t indent_length;
+
+    format_impl() : max_length(80), indent_length(0){}
+    format_impl(std::size_t mx) : max_length(mx), indent_length(0){}
+    format_impl(std::size_t mx, std::size_t idt)
+        : max_length(mx), indent_length(std::min(mx, idt)){}
+
+    std::basic_string<toml::charactor>
+    operator()(const type& val)
     {
-        //TODO escape some charactors!
-        return val;
+        auto tmp = make_inline(val);
+        if(max_length == std::numeric_limits<std::size_t>::max() ||
+           tmp.size() <= max_length) return tmp;
+        return convert_multiline(std::move(tmp));
     }
+
+  private:
+
+    std::basic_string<toml::charactor>
+    make_inline(std::basic_string<toml::charactor>&& val)
+    {
+        std::basic_string<toml::charactor> str;
+        str += '"';
+        for(const auto& c : val)
+        {
+            if('\0' < c && c < '\31')
+            {
+                switch(c)
+                {
+                    case '\b': str += "\\b"; break;
+                    case '\t': str += "\\t"; break;
+                    case '\n': str += "\\n"; break;
+                    case '\f': str += "\\f"; break;
+                    case '\r': str += "\\r"; break;
+                    default:
+                    {
+                        str += 'u';
+                        std::basic_ostringstream<toml::charactor> oss;
+                        oss << std::setw(4) << std::fill(0) << std::hex
+                            << static_cast<std::int8_t>(c);
+                        str += oss.str();
+                        break;
+                    }
+                }
+            }
+            else if(c == '"')
+            {
+                str += "\\\"";
+            }
+            else if(c == '\\')
+            {
+                str += "\\\\";
+            }
+            else
+            {
+                str += c;
+            }
+        }
+        str += '"';
+        return str;
+    }
+
+    std::basic_string<toml::charactor>
+    convert_multiline(std::basic_string<toml::charactor>&& val)
+    {
+        std::basic_string<toml::charactor> str; str.reserve(val.size() + 6);
+        std::basic_string<toml::charactor> indent(' ', indent_length);
+        str += "\"\"\"\n" + indent;
+        std::size_t current = indent_length;
+        for(auto iter = val.begin()+1; iter != val.end()-1; ++iter)
+        {
+            if(*iter != '\\')
+            {
+                if(current + 1 == max_length){str += "\\\n"; str += indent;}
+                str += *iter; continue;
+            }
+            assert(std::next(iter) < val.end()-1);
+            if(*std::next(iter) == 'u')
+            {
+                if(current + 5 == max_length){str += "\\\n"; str += indent;}
+                assert(iter + 5 < val.end()-1);
+                str += *iter; ++iter; // u
+                str += *iter; ++iter; // 0
+                str += *iter; ++iter; // 0
+                str += *iter; ++iter; // 0
+                str += *iter; continue;// 0
+            }
+            if(current + 2 == max_length){str += "\\\n"; str += indent;}
+            str += *iter; ++iter; str += *iter;
+        }
+        str += "\"\"\"";
+        return str;
+    }
+
 };
 
 template<> struct format_impl<value_t::Datetime>
 {
     typedef detail::toml_default_type<value_t::Datetime>::type type;
 
-    static std::basic_string<toml::charactor>
-    invoke(const type& val)
+    std::basic_string<toml::charactor>
+    operator()(const type& val)
     {
         std::basic_ostringstream<toml::charactor> oss;
         oss << val;
@@ -104,15 +193,20 @@ template<> struct format_impl<value_t::Array>
 {
     typedef detail::toml_default_type<value_t::Array>::type type;
 
-    static std::basic_string<toml::charactor>
-    invoke(const type& val)
+    std::size_t max_length;
+    std::size_t indent_length;
+
+    std::basic_string<toml::charactor>
+    operator()(const type& val)
     {
         std::basic_string<toml::charactor> retval;
         retval += '[';
         for(const auto&& item : val)
         {
-            retval += format(val);
+            auto tmp = format(val, max_length, indent_length);
+            retval += tmp;
             retval += ", ";
+            if(tmp.size() * 2 > max_length) retval += '\n';
         }
         retval += ']';
         return ;
