@@ -1,0 +1,37 @@
+dist: trusty
+language: cpp
+
+matrix:
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - build-essential
+            - g++-5
+      env: COMPILER=g++-5
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.7
+          packages:
+            - build-essential
+            - clang-3.7
+      env: COMPILER=clang++-3.7
+
+install:
+- sudo apt-get -qq update;
+- sudo apt-get -qq install libboost-all-dev;
+
+script:
+- mkdir build
+- cd build
+- git clone https://github.com/toml-lang/toml.git
+- cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
+- make
+- make test
+
