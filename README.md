@@ -2,6 +2,7 @@ toml11
 ======
 
 [![Build Status](https://travis-ci.org/ToruNiina/toml11.svg?branch=master)](https://travis-ci.org/ToruNiina/toml11)
+[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)]
 
 c++11 header-only toml parser depending only on c++11 standard library.
 
