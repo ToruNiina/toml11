@@ -61,9 +61,9 @@ You can set any kind of `container` class to obtain `toml::Array` except for
 const auto vc  = toml::get<std::vector<int>>(data.at("numbers"));
 const auto ls  = toml::get<std::list<int>>(data.at("numbers"));
 const auto dq  = toml::get<std::deque<int>>(data.at("numbers"));
-// if size of data.at("numbers") is larger than 3, it will throw toml::type_error.
-// because std::array is not resizable.
 const auto ar  = toml::get<std::array<int, 3>>(data.at("numbers"));
+// if size of data.at("numbers") is larger than 3, it will throw toml::type_error
+// because std::array is not resizable.
 ```
 
 If the type you passed as a template parameter is incorrect,
@@ -92,7 +92,7 @@ switch(t)
     case toml::value_t::Float  : d = toml::get<double>(data.at("something")); break;
     case toml::value_t::String : s = toml::get<std::string>(data.at("something")); break;
     case toml::value_t::Array  : a = toml::get<std::vector<int>>(data.at("something")); break;
-    default : throw std::runtime_error("unexpected type : " + stringize(t));
+    default : throw std::runtime_error("unexpected type : " + toml::stringize(t));
 }
 ```
 
