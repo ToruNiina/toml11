@@ -109,7 +109,7 @@ struct is_chain_of_impl
     static Iterator invoke(Iterator iter, Iterator rollback)
     {
         const Iterator tmp = headT::invoke(iter);
-        return (tmp == iter && not ignorable) ? rollback :
+        return (tmp == iter && !ignorable) ? rollback :
                 is_chain_of_impl<condT...>::invoke(tmp, rollback);
     }
 };
