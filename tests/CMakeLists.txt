@@ -12,7 +12,16 @@ set(TEST_NAMES
     test_parse_file
     )
 
-add_definitions("-Wall -Wpedantic")
+CHECK_CXX_COMPILER_FLAG("-Wall" COMPILER_SUPPORTS_WALL)
+CHECK_CXX_COMPILER_FLAG("-Wpedantic" COMPILER_SUPPORTS_WPEDANTIC)
+
+if(COMPILER_SUPPORTS_WALL)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+endif()
+
+if(COMPILER_SUPPORTS_WPEDANTIC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic")
+endif()
 
 set(test_library_dependencies)
 find_library(BOOST_UNITTEST_FRAMEWORK_LIBRARY boost_unit_test_framework)
