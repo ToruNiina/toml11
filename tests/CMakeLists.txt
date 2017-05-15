@@ -70,4 +70,12 @@ foreach(TEST_NAME ${TEST_NAMES})
     target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
     target_include_directories(${TEST_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+
+    # Set the PATH to be able to find Boost DLL
+    if(WIN32)
+        STRING(REPLACE ";" "\\;" PATH_STRING "$ENV{PATH}")
+        set_tests_properties(${TEST_NAME}
+            PROPERTIES ENVIRONMENT "PATH=${PATH_STRING}\;${Boost_LIBRARY_DIRS}"
+        )
+    endif()
 endforeach(TEST_NAME)
