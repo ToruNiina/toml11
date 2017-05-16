@@ -54,7 +54,6 @@ struct is_one_of
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end)
     {
-        if(iter == end) return iter;
         const Iterator tmp = headT::invoke(iter, end);
         return (tmp != iter) ? tmp : is_one_of<condT...>::invoke(iter, end);
     }
@@ -69,7 +68,6 @@ struct is_one_of<tailT>
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end)
     {
-        if(iter == end) return iter;
         const Iterator tmp = tailT::invoke(iter, end);
         return (tmp != iter) ? tmp : iter;
     }
@@ -111,7 +109,6 @@ struct is_chain_of_impl
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end, Iterator rollback)
     {
-        if(iter == end) return rollback;
         const Iterator tmp = headT::invoke(iter, end);
         return (tmp == iter && !ignorable) ? rollback :
                 is_chain_of_impl<condT...>::invoke(tmp, end, rollback);
@@ -129,7 +126,6 @@ struct is_chain_of_impl<tailT>
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end, Iterator rollback)
     {
-        if(iter == end) return rollback;
         const Iterator tmp = tailT::invoke(iter, end);
         return (tmp == iter) ? (ignorable ? iter : rollback) : tmp;
     }
@@ -161,7 +157,6 @@ struct is_repeat_of
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end)
     {
-        if(iter == end) return iter;
         const Iterator rollback = iter;
         Iterator tmp;
         for(auto i=0ul; i<N; ++i)
@@ -184,7 +179,6 @@ struct is_repeat_of<condT, 0>
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end)
     {
-        if(iter == end) return iter;
         Iterator tmp = condT::invoke(iter, end);
         while(tmp != iter)
         {
@@ -208,7 +202,6 @@ struct is_none_of
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end)
     {
-        if(iter == end) return iter;
         const Iterator tmp = headT::invoke(iter, end);
         return (tmp != iter) ? iter : is_none_of<tailT...>::invoke(iter, end);
     }
@@ -224,7 +217,6 @@ struct is_none_of<tailT>
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end)
     {
-        if(iter == end) return iter;
         const Iterator tmp = tailT::invoke(iter, end);
         return (tmp != iter) ? iter : std::next(iter);
     }
@@ -243,7 +235,6 @@ struct is_not_but
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end)
     {
-        if(iter == end) return iter;
         return (iter != notT::invoke(iter, end)) ? iter : butT::invoke(iter, end);
     }
 };
