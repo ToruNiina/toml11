@@ -63,9 +63,10 @@ struct parse_escape_sequence
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator> invoke(Iterator iter, Iterator end)
     {
-        if(*iter != '\\') return std::make_pair(result_type{}, iter);
+        if(iter == end || *iter != '\\')
+            return std::make_pair(result_type{}, iter);
         ++iter;
         switch(*iter)
         {
@@ -77,11 +78,19 @@ struct parse_escape_sequence
             case 'f' : return std::make_pair(string_type("\f"), std::next(iter));
             case 'r' : return std::make_pair(string_type("\r"), std::next(iter));
             case 'u' :
+            {
+                if(std::distance(iter, end) < 5)
+                    throw syntax_error("invalid escape sequence");
                 return std::make_pair(utf8_to_char(make_codepoint(
                                       string_type(iter+1, iter+5))), iter+5);
+            }
             case 'U':
+            {
+                if(std::distance(iter, end) < 8)
+                    throw syntax_error("invalid escape sequence");
                 return std::make_pair(utf8_to_char(make_codepoint(
                                       string_type(iter+1, iter+9))), iter+9);
+            }
             default: throw syntax_error("unkwnon escape sequence");
         }
     }
@@ -131,9 +140,11 @@ struct parse_basic_inline_string
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_basic_inline_string<value_type>::invoke(iter);
+        const Iterator end =
+            is_basic_inline_string<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
         if(std::distance(iter, end) < 2)
             throw internal_error("is_basic_inline_string");
@@ -145,8 +156,9 @@ struct parse_basic_inline_string
         {
             if(*iter == '\\')
             {
-                auto r = parse_escape_sequence::invoke(iter);
-                if(!r.first.ok()) throw internal_error("parse_basic_inline_string");
+                auto r = parse_escape_sequence::invoke(iter, last);
+                if(!r.first.ok())
+                    throw internal_error("parse_basic_inline_string");
                 result += r.first.move();
                 iter = r.second;
             }
@@ -174,9 +186,11 @@ struct parse_basic_multiline_string
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_basic_multiline_string<value_type>::invoke(iter);
+        const Iterator end =
+            is_basic_multiline_string<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
         if(std::distance(iter, end) < 6)
             throw internal_error("is_basic_inline_string");
@@ -184,19 +198,20 @@ struct parse_basic_multiline_string
         toml::String result; result.reserve(std::distance(iter, end)-6);
         std::advance(iter, 3);
         const Iterator last = end - 3;
-        iter = is_newline<value_type>::invoke(iter); // trim first newline if exists
+        iter = is_newline<value_type>::invoke(iter, last);
         while(iter != last)
         {
             if(*iter == '\\')
             {
-                if(is_line_ending_backslash::invoke(iter) != iter)
+                if(is_line_ending_backslash::invoke(iter, last) != iter)
                 {
-                    iter = ws_nl_after_backslash_remover::invoke(std::next(iter));
+                    iter = ws_nl_after_backslash_remover::invoke(std::next(iter), last);
                 }
                 else
                 {
-                    auto r = parse_escape_sequence::invoke(iter);
-                    if(!r.first.ok()) throw internal_error("parse_basic_inline_string");
+                    auto r = parse_escape_sequence::invoke(iter, last);
+                    if(!r.first.ok())
+                        throw internal_error("parse_basic_inline_string");
                     result += r.first.move();
                     iter = r.second;
                 }
@@ -219,9 +234,11 @@ struct parse_literal_inline_string
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_literal_inline_string<value_type>::invoke(iter);
+        const Iterator end =
+            is_literal_inline_string<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
         if(std::distance(iter, end) < 2)
             throw internal_error("is_literal_inline_string");
@@ -251,9 +268,11 @@ struct parse_literal_multiline_string
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_literal_multiline_string<value_type>::invoke(iter);
+        const Iterator end =
+            is_literal_multiline_string<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
         if(std::distance(iter, end) < 6)
             throw internal_error("is_literal_multiline_string");
@@ -261,7 +280,7 @@ struct parse_literal_multiline_string
         toml::String result; result.reserve(std::distance(iter, end)-6);
         std::advance(iter, 3);
         const Iterator last = end - 3;
-        iter = is_newline<value_type>::invoke(iter); // trim first newline if exist
+        iter = is_newline<value_type>::invoke(iter, last); // trim first newline if exist
         while(iter != last)
         {
             result.push_back(*iter);
@@ -279,16 +298,17 @@ struct parse_string
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
         std::pair<result_type, Iterator> result;
-        if((result = parse_basic_inline_string::invoke(iter)).first.ok())
+        if((result = parse_basic_inline_string::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_basic_multiline_string::invoke(iter)).first.ok())
+        else if((result = parse_basic_multiline_string::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_literal_inline_string::invoke(iter)).first.ok())
+        else if((result = parse_literal_inline_string::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_literal_multiline_string::invoke(iter)).first.ok())
+        else if((result = parse_literal_multiline_string::invoke(iter, range_end)).first.ok())
             return result;
         else
             return std::make_pair(result_type{}, iter);
@@ -304,9 +324,9 @@ struct parse_integer
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator> invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_integer<value_type>::invoke(iter);
+        const Iterator end = is_integer<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
 
         string_type result; result.resize(std::distance(iter, end));
@@ -324,9 +344,10 @@ struct parse_float
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_float<value_type>::invoke(iter);
+        const Iterator end = is_float<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
 
         string_type result; result.resize(std::distance(iter, end));
@@ -351,9 +372,10 @@ struct parse_boolean
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_boolean<value_type>::invoke(iter);
+        const Iterator end = is_boolean<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
         return std::make_pair((std::distance(iter, end) == 4), end);
     }
@@ -373,18 +395,19 @@ struct parse_local_time
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_local_time<value_type>::invoke(iter);
+        const Iterator end = is_local_time<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
 
         toml::Datetime result;
-        result.hour   = std::stoi(string_type(iter, nums<2>::invoke(iter)));
-        iter = delim::invoke(nums<2>::invoke(iter));
-        result.minute = std::stoi(string_type(iter, nums<2>::invoke(iter)));
-        iter = delim::invoke(nums<2>::invoke(iter));
-        result.second = std::stoi(string_type(iter, nums<2>::invoke(iter)));
-        iter = fract::invoke(nums<2>::invoke(iter));
+        result.hour   = std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
+        iter = delim::invoke(nums<2>::invoke(iter, end), end);
+        result.minute = std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
+        iter = delim::invoke(nums<2>::invoke(iter, end), end);
+        result.second = std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
+        iter = fract::invoke(nums<2>::invoke(iter, end), end);
         if(iter == end)
         {
             result.millisecond = 0.0;
@@ -432,17 +455,18 @@ struct parse_local_date
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_local_date<value_type>::invoke(iter);
+        const Iterator end = is_local_date<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
 
         toml::Datetime result;
-        result.year   = std::stoi(string_type(iter, nums<4>::invoke(iter)));
-        iter = delim::invoke(nums<4>::invoke(iter));
-        result.month  = std::stoi(string_type(iter, nums<2>::invoke(iter)));
-        iter = delim::invoke(nums<2>::invoke(iter));
-        result.day    = std::stoi(string_type(iter, nums<2>::invoke(iter)));
+        result.year   = std::stoi(string_type(iter, nums<4>::invoke(iter, end)));
+        iter = delim::invoke(nums<4>::invoke(iter, end), end);
+        result.month  = std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
+        iter = delim::invoke(nums<2>::invoke(iter, end), end);
+        result.day    = std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
 
         result.offset_hour   = toml::Datetime::nooffset;
         result.offset_minute = toml::Datetime::nooffset;
@@ -467,17 +491,19 @@ struct parse_local_date_time
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_local_date_time<value_type>::invoke(iter);
+        const Iterator end =
+            is_local_date_time<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
 
-        auto ld = parse_local_date::invoke(iter);
+        auto ld = parse_local_date::invoke(iter, end);
         if(!ld.first.ok()) throw syntax_error("invalid local datetime");
         toml::Datetime result(ld.first.move());
-        iter = delim::invoke(ld.second);// 'T'
+        iter = delim::invoke(ld.second, end);// 'T'
 
-        const auto time = parse_local_time::invoke(iter);
+        const auto time = parse_local_time::invoke(iter, end);
         result.hour          = time.first.get().hour;
         result.minute        = time.first.get().minute;
         result.second        = time.first.get().second;
@@ -501,12 +527,14 @@ struct parse_offset_date_time
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_offset_date_time<value_type>::invoke(iter);
+        const Iterator end =
+            is_offset_date_time<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
 
-        auto ldt = parse_local_date_time::invoke(iter);
+        auto ldt = parse_local_date_time::invoke(iter, end);
         if(!ldt.first.ok()) throw syntax_error("invalid offset datetime");
         toml::Datetime result(ldt.first.move());
         iter = ldt.second;
@@ -522,10 +550,10 @@ struct parse_offset_date_time
             const int sign = (*iter == '-') ? -1 : 1;
             ++iter;
             result.offset_hour   = sign *
-                std::stoi(string_type(iter, nums<2>::invoke(iter)));
-            iter = delim::invoke(nums<2>::invoke(iter));
+                std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
+            iter = delim::invoke(nums<2>::invoke(iter, end), end);
             result.offset_minute = sign *
-                std::stoi(string_type(iter, nums<2>::invoke(iter)));
+                std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
         }
         return std::make_pair(result, end);
     }
@@ -539,16 +567,17 @@ struct parse_datetime
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
         std::pair<result_type, Iterator> result;
-        if((result = parse_offset_date_time::invoke(iter)).first.ok())
+        if((result = parse_offset_date_time::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_local_date_time::invoke(iter)).first.ok())
+        else if((result = parse_local_date_time::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_local_date::invoke(iter)).first.ok())
+        else if((result = parse_local_date::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_local_time::invoke(iter)).first.ok())
+        else if((result = parse_local_time::invoke(iter, range_end)).first.ok())
             return result;
         else
             return std::make_pair(result_type{}, iter);
@@ -567,25 +596,26 @@ struct parse_fixed_type_array
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator> invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_fixed_type_array<value_type, acceptorT>::invoke(iter);
+        const Iterator end =
+            is_fixed_type_array<value_type, acceptorT>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
 
         toml::Array result;
         const Iterator last = std::prev(end);
-        iter = skippable::invoke(std::next(iter));
+        iter = skippable::invoke(std::next(iter), last);
         while(iter != last)
         {
-            const Iterator tmp = acceptor_type::invoke(iter);
+            const Iterator tmp = acceptor_type::invoke(iter, last);
             if(tmp == iter) throw syntax_error("parse_array");
-            auto next = parser_type::invoke(iter);
+            auto next = parser_type::invoke(iter, last);
             if(!next.first.ok()) throw syntax_error("parse_array");
             result.emplace_back(next.first.move());
             iter = tmp;
-            iter = skippable::invoke(iter);
-            iter = is_charactor<value_type, ','>::invoke(iter);
-            iter = skippable::invoke(iter);
+            iter = skippable::invoke(iter, last);
+            iter = is_charactor<value_type, ','>::invoke(iter, last);
+            iter = skippable::invoke(iter, last);
         }
         return std::make_pair(result, end);
     }
@@ -605,31 +635,32 @@ struct parse_array
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        if(iter == is_array<value_type>::invoke(iter))
+        if(iter == is_array<value_type>::invoke(iter, range_end))
             return std::make_pair(result_type{}, iter);
 
         std::pair<result_type, Iterator> result;
         if((result = parse_fixed_type_array<is_boolean<value_type>,
-                     parse_boolean>::invoke(iter)).first.ok()) return result;
+                     parse_boolean>::invoke(iter, range_end)).first.ok()) return result;
         else if((result = parse_fixed_type_array<is_string<value_type>,
-                parse_string>::invoke(iter)).first.ok()) return result;
+                parse_string>::invoke(iter, range_end)).first.ok()) return result;
         else if((result = parse_fixed_type_array<is_datetime<value_type>,
-                parse_datetime>::invoke(iter)).first.ok()) return result;
+                parse_datetime>::invoke(iter, range_end)).first.ok()) return result;
         else if((result = parse_fixed_type_array<is_float<value_type>,
-                parse_float>::invoke(iter)).first.ok()) return result;
+                parse_float>::invoke(iter, range_end)).first.ok()) return result;
         else if((result = parse_fixed_type_array<is_integer<value_type>,
-                parse_integer>::invoke(iter)).first.ok()) return result;
+                parse_integer>::invoke(iter, range_end)).first.ok()) return result;
         else if((result = parse_fixed_type_array<is_array<value_type>,
-                parse_array<value_type>>::invoke(iter)).first.ok()) return result;
+                parse_array<value_type>>::invoke(iter, range_end)).first.ok()) return result;
         else if((result = parse_fixed_type_array<is_inline_table<value_type>,
-                parse_inline_table<value_type>>::invoke(iter)).first.ok())
+                parse_inline_table<value_type>>::invoke(iter, range_end)).first.ok())
             return result;
-        else if(skippable::invoke(std::next(iter)) == // empty
-                std::prev(is_array<value_type>::invoke(iter))
+        else if(skippable::invoke(std::next(iter), range_end) == // empty
+                std::prev(is_array<value_type>::invoke(iter, range_end))
                 ) return std::make_pair(
-                    toml::Array{}, is_array<value_type>::invoke(iter));
+                    toml::Array{}, is_array<value_type>::invoke(iter, range_end));
         else throw syntax_error("no valid array here");
     }
 };
@@ -644,22 +675,23 @@ struct parse_value
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
         std::pair<result_type, Iterator> result;
-        if((result = parse_boolean::invoke(iter)).first.ok())
+        if((result = parse_boolean::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_string::invoke(iter)).first.ok())
+        else if((result = parse_string::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_datetime::invoke(iter)).first.ok())
+        else if((result = parse_datetime::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_float::invoke(iter)).first.ok())
+        else if((result = parse_float::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_integer::invoke(iter)).first.ok())
+        else if((result = parse_integer::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_array<value_type>::invoke(iter)).first.ok())
+        else if((result = parse_array<value_type>::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_inline_table<value_type>::invoke(iter)).first.ok())
+        else if((result = parse_inline_table<value_type>::invoke(iter, range_end)).first.ok())
             return result;
         else
             return std::make_pair(result_type{}, iter);
@@ -674,9 +706,10 @@ struct parse_barekey
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_barekey<value_type>::invoke(iter);
+        const Iterator end = is_barekey<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
         return std::make_pair(toml::key(iter, end), end);
     }
@@ -690,12 +723,13 @@ struct parse_key
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
         std::pair<result_type, Iterator> result;
-        if((result = parse_barekey::invoke(iter)).first.ok())
+        if((result = parse_barekey::invoke(iter, range_end)).first.ok())
             return result;
-        else if((result = parse_string::invoke(iter)).first.ok())
+        else if((result = parse_string::invoke(iter, range_end)).first.ok())
             return result;
         else return std::make_pair(result_type{}, iter);
     }
@@ -711,16 +745,17 @@ struct parse_key_value_pair
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        auto tmp_key = parse_key::invoke(iter);
+        auto tmp_key = parse_key::invoke(iter, range_end);
         if(!tmp_key.first.ok())
             return std::make_pair(result_type{}, iter);
-        iter = is_any_num_of_ws<charT>::invoke(tmp_key.second);
+        iter = is_any_num_of_ws<charT>::invoke(tmp_key.second, range_end);
         if(*iter != '=') throw syntax_error("invalid key value pair");
-        iter = is_any_num_of_ws<charT>::invoke(std::next(iter));
+        iter = is_any_num_of_ws<charT>::invoke(std::next(iter), range_end);
 
-        auto tmp_value = parse_value<toml::charactor>::invoke(iter);
+        auto tmp_value = parse_value<toml::charactor>::invoke(iter, range_end);
         if(!tmp_value.first.ok())
             throw syntax_error("invalid key value pair");
 
@@ -728,7 +763,7 @@ struct parse_key_value_pair
 
         return std::make_pair(std::make_pair(
                     tmp_key.first.move(), tmp_value.first.move()),
-                is_any_num_of_ws<charT>::invoke(tmp_value.second));
+                is_any_num_of_ws<charT>::invoke(tmp_value.second, range_end));
     }
 };
 
@@ -742,26 +777,27 @@ struct parse_inline_table
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_inline_table<value_type>::invoke(iter);
+        const Iterator end = is_inline_table<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
 
-        iter = is_any_num_of_ws<value_type>::invoke(std::next(iter));
+        iter = is_any_num_of_ws<value_type>::invoke(std::next(iter), range_end);
 
         const Iterator last = std::prev(end);
         toml::Table result;
         while(iter != last)
         {
-            auto tmp = parse_key_value_pair<value_type>::invoke(iter);
+            auto tmp = parse_key_value_pair<value_type>::invoke(iter, last);
             if(!tmp.first.ok()) throw syntax_error("parse_inline_table");
 
             result.emplace(tmp.first.move());
             iter = tmp.second;
 
-            iter = is_any_num_of_ws<value_type>::invoke(iter);
-            iter = is_charactor<value_type, ','>::invoke(iter);
-            iter = is_any_num_of_ws<value_type>::invoke(iter);
+            iter = is_any_num_of_ws<value_type>::invoke(iter, last);
+            iter = is_charactor<value_type, ','>::invoke(iter, last);
+            iter = is_any_num_of_ws<value_type>::invoke(iter, last);
         }
         return std::make_pair(result, end);
     }
@@ -775,32 +811,34 @@ struct parse_table_definition
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_table_definition<value_type>::invoke(iter);
+        const Iterator end =
+            is_table_definition<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
 
         std::vector<toml::key> result;
         result.reserve(std::count(iter, end, '.')+1);
 
         const Iterator last = std::prev(end);
-        iter = is_any_num_of_ws<value_type>::invoke(iter);
-        iter = is_any_num_of_ws<value_type>::invoke(std::next(iter));
+        iter = is_any_num_of_ws<value_type>::invoke(iter, last);
+        iter = is_any_num_of_ws<value_type>::invoke(std::next(iter), last);
 
-        auto tmp = parse_key::invoke(iter);
+        auto tmp = parse_key::invoke(iter, last);
         if(!tmp.first.ok()) throw syntax_error("table definition");
         result.emplace_back(tmp.first.move());
-        iter = is_any_num_of_ws<value_type>::invoke(tmp.second);
+        iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
 
         while(iter != last)
         {
-            iter = is_charactor<value_type, '.'>::invoke(iter);
-            iter = is_any_num_of_ws<value_type>::invoke(iter);
+            iter = is_charactor<value_type, '.'>::invoke(iter, last);
+            iter = is_any_num_of_ws<value_type>::invoke(iter, last);
 
-            tmp = parse_key::invoke(iter);
+            tmp = parse_key::invoke(iter, last);
             if(!tmp.first.ok()) throw syntax_error("table definition");
             result.emplace_back(tmp.first.move());
-            iter = is_any_num_of_ws<value_type>::invoke(tmp.second);
+            iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
         }
         return std::make_pair(result, end);
     }
@@ -814,32 +852,37 @@ struct parse_array_of_table_definition
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter)
+    static std::pair<result_type, Iterator>
+    invoke(Iterator iter, Iterator range_end)
     {
-        const Iterator end = is_array_of_table_definition<value_type>::invoke(iter);
+        const Iterator end =
+            is_array_of_table_definition<value_type>::invoke(iter, range_end);
         if(iter == end) return std::make_pair(result_type{}, iter);
+
+        if(std::distance(iter, end) < 5)
+            throw syntax_error("invalid array_of_table definition");
 
         std::vector<toml::key> result;
         result.reserve(std::count(iter, end, '.')+1);
 
         const Iterator last = end - 2;
-        iter = is_any_num_of_ws<value_type>::invoke(iter) + 2;
-        iter = is_any_num_of_ws<value_type>::invoke(iter);
+        iter = is_any_num_of_ws<value_type>::invoke(iter, last) + 2;
+        iter = is_any_num_of_ws<value_type>::invoke(iter, last);
 
-        auto tmp = parse_key::invoke(iter);
+        auto tmp = parse_key::invoke(iter, last);
         if(!tmp.first.ok()) throw syntax_error("array of table definition");
         result.emplace_back(tmp.first.move());
-        iter = is_any_num_of_ws<value_type>::invoke(tmp.second);
+        iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
 
         while(iter != last)
         {
-            iter = is_charactor<value_type, '.'>::invoke(iter);
-            iter = is_any_num_of_ws<value_type>::invoke(iter);
+            iter = is_charactor<value_type, '.'>::invoke(iter, last);
+            iter = is_any_num_of_ws<value_type>::invoke(iter, last);
 
-            tmp  = parse_key::invoke(iter);
+            tmp  = parse_key::invoke(iter, last);
             if(!tmp.first.ok()) throw syntax_error("array of table definition");
             result.emplace_back(tmp.first.move());
-            iter = is_any_num_of_ws<value_type>::invoke(tmp.second);
+            iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
         }
         return std::make_pair(result, end);
     }
@@ -864,14 +907,14 @@ struct parse_data
         {
             iter = skip_empty(iter, end);
             std::pair<detail::result<std::vector<toml::key>>, Iterator> tabname;
-            if((tabname = parse_table_definition::invoke(iter)).first.ok())
+            if((tabname = parse_table_definition::invoke(iter, end)).first.ok())
             {
                 auto contents = parse_table_contents(tabname.second, end);
                 push_table(result, std::move(contents.first),
                            tabname.first.get().begin(), tabname.first.get().end());
                 iter = contents.second;
             }
-            else if((tabname = parse_array_of_table_definition::invoke(iter)).first.ok())
+            else if((tabname = parse_array_of_table_definition::invoke(iter, end)).first.ok())
             {
                 auto contents = parse_table_contents(tabname.second, end);
                 push_array_of_table(result, std::move(contents.first),
@@ -895,10 +938,10 @@ struct parse_data
             if(*iter == '#')
             {
                 while(iter != end &&
-                      iter == is_newline<value_type>::invoke(iter)){++iter;}
+                      iter == is_newline<value_type>::invoke(iter, end)){++iter;}
             }
-            else if(iter == is_newline<value_type>::invoke(iter) &&
-                    iter == is_whitespace<value_type>::invoke(iter))
+            else if(iter == is_newline<value_type>::invoke(iter, end) &&
+                    iter == is_whitespace<value_type>::invoke(iter, end))
             {
                 return iter;
             }
@@ -920,7 +963,7 @@ struct parse_data
         iter = skip_empty(iter, end);
         while(iter != end)
         {
-            auto kv = parse_key_value_pair<value_type>::invoke(iter);
+            auto kv = parse_key_value_pair<value_type>::invoke(iter, end);
             if(!kv.first.ok()) return std::make_pair(table, iter);
 
             table.emplace(kv.first.move());

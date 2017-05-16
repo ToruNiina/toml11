@@ -17,9 +17,9 @@ struct is_charactor
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    constexpr static Iterator invoke(Iterator iter)
+    constexpr static Iterator invoke(Iterator iter, Iterator end)
     {
-        return *iter == c ? std::next(iter) : iter;
+        return iter == end ? iter : *iter == c ? std::next(iter) : iter;
     }
 };
 
@@ -34,9 +34,10 @@ struct is_in_range
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    constexpr static Iterator invoke(Iterator iter)
+    constexpr static Iterator invoke(Iterator iter, Iterator end)
     {
-        return (lower <= *iter && *iter <= upper) ? std::next(iter) : iter;
+        return iter == end ? iter :
+            (lower <= *iter && *iter <= upper) ? std::next(iter) : iter;
     }
 };
 
@@ -51,10 +52,11 @@ struct is_one_of
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
-        const Iterator tmp = headT::invoke(iter);
-        return (tmp != iter) ? tmp : is_one_of<condT...>::invoke(iter);
+        if(iter == end) return iter;
+        const Iterator tmp = headT::invoke(iter, end);
+        return (tmp != iter) ? tmp : is_one_of<condT...>::invoke(iter, end);
     }
 };
 template<typename tailT>
@@ -65,9 +67,10 @@ struct is_one_of<tailT>
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
-        const Iterator tmp = tailT::invoke(iter);
+        if(iter == end) return iter;
+        const Iterator tmp = tailT::invoke(iter, end);
         return (tmp != iter) ? tmp : iter;
     }
 };
@@ -81,9 +84,9 @@ struct is_ignorable
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
-        const Iterator tmp = condT::invoke(iter);
+        const Iterator tmp = condT::invoke(iter, end);
         return (tmp != iter) ? tmp : iter;
     }
 };
@@ -106,11 +109,12 @@ struct is_chain_of_impl
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter, Iterator rollback)
+    static Iterator invoke(Iterator iter, Iterator end, Iterator rollback)
     {
-        const Iterator tmp = headT::invoke(iter);
+        if(iter == end) return iter;
+        const Iterator tmp = headT::invoke(iter, end);
         return (tmp == iter && !ignorable) ? rollback :
-                is_chain_of_impl<condT...>::invoke(tmp, rollback);
+                is_chain_of_impl<condT...>::invoke(tmp, end, rollback);
     }
 };
 
@@ -123,9 +127,10 @@ struct is_chain_of_impl<tailT>
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter, Iterator rollback)
+    static Iterator invoke(Iterator iter, Iterator end, Iterator rollback)
     {
-        const Iterator tmp = tailT::invoke(iter);
+        if(iter == end) return iter;
+        const Iterator tmp = tailT::invoke(iter, end);
         return (tmp == iter) ? (ignorable ? iter : rollback) : tmp;
     }
 };
@@ -138,9 +143,9 @@ struct is_chain_of
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
-        return is_chain_of_impl<headT, condT...>::invoke(iter, iter);
+        return is_chain_of_impl<headT, condT...>::invoke(iter, end, iter);
     }
 };
 
@@ -154,13 +159,14 @@ struct is_repeat_of
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
+        if(iter == end) return iter;
         const Iterator rollback = iter;
         Iterator tmp;
         for(auto i=0ul; i<N; ++i)
         {
-            tmp = condT::invoke(iter);
+            tmp = condT::invoke(iter, end);
             if(tmp == iter) return rollback;
             iter = tmp;
         }
@@ -176,13 +182,14 @@ struct is_repeat_of<condT, 0>
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
-        Iterator tmp = condT::invoke(iter);
+        if(iter == end) return iter;
+        Iterator tmp = condT::invoke(iter, end);
         while(tmp != iter)
         {
             iter = tmp;
-            tmp = condT::invoke(iter);
+            tmp = condT::invoke(iter, end);
         }
         return iter;
     }
@@ -199,10 +206,11 @@ struct is_none_of
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
-        const Iterator tmp = headT::invoke(iter);
-        return (tmp != iter) ? iter : is_none_of<tailT...>::invoke(iter);
+        if(iter == end) return iter;
+        const Iterator tmp = headT::invoke(iter, end);
+        return (tmp != iter) ? iter : is_none_of<tailT...>::invoke(iter, end);
     }
 };
 
@@ -214,9 +222,10 @@ struct is_none_of<tailT>
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
-        const Iterator tmp = tailT::invoke(iter);
+        if(iter == end) return iter;
+        const Iterator tmp = tailT::invoke(iter, end);
         return (tmp != iter) ? iter : std::next(iter);
     }
 };
@@ -232,9 +241,10 @@ struct is_not_but
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
-        return (iter != notT::invoke(iter)) ? iter : butT::invoke(iter);
+        if(iter == end) return iter;
+        return (iter != notT::invoke(iter, end)) ? iter : butT::invoke(iter, end);
     }
 };
 
@@ -582,7 +592,7 @@ struct is_array
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
         return is_one_of<
                 is_fixed_type_array<charT, is_boolean<charT>>,
@@ -592,7 +602,7 @@ struct is_array
                 is_fixed_type_array<charT, is_datetime<charT>>,
                 is_fixed_type_array<charT, is_array<charT>>,
                 is_fixed_type_array<charT, is_inline_table<charT>>
-            >::invoke(iter);
+            >::invoke(iter, end);
     }
 };
 
@@ -604,7 +614,7 @@ struct is_inline_table
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
                      value_type>::value>::type>
-    static Iterator invoke(Iterator iter)
+    static Iterator invoke(Iterator iter, Iterator end)
     {
         typedef is_one_of<is_fundamental_type<charT>,
                           is_array<charT>, is_inline_table<charT>> is_component;
@@ -643,7 +653,7 @@ struct is_inline_table
             is_any_num_of_ws<charT>,
             is_charactor<charT, '}'>
             > entity;
-        return entity::invoke(iter);
+        return entity::invoke(iter, end);
     }
 };
 
