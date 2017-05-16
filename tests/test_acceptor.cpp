@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(test_basic_inline_string)
         BOOST_CHECK(is_valid::invoke(invalid_escape.cbegin(), invalid_escape.cend()) == invalid_escape.cbegin());
     }
     {
-        const std::string invalid_charactor("\"foo\0bar\"");
+        const std::string invalid_charactor("\"foo\10bar\"");
         BOOST_CHECK(is_valid::invoke(invalid_charactor.cbegin(), invalid_charactor.cend()) == invalid_charactor.cbegin());
     }
     {
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(test_basic_multiline_string)
         BOOST_CHECK(is_valid::invoke(invalid_escape.cbegin(), invalid_escape.cend()) == invalid_escape.cbegin());
     }
     {
-        const std::string invalid_charactor("\"\"\"foo\0bar\"\"\"");
+        const std::string invalid_charactor("\"\"\"foo\10bar\"\"\"");
         BOOST_CHECK(is_valid::invoke(invalid_charactor.cbegin(), invalid_charactor.cend()) == invalid_charactor.cbegin());
     }
     {
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(test_literal_inline_string)
         BOOST_CHECK(is_valid::invoke(newline.cbegin(), newline.cend()) == newline.cbegin());
     }
     {
-        const std::string invalid_charactor("'foo\0bar'");
+        const std::string invalid_charactor("'foo\10bar'");
         BOOST_CHECK(is_valid::invoke(invalid_charactor.cbegin(), invalid_charactor.cend()) == invalid_charactor.cbegin());
     }
     {
@@ -212,7 +212,7 @@ BOOST_AUTO_TEST_CASE(test_literal_multiline_string)
     }
 
     {
-        const std::string invalid_charactor("'''foo\0bar'''");
+        const std::string invalid_charactor("'''foo\10bar'''");
         BOOST_CHECK(is_valid::invoke(invalid_charactor.cbegin(), invalid_charactor.cend()) == invalid_charactor.cbegin());
     }
     {
