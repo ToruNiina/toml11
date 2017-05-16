@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_CASE(test_resize)
         typedef std::vector<int>  resizable_type;
         typedef std::array<int,1> non_resizable_type;
         BOOST_CHECK(toml::detail::has_resize_method<resizable_type>::value);
-        BOOST_CHECK(not toml::detail::has_resize_method<non_resizable_type>::value);
+        BOOST_CHECK(!toml::detail::has_resize_method<non_resizable_type>::value);
     }
 
     {
@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(test_resize)
         {
             thrown = true;
         }
-        BOOST_CHECK(not thrown);
+        BOOST_CHECK(!thrown);
         BOOST_CHECK_EQUAL(v.size(), 10);
     }
 
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(test_resize)
         {
             thrown = true;
         }
-        BOOST_CHECK(not thrown);
+        BOOST_CHECK(!thrown);
         BOOST_CHECK_EQUAL(a.size(), 15);
     }
 
