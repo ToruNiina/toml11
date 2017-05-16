@@ -111,7 +111,7 @@ struct is_chain_of_impl
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end, Iterator rollback)
     {
-        if(iter == end) return iter;
+        if(iter == end) return rollback;
         const Iterator tmp = headT::invoke(iter, end);
         return (tmp == iter && !ignorable) ? rollback :
                 is_chain_of_impl<condT...>::invoke(tmp, end, rollback);
@@ -129,7 +129,7 @@ struct is_chain_of_impl<tailT>
                      value_type>::value>::type>
     static Iterator invoke(Iterator iter, Iterator end, Iterator rollback)
     {
-        if(iter == end) return iter;
+        if(iter == end) return rollback;
         const Iterator tmp = tailT::invoke(iter, end);
         return (tmp == iter) ? (ignorable ? iter : rollback) : tmp;
     }
