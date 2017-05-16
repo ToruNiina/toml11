@@ -6,6 +6,7 @@
 #include <boost/test/included/unit_test.hpp>
 #endif
 #include <toml/acceptor.hpp>
+#include <locale>
 #include <iostream>
 
 BOOST_AUTO_TEST_CASE(test_conditions)
@@ -25,34 +26,49 @@ BOOST_AUTO_TEST_CASE(test_conditions)
     }
 
     {
-        const std::string tmp("0123456789");
-        const std::string dummy("dummy");
-        BOOST_CHECK(toml::is_number<char>::invoke(tmp.begin(), tmp.end())     == tmp.end());
-        BOOST_CHECK(toml::is_number<char>::invoke(dummy.begin(), dummy.end()) == dummy.begin());
+        for(int i=0; i<10; ++i)
+        {
+            const std::string tmp = std::to_string(i);
+            const std::string dummy("dummy");
+            BOOST_CHECK(toml::is_number<char>::invoke(tmp.begin(), tmp.end())     == tmp.end());
+            BOOST_CHECK(toml::is_number<char>::invoke(dummy.begin(), dummy.end()) == dummy.begin());
+        }
     }
 
     {
-        const std::string tmp("abcdefghijklmnopqrstuvwxyz");
-        const std::string dummy("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-        BOOST_CHECK(toml::is_lowercase<char>::invoke(tmp.begin(), tmp.end())     == tmp.end());
-        BOOST_CHECK(toml::is_lowercase<char>::invoke(dummy.begin(), dummy.end()) == dummy.begin());
+        for(char c='a'; c <= 'z'; ++c)
+        {
+            const std::string tmp(1, c);
+            const std::string dummy(1, std::toupper(c));
+            BOOST_CHECK(toml::is_lowercase<char>::invoke(tmp.begin(), tmp.end())     == tmp.end());
+            BOOST_CHECK(toml::is_lowercase<char>::invoke(dummy.begin(), dummy.end()) == dummy.begin());
+        }
     }
     {
-        const std::string tmp("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-        const std::string dummy("abcdefghijklmnopqrstuvwxyz");
-        BOOST_CHECK(toml::is_uppercase<char>::invoke(tmp.begin(), tmp.end())     == tmp.end());
-        BOOST_CHECK(toml::is_uppercase<char>::invoke(dummy.begin(), dummy.end()) == dummy.begin());
+        for(char c='A'; c <= 'Z'; ++c)
+        {
+            const std::string tmp(1, c);
+            const std::string dummy(1, std::tolower(c));
+            BOOST_CHECK(toml::is_uppercase<char>::invoke(tmp.begin(), tmp.end())     == tmp.end());
+            BOOST_CHECK(toml::is_uppercase<char>::invoke(dummy.begin(), dummy.end()) == dummy.begin());
+        }
     }
     {
-        const std::string tmp("  \t ");
-        const std::string dummy("abcdefghijklmnopqrstuvwxyz");
+        const std::string tmp(" ");
+        const std::string dummy("a");
+        BOOST_CHECK(toml::is_whitespace<char>::invoke(tmp.begin(), tmp.end())     == tmp.end());
+        BOOST_CHECK(toml::is_whitespace<char>::invoke(dummy.begin(), dummy.end()) == dummy.begin());
+    }
+    {
+        const std::string tmp("\t");
+        const std::string dummy("a");
         BOOST_CHECK(toml::is_whitespace<char>::invoke(tmp.begin(), tmp.end())     == tmp.end());
         BOOST_CHECK(toml::is_whitespace<char>::invoke(dummy.begin(), dummy.end()) == dummy.begin());
     }
     {
         const std::string tmp("hoge1-piyo2_fuga3");
         const std::string dummy(" \t");
-        BOOST_CHECK(toml::is_barekey<char>::invoke(tmp.begin(), tmp.end())     == tmp.end());
+        BOOST_CHECK(toml::is_barekey<char>::invoke(tmp.begin(), tmp.end())     != tmp.begin());
         BOOST_CHECK(toml::is_barekey<char>::invoke(dummy.begin(), dummy.end()) == dummy.begin());
     }
 }
