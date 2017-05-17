@@ -7,8 +7,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <codecvt>
-#include <locale>
 
 namespace toml
 {
@@ -1058,40 +1056,6 @@ struct parse_data
 
 };
 
-#ifdef _MSC_VER
-
-template<typename traits = std::char_traits<wchar_t>>
-toml::Table parse(std::basic_istream<wchar_t, traits>& is)
-{
-    const auto curloc = is.getloc();
-    is.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<wchar_t>));
-
-    const auto initial = is.tellg();
-    is.seekg(0, std::ios::end);
-    const auto eofpos  = is.tellg();
-    const std::size_t size = eofpos - initial;
-    is.seekg(initial);
-
-    std::vector<wchar_t> contents(size);
-    is.read(contents.data(), size);
-    is.imbue(curloc);
-
-    std::wstring wstr(size, ' ');
-    std::copy(contents.cbegin(), contents.cend(), wstr.begin());
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvter;
-    std::string u8str = cvter.to_bytes(wstr);
-
-    return parse_data::invoke(u8str.cbegin(), u8str.cend());
-}
-
-toml::Table parse(const std::string& filename)
-{
-    std::wifstream ifs(filename);
-    if(!ifs.good()) throw std::runtime_error("file open error: " + filename);
-    return parse(ifs);
-}
-
-#else
 template<typename traits = std::char_traits<toml::character>>
 toml::Table parse(std::basic_istream<toml::character, traits>& is)
 {
@@ -1111,8 +1075,6 @@ toml::Table parse(const std::string& filename)
     if(!ifs.good()) throw std::runtime_error("file open error: " + filename);
     return parse(ifs);
 }
-#endif
-
 
 }// toml
 #endif// TOML11_PARSER
