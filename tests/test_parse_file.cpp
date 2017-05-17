@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(test_example)
         toml::Table beta = toml::get<toml::Table>(servers.at("beta"));
         BOOST_CHECK_EQUAL(toml::get<std::string>(beta.at("ip")), "10.0.0.2");
         BOOST_CHECK_EQUAL(toml::get<std::string>(beta.at("dc")), "eqdc10");
-        BOOST_CHECK_EQUAL(toml::get<std::string>(beta.at("country")), "中国");
+        BOOST_CHECK_EQUAL(toml::get<std::string>(beta.at("country")), "\xE4\xB8\xAD\xE5\x9B\xBD");
     }
 
     toml::Table clients = toml::get<toml::Table>(data.at("clients"));
