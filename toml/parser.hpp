@@ -1071,7 +1071,7 @@ toml::Table parse(std::basic_istream<toml::character, traits>& is)
 
 toml::Table parse(const std::string& filename)
 {
-    std::ifstream ifs(filename);
+    std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
     if(!ifs.good()) throw std::runtime_error("file open error: " + filename);
     return parse(ifs);
 }
