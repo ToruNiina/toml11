@@ -2,8 +2,8 @@
 #define TOML11_FORMAT
 #include "value.hpp"
 #include <type_traits>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <locale>
 
@@ -16,24 +16,24 @@ namespace toml
 // std::cout << toml::make_inline(80) << value;
 // std::cout << toml::forceinline << value;
 
-template<typename traits = std::char_traits<toml::charactor>,
-         typename alloc = std::allocator<toml::charactor>>
-std::basic_string<toml::charactor, traits, alloc>
+template<typename traits = std::char_traits<toml::character>,
+         typename alloc = std::allocator<toml::character>>
+std::basic_string<toml::character, traits, alloc>
 format(const value& v);
 
-template<typename traits = std::char_traits<toml::charactor>,
-         typename alloc = std::allocator<toml::charactor>>
-std::basic_string<toml::charactor, traits, alloc>
+template<typename traits = std::char_traits<toml::character>,
+         typename alloc = std::allocator<toml::character>>
+std::basic_string<toml::character, traits, alloc>
 format(const value& v, std::size_t mk);
 
-template<typename traits = std::char_traits<toml::charactor>,
-         typename alloc = std::allocator<toml::charactor>>
-std::basic_string<toml::charactor, traits, alloc>
+template<typename traits = std::char_traits<toml::character>,
+         typename alloc = std::allocator<toml::character>>
+std::basic_string<toml::character, traits, alloc>
 format(const toml::key& k, const value& v);
 
-template<typename traits = std::char_traits<toml::charactor>,
-         typename alloc = std::allocator<toml::charactor>>
-std::basic_string<toml::charactor, traits, alloc>
+template<typename traits = std::char_traits<toml::character>,
+         typename alloc = std::allocator<toml::character>>
+std::basic_string<toml::character, traits, alloc>
 format(const toml::key& k, const value& v, std::size_t mk);
 
 template<value_t Type>
@@ -43,7 +43,7 @@ template<> struct format_impl<value_t::Boolean>
 {
     typedef detail::toml_default_type<value_t::Boolean>::type type;
 
-    std::basic_string<toml::charactor>
+    std::basic_string<toml::character>
     operator()(const type& val)
     {
         return val ? "true" : "false";
@@ -54,7 +54,7 @@ template<> struct format_impl<value_t::Integer>
 {
     typedef detail::toml_default_type<value_t::Integer>::type type;
 
-    std::basic_string<toml::charactor>
+    std::basic_string<toml::character>
     operator()(const type& val)
     {
         return std::to_string(val);
@@ -65,10 +65,10 @@ template<> struct format_impl<value_t::Float>
 {
     typedef detail::toml_default_type<value_t::Float>::type type;
 
-    std::basic_string<toml::charactor>
+    std::basic_string<toml::character>
     operator()(const type& val)
     {
-        std::basic_ostringstream<toml::charactor> oss;
+        std::basic_ostringstream<toml::character> oss;
         oss << std::showpoint << val;
         if(oss.str().back() == '.') oss << '0';
         return oss.str();
@@ -84,7 +84,7 @@ template<> struct format_impl<value_t::String>
     format_impl() : max_length(80){}
     format_impl(std::size_t mx) : max_length(mx){}
 
-    std::basic_string<toml::charactor>
+    std::basic_string<toml::character>
     operator()(const type& val)
     {
         auto tmp = make_inline(val);
@@ -95,10 +95,10 @@ template<> struct format_impl<value_t::String>
 
   private:
 
-    std::basic_string<toml::charactor>
-    make_inline(std::basic_string<toml::charactor>&& val)
+    std::basic_string<toml::character>
+    make_inline(const std::basic_string<toml::character>& val)
     {
-        std::basic_string<toml::charactor> str;
+        std::basic_string<toml::character> str;
         str += '"';
         for(const auto& c : val)
         {
@@ -114,11 +114,11 @@ template<> struct format_impl<value_t::String>
                     default:
                     {
                         str += 'u';
-                        std::basic_ostringstream<toml::charactor> oss;
+                        std::basic_ostringstream<toml::character> oss;
                         oss << std::setw(4) << std::setfill('0') << std::hex
                             << static_cast<std::int8_t>(c);
                         auto hexdig = oss.str();
-                        std::transform(hexdig.begin(), hexdig.end(), std::toupper);
+                        std::transform(hexdig.begin(), hexdig.end(), hexdig.begin(), ::toupper);
                         str += oss.str();
                         break;
                     }
@@ -141,10 +141,10 @@ template<> struct format_impl<value_t::String>
         return str;
     }
 
-    std::basic_string<toml::charactor>
-    convert_multiline(std::basic_string<toml::charactor>&& val)
+    std::basic_string<toml::character>
+    convert_multiline(std::basic_string<toml::character>&& val)
     {
-        std::basic_string<toml::charactor> str; str.reserve(val.size() + 6);
+        std::basic_string<toml::character> str; str.reserve(val.size() + 6);
         str += "\"\"\"\n";
         std::size_t current = 0;
         for(auto iter = val.begin()+1; iter != val.end()-1; ++iter)
@@ -178,10 +178,10 @@ template<> struct format_impl<value_t::Datetime>
 {
     typedef detail::toml_default_type<value_t::Datetime>::type type;
 
-    std::basic_string<toml::charactor>
+    std::basic_string<toml::character>
     operator()(const type& val)
     {
-        std::basic_ostringstream<toml::charactor> oss;
+        std::basic_ostringstream<toml::character> oss;
         oss << val;
         return oss.str();
     }
@@ -194,12 +194,15 @@ template<> struct format_impl<value_t::Array>
 
     std::size_t max_length;
 
-    std::basic_string<toml::charactor>
+    format_impl() : max_length(80){}
+    format_impl(std::size_t mx) : max_length(mx){}
+
+    std::basic_string<toml::character>
     operator()(const type& val)
     {
-        std::basic_string<toml::charactor> retval;
+        std::basic_string<toml::character> retval;
         retval += '[';
-        for(const auto&& item : val)
+        for(const auto& item : val)
         {
             auto tmp = format(val, max_length - 1);
             retval += tmp;
@@ -207,7 +210,7 @@ template<> struct format_impl<value_t::Array>
             if(tmp.size() * 2 > max_length) retval += '\n';
         }
         retval += ']';
-        return ;
+        return retval;
     }
 };
 
@@ -216,23 +219,28 @@ template<> struct format_impl<value_t::Table>
 {
     typedef detail::toml_default_type<value_t::Table>::type type;
 
-    std::basic_string<toml::charactor>
+    std::size_t max_length;
+
+    format_impl() : max_length(80){}
+    format_impl(std::size_t mx) : max_length(mx){}
+
+    std::basic_string<toml::character>
     operator()(const type& val)
     {
-        std::basic_string<toml::charactor> retval;
-        for(const auto&& item : val)
+        std::basic_string<toml::character> retval;
+        for(const auto& item : val)
         {
-            retval += val.first;
-            retval += " = "
-            retval += format(val.second);
+            retval += item.first;
+            retval += " = ";
+            retval += format(item.second);
             retval += '\n';
         }
-        return ;
+        return retval;
     }
 };
 
 template<typename traits, typename alloc>
-std::basic_string<toml::charactor, traits, alloc>
+std::basic_string<toml::character, traits, alloc>
 format(const value& v)
 {
     switch(v.type())
@@ -244,22 +252,51 @@ format(const value& v)
         case value_t::Datetime: return format_impl<value_t::Datetime>{}(v.template cast<value_t::Datetime>());
         case value_t::Array   : return format_impl<value_t::Array   >{}(v.template cast<value_t::Array   >());
         case value_t::Table   : return format_impl<value_t::Table   >{}(v.template cast<value_t::Table   >());
-        case value_t::Empty   : return format_impl<value_t::Empty   >{}(v.template cast<value_t::Empty   >());
-        case value_t::Unknown : return format_impl<value_t::Unknown >{}(v.template cast<value_t::Unknown >());
-        default throw std::logic_error("toml::format: unknown enum value");
+        case value_t::Empty   : throw std::runtime_error("toml::format: empty value");
+        case value_t::Unknown : throw std::runtime_error("toml::format: unknown value");
+        default: throw std::logic_error("toml::format: unknown enum value");
     }
 }
 
 template<typename traits, typename alloc>
-std::basic_string<toml::charactor, traits, alloc>
-format(std::basic_string<toml::charactor, traits, alloc>&& key, const value& val)
+std::basic_string<toml::character, traits, alloc>
+format(const value& v, std::size_t inl)
 {
-    std::basic_string<charT, traits, alloc> retval(
-            std::forward<std::basic_string<charT, traits, alloc>>(key));
+    switch(v.type())
+    {
+        case value_t::Boolean : return format_impl<value_t::Boolean >{}(v.template cast<value_t::Boolean>());
+        case value_t::Integer : return format_impl<value_t::Integer >{}(v.template cast<value_t::Integer>());
+        case value_t::Float   : return format_impl<value_t::Float   >{}(v.template cast<value_t::Float>());
+        case value_t::String  : return format_impl<value_t::String  >{inl}(v.template cast<value_t::String>());
+        case value_t::Datetime: return format_impl<value_t::Datetime>{}(v.template cast<value_t::Datetime>());
+        case value_t::Array   : return format_impl<value_t::Array   >{inl}(v.template cast<value_t::Array>());
+        case value_t::Table   : return format_impl<value_t::Table   >{inl}(v.template cast<value_t::Table>());
+        case value_t::Empty   : throw std::runtime_error("toml::format: empty value");
+        case value_t::Unknown : throw std::runtime_error("toml::format: unknown value");
+        default: throw std::logic_error("toml::format: unknown enum value");
+    }
+}
+
+template<typename traits, typename alloc>
+std::basic_string<toml::character, traits, alloc>
+format(std::basic_string<toml::character, traits, alloc> key, const value& val)
+{
+    std::basic_string<toml::character, traits, alloc> retval(std::move(key));
     retval += " = ";
     retval += format(val);
     return retval;
 }
+
+template<typename traits, typename alloc>
+std::basic_string<toml::character, traits, alloc>
+format(std::basic_string<toml::character, traits, alloc> key, const value& val, std::size_t mk)
+{
+    std::basic_string<toml::character, traits, alloc> retval(std::move(key));
+    retval += " = ";
+    retval += format(val, mk);
+    return retval;
+}
+
 
 // ----------------------------- stream operators -----------------------------
 
@@ -274,7 +311,7 @@ struct inline_limit
     T limit;
     inline_limit() = default;
     ~inline_limit() = default;
-    constexpr make_inline(T i): limit(i){}
+    constexpr inline_limit(T i): limit(i){}
     constexpr operator T() const {return limit;}
 
     static void callback(std::ios_base::event ev, std::ios_base& ios, int idx)
@@ -305,9 +342,9 @@ const int inline_limit<T>::index = std::ios_base::xalloc();
 
 } //detail
 
-template<typename sizeT, typename traits = std::char_traits<toml::charactor>>
-std::basic_ostream<toml::charactor, traits>&
-operator<<(std::basic_ostream<toml::charactor, traits>& os,
+template<typename sizeT, typename traits = std::char_traits<toml::character>>
+std::basic_ostream<toml::character, traits>&
+operator<<(std::basic_ostream<toml::character, traits>& os,
            const detail::inline_limit<sizeT>& inl)
 {
     void*& info = os.pword(detail::inline_limit<sizeT>::index);
@@ -327,21 +364,21 @@ operator<<(std::basic_ostream<toml::charactor, traits>& os,
     return os;
 }
 
-constexpr static detail::inline_limit<std::size_t> forceinline =
-    detail::inline_limit(std::numeric_limits<std::size_t>::max());
+constexpr static detail::inline_limit<std::size_t> forceinline(
+        std::numeric_limits<std::size_t>::max());
 
 inline detail::inline_limit<std::size_t> make_inline(std::size_t sz)
 {
     return detail::inline_limit<std::size_t>(sz);
 }
 
-template<typename T, typename traits = std::char_traits>
-std::basic_ostream<toml::charactor, traits>&
-operator<<(std::basic_ostream<toml::charactor, traits>& os,
+template<typename T, typename traits = std::char_traits<toml::character>>
+std::basic_ostream<toml::character, traits>&
+operator<<(std::basic_ostream<toml::character, traits>& os,
            const toml::value& v)
 {
     std::size_t* info =
-        static_cast<std::size_t*>(os.pword(inline_limit<std::size_t>::index));
+        static_cast<std::size_t*>(os.pword(detail::inline_limit<std::size_t>::index));
     return os << (info == nullptr ? toml::format(v) : toml::format(v, *info));
 }
 

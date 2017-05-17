@@ -9,7 +9,7 @@ namespace toml
 {
 
 template<typename charT, charT c>
-struct is_charactor
+struct is_character
 {
     typedef charT value_type;
     constexpr static value_type target = c;
@@ -240,9 +240,9 @@ struct is_not_but
 };
 
 template<typename charT>
-using is_space      = is_charactor<charT, ' '>;
+using is_space      = is_character<charT, ' '>;
 template<typename charT>
-using is_tab        = is_charactor<charT, '\t'>;
+using is_tab        = is_character<charT, '\t'>;
 template<typename charT>
 using is_number     = is_in_range<charT, '0', '9'>;
 template<typename charT>
@@ -261,17 +261,17 @@ using is_any_num_of_ws =
     is_ignorable<is_repeat_of<is_whitespace<charT>, repeat_infinite()>>;
 
 template<typename charT>
-using is_newline    = is_one_of<is_charactor<charT, '\n'>,
-    is_chain_of<is_charactor<charT, '\r'>, is_charactor<charT, '\n'>>>;
+using is_newline    = is_one_of<is_character<charT, '\n'>,
+    is_chain_of<is_character<charT, '\r'>, is_character<charT, '\n'>>>;
 template<typename charT>
 using is_barekey_component = is_one_of<is_alphabet<charT>, is_number<charT>,
-    is_charactor<charT, '_'>, is_charactor<charT, '-'>>;
+    is_character<charT, '_'>, is_character<charT, '-'>>;
 template<typename charT>
 using is_barekey = is_repeat_of<is_barekey_component<charT>, repeat_infinite()>;
 template<typename charT>
 using is_comment =
     is_chain_of<
-        is_charactor<charT, '#'>,
+        is_character<charT, '#'>,
         is_repeat_of<is_none_of<is_newline<charT>>, repeat_infinite()>,
         is_newline<charT>
     >;
@@ -279,73 +279,73 @@ using is_comment =
 template<typename charT>
 using is_basic_inline_string_component =
     is_one_of<
-        is_none_of< is_in_range<charT, '\0', '\31'>, is_charactor<charT, '\"'>,
-                    is_charactor<charT, '\\'>, is_newline<charT>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, '\"'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, '\\'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'b'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 't'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'n'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'f'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'r'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'u'>,
+        is_none_of< is_in_range<charT, '\0', '\31'>, is_character<charT, '\"'>,
+                    is_character<charT, '\\'>, is_newline<charT>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, '\"'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, '\\'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'b'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 't'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'n'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'f'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'r'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'u'>,
                     is_repeat_of<is_hex<charT>, 4>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'U'>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'U'>,
                     is_repeat_of<is_hex<charT>, 8>>
         >;
 template<typename charT>
 using is_basic_inline_string =
     is_not_but<
-        is_repeat_of<is_charactor<charT, '\"'>, 3>, // not multiline
+        is_repeat_of<is_character<charT, '\"'>, 3>, // not multiline
         is_chain_of<
-            is_charactor<charT, '\"'>,
+            is_character<charT, '\"'>,
             is_ignorable<is_repeat_of<is_basic_inline_string_component<charT>,
                                       repeat_infinite()>>,
-            is_charactor<charT, '\"'>
+            is_character<charT, '\"'>
         >
     >;
 template<typename charT>
 using is_basic_multiline_string_component =
     is_one_of<
         is_none_of< is_in_range<charT, '\0', '\31'>,
-                    is_repeat_of<is_charactor<charT, '\"'>, 3>,
-                    is_charactor<charT, '\\'>>,
+                    is_repeat_of<is_character<charT, '\"'>, 3>,
+                    is_character<charT, '\\'>>,
         is_newline<charT>,
-        is_chain_of<is_charactor<charT, '\\'>, is_newline<charT>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, '\"'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, '\\'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'b'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 't'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'n'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'f'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'r'>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'u'>,
+        is_chain_of<is_character<charT, '\\'>, is_newline<charT>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, '\"'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, '\\'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'b'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 't'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'n'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'f'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'r'>>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'u'>,
                     is_repeat_of<is_hex<charT>, 4>>,
-        is_chain_of<is_charactor<charT, '\\'>, is_charactor<charT, 'U'>,
+        is_chain_of<is_character<charT, '\\'>, is_character<charT, 'U'>,
                     is_repeat_of<is_hex<charT>, 8>>
         >;
 template<typename charT>
 using is_basic_multiline_string =
     is_chain_of<
-        is_repeat_of<is_charactor<charT, '\"'>, 3>,
+        is_repeat_of<is_character<charT, '\"'>, 3>,
         is_ignorable<is_repeat_of<is_basic_multiline_string_component<charT>,
                                   repeat_infinite()>>,
-        is_repeat_of<is_charactor<charT, '\"'>, 3>
+        is_repeat_of<is_character<charT, '\"'>, 3>
     >;
 
 template<typename charT>
 using is_literal_inline_string_component =
-    is_none_of<is_in_range<charT, '\0', '\31'>, is_charactor<charT, '\''>>;
+    is_none_of<is_in_range<charT, '\0', '\31'>, is_character<charT, '\''>>;
 
 template<typename charT>
 using is_literal_inline_string =
     is_not_but<
-        is_repeat_of<is_charactor<charT, '\''>, 3>,
+        is_repeat_of<is_character<charT, '\''>, 3>,
         is_chain_of<
-            is_charactor<charT, '\''>,
+            is_character<charT, '\''>,
             is_ignorable<is_repeat_of<is_literal_inline_string_component<charT>,
                                       repeat_infinite()>>,
-            is_charactor<charT, '\''>
+            is_character<charT, '\''>
         >
     >;
 
@@ -353,17 +353,17 @@ template<typename charT>
 using is_literal_multiline_string_component =
     is_one_of<
         is_none_of<is_in_range<charT, '\0', '\31'>,
-                   is_repeat_of<is_charactor<charT, '\''>, 3>>,
+                   is_repeat_of<is_character<charT, '\''>, 3>>,
         is_newline<charT>
     >;
 
 template<typename charT>
 using is_literal_multiline_string =
     is_chain_of<
-        is_repeat_of<is_charactor<charT, '\''>, 3>,
+        is_repeat_of<is_character<charT, '\''>, 3>,
         is_ignorable<is_repeat_of<is_literal_multiline_string_component<charT>,
                                   repeat_infinite()>>,
-        is_repeat_of<is_charactor<charT, '\''>, 3>
+        is_repeat_of<is_character<charT, '\''>, 3>
     >;
 
 template<typename charT>
@@ -377,16 +377,16 @@ using is_string =
 
 
 template<typename charT>
-using is_sign = is_one_of<is_charactor<charT, '+'>, is_charactor<charT, '-'>>;
+using is_sign = is_one_of<is_character<charT, '+'>, is_character<charT, '-'>>;
 template<typename charT>
 using is_nonzero_number = is_in_range<charT, '1', '9'>;
 
 template<typename charT>
 using is_integer_component =
     is_not_but<
-        is_repeat_of<is_charactor<charT, '_'>, 2>,
+        is_repeat_of<is_character<charT, '_'>, 2>,
         is_one_of<
-            is_charactor<charT, '_'>, is_number<charT>
+            is_character<charT, '_'>, is_number<charT>
         >
     >;
 template<typename charT>
@@ -394,7 +394,7 @@ using is_integer =
     is_chain_of<
         is_ignorable<is_sign<charT>>,
         is_one_of<
-            is_charactor<charT, '0'>,
+            is_character<charT, '0'>,
             is_chain_of<
                 is_nonzero_number<charT>,
                 is_ignorable<is_repeat_of<is_integer_component<charT>,
@@ -407,13 +407,13 @@ using is_integer =
 template<typename charT>
 using is_fractional_part =
     is_chain_of<
-        is_charactor<charT, '.'>,
+        is_character<charT, '.'>,
         is_repeat_of<is_integer_component<charT>, repeat_infinite()>
     >;
 template<typename charT>
 using is_exponent_part =
     is_chain_of<
-        is_one_of<is_charactor<charT, 'e'>, is_charactor<charT, 'E'>>,
+        is_one_of<is_character<charT, 'e'>, is_character<charT, 'E'>>,
         is_integer<charT>
     >;
 template<typename charT>
@@ -438,17 +438,17 @@ template<typename charT>
 using is_boolean =
     is_one_of<
         is_chain_of<
-            is_charactor<charT, 't'>,
-            is_charactor<charT, 'r'>,
-            is_charactor<charT, 'u'>,
-            is_charactor<charT, 'e'>
+            is_character<charT, 't'>,
+            is_character<charT, 'r'>,
+            is_character<charT, 'u'>,
+            is_character<charT, 'e'>
         >,
         is_chain_of<
-            is_charactor<charT, 'f'>,
-            is_charactor<charT, 'a'>,
-            is_charactor<charT, 'l'>,
-            is_charactor<charT, 's'>,
-            is_charactor<charT, 'e'>
+            is_character<charT, 'f'>,
+            is_character<charT, 'a'>,
+            is_character<charT, 'l'>,
+            is_character<charT, 's'>,
+            is_character<charT, 'e'>
         >
     >;
 
@@ -456,13 +456,13 @@ template<typename charT>
 using is_local_time =
     is_chain_of<
         is_repeat_of<is_number<charT>, 2>,
-        is_charactor<charT, ':'>,
+        is_character<charT, ':'>,
         is_repeat_of<is_number<charT>, 2>,
-        is_charactor<charT, ':'>,
+        is_character<charT, ':'>,
         is_repeat_of<is_number<charT>, 2>,
         is_ignorable<
             is_chain_of<
-                is_charactor<charT, '.'>,
+                is_character<charT, '.'>,
                 is_repeat_of<is_number<charT>, repeat_infinite()>
             >
         >
@@ -472,9 +472,9 @@ template<typename charT>
 using is_local_date =
     is_chain_of<
         is_repeat_of<is_number<charT>, 4>,
-        is_charactor<charT, '-'>,
+        is_character<charT, '-'>,
         is_repeat_of<is_number<charT>, 2>,
-        is_charactor<charT, '-'>,
+        is_character<charT, '-'>,
         is_repeat_of<is_number<charT>, 2>
     >;
 
@@ -482,18 +482,18 @@ template<typename charT>
 using is_local_date_time =
     is_chain_of<
         is_local_date<charT>,
-        is_charactor<charT, 'T'>,
+        is_character<charT, 'T'>,
         is_local_time<charT>
     >;
 
 template<typename charT>
 using is_offset =
     is_one_of<
-        is_charactor<charT, 'Z'>,
+        is_character<charT, 'Z'>,
         is_chain_of<
             is_sign<charT>,
             is_repeat_of<is_number<charT>, 2>,
-            is_charactor<charT, ':'>,
+            is_character<charT, ':'>,
             is_repeat_of<is_number<charT>, 2>
         >
     >;
@@ -551,14 +551,14 @@ using is_key =
 template<typename charT, typename is_array_component>
 using is_fixed_type_array =
     is_chain_of<
-        is_charactor<charT, '['>,
+        is_character<charT, '['>,
         is_ignorable<
             is_repeat_of<
                 is_chain_of<
                     is_ignorable<is_skippable_in_array<charT>>,
                     is_array_component,
                     is_ignorable<is_skippable_in_array<charT>>,
-                    is_charactor<charT, ','>
+                    is_character<charT, ','>
                 >,
                 repeat_infinite()
             >
@@ -568,11 +568,11 @@ using is_fixed_type_array =
                 is_ignorable<is_skippable_in_array<charT>>,
                 is_array_component,
                 is_ignorable<is_skippable_in_array<charT>>,
-                is_ignorable<is_charactor<charT, ','>>
+                is_ignorable<is_character<charT, ','>>
             >
         >,
         is_ignorable<is_skippable_in_array<charT>>,
-        is_charactor<charT, ']'>
+        is_character<charT, ']'>
     >;
 
 template<typename charT>
@@ -614,21 +614,21 @@ struct is_inline_table
             is_any_num_of_ws<charT>,
             is_key<charT>,
             is_any_num_of_ws<charT>,
-            is_charactor<charT, '='>,
+            is_character<charT, '='>,
             is_any_num_of_ws<charT>,
             is_component,
             is_any_num_of_ws<charT>
         > is_inline_key_value_pair;
 
         typedef is_chain_of<
-            is_charactor<charT, '{'>,
+            is_character<charT, '{'>,
             is_ignorable<
                 is_repeat_of<
                     is_chain_of<
                         is_any_num_of_ws<charT>,
                         is_inline_key_value_pair,
                         is_any_num_of_ws<charT>,
-                        is_charactor<charT, ','>
+                        is_character<charT, ','>
                     >,
                     repeat_infinite()
                 >
@@ -638,11 +638,11 @@ struct is_inline_table
                     is_any_num_of_ws<charT>,
                     is_inline_key_value_pair,
                     is_any_num_of_ws<charT>,
-                    is_ignorable<is_charactor<charT, ','>>
+                    is_ignorable<is_character<charT, ','>>
                 >
             >,
             is_any_num_of_ws<charT>,
-            is_charactor<charT, '}'>
+            is_character<charT, '}'>
             > entity;
         return entity::invoke(iter, end);
     }
@@ -657,42 +657,42 @@ template<typename charT>
 using is_table_definition =
     is_chain_of<
         is_any_num_of_ws<charT>,
-        is_charactor<charT, '['>,
+        is_character<charT, '['>,
         is_any_num_of_ws<charT>,
         is_key<charT>,
         is_ignorable<
             is_repeat_of<
                 is_chain_of<
                     is_any_num_of_ws<charT>,
-                    is_charactor<charT, '.'>,
+                    is_character<charT, '.'>,
                     is_any_num_of_ws<charT>,
                     is_key<charT>,
                     is_any_num_of_ws<charT>
                 >,
             repeat_infinite()>
             >,
-        is_charactor<charT, ']'>
+        is_character<charT, ']'>
     >;
 
 template<typename charT>
 using is_array_of_table_definition =
     is_chain_of<
         is_any_num_of_ws<charT>,
-        is_repeat_of<is_charactor<charT, '['>, 2>,
+        is_repeat_of<is_character<charT, '['>, 2>,
         is_any_num_of_ws<charT>,
         is_key<charT>,
         is_ignorable<
             is_repeat_of<
                 is_chain_of<
                     is_any_num_of_ws<charT>,
-                    is_charactor<charT, '.'>,
+                    is_character<charT, '.'>,
                     is_any_num_of_ws<charT>,
                     is_key<charT>,
                     is_any_num_of_ws<charT>
                 >,
             repeat_infinite()>
             >,
-        is_repeat_of<is_charactor<charT, ']'>, 2>
+        is_repeat_of<is_character<charT, ']'>, 2>
     >;
 
 template<typename charT>
@@ -701,7 +701,7 @@ using is_key_value_pair =
         is_any_num_of_ws<charT>,
         is_key<charT>,
         is_any_num_of_ws<charT>,
-        is_charactor<charT, '='>,
+        is_character<charT, '='>,
         is_any_num_of_ws<charT>,
         is_value<charT>,
         is_any_num_of_ws<charT>

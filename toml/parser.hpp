@@ -56,7 +56,7 @@ struct result
 
 struct parse_escape_sequence
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef toml::String    string_type;
     typedef detail::result<string_type> result_type;
 
@@ -105,36 +105,36 @@ struct parse_escape_sequence
 
     static string_type utf8_to_char(const unsigned int codepoint)
     {
-        string_type charactor;
+        string_type character;
         if(codepoint < 0x80)
         {
-            charactor += static_cast<unsigned char>(codepoint);
+            character += static_cast<unsigned char>(codepoint);
         }
         else if(codepoint < 0x800)
         {
-            charactor += static_cast<unsigned char>(0xC0| codepoint >> 6);
-            charactor += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
+            character += static_cast<unsigned char>(0xC0| codepoint >> 6);
+            character += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
         }
         else if(codepoint < 0x10000)
         {
-            charactor += static_cast<unsigned char>(0xE0| codepoint >>12);
-            charactor += static_cast<unsigned char>(0x80|(codepoint >>6&0x3F));
-            charactor += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
+            character += static_cast<unsigned char>(0xE0| codepoint >>12);
+            character += static_cast<unsigned char>(0x80|(codepoint >>6&0x3F));
+            character += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
         }
         else
         {
-            charactor += static_cast<unsigned char>(0xF0| codepoint >>18);
-            charactor += static_cast<unsigned char>(0x80|(codepoint >>12&0x3F));
-            charactor += static_cast<unsigned char>(0x80|(codepoint >>6 &0x3F));
-            charactor += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
+            character += static_cast<unsigned char>(0xF0| codepoint >>18);
+            character += static_cast<unsigned char>(0x80|(codepoint >>12&0x3F));
+            character += static_cast<unsigned char>(0x80|(codepoint >>6 &0x3F));
+            character += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
         }
-        return charactor;
+        return character;
     }
 };
 
 struct parse_basic_inline_string
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<toml::String> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -174,11 +174,11 @@ struct parse_basic_inline_string
 
 struct parse_basic_multiline_string
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef toml::String    string_type;
     typedef detail::result<string_type> result_type;
 
-    typedef is_chain_of<is_charactor<value_type, '\\'>, is_newline<value_type>>
+    typedef is_chain_of<is_character<value_type, '\\'>, is_newline<value_type>>
             is_line_ending_backslash;
     typedef is_repeat_of<is_one_of<is_whitespace<value_type>, is_newline<value_type>>,
                          repeat_infinite()> ws_nl_after_backslash_remover;
@@ -228,7 +228,7 @@ struct parse_basic_multiline_string
 
 struct parse_literal_inline_string
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<toml::String> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -257,10 +257,10 @@ struct parse_literal_inline_string
 
 struct parse_literal_multiline_string
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<toml::String> result_type;
 
-    typedef is_chain_of<is_charactor<value_type, '\\'>, is_newline<value_type>>
+    typedef is_chain_of<is_character<value_type, '\\'>, is_newline<value_type>>
             is_line_ending_backslash;
     typedef is_repeat_of<is_one_of<is_whitespace<value_type>, is_newline<value_type>>,
                          repeat_infinite()> ws_nl_after_backslash_remover;
@@ -292,7 +292,7 @@ struct parse_literal_multiline_string
 
 struct parse_string
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<toml::String> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -317,7 +317,7 @@ struct parse_string
 
 struct parse_integer
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef std::basic_string<value_type> string_type;
     typedef detail::result<toml::Integer> result_type;
 
@@ -337,7 +337,7 @@ struct parse_integer
 
 struct parse_float
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef std::basic_string<value_type> string_type;
     typedef detail::result<toml::Float> result_type;
 
@@ -366,7 +366,7 @@ struct parse_float
 
 struct parse_boolean
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<toml::Boolean> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -383,14 +383,14 @@ struct parse_boolean
 
 struct parse_local_time
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef std::basic_string<value_type>  string_type;
     typedef detail::result<toml::Datetime> result_type;
     typedef typename toml::Datetime::number_type number_type;
     template<std::size_t N>
-    using nums = is_repeat_of<is_number<toml::charactor>, N>;
-    typedef is_charactor<toml::charactor, ':'> delim;
-    typedef is_charactor<toml::charactor, '.'> fract;
+    using nums = is_repeat_of<is_number<toml::character>, N>;
+    typedef is_character<toml::character, ':'> delim;
+    typedef is_character<toml::character, '.'> fract;
 
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
@@ -445,12 +445,12 @@ struct parse_local_time
 
 struct parse_local_date
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef std::basic_string<value_type> string_type;
     typedef detail::result<toml::Datetime> result_type;
     template<std::size_t N>
     using nums = is_repeat_of<is_number<value_type>, N>;
-    typedef is_charactor<value_type, '-'> delim;
+    typedef is_character<value_type, '-'> delim;
 
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
@@ -481,12 +481,12 @@ struct parse_local_date
 
 struct parse_local_date_time
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef std::basic_string<value_type> string_type;
     typedef detail::result<toml::Datetime> result_type;
     template<std::size_t N>
-    using nums = is_repeat_of<is_number<toml::charactor>, N>;
-    typedef is_charactor<toml::charactor, 'T'> delim;
+    using nums = is_repeat_of<is_number<toml::character>, N>;
+    typedef is_character<toml::character, 'T'> delim;
 
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
@@ -517,12 +517,12 @@ struct parse_local_date_time
 
 struct parse_offset_date_time
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef std::basic_string<value_type> string_type;
     typedef detail::result<toml::Datetime> result_type;
     template<std::size_t N>
-    using nums = is_repeat_of<is_number<toml::charactor>, N>;
-    typedef is_charactor<toml::charactor, ':'> delim;
+    using nums = is_repeat_of<is_number<toml::character>, N>;
+    typedef is_character<toml::character, ':'> delim;
 
     template<typename Iterator, class = typename std::enable_if<
         std::is_same<typename std::iterator_traits<Iterator>::value_type,
@@ -561,7 +561,7 @@ struct parse_offset_date_time
 
 struct parse_datetime
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<toml::Datetime> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -587,7 +587,7 @@ struct parse_datetime
 template<typename acceptorT, typename parserT>
 struct parse_fixed_type_array
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<toml::Array> result_type;
     typedef acceptorT acceptor_type;
     typedef parserT   parser_type;
@@ -614,7 +614,7 @@ struct parse_fixed_type_array
             result.emplace_back(next.first.move());
             iter = tmp;
             iter = skippable::invoke(iter, last);
-            iter = is_charactor<value_type, ','>::invoke(iter, last);
+            iter = is_character<value_type, ','>::invoke(iter, last);
             iter = skippable::invoke(iter, last);
         }
         return std::make_pair(result, end);
@@ -628,7 +628,7 @@ template<typename charT>
 struct parse_array
 {
     typedef charT value_type;
-    static_assert(std::is_same<charT, toml::charactor>::value, "");
+    static_assert(std::is_same<charT, toml::character>::value, "");
     typedef detail::result<toml::Array> result_type;
     typedef is_skippable_in_array<value_type> skippable;
 
@@ -669,7 +669,7 @@ template<typename charT>
 struct parse_value
 {
     typedef charT value_type;
-    static_assert(std::is_same<charT, toml::charactor>::value, "");
+    static_assert(std::is_same<charT, toml::character>::value, "");
     typedef detail::result<toml::value> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -700,7 +700,7 @@ struct parse_value
 
 struct parse_barekey
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<toml::key> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -717,7 +717,7 @@ struct parse_barekey
 
 struct parse_key
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<toml::key> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -739,7 +739,7 @@ template<typename charT>
 struct parse_key_value_pair
 {
     typedef charT value_type;
-    static_assert(std::is_same<charT, toml::charactor>::value, "");
+    static_assert(std::is_same<charT, toml::character>::value, "");
     typedef detail::result<std::pair<toml::key, toml::value>> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -755,7 +755,7 @@ struct parse_key_value_pair
         if(*iter != '=') throw syntax_error("invalid key value pair");
         iter = is_any_num_of_ws<charT>::invoke(std::next(iter), range_end);
 
-        auto tmp_value = parse_value<toml::charactor>::invoke(iter, range_end);
+        auto tmp_value = parse_value<toml::character>::invoke(iter, range_end);
         if(!tmp_value.first.ok())
             throw syntax_error("invalid key value pair");
 
@@ -771,7 +771,7 @@ template<typename charT>
 struct parse_inline_table
 {
     typedef charT value_type;
-    static_assert(std::is_same<charT, toml::charactor>::value, "");
+    static_assert(std::is_same<charT, toml::character>::value, "");
     typedef detail::result<toml::Table> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -796,7 +796,7 @@ struct parse_inline_table
             iter = tmp.second;
 
             iter = is_any_num_of_ws<value_type>::invoke(iter, last);
-            iter = is_charactor<value_type, ','>::invoke(iter, last);
+            iter = is_character<value_type, ','>::invoke(iter, last);
             iter = is_any_num_of_ws<value_type>::invoke(iter, last);
         }
         return std::make_pair(result, end);
@@ -805,7 +805,7 @@ struct parse_inline_table
 
 struct parse_table_definition
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<std::vector<toml::key>> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -832,7 +832,7 @@ struct parse_table_definition
 
         while(iter != last)
         {
-            iter = is_charactor<value_type, '.'>::invoke(iter, last);
+            iter = is_character<value_type, '.'>::invoke(iter, last);
             iter = is_any_num_of_ws<value_type>::invoke(iter, last);
 
             tmp = parse_key::invoke(iter, last);
@@ -846,7 +846,7 @@ struct parse_table_definition
 
 struct parse_array_of_table_definition
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef detail::result<std::vector<toml::key>> result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -876,7 +876,7 @@ struct parse_array_of_table_definition
 
         while(iter != last)
         {
-            iter = is_charactor<value_type, '.'>::invoke(iter, last);
+            iter = is_character<value_type, '.'>::invoke(iter, last);
             iter = is_any_num_of_ws<value_type>::invoke(iter, last);
 
             tmp  = parse_key::invoke(iter, last);
@@ -890,7 +890,7 @@ struct parse_array_of_table_definition
 
 struct parse_data
 {
-    typedef toml::charactor value_type;
+    typedef toml::character value_type;
     typedef toml::Table result_type;
 
     template<typename Iterator, class = typename std::enable_if<
@@ -1055,15 +1055,15 @@ struct parse_data
 
 };
 
-template<typename traits = std::char_traits<toml::charactor>>
-toml::Table parse(std::basic_istream<toml::charactor, traits>& is)
+template<typename traits = std::char_traits<toml::character>>
+toml::Table parse(std::basic_istream<toml::character, traits>& is)
 {
     const auto initial = is.tellg();
     is.seekg(0, std::ios::end);
     const auto eofpos  = is.tellg();
     const std::size_t size = eofpos - initial;
     is.seekg(initial);
-    std::vector<toml::charactor> contents(size);
+    std::vector<toml::character> contents(size);
     is.read(contents.data(), size);
     return parse_data::invoke(contents.cbegin(), contents.cend());
 }

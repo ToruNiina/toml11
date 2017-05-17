@@ -14,7 +14,7 @@
 BOOST_AUTO_TEST_CASE(test_parse_basic_inline_string)
 {
     typedef toml::parse_basic_inline_string parser;
-    typedef toml::is_basic_inline_string<toml::charactor> acceptor;
+    typedef toml::is_basic_inline_string<toml::character> acceptor;
     {
         const std::string source("\"simple\"");
         const std::string expected("simple");
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(test_parse_basic_inline_string)
 BOOST_AUTO_TEST_CASE(test_parse_basic_multiline_string)
 {
     typedef toml::parse_basic_multiline_string parser;
-    typedef toml::is_basic_multiline_string<toml::charactor> acceptor;
+    typedef toml::is_basic_multiline_string<toml::character> acceptor;
     {
         //XXX ifdef windows platform
         const std::string source("\"\"\"\nRoses are red\nViolets are blue\"\"\"");
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(test_parse_basic_multiline_string)
 BOOST_AUTO_TEST_CASE(test_parse_literal_inline_string)
 {
     typedef toml::parse_literal_inline_string parser;
-    typedef toml::is_literal_inline_string<toml::charactor> acceptor;
+    typedef toml::is_literal_inline_string<toml::character> acceptor;
     {
         const std::string source("'C:\\Users\\nodejs\\templates'");
         const std::string expected("C:\\Users\\nodejs\\templates");
@@ -123,7 +123,7 @@ BOOST_AUTO_TEST_CASE(test_parse_literal_inline_string)
 BOOST_AUTO_TEST_CASE(test_parse_literal_multiline_string)
 {
     typedef toml::parse_literal_multiline_string parser;
-    typedef toml::is_literal_multiline_string<toml::charactor> acceptor;
+    typedef toml::is_literal_multiline_string<toml::character> acceptor;
     {
         const std::string source("'''I [dw]on't need \\d{2} apples'''");
         const std::string expected("I [dw]on't need \\d{2} apples");
@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE(test_parse_literal_multiline_string)
 BOOST_AUTO_TEST_CASE(test_parse_string)
 {
     typedef toml::parse_string parser;
-    typedef toml::is_string<toml::charactor> acceptor;
+    typedef toml::is_string<toml::character> acceptor;
     {
         const std::string source("\"string\"");
         const std::string expected("string");
@@ -195,7 +195,7 @@ BOOST_AUTO_TEST_CASE(test_parse_string)
 BOOST_AUTO_TEST_CASE(test_integer)
 {
     typedef toml::parse_integer parser;
-    typedef toml::is_integer<toml::charactor> acceptor;
+    typedef toml::is_integer<toml::character> acceptor;
     {
         const std::string   source("42");
         const toml::Integer expected(42);
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(test_integer)
 BOOST_AUTO_TEST_CASE(test_float)
 {
     typedef toml::parse_float parser;
-    typedef toml::is_float<toml::charactor> acceptor;
+    typedef toml::is_float<toml::character> acceptor;
     {
         const std::string source("42.0");
         const toml::Float expected(42.0);
@@ -305,7 +305,7 @@ BOOST_AUTO_TEST_CASE(test_float)
 BOOST_AUTO_TEST_CASE(test_parse_boolean)
 {
     typedef toml::parse_boolean parser;
-    typedef toml::is_boolean<toml::charactor> acceptor;
+    typedef toml::is_boolean<toml::character> acceptor;
     {
         const std::string   source("true");
         const toml::Boolean expected(true);
@@ -335,7 +335,7 @@ BOOST_AUTO_TEST_CASE(test_parse_boolean)
 BOOST_AUTO_TEST_CASE(test_parse_local_time)
 {
     typedef toml::parse_local_time parser;
-    typedef toml::is_local_time<toml::charactor> acceptor;
+    typedef toml::is_local_time<toml::character> acceptor;
     {
         const std::string source("12:34:56");
         const toml::Datetime expected(12, 34, 56, 0, 0);
@@ -371,7 +371,7 @@ BOOST_AUTO_TEST_CASE(test_parse_local_time)
 BOOST_AUTO_TEST_CASE(test_parse_local_date)
 {
     typedef toml::parse_local_date parser;
-    typedef toml::is_local_date<toml::charactor>  acceptor;
+    typedef toml::is_local_date<toml::character>  acceptor;
     {
         const std::string source("1979-09-27");
         const toml::Datetime expected(1979, 9, 27);
@@ -391,7 +391,7 @@ BOOST_AUTO_TEST_CASE(test_parse_local_date)
 BOOST_AUTO_TEST_CASE(test_parse_local_date_time)
 {
     typedef toml::parse_local_date_time parser;
-    typedef toml::is_local_date_time<toml::charactor> acceptor;
+    typedef toml::is_local_date_time<toml::character> acceptor;
     {
         const std::string source("1979-09-27T12:34:56");
         const toml::Datetime expected(1979, 9, 27, 12, 34, 56, 0, 0);
@@ -419,7 +419,7 @@ BOOST_AUTO_TEST_CASE(test_parse_local_date_time)
 BOOST_AUTO_TEST_CASE(test_parse_offset_date_time)
 {
     typedef toml::parse_offset_date_time parser;
-    typedef toml::is_offset_date_time<toml::charactor> acceptor;
+    typedef toml::is_offset_date_time<toml::character> acceptor;
     {
         const std::string source("1979-09-27T12:34:56Z");
         const toml::Datetime expected(1979, 9, 27, 12, 34, 56, 0, 0, 0, 0);
@@ -481,7 +481,7 @@ BOOST_AUTO_TEST_CASE(test_parse_offset_date_time)
 BOOST_AUTO_TEST_CASE(test_parse_datetime)
 {
     typedef toml::parse_datetime parser;
-    typedef toml::is_datetime<toml::charactor> acceptor;
+    typedef toml::is_datetime<toml::character> acceptor;
     {
         const std::string source("1979-09-27T12:34:56Z");
         const toml::Datetime expected(1979, 9, 27, 12, 34, 56, 0, 0, 0, 0);
@@ -525,8 +525,8 @@ BOOST_AUTO_TEST_CASE(test_parse_datetime)
 
 BOOST_AUTO_TEST_CASE(test_parse_array)
 {
-    typedef toml::parse_array<toml::charactor> parser;
-    typedef toml::is_array<toml::charactor>  acceptor;
+    typedef toml::parse_array<toml::character> parser;
+    typedef toml::is_array<toml::character>  acceptor;
     {
         const std::string source("[1,2,3]");
         const toml::Array expected{1, 2, 3};
@@ -630,8 +630,8 @@ BOOST_AUTO_TEST_CASE(test_parse_array)
 
 BOOST_AUTO_TEST_CASE(test_parse_inline_table)
 {
-    typedef toml::parse_inline_table<toml::charactor> parser;
-    typedef toml::is_inline_table<toml::charactor>  acceptor;
+    typedef toml::parse_inline_table<toml::character> parser;
+    typedef toml::is_inline_table<toml::character>  acceptor;
     {
         const std::string source("{foo=1,bar=2.0,baz='str'}");
         const toml::Table expected{{"foo", 1}, {"bar", 2.0}, {"baz", "str"}};
@@ -679,7 +679,7 @@ BOOST_AUTO_TEST_CASE(test_parse_inline_table)
 BOOST_AUTO_TEST_CASE(test_parse_barekey)
 {
     typedef toml::parse_barekey parser;
-    typedef toml::is_barekey<toml::charactor> acceptor;
+    typedef toml::is_barekey<toml::character> acceptor;
     {
         const std::string source("hoge");
         const toml::key expected("hoge");
