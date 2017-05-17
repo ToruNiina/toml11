@@ -3,6 +3,7 @@
 #include "value.hpp"
 #include "acceptor.hpp"
 #include <algorithm>
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -1077,8 +1078,8 @@ toml::Table parse(std::basic_istream<wchar_t, traits>& is)
 
     std::wstring wstr(size, ' ');
     std::copy(contents.cbegin(), contents.cend(), wstr.begin());
-    std::wstring_convert<std::convert_utf8<wchar_t>, wchar_t> cvter;
-    std::string u8str = converter.to_bytes(wstr);
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvter;
+    std::string u8str = cvter.to_bytes(wstr);
 
     return parse_data::invoke(u8str.cbegin(), u8str.cend());
 }
