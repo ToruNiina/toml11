@@ -5,7 +5,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-5"
+    env: CXX="g++-5" CC="gcc-5"
     addons:
       apt:
         sources:
@@ -18,7 +18,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-3.7"
+    env: CXX="clang++-3.7" CC="clang-3.7"
     addons:
       apt:
         sources:
@@ -33,14 +33,10 @@ matrix:
     language: cpp
     compiler: clang
 
-# before_install:
-#     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-#     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cmake boost; fi
-
 script:
 - mkdir build
 - cd build
 - git clone https://github.com/toml-lang/toml.git
-- cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
+- cmake ..
 - make
 - make test
