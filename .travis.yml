@@ -14,7 +14,7 @@ matrix:
         - g++-5
         - build-essential
         - cmake
-        - libboost-dev
+        - libboost-all-dev
   - os: linux
     language: cpp
     compiler: clang
@@ -28,14 +28,14 @@ matrix:
         - clang-3.7
         - build-essential
         - cmake
-        - libboost-dev
+        - libboost-all-dev
   - os: osx
     language: cpp
     compiler: clang
 
-before_install:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cmake boost; fi
+# before_install:
+#     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+#     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cmake boost; fi
 
 script:
 - mkdir build
