@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <locale>
 
 namespace toml
 {
@@ -1058,6 +1059,8 @@ struct parse_data
 template<typename traits = std::char_traits<toml::character>>
 toml::Table parse(std::basic_istream<toml::character, traits>& is)
 {
+    const auto curloc = is.getloc();
+    is.imbue(std::locale("en_US.utf-8"));
     const auto initial = is.tellg();
     is.seekg(0, std::ios::end);
     const auto eofpos  = is.tellg();
@@ -1065,6 +1068,7 @@ toml::Table parse(std::basic_istream<toml::character, traits>& is)
     is.seekg(initial);
     std::vector<toml::character> contents(size);
     is.read(contents.data(), size);
+    is.imbue(curloc);
     return parse_data::invoke(contents.cbegin(), contents.cend());
 }
 
