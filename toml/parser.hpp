@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <codecvt>
 #include <locale>
 
 namespace toml
@@ -1071,7 +1072,7 @@ toml::Table parse(std::basic_istream<toml::character, traits>& is)
 
 toml::Table parse(const std::string& filename)
 {
-    std::ifstream ifs(filename, std::ios::binary);
+    std::ifstream ifs(filename);
     if(!ifs.good()) throw std::runtime_error("file open error: " + filename);
     return parse(ifs);
 }

@@ -10,6 +10,7 @@ set(TEST_NAMES
     test_acceptor
     test_parser
     test_parse_file
+    test_parse_unicode
     )
 
 CHECK_CXX_COMPILER_FLAG("-Wall" COMPILER_SUPPORTS_WALL)
