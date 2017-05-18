@@ -48,6 +48,13 @@ If there are syntax error in the toml file,
 
 Then you can obtain the various value from the `data` using `toml::get` function.
 
+```toml
+answer = 42
+pi = 3.14
+numbers = [1,2,3]
+time = 1979-05-27T07:32:00Z
+```
+
 ``` cpp
 const auto answer    = toml::get<std::int64_t>(data.at("answer"));
 const auto pi        = toml::get<double>(data.at("pi"));
