@@ -121,6 +121,9 @@ toml::from_toml(std::tie(i, d, s, a), data.at("something"));
 
 Here, only matched value will be filled.
 The others are left intact after calling `from_toml`.
+It should be noted that `toml::from_toml` _returns as usual even if there are no
+matched type_.
+
 
 `from_toml` can be used also for single type. 
 

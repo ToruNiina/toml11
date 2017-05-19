@@ -100,7 +100,7 @@ struct from_toml_tie_impl<0, Ts...>
 {
     static void invoke(std::tuple<Ts& ...> tie, const toml::value& v)
     {
-        throw type_error("from_toml(tie, value): no match");
+        return;
     }
 };
 
