@@ -53,6 +53,8 @@ answer = 42
 pi = 3.14
 numbers = [1,2,3]
 time = 1979-05-27T07:32:00Z
+[tab]
+key = "value"
 ```
 
 ``` cpp
@@ -60,6 +62,8 @@ const auto answer    = toml::get<std::int64_t>(data.at("answer"));
 const auto pi        = toml::get<double>(data.at("pi"));
 const auto numbers   = toml::get<std::vector<int>>(data.at("numbers"));
 const auto timepoint = toml::get<std::chrono::system_clock::time_point>(data.at("time"));
+const auto tab       = toml::get<toml::Table>(data.at("tab"));
+const auto key       = toml::get<std::string>(tab.at("key"));
 ```
 
 You can set any kind of `container` class to obtain `toml::Array` except for
@@ -152,6 +156,26 @@ const auto a  = toml::get<std::vector<toml::value>>(data.at("array_of_array"));
 // you can obtain values from toml::value in the same way as described above.
 const auto ns = toml::get<std::vector<std::int64_t>>(a.at(0));
 const auto ss = toml::get<std::vector<std::string>>(a.at(1));
+```
+
+#### Array of Table
+
+Of course, you can obtain `array of table` in the same way.
+
+```toml
+array_of_inline_table = [{key = "value1"}, {key = "value2"}, {key = "value3"}]
+
+[[array_of_table]]
+key = "value4"
+[[array_of_table]]
+key = "value5"
+[[array_of_table]]
+key = "value6"
+```
+
+```cpp
+const auto aot1 = toml::get<std::vector<toml::Table>>(data.at("array_of_inline_table"))
+const auto aot2 = toml::get<std::vector<toml::Table>>(data.at("array_of_table"))
 ```
 
 ## Documentation
