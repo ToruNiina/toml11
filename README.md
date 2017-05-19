@@ -151,8 +151,10 @@ array_of_array = [[1,2,3,4,5], ["foo", "bar", "baz"]]
 In this case, you can use `toml::value` directly.
 
 ```cpp
-// use toml::value
+// use toml::value in a container 
 const auto a  = toml::get<std::vector<toml::value>>(data.at("array_of_array"));
+// or you can use default toml::Array.
+const auto a_ = toml::get<toml::Array>(data.at("array_of_array"));
 // you can obtain values from toml::value in the same way as described above.
 const auto ns = toml::get<std::vector<std::int64_t>>(a.at(0));
 const auto ss = toml::get<std::vector<std::string>>(a.at(1));
