@@ -204,17 +204,18 @@ const auto aot2 = toml::get<std::vector<toml::Table>>(data.at("array_of_table"))
 
 ## Documentation
 
-The toml types are listed below.
+The toml types and corresponding `enum` name are listed in the table below.
+`value_t` is a scoped-enum defined in the namespace toml.
 
-| toml-type | c++ type       |
-| --------- | -------------- |
-| Boolean   | `bool`         |
-| Integer   | `std::int64_t` |
-| Float     | `double`       |
-| String    | `std::string`  |
-| Datetime  | `toml::Datetime` |
-| Array     | `std::vector<toml::value>`                     |
-| Table     | `std::unordered_map<std::string, toml::value>` |
+| toml-type | c++ type                                       | enum                      |
+| --------- | ---------------------------------------------- | ------------------------- |
+| Boolean   | `bool`                                         | `toml::value_t::Boolean`  |
+| Integer   | `std::int64_t`                                 | `toml::value_t::Integer`  |
+| Float     | `double`                                       | `toml::value_t::Float`    |
+| String    | `std::string`                                  | `toml::value_t::String`   |
+| Datetime  | `toml::Datetime`                               | `toml::value_t::Datetime` |
+| Array     | `std::vector<toml::value>`                     | `toml::value_t::Array`    |
+| Table     | `std::unordered_map<std::string, toml::value>` | `toml::value_t::Table`    |
 
 `Datetime` is the `struct` that is defined in this library.
 Because `std::chrono::system_clock::time_point` is a __time point__, not capable
