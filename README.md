@@ -87,6 +87,28 @@ const auto wrong2 = toml::get<float>(data.at("integer"));        // ditto
 const auto wrong3 = toml::get<toml::Datetime>(data.at("array")); // ditto
 ```
 
+Although `toml::get` is convenient, it has additional copy-cost because it
+copies data contained in `toml::value` to user-specified type.
+Of course in some case this overhead is not ignorable.
+
+You can get reference pointing to contained value using `toml::value::cast()` like this.
+
+``` cpp
+const auto& pi      = data.at("pi").cast<toml::value_t::Float>();
+const auto& tab     = data.at("tab").cast<toml::value_t::Table>();
+const auto& numbers = data.at("numbers").cast<toml::value_t::Array>();
+```
+
+Unfortunately, if you use `toml::value::cast` to get an array, you would need to
+`cast` each element in `toml::Array` because `toml::Array` is represented as
+an array of `toml::value`.
+
+```cpp
+const auto& num0 = numbers.at(0).cast<toml::value_t::Integer>();
+const auto& num1 = numbers.at(1).cast<toml::value_t::Integer>();
+const auto& num2 = numbers.at(2).cast<toml::value_t::Integer>();
+```
+
 #### toml::value\_t
 
 When you don't know the exact type of toml-value, you can get `enum` type from
@@ -125,8 +147,8 @@ toml::from_toml(std::tie(i, d, s, a), data.at("something"));
 
 Here, only matched value will be filled.
 The others are left intact after calling `from_toml`.
-It should be noted that `toml::from_toml` _returns as usual even if there are no
-matched type_.
+It should be noted that `toml::from_toml` returns as usual even if there are no
+matched type.
 
 
 `from_toml` can be used also for single type. 
