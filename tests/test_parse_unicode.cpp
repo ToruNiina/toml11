@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
 {
     const auto data = toml::parse("toml/tests/hard_example_unicode.toml");

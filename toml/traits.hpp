@@ -37,6 +37,12 @@ struct has_resize_method_impl
     template<typename T> static std::false_type check(...);
 };
 
+/// Intel C++ compiler can not use decltype in parent class declaration, here
+/// is a hack to work around it. https://stackoverflow.com/a/23953090/4692076
+#ifdef __INTEL_COMPILER
+#define decltype(...) std::enable_if<true, decltype(__VA_ARGS__)>::type
+#endif
+
 template<typename T>
 struct has_iterator    : decltype(has_iterator_impl::check<T>(nullptr)){};
 template<typename T>
@@ -47,6 +53,10 @@ template<typename T>
 struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
 template<typename T>
 struct has_resize_method : decltype(has_resize_method_impl::check<T>(nullptr)){};
+
+#ifdef __INTEL_COMPILER
+#undef decltype(...)
+#endif
 
 template<typename T>
 struct is_container : std::integral_constant<bool,
