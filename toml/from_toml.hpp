@@ -86,7 +86,10 @@ struct from_toml_tie_impl
 
     static void invoke(std::tuple<Ts& ...> tie, const toml::value& v)
     {
-        if(type_index == v.type())
+        // static_cast is needed because with intel c++ compiler, operator==
+        // is only defined when the two types are strictly equal, and type_index
+        // is const toml::value_t, while v.type() is toml::value_t.
+        if(static_cast<toml::value_t>(type_index) == v.type())
         {
             from_toml(std::get<index>(tie), v);
             return;

@@ -112,8 +112,19 @@ struct is_key_convertible_impl
 
     template<typename T> static std::false_type check(...);
 };
+
+/// Intel C++ compiler can not use decltype in parent class declaration, here
+/// is a hack to work around it. https://stackoverflow.com/a/23953090/4692076
+#ifdef __INTEL_COMPILER
+#define decltype(...) std::enable_if<true, decltype(__VA_ARGS__)>::type
+#endif
+
 template<typename T>
 struct is_key_convertible : decltype(is_key_convertible_impl::check<T>(nullptr)){};
+
+#ifdef __INTEL_COMPILER
+#undef decltype(...)
+#endif
 
 template<value_t t> struct toml_default_type{};
 template<> struct toml_default_type<value_t::Boolean >{typedef Boolean  type;};
@@ -142,7 +153,7 @@ struct storage : public storage_base
     typedef T value_type;
 
     storage() = default;
-    ~storage() override = default;
+    ~storage() noexcept override = default;
     storage(storage const&) = default;
     storage(storage&&)      = default;
     storage& operator=(storage const&) = default;
@@ -159,7 +170,7 @@ template<typename T>
 struct value_traits
 {
     constexpr static value_t type_index = detail::check_type<T>();
-    constexpr static bool is_toml_type  = detail::is_valid(type_index);
+    constexpr static bool is_toml_type  = detail::is_valid(detail::check_type<T>());
     typedef typename detail::toml_default_type<type_index>::type type;
 };
 
