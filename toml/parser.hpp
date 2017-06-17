@@ -52,7 +52,6 @@ struct result
     T value_;
 };
 
-
 }//detail
 
 struct parse_escape_sequence
@@ -66,6 +65,7 @@ struct parse_escape_sequence
                      value_type>::value>::type>
     static std::pair<result_type, Iterator> invoke(Iterator iter, Iterator end)
     {
+        const auto beg = iter;
         if(iter == end || *iter != '\\')
             return std::make_pair(result_type{}, iter);
         ++iter;
@@ -81,18 +81,21 @@ struct parse_escape_sequence
             case 'u' :
             {
                 if(std::distance(iter, end) < 5)
-                    throw syntax_error("invalid escape sequence");
+                    throw std::make_pair(iter, syntax_error(
+                        "invalid escape sequence: " + std::string(beg, end)));
                 return std::make_pair(utf8_to_char(make_codepoint(
                                       string_type(iter+1, iter+5))), iter+5);
             }
             case 'U':
             {
                 if(std::distance(iter, end) < 8)
-                    throw syntax_error("invalid escape sequence");
+                    throw std::make_pair(iter, syntax_error(
+                        "invalid escape sequence: " + std::string(beg, end)));
                 return std::make_pair(utf8_to_char(make_codepoint(
                                       string_type(iter+1, iter+9))), iter+9);
             }
-            default: throw syntax_error("unkwnon escape sequence");
+            default: throw std::make_pair(iter, syntax_error(
+                        "unkwnon escape sequence: " + std::string(iter, end)));
         }
     }
 
@@ -500,7 +503,8 @@ struct parse_local_date_time
         if(iter == end) return std::make_pair(result_type{}, iter);
 
         auto ld = parse_local_date::invoke(iter, end);
-        if(!ld.first.ok()) throw syntax_error("invalid local datetime");
+        if(!ld.first.ok())
+            throw std::make_pair(iter, syntax_error("invalid local datetime"));
         toml::Datetime result(ld.first.move());
         iter = delim::invoke(ld.second, end);// 'T'
 
@@ -536,7 +540,8 @@ struct parse_offset_date_time
         if(iter == end) return std::make_pair(result_type{}, iter);
 
         auto ldt = parse_local_date_time::invoke(iter, end);
-        if(!ldt.first.ok()) throw syntax_error("invalid offset datetime");
+        if(!ldt.first.ok())
+            throw std::make_pair(iter, syntax_error("invalid offset datetime"));
         toml::Datetime result(ldt.first.move());
         iter = ldt.second;
         if(*iter == 'Z')
@@ -547,7 +552,7 @@ struct parse_offset_date_time
         else
         {
             if(*iter != '+' && *iter != '-')
-                throw syntax_error("invalid offset-datetime");
+                throw std::make_pair(iter, syntax_error("invalid offset-datetime"));
             const int sign = (*iter == '-') ? -1 : 1;
             ++iter;
             result.offset_hour   = sign *
@@ -609,9 +614,11 @@ struct parse_fixed_type_array
         while(iter != last)
         {
             const Iterator tmp = acceptor_type::invoke(iter, last);
-            if(tmp == iter) throw syntax_error("parse_array");
+            if(tmp == iter)
+                throw std::make_pair(iter, syntax_error("parse_array"));
             auto next = parser_type::invoke(iter, last);
-            if(!next.first.ok()) throw syntax_error("parse_array");
+            if(!next.first.ok())
+                throw std::make_pair(iter, syntax_error("parse_array"));
             result.emplace_back(next.first.move());
             iter = tmp;
             iter = skippable::invoke(iter, last);
@@ -662,7 +669,7 @@ struct parse_array
                 std::prev(is_array<value_type>::invoke(iter, range_end))
                 ) return std::make_pair(
                     toml::Array{}, is_array<value_type>::invoke(iter, range_end));
-        else throw syntax_error("no valid array here");
+        else throw std::make_pair(iter, syntax_error("no valid array here"));
     }
 };
 
@@ -753,12 +760,13 @@ struct parse_key_value_pair
         if(!tmp_key.first.ok())
             return std::make_pair(result_type{}, iter);
         iter = is_any_num_of_ws<charT>::invoke(tmp_key.second, range_end);
-        if(*iter != '=') throw syntax_error("invalid key value pair");
+        if(*iter != '=')
+            throw std::make_pair(iter, syntax_error("invalid key value pair"));
         iter = is_any_num_of_ws<charT>::invoke(std::next(iter), range_end);
 
         auto tmp_value = parse_value<toml::character>::invoke(iter, range_end);
         if(!tmp_value.first.ok())
-            throw syntax_error("invalid key value pair");
+            throw std::make_pair(iter, syntax_error("invalid key value pair"));
 
         iter = tmp_value.second;
 
@@ -791,7 +799,8 @@ struct parse_inline_table
         while(iter != last)
         {
             auto tmp = parse_key_value_pair<value_type>::invoke(iter, last);
-            if(!tmp.first.ok()) throw syntax_error("parse_inline_table");
+            if(!tmp.first.ok())
+                throw std::make_pair(iter, syntax_error("parse_inline_table"));
 
             result.emplace(tmp.first.move());
             iter = tmp.second;
@@ -827,7 +836,8 @@ struct parse_table_definition
         iter = is_any_num_of_ws<value_type>::invoke(std::next(iter), last);
 
         auto tmp = parse_key::invoke(iter, last);
-        if(!tmp.first.ok()) throw syntax_error("table definition");
+        if(!tmp.first.ok())
+            throw std::make_pair(iter, syntax_error("table definition"));
         result.emplace_back(tmp.first.move());
         iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
 
@@ -837,7 +847,8 @@ struct parse_table_definition
             iter = is_any_num_of_ws<value_type>::invoke(iter, last);
 
             tmp = parse_key::invoke(iter, last);
-            if(!tmp.first.ok()) throw syntax_error("table definition");
+            if(!tmp.first.ok())
+                throw std::make_pair(iter, syntax_error("table definition"));
             result.emplace_back(tmp.first.move());
             iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
         }
@@ -861,7 +872,7 @@ struct parse_array_of_table_definition
         if(iter == end) return std::make_pair(result_type{}, iter);
 
         if(std::distance(iter, end) < 5)
-            throw syntax_error("invalid array_of_table definition");
+            throw std::make_pair(iter, syntax_error("invalid array_of_table definition"));
 
         std::vector<toml::key> result;
         result.reserve(std::count(iter, end, '.')+1);
@@ -871,7 +882,8 @@ struct parse_array_of_table_definition
         iter = is_any_num_of_ws<value_type>::invoke(iter, last);
 
         auto tmp = parse_key::invoke(iter, last);
-        if(!tmp.first.ok()) throw syntax_error("array of table definition");
+        if(!tmp.first.ok())
+            throw std::make_pair(iter, syntax_error("array of table definition"));
         result.emplace_back(tmp.first.move());
         iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
 
@@ -881,7 +893,8 @@ struct parse_array_of_table_definition
             iter = is_any_num_of_ws<value_type>::invoke(iter, last);
 
             tmp  = parse_key::invoke(iter, last);
-            if(!tmp.first.ok()) throw syntax_error("array of table definition");
+            if(!tmp.first.ok())
+                throw std::make_pair(iter, syntax_error("array of table definition"));
             result.emplace_back(tmp.first.move());
             iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
         }
@@ -923,7 +936,7 @@ struct parse_data
                 iter = contents.second;
             }
             else
-                throw syntax_error("parse_data: unknown line");
+                throw std::make_pair(iter, syntax_error("parse_data: unknown line"));
         }
         return result;
     }
@@ -983,7 +996,7 @@ struct parse_data
         if(iter == std::prev(end))
         {
             if(data.count(*iter) == 1)
-                throw syntax_error("duplicate key: " + *iter);
+                throw std::make_pair(iter, syntax_error("duplicate key: " + *iter));
             data.emplace(*iter, std::move(v));
             return;
         }
@@ -1004,12 +1017,12 @@ struct parse_data
             auto& ar = data[*iter].template cast<value_t::Array>();
             if(ar.empty()) ar.emplace_back(toml::Table{});
             if(ar.back().type() != value_t::Table)
-                throw syntax_error("assign table into array having non-table type: " + *iter);
+                throw std::make_pair(iter, syntax_error("assign table into array having non-table type: " + *iter));
             return push_table(ar.back().template cast<value_t::Table>(),
                               std::move(v), std::next(iter), end);
         }
         else
-            throw syntax_error("assign table into not table: " + *iter);
+            throw std::make_pair(iter, syntax_error("assign table into not table: " + *iter));
     }
 
     template<typename Iterator, class = typename std::enable_if<
@@ -1024,7 +1037,7 @@ struct parse_data
             if(data.count(*iter) == 0)
                 data.emplace(*iter, toml::Array());
             else if(data.at(*iter).type() != value_t::Array)
-                throw syntax_error("duplicate key: " + *iter);
+                throw std::make_pair(iter, syntax_error("duplicate key: " + *iter));
 
             data[*iter].template cast<value_t::Array>().emplace_back(std::move(v));
             return;
@@ -1046,12 +1059,12 @@ struct parse_data
             auto& ar = data[*iter].template cast<value_t::Array>();
             if(ar.empty()) ar.emplace_back(toml::Table{});
             if(ar.back().type() != value_t::Table)
-                throw syntax_error("assign table into array having non-table type: " + *iter);
+                throw std::make_pair(iter, syntax_error("assign table into array having non-table type: " + *iter));
             return push_array_of_table(ar.back().template cast<value_t::Table>(),
                               std::move(v), std::next(iter), end);
         }
         else
-            throw syntax_error("assign array of table into not table: " + *iter);
+            throw std::make_pair(iter, syntax_error("assign array of table into not table: " + *iter));
     }
 
 };
@@ -1065,8 +1078,28 @@ toml::Table parse(std::basic_istream<toml::character, traits>& is)
     const std::size_t size = eofpos - initial;
     is.seekg(initial);
     std::vector<toml::character> contents(size);
+    typedef std::vector<toml::character>::const_iterator iterator_type;
     is.read(contents.data(), size);
-    return parse_data::invoke(contents.cbegin(), contents.cend());
+    try
+    {
+        return parse_data::invoke(contents.cbegin(), contents.cend());
+    }
+    catch(std::pair<iterator_type, syntax_error> iter_except)
+    {
+        std::cerr << "toml syntax error." << std::endl;
+        auto iter = iter_except.first;
+        const std::size_t nline = 1 + std::count(contents.cbegin(), iter, '\n');
+        std::cerr << "processing at line " << nline << std::endl;
+        while(*iter != '\n' && iter != contents.cbegin()){--iter;}
+        ++iter;
+        while(*iter != '\n' && iter != contents.cend())
+        {
+            std::cerr << *iter; ++iter;
+        }
+        std::cerr << std::endl;
+
+        throw iter_except.second;
+    }
 }
 
 toml::Table parse(const std::string& filename)
