@@ -5,6 +5,7 @@ set(TEST_NAMES
     test_to_toml
     test_from_toml
     test_get
+    test_get_or
     test_value_operator
     test_datetime
     test_acceptor
