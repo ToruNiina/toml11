@@ -109,6 +109,19 @@ const auto& num1 = numbers.at(1).cast<toml::value_t::Integer>();
 const auto& num2 = numbers.at(2).cast<toml::value_t::Integer>();
 ```
 
+#### toml::get\_or
+
+You can also set default value for `toml::get`.
+
+```cpp
+toml::Table data; // empty table!
+
+const auto value1 = toml::get_or(data, "key1", 42); // value1 => int 42.
+
+toml::Integer i(123);
+const auto value2 = toml::get_or(data, "key1", i);  // value2 => toml::Integer 42.
+```
+
 #### toml::value\_t
 
 When you don't know the exact type of toml-value, you can get `enum` type from
