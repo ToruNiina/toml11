@@ -39,4 +39,4 @@ script:
 - git clone https://github.com/toml-lang/toml.git
 - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
 - make
-- make test
+- ctest --output-on-failure
