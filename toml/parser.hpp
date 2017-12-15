@@ -1102,12 +1102,28 @@ toml::Table parse(std::basic_istream<toml::character, traits>& is)
     }
 }
 
-toml::Table parse(const std::string& filename)
+inline toml::Table parse(const char* filename)
 {
     std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
-    if(!ifs.good()) throw std::runtime_error("file open error: " + filename);
+    if(!ifs.good())
+    {
+        throw std::runtime_error("file open error: " + std::string(filename));
+    }
     return parse(ifs);
 }
+
+template<typename charT, typename traits = std::char_traits<charT>>
+inline toml::Table parse(const std::basic_string<charT, traits>& filename)
+{
+    std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
+    if(!ifs.good())
+    {
+        throw std::runtime_error("file open error: " + filename);
+    }
+    return parse(ifs);
+}
+
+
 
 }// toml
 #endif// TOML11_PARSER
