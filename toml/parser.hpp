@@ -996,7 +996,7 @@ struct parse_data
         if(iter == std::prev(end))
         {
             if(data.count(*iter) == 1)
-                throw std::make_pair(iter, syntax_error("duplicate key: " + *iter));
+                throw syntax_error("duplicate key: " + *iter);
             data.emplace(*iter, std::move(v));
             return;
         }
@@ -1017,12 +1017,12 @@ struct parse_data
             auto& ar = data[*iter].template cast<value_t::Array>();
             if(ar.empty()) ar.emplace_back(toml::Table{});
             if(ar.back().type() != value_t::Table)
-                throw std::make_pair(iter, syntax_error("assign table into array having non-table type: " + *iter));
+                throw syntax_error("assign table into array having non-table type: " + *iter);
             return push_table(ar.back().template cast<value_t::Table>(),
                               std::move(v), std::next(iter), end);
         }
         else
-            throw std::make_pair(iter, syntax_error("assign table into not table: " + *iter));
+            throw syntax_error("assign table into not table: " + *iter);
     }
 
     template<typename Iterator, class = typename std::enable_if<
@@ -1032,12 +1032,13 @@ struct parse_data
     push_array_of_table(toml::Table& data, toml::Table&& v,
                         Iterator iter, Iterator end)
     {
+        //XXX Iterator::value_type == toml::key
         if(iter == std::prev(end))
         {
             if(data.count(*iter) == 0)
                 data.emplace(*iter, toml::Array());
             else if(data.at(*iter).type() != value_t::Array)
-                throw std::make_pair(iter, syntax_error("duplicate key: " + *iter));
+                throw syntax_error("duplicate key: " + *iter);
 
             data[*iter].template cast<value_t::Array>().emplace_back(std::move(v));
             return;
@@ -1059,12 +1060,12 @@ struct parse_data
             auto& ar = data[*iter].template cast<value_t::Array>();
             if(ar.empty()) ar.emplace_back(toml::Table{});
             if(ar.back().type() != value_t::Table)
-                throw std::make_pair(iter, syntax_error("assign table into array having non-table type: " + *iter));
+                throw syntax_error("assign table into array having non-table type: " + *iter);
             return push_array_of_table(ar.back().template cast<value_t::Table>(),
                               std::move(v), std::next(iter), end);
         }
         else
-            throw std::make_pair(iter, syntax_error("assign array of table into not table: " + *iter));
+            throw syntax_error("assign array of table into not table: " + *iter);
     }
 
 };
