@@ -267,6 +267,14 @@ It must be noted that the range of some values in `basic_datetime` is different
 from `std::tm`. For example, month is in the range of `[1,12]` and year starts
 from 0 (not 1900).
 
+## Contributors
+
+I thank the contributor for providing great feature to this repository.
+
+- Guillaume Fraux (@Luthaf)
+  - Windows support and CI on Appvayor
+  - Intel Compiler support
+
 ## Licensing terms
 
 This product is licensed under the terms of the [MIT License](LICENSE).
