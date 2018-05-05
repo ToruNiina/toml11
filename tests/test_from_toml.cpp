@@ -170,3 +170,22 @@ BOOST_AUTO_TEST_CASE(test_from_toml_tie)
     BOOST_CHECK_EQUAL(ut["val4"].cast<toml::value_t::String >(), "piyo");
 }
 
+BOOST_AUTO_TEST_CASE(test_from_toml_tuple)
+{
+    toml::Array a;
+    a.emplace_back(2);
+    a.emplace_back(7);
+    a.emplace_back(1);
+    a.emplace_back(8);
+    a.emplace_back(2);
+    toml::value v(a);
+
+    std::tuple<int, int, int, int, int> t;
+    toml::from_toml(t, v);
+
+    BOOST_CHECK_EQUAL(std::get<0>(t), 2);
+    BOOST_CHECK_EQUAL(std::get<1>(t), 7);
+    BOOST_CHECK_EQUAL(std::get<2>(t), 1);
+    BOOST_CHECK_EQUAL(std::get<3>(t), 8);
+    BOOST_CHECK_EQUAL(std::get<4>(t), 2);
+}

@@ -1,66 +1,14 @@
 #ifndef TOML11_FROM_TOML
 #define TOML11_FROM_TOML
-#include "value.hpp"
+#include "get.hpp"
 
 namespace toml
 {
 
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT != toml::value_t::Unknown &&
-         vT != value_t::Empty), std::nullptr_t>::type = nullptr>
+template<typename T>
 void from_toml(T& x, const toml::value& v)
 {
-    if(v.type() != vT)
-        throw type_error("from_toml: value type: " + stringize(v.type()) +
-                std::string(" is not arguemnt type: ") + stringize(vT));
-    x = v.cast<vT>();
-    return;
-}
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT == toml::value_t::Unknown) &&
-         (!toml::detail::is_map<T>::value) &&
-         toml::detail::is_container<T>::value, std::nullptr_t>::type = nullptr>
-void from_toml(T& x, const toml::value& v)
-{
-    // TODO the case of x is not dynamic container case
-    if(v.type() != value_t::Array)
-        throw type_error("from_toml: value type: " + stringize(v.type()) +
-                         std::string(" is not argument type: Array"));
-    const auto& ar = v.cast<value_t::Array>();
-    try
-    {
-        toml::resize(x, ar.size());
-    }
-    catch(std::invalid_argument& iv)
-    {
-        throw toml::type_error("toml::from_toml: static array size is not enough");
-    }
-    auto iter = x.begin();
-    for(const auto& val : ar)
-    {
-        typename T::value_type v;
-        from_toml(v, val);
-        *iter = std::move(v);
-        ++iter;
-    }
-    return;
-}
-
-template<typename T, toml::value_t vT = toml::detail::check_type<T>(),
-         typename std::enable_if<(vT == toml::value_t::Unknown) &&
-         toml::detail::is_map<T>::value, std::nullptr_t>::type = nullptr>
-void from_toml(T& x, const toml::value& v)
-{
-    if(v.type() != value_t::Table)
-        throw type_error("from_toml: value type: " + stringize(v.type()) +
-                         std::string(" is not argument type: Table"));
-    x.clear();
-    const auto& tb = v.cast<value_t::Table>();
-    for(const auto& kv : tb)
-    {
-        x.insert(kv);
-    }
+    x = toml::get<T>(v);
     return;
 }
 
