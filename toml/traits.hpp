@@ -58,15 +58,6 @@ struct has_resize_method : decltype(has_resize_method_impl::check<T>(nullptr)){}
 #undef decltype(...)
 #endif
 
-template<typename T>
-struct is_container : std::integral_constant<bool,
-    has_iterator<T>::value && has_value_type<T>::value>{};
-
-template<typename T>
-struct is_map : std::integral_constant<bool,
-    has_iterator<T>::value && has_key_type<T>::value &&
-    has_mapped_type<T>::value>{};
-
 }// detail
 }//toml
 #endif // TOML_TRAITS

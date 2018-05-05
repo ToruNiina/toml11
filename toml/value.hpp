@@ -99,33 +99,6 @@ constexpr inline bool is_valid(value_t vt)
     return vt != value_t::Unknown;
 }
 
-template<typename T> struct is_toml_array              : std::false_type{};
-template<>           struct is_toml_array<toml::Array> : std::true_type {};
-template<typename T> struct is_toml_table              : std::false_type{};
-template<>           struct is_toml_table<toml::Table> : std::true_type {};
-
-struct is_key_convertible_impl
-{
-    template<typename T>
-    static std::is_convertible<typename T::key_type, toml::key>
-    check(typename T::key_type*);
-
-    template<typename T> static std::false_type check(...);
-};
-
-/// Intel C++ compiler can not use decltype in parent class declaration, here
-/// is a hack to work around it. https://stackoverflow.com/a/23953090/4692076
-#ifdef __INTEL_COMPILER
-#define decltype(...) std::enable_if<true, decltype(__VA_ARGS__)>::type
-#endif
-
-template<typename T>
-struct is_key_convertible : decltype(is_key_convertible_impl::check<T>(nullptr)){};
-
-#ifdef __INTEL_COMPILER
-#undef decltype(...)
-#endif
-
 template<value_t t> struct toml_default_type{};
 template<> struct toml_default_type<value_t::Boolean >{typedef Boolean  type;};
 template<> struct toml_default_type<value_t::Integer >{typedef Integer  type;};
@@ -136,6 +109,33 @@ template<> struct toml_default_type<value_t::Array   >{typedef Array    type;};
 template<> struct toml_default_type<value_t::Table   >{typedef Table    type;};
 template<> struct toml_default_type<value_t::Empty   >{typedef void     type;};
 template<> struct toml_default_type<value_t::Unknown >{typedef void     type;};
+
+template<typename T>
+struct is_exact_toml_type : disjunction<
+    std::is_same<T, Boolean >,
+    std::is_same<T, Integer >,
+    std::is_same<T, Float   >,
+    std::is_same<T, String  >,
+    std::is_same<T, Datetime>,
+    std::is_same<T, Array   >,
+    std::is_same<T, Table   >
+    >{};
+
+template<typename T>
+struct is_map : conjunction<
+    has_iterator<T>,
+    has_value_type<T>,
+    has_key_type<T>,
+    has_mapped_type<T>
+    >{};
+
+template<typename T>
+struct is_container : conjunction<
+    negation<is_map<T>>,
+    negation<std::is_same<T, String>>,
+    has_iterator<T>,
+    has_value_type<T>
+    >{};
 
 struct storage_base
 {
@@ -148,7 +148,8 @@ struct storage_base
 template<typename T>
 struct storage : public storage_base
 {
-    static_assert(is_toml_array<T>::value || is_toml_table<T>::value,
+    static_assert(std::is_same<T, toml::Array>::value ||
+                  std::is_same<T, toml::Table>::value,
                   "toml::detail::storage is for toml::Array or toml::Table!");
     typedef T value_type;
 
