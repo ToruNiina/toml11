@@ -592,21 +592,21 @@ template<typename T, typename std::enable_if<
     value_traits<T>::is_toml_type, std::nullptr_t>::type>
 value::value(T&& v) : type_(toml::detail::check_type<T>())
 {
-    switch_assign<toml::detail::check_type<T>()>::invoke(
-            *this, std::forward<T>(v));
+    constexpr value_t kind = toml::detail::check_type<T>();
+    switch_assign<kind>::invoke(*this, std::forward<T>(v));
 }
 
 template<typename T, typename std::enable_if<
     value_traits<T>::is_toml_type, std::nullptr_t>::type>
 value& value::operator=(T&& v)
 {
+    constexpr value_t kind = toml::detail::check_type<T>();
     if(should_be_cleaned(this->type_))
     {
         switch_clean(this->type_);
     }
-    this->type_ = toml::detail::check_type<T>();
-    switch_assign<toml::detail::check_type<T>()>::invoke(
-            *this, std::forward<T>(v));
+    this->type_ = kind;
+    switch_assign<kind>::invoke(*this, std::forward<T>(v));
     return *this;
 }
 
