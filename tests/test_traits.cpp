@@ -74,16 +74,11 @@ BOOST_AUTO_TEST_CASE(test_is_xxx)
     BOOST_CHECK(toml::detail::is_container<std_array_type>::value);
     BOOST_CHECK(toml::detail::is_container<std::set<dummy_type>>::value);
     BOOST_CHECK(toml::detail::is_container<std::unordered_set<std::string>>::value);
-    BOOST_CHECK(toml::detail::is_container<std_map_type>::value);
-    BOOST_CHECK(toml::detail::is_container<std_unordered_map_type>::value);
     BOOST_CHECK(toml::detail::is_container<dummy_container<dummy_type>>::value);
+
+    BOOST_CHECK(!toml::detail::is_container<std_map_type>::value);
+    BOOST_CHECK(!toml::detail::is_container<std_unordered_map_type>::value);
 
     BOOST_CHECK(toml::detail::is_map<std_map_type>::value);
     BOOST_CHECK(toml::detail::is_map<std_unordered_map_type>::value);
-
-    BOOST_CHECK(toml::detail::is_key_convertible<std_map_type>::value);
-    BOOST_CHECK(toml::detail::is_key_convertible<std_unordered_map_type>::value);
 }
-
-
-
