@@ -71,6 +71,56 @@ T get(const toml::value& v)
     return tmp;
 }
 
+// array -> pair
+template<typename T, typename std::enable_if<detail::is_std_pair<T>::value,
+    std::nullptr_t>::type = nullptr>
+T get(const value& v)
+{
+    using first_type  = typename T::first_type;
+    using second_type = typename T::second_type;
+    const auto& ar = v.cast<value_t::Array>();
+    if(ar.size() != 2)
+    {
+        throw std::out_of_range(
+                "toml::get<std::pair>: value does not have 2 elements.");
+    }
+
+    T tmp;
+    tmp.first  = get<first_type >(ar.at(0));
+    tmp.second = get<second_type>(ar.at(1));
+    return tmp;
+}
+
+namespace detail
+{
+
+template<typename T, std::size_t ...I>
+T get_tuple_impl(const toml::Array& a, index_sequence<I...>)
+{
+    return std::make_tuple(
+        ::toml::get<typename std::tuple_element<I, T>::type>(a.at(I))...);
+}
+
+} // detail
+
+// array -> tuple
+template<typename T, typename std::enable_if<detail::is_std_tuple<T>::value,
+    std::nullptr_t>::type = nullptr>
+T get(const value& v)
+{
+    const auto& ar = v.cast<value_t::Array>();
+    if(ar.size() != std::tuple_size<T>::value)
+    {
+        throw std::out_of_range(
+            "toml::get<std::tuple>: array value does not have " +
+            std::to_string(std::tuple_size<T>::value) +
+            std::string(" elements (array has ") + std::to_string(ar.size()) +
+            std::string(" elements)."));
+    }
+    return detail::get_tuple_impl<T>(ar,
+            detail::make_index_sequence<std::tuple_size<T>::value>{});
+}
+
 //  get_or -----------------------------------------------------------------
 
 template<typename T>
