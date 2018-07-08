@@ -174,6 +174,10 @@ struct value_traits
     constexpr static bool is_toml_type  = detail::is_valid(detail::check_type<T>());
     typedef typename detail::toml_default_type<type_index>::type type;
 };
+template<typename T>
+constexpr value_t value_traits<T>::type_index;
+template<typename T>
+constexpr bool    value_traits<T>::is_toml_type;
 
 class value
 {
