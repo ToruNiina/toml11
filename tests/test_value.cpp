@@ -178,6 +178,14 @@ BOOST_AUTO_TEST_CASE(test_value_copy_move_substitution)
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Float   >(), f);
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::String  >(), s);
 
+    const auto f_ = f;
+    const auto s_ = s;
+    const auto d_ = d;
+    const auto a_ = a;
+    const auto t_ = t;
+    const auto b_ = b;
+    const auto i_ = i;
+
     v1 = std::move(f);
     v2 = std::move(s);
     v3 = std::move(d);
@@ -194,10 +202,10 @@ BOOST_AUTO_TEST_CASE(test_value_copy_move_substitution)
     BOOST_CHECK_EQUAL(v6.type(), toml::value_t::Boolean);
     BOOST_CHECK_EQUAL(v7.type(), toml::value_t::Integer);
 
-    BOOST_CHECK_EQUAL(v6.cast<toml::value_t::Boolean >(), b);
-    BOOST_CHECK_EQUAL(v7.cast<toml::value_t::Integer >(), i);
-    BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Float   >(), f);
-    BOOST_CHECK_EQUAL(v2.cast<toml::value_t::String  >(), s);
+    BOOST_CHECK_EQUAL(v6.cast<toml::value_t::Boolean >(), b_);
+    BOOST_CHECK_EQUAL(v7.cast<toml::value_t::Integer >(), i_);
+    BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Float   >(), f_);
+    BOOST_CHECK_EQUAL(v2.cast<toml::value_t::String  >(), s_);
 }
 
 BOOST_AUTO_TEST_CASE(test_value_initializer_list)
