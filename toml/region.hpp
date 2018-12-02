@@ -50,6 +50,15 @@ struct region
         source(std::move(loc.source))
     {}
 
+    region(const location<Container>& loc, const_iterator f, const_iterator l)
+      : begin(loc.begin), first(f), last(l), end(loc.end),
+        source(loc.source)
+    {}
+    region(location<Container>&& loc, const_iterator f, const_iterator l)
+      : begin(loc.begin), first(f), last(l), end(loc.end),
+        source(std::move(loc.source))
+    {}
+
     region(const region&) = default;
     region(region&&)      = default;
     region& operator=(const region&) = default;
