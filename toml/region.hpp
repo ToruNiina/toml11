@@ -28,7 +28,7 @@ struct location
     location& operator=(location&&)      = default;
    ~location() = default;
 
-    std::shared_ptr<Container> source;
+    std::shared_ptr<const Container> source;
     const_iterator iter;
 };
 
@@ -55,7 +55,7 @@ struct region
     ~region() = default;
 
     const_iterator first, last;
-    std::shared_ptr<Container> source;
+    std::shared_ptr<const Container> source;
 };
 
 // to show a better error message.
