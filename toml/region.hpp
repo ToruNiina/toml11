@@ -19,8 +19,8 @@ struct location
     using const_iterator = typename Container::const_iterator;
 
     location(Container cont)
-        : source(std::make_shared<Container>(std::move(cont))),
-          iter(source->begin())
+      : source(std::make_shared<Container>(std::move(cont))),
+        begin(source->cbegin()), iter(source->cbegin()), end(source->cend())
     {}
     location(const location&) = default;
     location(location&&)      = default;
@@ -29,7 +29,7 @@ struct location
    ~location() = default;
 
     std::shared_ptr<const Container> source;
-    const_iterator iter;
+    const_iterator begin, iter, end;
 };
 
 // region in a container, normally in a file content.
@@ -42,10 +42,12 @@ struct region
     using const_iterator = typename Container::const_iterator;
 
     region(const location<Container>& loc)
-        : first(loc.iter), last(loc.iter), source(loc.source)
+      : begin(loc.begin), first(loc.iter), last(loc.iter), end(loc.end),
+        source(loc.source)
     {}
     region(location<Container>&& loc)
-        : first(loc.iter), last(loc.iter), source(std::move(loc.source))
+      : begin(loc.begin), first(loc.iter), last(loc.iter), end(loc.end),
+        source(std::move(loc.source))
     {}
 
     region(const region&) = default;
@@ -54,7 +56,7 @@ struct region
     region& operator=(region&&)      = default;
     ~region() = default;
 
-    const_iterator first, last;
+    const_iterator begin, first, last, end;
     std::shared_ptr<const Container> source;
 };
 
@@ -67,12 +69,12 @@ format_underline(const region<Container>& reg, const std::string& msg)
     using reverse_iterator = std::reverse_iterator<const_iterator>;
     const auto line_begin = std::find(
             reverse_iterator(reg.first),
-            reverse_iterator(reg.source->cbegin()),
+            reverse_iterator(reg.begin),
             '\n').base();
-    const auto line_end = std::find(reg.last, reg.source->cend(), '\n');
+    const auto line_end = std::find(reg.last, reg.end, '\n');
 
     const auto line_number = std::to_string(
-            1 + std::count(reg.source->cbegin(), reg.first, '\n'));
+            1 + std::count(reg.begin, reg.first, '\n'));
 
     std::string retval;
     retval += ' ';
@@ -99,12 +101,12 @@ std::string format_underline(const region<Container>& reg,
     using reverse_iterator = std::reverse_iterator<const_iterator>;
     const auto line_begin = std::find(
             reverse_iterator(reg.first),
-            reverse_iterator(reg.source->cbegin()),
+            reverse_iterator(reg.begin),
             '\n').base();
-    const auto line_end = std::find(reg.last, reg.source->cend(), '\n');
+    const auto line_end = std::find(reg.last, reg.end, '\n');
 
     const auto line_number = std::to_string(
-            1 + std::count(reg.source->cbegin(), reg.first, '\n'));
+            1 + std::count(reg.begin, reg.first, '\n'));
 
     std::string retval;
     retval += ' ';
