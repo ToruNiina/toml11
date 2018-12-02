@@ -16,6 +16,7 @@ namespace detail
 template<typename Container>
 struct location
 {
+    static_assert(std::is_same<char, typename Container::value_type>::value,"");
     using const_iterator = typename Container::const_iterator;
 
     location(Container cont)
@@ -39,6 +40,7 @@ struct location
 template<typename Container>
 struct region
 {
+    static_assert(std::is_same<char, typename Container::value_type>::value,"");
     using const_iterator = typename Container::const_iterator;
 
     region(const location<Container>& loc)
@@ -64,6 +66,9 @@ struct region
     region& operator=(const region&) = default;
     region& operator=(region&&)      = default;
     ~region() = default;
+
+    std::string str()  const {return std::string(first, last);}
+    std::size_t size() const {return std::distance(first, last);}
 
     const_iterator begin, first, last, end;
     std::shared_ptr<const Container> source;
