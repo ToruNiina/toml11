@@ -12,14 +12,6 @@ do {                                                                           \
     const auto result = lxr::invoke(loc);                                      \
     BOOST_CHECK(result.is_ok());                                               \
     if(result.is_ok()){                                                        \
-    const auto matched = result.unwrap().str();                                \
-    std::cerr << "matched -> ";                                                \
-    std::for_each(matched.begin(), matched.end(), [](const char c) {           \
-        std::cerr << std::setw(2) << std::hex << std::setfill('0');            \
-        std::cerr << "0x" << static_cast<int>(c) << ", ";                      \
-        return;                                                                \
-    });                                                                        \
-    std::cerr << std::endl;                                                    \
     const auto region = result.unwrap();                                       \
     BOOST_CHECK_EQUAL(region.str(), expected);                                 \
     BOOST_CHECK_EQUAL(region.str().size(), expected.size());                   \
