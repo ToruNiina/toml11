@@ -22,6 +22,14 @@ namespace detail
 // to output character as an error message.
 inline std::string show_char(const char c)
 {
+    // It supress an error that occurs only in Debug mode of MSVC++ on Windows.
+    // I'm not completely sure but they check the value of char to be in the
+    // range [0, 256) and some of the COMPLETELY VALID utf-8 character sometimes
+    // has negative value (if char has sign). So here it re-interprets c as
+    // unsigned char through pointer. In general, converting pointer to a
+    // pointer that has different type cause UB, but `(signed|unsigned)?char`
+    // are one of the exceptions. Converting pointer only to char and std::byte
+    // (c++17) are valid.
     if(std::isgraph(*reinterpret_cast<unsigned char const*>(std::addressof(c))))
     {
         return std::string(1, c);
