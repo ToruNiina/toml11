@@ -1,4 +1,10 @@
 set(TEST_NAMES
+    test_lex_boolean
+    test_lex_integer
+    test_lex_floating
+    test_lex_datetime
+    test_lex_string
+    test_lex_key_comment
     test_traits
     test_utility
     test_result
