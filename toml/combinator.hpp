@@ -22,7 +22,7 @@ namespace detail
 // to output character as an error message.
 inline std::string show_char(const char c)
 {
-    if(std::isgraph(c))
+    if(std::isgraph(*reinterpret_cast<unsigned char const*>(std::addressof(c))))
     {
         return std::string(1, c);
     }
