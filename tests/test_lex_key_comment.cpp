@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_CASE(test_quoted_key)
 {
     TOML11_TEST_LEX_ACCEPT(lex_key, "\"127.0.0.1\"", "\"127.0.0.1\"");
     TOML11_TEST_LEX_ACCEPT(lex_key, "\"character encoding\"", "\"character encoding\"");
-    TOML11_TEST_LEX_ACCEPT(lex_key, "\"ʎǝʞ\"", "\"ʎǝʞ\"");
+    TOML11_TEST_LEX_ACCEPT(lex_key, u8"\"ʎǝʞ\"", u8"\"ʎǝʞ\"");
     TOML11_TEST_LEX_ACCEPT(lex_key, "'key2'", "'key2'");
     TOML11_TEST_LEX_ACCEPT(lex_key, "'quoted \"value\"'", "'quoted \"value\"'");
 }

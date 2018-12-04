@@ -31,8 +31,8 @@ BOOST_AUTO_TEST_CASE(test_basic_string)
             "\"192.168.1.1\"",
             "\"192.168.1.1\"");
     TOML11_TEST_LEX_ACCEPT(lex_string,
-            "\"中国\"",
-            "\"中国\"");
+            u8"\"中国\"",
+            u8"\"中国\"");
     TOML11_TEST_LEX_ACCEPT(lex_string,
             "\"You'll hate me after this - #\"",
             "\"You'll hate me after this - #\"");
