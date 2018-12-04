@@ -18,7 +18,12 @@ BOOST_AUTO_TEST_CASE(test_quoted_key)
 {
     TOML11_TEST_LEX_ACCEPT(lex_key, "\"127.0.0.1\"", "\"127.0.0.1\"");
     TOML11_TEST_LEX_ACCEPT(lex_key, "\"character encoding\"", "\"character encoding\"");
+#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
+    TOML11_TEST_LEX_ACCEPT(lex_key, "\"\xCA\x8E\xC7\x9D\xCA\x9E\"",
+                                    "\"\xCA\x8E\xC7\x9D\xCA\x9E\"");
+#else
     TOML11_TEST_LEX_ACCEPT(lex_key, u8"\"ʎǝʞ\"", u8"\"ʎǝʞ\"");
+#endif
     TOML11_TEST_LEX_ACCEPT(lex_key, "'key2'", "'key2'");
     TOML11_TEST_LEX_ACCEPT(lex_key, "'quoted \"value\"'", "'quoted \"value\"'");
 }
