@@ -8,7 +8,7 @@
 do {                                                                           \
     const std::string token   (tkn);                                           \
     const std::string expected(expct);                                         \
-    toml::detail::location<std::string> loc(token);                            \
+    toml::detail::location<std::string> loc("test", token);                    \
     const auto result = lxr::invoke(loc);                                      \
     BOOST_CHECK(result.is_ok());                                               \
     if(result.is_ok()){                                                        \
@@ -27,7 +27,7 @@ do {                                                                           \
 #define TOML11_TEST_LEX_REJECT(lxr, tkn)                                       \
 do {                                                                           \
     const std::string token   (tkn);                                           \
-    toml::detail::location<std::string> loc(token);                            \
+    toml::detail::location<std::string> loc("test", token);                    \
     const auto result = lxr::invoke(loc);                                      \
     BOOST_CHECK(result.is_err());                                              \
     BOOST_CHECK(loc.begin() == loc.iter());                                    \
