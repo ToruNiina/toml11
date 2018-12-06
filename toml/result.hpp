@@ -1,8 +1,11 @@
 #ifndef TOML11_RESULT_H
 #define TOML11_RESULT_H
 #include <type_traits>
+#include <stdexcept>
 #include <utility>
 #include <new>
+#include <string>
+#include <sstream>
 #include <cassert>
 
 namespace toml
@@ -365,17 +368,29 @@ struct result
 
     value_type&       unwrap() &
     {
-        if(is_err()) {throw std::runtime_error("result: bad unwrap");}
+        if(is_err())
+        {
+            throw std::runtime_error("result: bad unwrap: " +
+                                     format_error(this->as_err()));
+        }
         return this->succ.value;
     }
     value_type const& unwrap() const&
     {
-        if(is_err()) {throw std::runtime_error("result: bad unwrap");}
+        if(is_err())
+        {
+            throw std::runtime_error("result: bad unwrap: " +
+                                     format_error(this->as_err()));
+        }
         return this->succ.value;
     }
     value_type&&      unwrap() &&
     {
-        if(is_err()) {throw std::runtime_error("result: bad unwrap");}
+        if(is_err())
+        {
+            throw std::runtime_error("result: bad unwrap: " +
+                                     format_error(this->as_err()));
+        }
         return std::move(this->succ.value);
     }
 
@@ -540,6 +555,18 @@ struct result
     }
 
   private:
+
+    static std::string format_error(std::exception const& excpt)
+    {
+        return std::string(excpt.what());
+    }
+    template<typename U, typename std::enable_if<!std::is_base_of<
+        std::exception, U>::value, std::nullptr_t>::type = nullptr>
+    static std::string format_error(U const& others)
+    {
+        std::ostringstream oss; oss << others;
+        return oss.str();
+    }
 
     void cleanup() noexcept
     {
