@@ -238,12 +238,12 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(other.as_ok());
+            auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
             assert(tmp == std::addressof(this->succ));
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(other.as_err());
+            auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
             assert(tmp == std::addressof(this->fail));
         }
     }
@@ -267,12 +267,12 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(other.as_ok());
+            auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
             assert(tmp == std::addressof(this->succ));
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(other.as_err());
+            auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
             assert(tmp == std::addressof(this->fail));
         }
     }
