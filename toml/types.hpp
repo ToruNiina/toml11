@@ -22,6 +22,15 @@ using Datetime = basic_datetime<unsigned int, int>;
 using Array    = std::vector<value>;
 using Table    = std::unordered_map<key, value>;
 
+// alias for snake_case, consistency with STL/Boost, toml::key, toml::value
+using boolean  = Boolean;
+using integer  = Integer;
+using floating = Float;  // XXX float is keyword
+using string   = String;
+using datetime = Datetime;
+using array    = Array;
+using table    = Table;
+
 enum class value_t : std::uint8_t
 {
     Boolean  = 1,
