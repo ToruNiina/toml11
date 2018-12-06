@@ -194,9 +194,10 @@ format_underline(const std::string& message, const location<Container>& loc,
     retval += " | ";
     retval += make_string(std::distance(line_begin, loc.iter()),' ');
     retval += '^';
-    retval += make_string(std::distance(std::next(loc.iter()), line_end), '-');
+    retval += make_string(std::distance(loc.iter(), line_end), '-');
     retval += ' ';
     retval += comment_for_underline;
+
     return retval;
 }
 
