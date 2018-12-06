@@ -137,10 +137,15 @@ using lex_ml_basic_unescaped    = exclude<either<in_range<0x00, 0x1F>,
                                                  character<0x5C>,
                                                  character<0x7F>,
                                                  lex_ml_basic_string_delim>>;
+
+using lex_ml_basic_escaped_newline = sequence<
+        lex_escape, maybe<lex_ws>, lex_newline,
+        repeat<either<lex_ws, lex_newline>, unlimited>>;
+
 using lex_ml_basic_char = either<lex_ml_basic_unescaped, lex_escaped>;
 using lex_ml_basic_body = repeat<either<lex_ml_basic_char, lex_newline,
-                                        sequence<lex_escape, maybe<lex_ws>,
-                                                 lex_newline>>, unlimited>;
+                                        lex_ml_basic_escaped_newline>,
+                                 unlimited>;
 using lex_ml_basic_string = sequence<lex_ml_basic_string_delim,
                                      lex_ml_basic_body,
                                      lex_ml_basic_string_delim>;
