@@ -54,7 +54,7 @@ struct character
         static_assert(std::is_same<char, typename Cont::value_type>::value,
                       "internal error: container::value_type should be `char`.");
 
-        if(loc.iter() == loc.end()) {return err("empty input");}
+        if(loc.iter() == loc.end()) {return err("not sufficient characters");}
         const auto first = loc.iter();
 
         const char c = *(loc.iter());
@@ -89,7 +89,7 @@ struct in_range
         static_assert(std::is_same<char, typename Cont::value_type>::value,
                       "internal error: container::value_type should be `char`.");
 
-        if(loc.iter() == loc.end()) {return err("empty input");}
+        if(loc.iter() == loc.end()) {return err("not sufficient characters");}
         const auto first = loc.iter();
 
         const char c = *(loc.iter());
@@ -123,7 +123,7 @@ struct exclude
         static_assert(std::is_same<char, typename Cont::value_type>::value,
                       "internal error: container::value_type should be `char`.");
 
-        if(loc.iter() == loc.end()) {return err("empty input");}
+        if(loc.iter() == loc.end()) {return err("not sufficient characters");}
         auto first = loc.iter();
 
         auto rslt = Combinator::invoke(loc);
