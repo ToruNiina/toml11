@@ -109,3 +109,260 @@ BOOST_AUTO_TEST_CASE(test_assignment)
         BOOST_CHECK_EQUAL(result.unwrap_err(), "hoge");
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_map)
+{
+    {
+        const toml::result<int, std::string> result(toml::ok(42));
+        const auto mapped = result.map(
+                [](const int i) -> int {
+                    return i * 2;
+                });
+
+        BOOST_CHECK(!!mapped);
+        BOOST_CHECK(mapped.is_ok());
+        BOOST_CHECK(!mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap(), 42 * 2);
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::ok(std::unique_ptr<int>(new int(42))));
+        const auto mapped = std::move(result).map(
+                [](std::unique_ptr<int> i) -> int {
+                    return *i;
+                });
+
+        BOOST_CHECK(!!mapped);
+        BOOST_CHECK(mapped.is_ok());
+        BOOST_CHECK(!mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap(), 42);
+    }
+    {
+        const toml::result<int, std::string> result(toml::err<std::string>("hoge"));
+        const auto mapped = result.map(
+                [](const int i) -> int {
+                    return i * 2;
+                });
+
+        BOOST_CHECK(!mapped);
+        BOOST_CHECK(!mapped.is_ok());
+        BOOST_CHECK(mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap_err(), "hoge");
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::err<std::string>("hoge"));
+        const auto mapped = std::move(result).map(
+                [](std::unique_ptr<int> i) -> int {
+                    return *i;
+                });
+
+        BOOST_CHECK(!mapped);
+        BOOST_CHECK(!mapped.is_ok());
+        BOOST_CHECK(mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap_err(), "hoge");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_map_err)
+{
+    {
+        const toml::result<int, std::string> result(toml::ok(42));
+        const auto mapped = result.map_err(
+                [](const std::string s) -> std::string {
+                    return s + s;
+                });
+
+        BOOST_CHECK(!!mapped);
+        BOOST_CHECK(mapped.is_ok());
+        BOOST_CHECK(!mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap(), 42);
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::ok(std::unique_ptr<int>(new int(42))));
+        const auto mapped = std::move(result).map_err(
+                [](const std::string s) -> std::string {
+                    return s + s;
+                });
+
+        BOOST_CHECK(!!mapped);
+        BOOST_CHECK(mapped.is_ok());
+        BOOST_CHECK(!mapped.is_err());
+        BOOST_CHECK_EQUAL(*(mapped.unwrap()), 42);
+    }
+    {
+        const toml::result<int, std::string> result(toml::err<std::string>("hoge"));
+        const auto mapped = result.map_err(
+                [](const std::string s) -> std::string {
+                    return s + s;
+                });
+        BOOST_CHECK(!mapped);
+        BOOST_CHECK(!mapped.is_ok());
+        BOOST_CHECK(mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap_err(), "hogehoge");
+    }
+    {
+        toml::result<int, std::unique_ptr<std::string>>
+            result(toml::err(std::unique_ptr<std::string>(new std::string("hoge"))));
+        const auto mapped = std::move(result).map_err(
+                [](std::unique_ptr<std::string> p) -> std::string {
+                    return *p;
+                });
+
+        BOOST_CHECK(!mapped);
+        BOOST_CHECK(!mapped.is_ok());
+        BOOST_CHECK(mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap_err(), "hoge");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_map_or_else)
+{
+    {
+        const toml::result<int, std::string> result(toml::ok(42));
+        const auto mapped = result.map_or_else(
+                [](const int i) -> int {
+                    return i * 2;
+                }, 54);
+
+        BOOST_CHECK_EQUAL(mapped, 42 * 2);
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::ok(std::unique_ptr<int>(new int(42))));
+        const auto mapped = std::move(result).map_or_else(
+                [](std::unique_ptr<int> i) -> int {
+                    return *i;
+                }, 54);
+
+        BOOST_CHECK_EQUAL(mapped, 42);
+    }
+    {
+        const toml::result<int, std::string> result(toml::err<std::string>("hoge"));
+        const auto mapped = result.map_or_else(
+                [](const int i) -> int {
+                    return i * 2;
+                }, 54);
+
+        BOOST_CHECK_EQUAL(mapped, 54);
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::err<std::string>("hoge"));
+        const auto mapped = std::move(result).map_or_else(
+                [](std::unique_ptr<int> i) -> int {
+                    return *i;
+                }, 54);
+
+        BOOST_CHECK_EQUAL(mapped, 54);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_and_then)
+{
+    {
+        const toml::result<int, std::string> result(toml::ok(42));
+        const auto mapped = result.and_then(
+                [](const int i) -> toml::result<int, std::string> {
+                    return toml::ok(i * 2);
+                });
+
+        BOOST_CHECK(!!mapped);
+        BOOST_CHECK(mapped.is_ok());
+        BOOST_CHECK(!mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap(), 42 * 2);
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::ok(std::unique_ptr<int>(new int(42))));
+        const auto mapped = std::move(result).and_then(
+                [](std::unique_ptr<int> i) -> toml::result<int, std::string> {
+                    return toml::ok(*i);
+                });
+
+        BOOST_CHECK(!!mapped);
+        BOOST_CHECK(mapped.is_ok());
+        BOOST_CHECK(!mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap(), 42);
+    }
+    {
+        const toml::result<int, std::string> result(toml::err<std::string>("hoge"));
+        const auto mapped = result.and_then(
+                [](const int i) -> toml::result<int, std::string> {
+                    return toml::ok(i * 2);
+                });
+
+        BOOST_CHECK(!mapped);
+        BOOST_CHECK(!mapped.is_ok());
+        BOOST_CHECK(mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap_err(), "hoge");
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::err<std::string>("hoge"));
+        const auto mapped = std::move(result).and_then(
+                [](std::unique_ptr<int> i) -> toml::result<int, std::string> {
+                    return toml::ok(*i);
+                });
+
+        BOOST_CHECK(!mapped);
+        BOOST_CHECK(!mapped.is_ok());
+        BOOST_CHECK(mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap_err(), "hoge");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_or_else)
+{
+    {
+        const toml::result<int, std::string> result(toml::ok(42));
+        const auto mapped = result.or_else(
+                [](const std::string& s) -> toml::result<int, std::string> {
+                    return toml::err(s + s);
+                });
+
+        BOOST_CHECK(!!mapped);
+        BOOST_CHECK(mapped.is_ok());
+        BOOST_CHECK(!mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap(), 42);
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::ok(std::unique_ptr<int>(new int(42))));
+        const auto mapped = std::move(result).or_else(
+                [](const std::string& s) -> toml::result<std::unique_ptr<int>, std::string> {
+                    return toml::err(s + s);
+                });
+
+        BOOST_CHECK(!!mapped);
+        BOOST_CHECK(mapped.is_ok());
+        BOOST_CHECK(!mapped.is_err());
+        BOOST_CHECK_EQUAL(*mapped.unwrap(), 42);
+    }
+    {
+        const toml::result<int, std::string> result(toml::err<std::string>("hoge"));
+        const auto mapped = result.or_else(
+                [](const std::string& s) -> toml::result<int, std::string> {
+                    return toml::err(s + s);
+                });
+
+        BOOST_CHECK(!mapped);
+        BOOST_CHECK(!mapped.is_ok());
+        BOOST_CHECK(mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap_err(), "hogehoge");
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::err<std::string>("hoge"));
+        const auto mapped = std::move(result).or_else(
+                [](const std::string& s) -> toml::result<std::unique_ptr<int>, std::string> {
+                    return toml::err(s + s);
+                });
+
+        BOOST_CHECK(!mapped);
+        BOOST_CHECK(!mapped.is_ok());
+        BOOST_CHECK(mapped.is_err());
+        BOOST_CHECK_EQUAL(mapped.unwrap_err(), "hogehoge");
+    }
+}
