@@ -104,16 +104,19 @@ constexpr inline value_t check_type()
            value_t::Unknown;
 }
 
-template<value_t t> struct toml_default_type{};
-template<> struct toml_default_type<value_t::Boolean >{typedef Boolean  type;};
-template<> struct toml_default_type<value_t::Integer >{typedef Integer  type;};
-template<> struct toml_default_type<value_t::Float   >{typedef Float    type;};
-template<> struct toml_default_type<value_t::String  >{typedef String   type;};
-template<> struct toml_default_type<value_t::Datetime>{typedef Datetime type;};
-template<> struct toml_default_type<value_t::Array   >{typedef Array    type;};
-template<> struct toml_default_type<value_t::Table   >{typedef Table    type;};
-template<> struct toml_default_type<value_t::Empty   >{typedef void     type;};
-template<> struct toml_default_type<value_t::Unknown >{typedef void     type;};
+template<value_t t> struct toml_default_type;
+template<> struct toml_default_type<value_t::Boolean >     {typedef Boolean         type;};
+template<> struct toml_default_type<value_t::Integer >     {typedef Integer         type;};
+template<> struct toml_default_type<value_t::Float   >     {typedef Float           type;};
+template<> struct toml_default_type<value_t::String  >     {typedef String          type;};
+template<> struct toml_default_type<value_t::Datetime>     {typedef offset_datetime type;};
+template<> struct toml_default_type<value_t::LocalDatetime>{typedef local_datetime  type;};
+template<> struct toml_default_type<value_t::LocalDate>    {typedef local_date      type;};
+template<> struct toml_default_type<value_t::LocalTime>    {typedef local_time      type;};
+template<> struct toml_default_type<value_t::Array   >     {typedef Array           type;};
+template<> struct toml_default_type<value_t::Table   >     {typedef Table           type;};
+template<> struct toml_default_type<value_t::Empty   >     {typedef void            type;};
+template<> struct toml_default_type<value_t::Unknown >     {typedef void            type;};
 
 template<typename T>
 struct is_exact_toml_type : disjunction<
@@ -121,10 +124,17 @@ struct is_exact_toml_type : disjunction<
     std::is_same<T, Integer >,
     std::is_same<T, Float   >,
     std::is_same<T, String  >,
-    std::is_same<T, Datetime>,
+    std::is_same<T, offset_datetime>,
+    std::is_same<T, local_datetime>,
+    std::is_same<T, local_date>,
+    std::is_same<T, local_time>,
     std::is_same<T, Array   >,
     std::is_same<T, Table   >
     >{};
+template<typename T> struct is_exact_toml_type<T&>               : is_exact_toml_type<T>{};
+template<typename T> struct is_exact_toml_type<T const&>         : is_exact_toml_type<T>{};
+template<typename T> struct is_exact_toml_type<T volatile&>      : is_exact_toml_type<T>{};
+template<typename T> struct is_exact_toml_type<T const volatile&>: is_exact_toml_type<T>{};
 
 template<typename T>
 struct is_map : conjunction<
@@ -133,14 +143,23 @@ struct is_map : conjunction<
     has_key_type<T>,
     has_mapped_type<T>
     >{};
+template<typename T> struct is_map<T&>                : is_map<T>{};
+template<typename T> struct is_map<T const&>          : is_map<T>{};
+template<typename T> struct is_map<T volatile&>       : is_map<T>{};
+template<typename T> struct is_map<T const volatile&> : is_map<T>{};
 
 template<typename T>
 struct is_container : conjunction<
     negation<is_map<T>>,
-    negation<std::is_same<T, String>>,
+    negation<std::is_same<T, std::string>>,
     has_iterator<T>,
     has_value_type<T>
     >{};
+template<typename T> struct is_container<T&>                : is_container<T>{};
+template<typename T> struct is_container<T const&>          : is_container<T>{};
+template<typename T> struct is_container<T volatile&>       : is_container<T>{};
+template<typename T> struct is_container<T const volatile&> : is_container<T>{};
+
 
 } // detail
 } // toml
