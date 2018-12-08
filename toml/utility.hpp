@@ -62,5 +62,16 @@ std::string concat_to_string(Ts&& ... args)
     return detail::concat_to_string_impl(oss, std::forward<Ts>(args) ...);
 }
 
+template<typename T, typename U>
+T from_string(const std::string& str, U&& opt)
+{
+    T v(std::forward<U>(opt));
+    std::istringstream iss(str);
+    iss >> v;
+    return v;
+}
+
+
+
 }// toml
 #endif // TOML11_UTILITY

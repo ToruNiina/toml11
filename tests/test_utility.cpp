@@ -68,3 +68,15 @@ BOOST_AUTO_TEST_CASE(test_concat_to_string)
     const std::string cat = toml::concat_to_string("foo", "bar", 42);
     BOOST_CHECK(cat == "foobar42");
 }
+
+BOOST_AUTO_TEST_CASE(test_from_string)
+{
+    {
+        const std::string str("123");
+        BOOST_CHECK_EQUAL(toml::from_string<int>(str, 0), 123);
+    }
+    {
+        const std::string str("01");
+        BOOST_CHECK_EQUAL(toml::from_string<int>(str, 0), 1);
+    }
+}
