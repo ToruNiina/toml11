@@ -1,6 +1,7 @@
 #ifndef TOML11_TYPES_H
 #define TOML11_TYPES_H
 #include "datetime.hpp"
+#include "traits.hpp"
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -18,7 +19,7 @@ using Boolean  = bool;
 using Integer  = std::int64_t;
 using Float    = double;
 using String   = std::basic_string<character>;
-using Datetime = basic_datetime<unsigned int, int>;
+using Datetime = offset_datetime;
 using Array    = std::vector<value>;
 using Table    = std::unordered_map<key, value>;
 
@@ -27,60 +28,64 @@ using boolean  = Boolean;
 using integer  = Integer;
 using floating = Float;  // XXX float is keyword
 using string   = String;
-using datetime = Datetime;
+// these are defined in datetime.hpp
+// offset_datetime
+// local_datetime
+// local_date
+// local_time
 using array    = Array;
 using table    = Table;
 
 enum class value_t : std::uint8_t
 {
-    Boolean  = 1,
-    Integer  = 2,
-    Float    = 3,
-    String   = 4,
-    Datetime = 5,
-    Array    = 6,
-    Table    = 7,
-    Empty    = 0,
-    Unknown  = 255,
+    Boolean       = 1,
+    Integer       = 2,
+    Float         = 3,
+    String        = 4,
+    Datetime      = 5,
+    LocalDatetime = 6,
+    LocalDate     = 7,
+    LocalTime     = 8,
+    Array         = 9,
+    Table         = 10,
+    Empty         = 0,
+    Unknown       = 255,
 };
 
-template<typename charT = character, typename traits = std::char_traits<charT>>
+constexpr inline bool is_valid(value_t vt)
+{
+    return vt != value_t::Unknown;
+}
+
+template<typename charT, typename traits>
 inline std::basic_ostream<charT, traits>&
 operator<<(std::basic_ostream<charT, traits>& os, value_t t)
 {
     switch(t)
     {
-        case toml::value_t::Boolean : os << "Boolean";  return os;
-        case toml::value_t::Integer : os << "Integer";  return os;
-        case toml::value_t::Float   : os << "Float";    return os;
-        case toml::value_t::String  : os << "String";   return os;
-        case toml::value_t::Datetime: os << "Datetime"; return os;
-        case toml::value_t::Array   : os << "Array";    return os;
-        case toml::value_t::Table   : os << "Table";    return os;
-        case toml::value_t::Empty   : os << "Empty";    return os;
-        case toml::value_t::Unknown : os << "Unknown";  return os;
-        default                     : os << "Nothing";  return os;
+        case toml::value_t::Boolean      : os << "boolean";         return os;
+        case toml::value_t::Integer      : os << "integer";         return os;
+        case toml::value_t::Float        : os << "float";           return os;
+        case toml::value_t::String       : os << "string";          return os;
+        case toml::value_t::Datetime     : os << "offset_datetime"; return os;
+        case toml::value_t::LocalDatetime: os << "local_datetime";  return os;
+        case toml::value_t::LocalDate    : os << "local_date";      return os;
+        case toml::value_t::LocalTime    : os << "local_time";      return os;
+        case toml::value_t::Array        : os << "array";           return os;
+        case toml::value_t::Table        : os << "table";           return os;
+        case toml::value_t::Empty        : os << "empty";           return os;
+        case toml::value_t::Unknown      : os << "unknown";         return os;
+        default                          : os << "nothing";         return os;
     }
 }
 
 template<typename charT = character, typename traits = std::char_traits<charT>,
          typename alloc = std::allocator<charT>>
-inline std::basic_string<charT, traits, alloc>
-stringize(value_t t)
+inline std::basic_string<charT, traits, alloc> stringize(value_t t)
 {
-    switch(t)
-    {
-        case toml::value_t::Boolean : return "Boolean";
-        case toml::value_t::Integer : return "Integer";
-        case toml::value_t::Float   : return "Float";
-        case toml::value_t::String  : return "String";
-        case toml::value_t::Datetime: return "Datetime";
-        case toml::value_t::Array   : return "Array";
-        case toml::value_t::Table   : return "Table";
-        case toml::value_t::Empty   : return "Empty";
-        case toml::value_t::Unknown : return "Unknown";
-        default                     : return "Nothing";
-    }
+    std::ostringstream oss;
+    oss << t;
+    return oss.str();
 }
 
 namespace detail
@@ -97,11 +102,6 @@ constexpr inline value_t check_type()
            std::is_convertible<unwrap_t<T>, toml::Array   >::value ? value_t::Array   :
            std::is_convertible<unwrap_t<T>, toml::Table   >::value ? value_t::Table   :
            value_t::Unknown;
-}
-
-constexpr inline bool is_valid(value_t vt)
-{
-    return vt != value_t::Unknown;
 }
 
 template<value_t t> struct toml_default_type{};
