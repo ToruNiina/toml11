@@ -5,20 +5,20 @@ set(TEST_NAMES
     test_lex_datetime
     test_lex_string
     test_lex_key_comment
-    test_traits
+    test_datetime
     test_utility
     test_result
-    test_value
-    test_to_toml
-    test_from_toml
-    test_get
-    test_get_or
-    test_value_operator
-    test_datetime
-    test_acceptor
-    test_parser
-    test_parse_file
-    test_parse_unicode
+    test_traits
+#     test_value
+#     test_to_toml
+#     test_from_toml
+#     test_get
+#     test_get_or
+#     test_value_operator
+#     test_acceptor
+#     test_parser
+#     test_parse_file
+#     test_parse_unicode
     )
 
 CHECK_CXX_COMPILER_FLAG("-Wall" COMPILER_SUPPORTS_WALL)
