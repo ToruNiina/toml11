@@ -36,8 +36,7 @@ struct location
 
     location(std::string name, Container cont)
       : source_(std::make_shared<Container>(std::move(cont))),
-        source_name_(std::move(name)), begin_(source_->cbegin()),
-        iter_(source_->cbegin()), end_(source_->cend())
+        source_name_(std::move(name)), iter_(source_->cbegin())
     {}
     location(const location&) = default;
     location(location&&)      = default;
@@ -48,8 +47,8 @@ struct location
     const_iterator& iter()       noexcept {return iter_;}
     const_iterator  iter() const noexcept {return iter_;}
 
-    const_iterator  begin() const noexcept {return begin_;}
-    const_iterator  end()   const noexcept {return end_;}
+    const_iterator  begin() const noexcept {return source_->cbegin();}
+    const_iterator  end()   const noexcept {return source_->cend();}
 
     source_ptr const& source() const& noexcept {return source_;}
     source_ptr&&      source() &&     noexcept {return std::move(source_);}
@@ -60,7 +59,7 @@ struct location
 
     source_ptr     source_;
     std::string    source_name_;
-    const_iterator begin_, iter_, end_;
+    const_iterator iter_;
 };
 
 // region in a container, normally in a file content.
@@ -76,22 +75,18 @@ struct region
 
     region(const location<Container>& loc)
       : source_(loc.source()), source_name_(loc.name()),
-        begin_(loc.begin()), first_(loc.iter()),
-        last_(loc.iter()), end_(loc.end())
+        first_(loc.iter()), last_(loc.iter())
     {}
     region(location<Container>&& loc)
       : source_(loc.source()), source_name_(loc.name()),
-        begin_(loc.begin()), first_(loc.iter()),
-        last_(loc.iter()), end_(loc.end())
+        first_(loc.iter()), last_(loc.iter())
     {}
 
     region(const location<Container>& loc, const_iterator f, const_iterator l)
-      : source_(loc.source()), source_name_(loc.name()),
-        begin_(loc.begin()), first_(f), last_(l), end_(loc.end())
+      : source_(loc.source()), source_name_(loc.name()), first_(f), last_(l)
     {}
     region(location<Container>&& loc, const_iterator f, const_iterator l)
-      : source_(loc.source()), source_name_(loc.name()),
-        begin_(loc.begin()), first_(f), last_(l), end_(loc.end())
+      : source_(loc.source()), source_name_(loc.name()), first_(f), last_(l)
     {}
 
     region(const region&) = default;
@@ -102,7 +97,7 @@ struct region
 
     region& operator+=(const region& other)
     {
-        if(this->begin_ != other.begin_ || this->end_ != other.end_ ||
+        if(this->begin() != other.begin() || this->end() != other.end() ||
            this->last_  != other.first_)
         {
             throw internal_error("invalid region concatenation");
@@ -114,8 +109,8 @@ struct region
     std::string str()  const {return make_string(first_, last_);}
     std::size_t size() const {return std::distance(first_, last_);}
 
-    const_iterator  begin() const noexcept {return begin_;}
-    const_iterator  end()   const noexcept {return end_;}
+    const_iterator  begin() const noexcept {return source_->cbegin();}
+    const_iterator  end()   const noexcept {return source_->cend();}
     const_iterator  first() const noexcept {return first_;}
     const_iterator  last()  const noexcept {return last_;}
 
@@ -128,7 +123,7 @@ struct region
 
     source_ptr     source_;
     std::string    source_name_;
-    const_iterator begin_, first_, last_, end_;
+    const_iterator first_, last_;
 };
 
 // to show a better error message.
