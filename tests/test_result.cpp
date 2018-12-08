@@ -259,6 +259,49 @@ BOOST_AUTO_TEST_CASE(test_map_or_else)
     }
 }
 
+BOOST_AUTO_TEST_CASE(test_map_err_or_else)
+{
+    {
+        const toml::result<int, std::string> result(toml::ok(42));
+        const auto mapped = result.map_err_or_else(
+                [](const std::string i) -> std::string {
+                    return i + i;
+                }, "foobar");
+
+        BOOST_CHECK_EQUAL(mapped, "foobar");
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::ok(std::unique_ptr<int>(new int(42))));
+        const auto mapped = std::move(result).map_err_or_else(
+                [](const std::string i) -> std::string {
+                    return i + i;
+                }, "foobar");
+
+        BOOST_CHECK_EQUAL(mapped, "foobar");
+    }
+    {
+        const toml::result<int, std::string> result(toml::err<std::string>("hoge"));
+        const auto mapped = result.map_err_or_else(
+                [](const std::string i) -> std::string {
+                    return i + i;
+                }, "foobar");
+
+        BOOST_CHECK_EQUAL(mapped, "hogehoge");
+    }
+    {
+        toml::result<std::unique_ptr<int>, std::string>
+            result(toml::err<std::string>("hoge"));
+        const auto mapped = result.map_err_or_else(
+                [](const std::string i) -> std::string {
+                    return i + i;
+                }, "foobar");
+
+        BOOST_CHECK_EQUAL(mapped, "hogehoge");
+    }
+}
+
+
 BOOST_AUTO_TEST_CASE(test_and_then)
 {
     {

@@ -494,6 +494,31 @@ struct result
         return f(std::move(this->as_ok()));
     }
 
+    // prerequisities
+    // F: E -> U
+    // retval: U
+    template<typename F, typename U>
+    return_type_of_t<F, error_type&>
+    map_err_or_else(F&& f, U&& opt) &
+    {
+        if(this->is_ok()){return std::forward<U>(opt);}
+        return f(this->as_err());
+    }
+    template<typename F, typename U>
+    return_type_of_t<F, error_type const&>
+    map_err_or_else(F&& f, U&& opt) const&
+    {
+        if(this->is_ok()){return std::forward<U>(opt);}
+        return f(this->as_err());
+    }
+    template<typename F, typename U>
+    return_type_of_t<F, error_type&&>
+    map_err_or_else(F&& f, U&& opt) &&
+    {
+        if(this->is_ok()){return std::forward<U>(opt);}
+        return f(std::move(this->as_err()));
+    }
+
     // prerequisities:
     // F: func T -> U
     // toml::err(error_type) should be convertible to U.
