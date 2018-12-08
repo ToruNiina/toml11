@@ -361,26 +361,25 @@ operator<<(std::basic_ostream<charT, traits>& os, const local_datetime& dt)
 
 struct offset_datetime
 {
-    local_date        date;
-    local_time        time;
+    local_date  date;
+    local_time  time;
     time_offset offset;
 
     offset_datetime(local_date d, local_time t, time_offset o)
         : date(d), time(t), offset(o)
     {}
-
+    offset_datetime(const local_datetime& dt, time_offset o)
+        : date(dt.date), time(dt.time), offset(o)
+    {}
     offset_datetime(const local_datetime& ld)
         : date(ld.date), time(ld.time), offset(get_local_offset())
     {}
-
     offset_datetime(const std::chrono::system_clock::time_point& tp)
         : offset_datetime(local_datetime(tp))
     {}
-
     offset_datetime(const std::time_t& t)
         : offset_datetime(local_datetime(t))
     {}
-
     offset_datetime(const std::tm& t)
         : offset_datetime(local_datetime(t))
     {}
