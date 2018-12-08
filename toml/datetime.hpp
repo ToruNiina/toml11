@@ -1,7 +1,12 @@
 #ifndef TOML11_DATETIME
 #define TOML11_DATETIME
 #include <chrono>
+#include <tuple>
+#include <array>
+#include <ostream>
 #include <iomanip>
+#include <cstdint>
+#include <cstdlib>
 #include <ctime>
 
 namespace toml
