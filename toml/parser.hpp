@@ -632,7 +632,7 @@ result<local_time, std::string> parse_local_time(location<Container>& loc)
         }
         else
         {
-            if(before_secfrac != loc.iter())
+            if(before_secfrac != inner_loc.iter())
             {
                 throw internal_error(format_underline("[error]: "
                     "toml::parse_local_time: invalid subsecond format",
@@ -1096,11 +1096,219 @@ result<value, std::string> parse_value(location<Container>& loc)
     if(auto r = parse_integer        (loc)) {return ok(value(std::move(r.unwrap())));}
 
     const auto msg = format_underline("[error] toml::parse_value: "
-            "unknown token appeared", loc, "unknown", std::move(helps));
+            "unknown token appeared", loc, "unknown");
     loc.iter() = first;
     return err(msg);
 }
 
+template<typename Container>
+result<std::vector<key>, std::string> parse_table_key(location<Container>& loc)
+{
+    if(auto token = lex_std_table::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+
+        const auto open = lex_std_table_open::invoke(inner_loc);
+        if(!open || inner_loc.iter() == inner_loc.end())
+        {
+            throw internal_error(format_underline("[error] "
+                "toml::parse_table_key: no `[`", inner_loc, "should be `[`"));
+        }
+        const auto keys = parse_key(inner_loc);
+        if(!keys)
+        {
+            throw internal_error(format_underline("[error] "
+                "toml::parse_table_key: invalid key", inner_loc, "not key"));
+        }
+        const auto close = lex_std_table_close::invoke(inner_loc);
+        if(!close)
+        {
+            throw internal_error(format_underline("[error] "
+                "toml::parse_table_key: no `]`", inner_loc, "should be `]`"));
+        }
+        return keys;
+    }
+    else
+    {
+        return err(token.unwrap_err());
+    }
+}
+
+template<typename Container>
+result<std::vector<key>, std::string>
+parse_array_table_key(location<Container>& loc)
+{
+    if(auto token = lex_array_table::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+
+        const auto open = lex_array_table_open::invoke(inner_loc);
+        if(!open || inner_loc.iter() == inner_loc.end())
+        {
+            throw internal_error(format_underline("[error] "
+                "toml::parse_array_table_key: no `[[`", inner_loc,
+                "should be `[[`"));
+        }
+        const auto keys = parse_key(inner_loc);
+        if(!keys)
+        {
+            throw internal_error(format_underline("[error] "
+                "toml::parse_array_table_key: invalid key", inner_loc,
+                "not key"));
+        }
+        const auto close = lex_array_table_close::invoke(inner_loc);
+        if(!close)
+        {
+            throw internal_error(format_underline("[error] "
+                "toml::parse_table_key: no `]]`", inner_loc, "should be `]]`"));
+        }
+        return keys;
+    }
+    else
+    {
+        return err(token.unwrap_err());
+    }
+}
+
+// parse table body (key-value pairs until the iter hits the next [tablekey])
+template<typename Container>
+result<table, std::string> parse_ml_table(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(first == loc.end())
+    {
+        return err(std::string("toml::parse_ml_table: input is empty"));
+    }
+
+    using skip_line = repeat<
+        sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>, unlimited>;
+    skip_line::invoke(loc);
+
+    table tab;
+    while(loc.iter() != loc.end())
+    {
+        lex_ws::invoke(loc);
+        const auto before = loc.iter();
+        if(const auto tmp = parse_array_table_key(loc)) // next table found
+        {
+            loc.iter() = before;
+            return ok(tab);
+        }
+        if(const auto tmp = parse_table_key(loc)) // next table found
+        {
+            loc.iter() = before;
+            return ok(tab);
+        }
+        if(const auto kv = parse_key_value_pair(loc))
+        {
+            const std::vector<key>& keys = kv.unwrap().first;
+            const value&            val  = kv.unwrap().second;
+            const auto inserted =
+                insert_nested_key(tab, val, keys.begin(), keys.end());
+            if(!inserted)
+            {
+                return err(inserted.unwrap_err());
+            }
+        }
+        else
+        {
+            return err(kv.unwrap_err());
+        }
+
+        skip_line::invoke(loc);
+        // comment lines are skipped by the above function call.
+        // However, if the file ends with comment without newline,
+        // it might cause parsing error because skip_line matches
+        // `comment + newline`, not `comment` itself. to skip the
+        // last comment, call lex_comment one more time.
+        lex_comment::invoke(loc);
+    }
+    return ok(tab);
+}
+
+template<typename Container>
+result<table, std::string> parse_toml_file(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(first == loc.end())
+    {
+        return err(std::string("toml::detail::parse_toml_file: input is empty"));
+    }
+
+    table data;
+    /* root object is also table, but without [tablename] */
+    if(auto tab = parse_ml_table(loc))
+    {
+        data = std::move(tab.unwrap());
+    }
+    else // failed (empty table is also success)
+    {
+        return err(tab.unwrap_err());
+    }
+    while(loc.iter() != loc.end())
+    {
+        if(const auto tabkey = parse_array_table_key(loc))
+        {
+            const auto tab = parse_ml_table(loc);
+            if(!tab){return err(tab.unwrap_err());}
+
+            const auto inserted = insert_nested_key(data, tab.unwrap(),
+                    tabkey.unwrap().begin(), tabkey.unwrap().end(), true);
+            if(!inserted) {return err(inserted.unwrap_err());}
+
+            continue;
+        }
+        if(const auto tabkey = parse_table_key(loc))
+        {
+            const auto tab = parse_ml_table(loc);
+            if(!tab){return err(tab.unwrap_err());}
+
+            const auto inserted = insert_nested_key(data, tab.unwrap(),
+                    tabkey.unwrap().begin(), tabkey.unwrap().end());
+            if(!inserted) {return err(inserted.unwrap_err());}
+
+            continue;
+        }
+        return err(format_underline("[error]: toml::parse_toml_file: "
+                "unknown line appeared", loc, "unknown format"));
+    }
+    return ok(data);
+}
+
 } // detail
+
+inline table parse(std::istream& is, std::string fname = "unknown file")
+{
+    const auto beg = is.tellg();
+    is.seekg(0, std::ios::end);
+    const auto end = is.tellg();
+    const auto fsize = end - beg;
+    is.seekg(beg);
+
+    // read whole file as a sequence of char
+    std::vector<char> letters(fsize);
+    is.read(letters.data(), fsize);
+
+    detail::location<std::vector<char>>
+        loc(std::move(fname), std::move(letters));
+
+    const auto data = detail::parse_toml_file(loc);
+    if(!data)
+    {
+        throw syntax_error(data.unwrap_err());
+    }
+    return data.unwrap();
+}
+
+inline table parse(const std::string& fname)
+{
+    std::ifstream ifs(fname.c_str());
+    if(!ifs.good())
+    {
+        throw std::runtime_error("toml::parse: file open error -> " + fname);
+    }
+    return parse(ifs, fname);
+}
+
 } // toml
 #endif// TOML11_PARSER_HPP
