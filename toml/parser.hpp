@@ -1,1089 +1,1117 @@
-#ifndef TOML11_PARSER
-#define TOML11_PARSER
-#include "value.hpp"
-#include "acceptor.hpp"
+#ifndef TOML11_PARSER_HPP
+#define TOML11_PARSER_HPP
 #include "result.hpp"
-#include <algorithm>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
+#include "region.hpp"
+#include "combinator.hpp"
+#include "lexer.hpp"
+#include "types.hpp"
+#include "value.hpp"
 
 namespace toml
 {
-
-struct parse_escape_sequence
+namespace detail
 {
-    typedef toml::character value_type;
-    typedef toml::String    string_type;
-    typedef result<string_type, std::string> result_type;
 
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter, Iterator end)
-    {
-        const auto beg = iter;
-        if(iter == end || *iter != '\\')
-            return std::make_pair(err("not an escape sequence"), iter);
-        ++iter;
-        switch(*iter)
-        {
-            case '\\': return std::make_pair(ok(string_type("\\")), std::next(iter));
-            case '"' : return std::make_pair(ok(string_type("\"")), std::next(iter));
-            case 'b' : return std::make_pair(ok(string_type("\b")), std::next(iter));
-            case 't' : return std::make_pair(ok(string_type("\t")), std::next(iter));
-            case 'n' : return std::make_pair(ok(string_type("\n")), std::next(iter));
-            case 'f' : return std::make_pair(ok(string_type("\f")), std::next(iter));
-            case 'r' : return std::make_pair(ok(string_type("\r")), std::next(iter));
-            case 'u' :
-            {
-                if(std::distance(iter, end) < 5)
-                    throw std::make_pair(iter, syntax_error(
-                        "invalid escape sequence: " + std::string(beg, end)));
-                return std::make_pair(ok(
-                    utf8_to_char(make_codepoint(string_type(iter+1, iter+5)))),
-                    iter+5);
-            }
-            case 'U':
-            {
-                if(std::distance(iter, end) < 8)
-                    throw std::make_pair(iter, syntax_error(
-                        "invalid escape sequence: " + std::string(beg, end)));
-                return std::make_pair(ok(
-                    utf8_to_char(make_codepoint(string_type(iter+1, iter+9)))),
-                    iter+9);
-            }
-            default: throw std::make_pair(iter, syntax_error(
-                        "unkwnon escape sequence: " + std::string(iter, end)));
-        }
-    }
-
-    static unsigned int make_codepoint(string_type str)
-    {
-        unsigned int codepoint;
-        std::basic_istringstream<value_type> iss(str);
-        iss >> std::hex >> codepoint;
-        return codepoint;
-    }
-
-    static string_type utf8_to_char(const unsigned int codepoint)
-    {
-        string_type character;
-        if(codepoint < 0x80)
-        {
-            character += static_cast<unsigned char>(codepoint);
-        }
-        else if(codepoint < 0x800)
-        {
-            character += static_cast<unsigned char>(0xC0| codepoint >> 6);
-            character += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
-        }
-        else if(codepoint < 0x10000)
-        {
-            character += static_cast<unsigned char>(0xE0| codepoint >>12);
-            character += static_cast<unsigned char>(0x80|(codepoint >>6&0x3F));
-            character += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
-        }
-        else
-        {
-            character += static_cast<unsigned char>(0xF0| codepoint >>18);
-            character += static_cast<unsigned char>(0x80|(codepoint >>12&0x3F));
-            character += static_cast<unsigned char>(0x80|(codepoint >>6 &0x3F));
-            character += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
-        }
-        return character;
-    }
-};
-
-struct parse_basic_inline_string
+template<typename Container>
+result<boolean, std::string> parse_boolean(location<Container>& loc)
 {
-    typedef toml::character value_type;
-    typedef result<toml::String, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
+    const auto first = loc.iter();
+    if(const auto token = lex_boolean::invoke(loc))
     {
-        const Iterator end =
-            is_basic_inline_string<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-        if(std::distance(iter, end) < 2)
-            throw internal_error("is_basic_inline_string");
-
-        toml::String result; result.reserve(std::distance(iter, end)-2);
-        ++iter;
-        const Iterator last = std::prev(end); // ignore '"'
-        while(iter != last)
+        const auto reg = token.unwrap();
+        if     (reg.str() == "true")  {return ok(true);}
+        else if(reg.str() == "false") {return ok(false);}
+        else // internal error.
         {
-            if(*iter == '\\')
+            throw toml::internal_error(format_underline(
+                "[error] toml::parse_boolean: internal error", reg,
+                "invalid token"));
+        }
+    }
+    loc.iter() = first; //rollback
+    return err(format_underline("[error] toml::parse_boolean", loc,
+            "token is not boolean", {"boolean is `true` or `false`"}));
+}
+
+template<typename Container>
+result<integer, std::string> parse_binary_integer(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_bin_int::invoke(loc))
+    {
+        auto str = token.unwrap().str();
+        assert(str.size() > 2); // minimum -> 0b1
+        integer retval(0), base(1);
+        for(auto i(str.rbegin()), e(str.rend() - 2); i!=e; ++i)
+        {
+            if     (*i == '1'){retval += base; base *= 2;}
+            else if(*i == '0'){base *= 2;}
+            else if(*i == '_'){/* do nothing. */}
+            else // internal error.
             {
-                auto r = parse_escape_sequence::invoke(iter, last);
-                if(!r.first.is_ok())
-                    throw internal_error("parse_basic_inline_string");
-                result += r.first.unwrap();
-                iter = r.second;
+                throw toml::internal_error(format_underline(
+                    "[error] toml::parse_integer: internal error",
+                    token.unwrap(), "invalid token"));
+            }
+        }
+        return ok(retval);
+    }
+    loc.iter() = first;
+    return err(format_underline("[error] toml::parse_binary_integer", loc,
+            "token is not binary integer", {"binary integer is like: 0b0011"}));
+}
+
+template<typename Container>
+result<integer, std::string> parse_octal_integer(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_oct_int::invoke(loc))
+    {
+        auto str = token.unwrap().str();
+        str.erase(std::remove(str.begin(), str.end(), '_'), str.end());
+        str.erase(str.begin()); str.erase(str.begin()); // remove `0o` prefix
+
+        std::istringstream iss(str);
+        integer retval(0);
+        iss >> std::oct >> retval;
+        return ok(retval);
+    }
+    loc.iter() = first;
+
+    return err(format_underline("[error] toml::parse_octal_integer", loc,
+            "token is not octal integer", {"octal integer is like: 0o775"}));
+}
+
+template<typename Container>
+result<integer, std::string> parse_hexadecimal_integer(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_hex_int::invoke(loc))
+    {
+        auto str = token.unwrap().str();
+        str.erase(std::remove(str.begin(), str.end(), '_'), str.end());
+        str.erase(str.begin()); str.erase(str.begin()); // remove `0x` prefix
+
+        std::istringstream iss(str);
+        integer retval(0);
+        iss >> std::hex >> retval;
+        return ok(retval);
+    }
+    loc.iter() = first;
+    return err(format_underline("[error] toml::parse_hexadecimal_integer", loc,
+            "token is not hex integer", {"hex integer is like: 0xC0FFEE"}));
+}
+
+template<typename Container>
+result<integer, std::string> parse_integer(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(first != loc.end() && *first == '0')
+    {
+        if(const auto bin = parse_binary_integer     (loc)) {return bin;}
+        if(const auto oct = parse_octal_integer      (loc)) {return oct;}
+        if(const auto hex = parse_hexadecimal_integer(loc)) {return hex;}
+    }
+
+    if(const auto token = lex_dec_int::invoke(loc))
+    {
+        auto str = token.unwrap().str();
+        str.erase(std::remove(str.begin(), str.end(), '_'), str.end());
+
+        std::istringstream iss(str);
+        integer retval(0);
+        iss >> retval;
+        return ok(retval);
+    }
+    loc.iter() = first;
+    return err(format_underline("[error] toml::parse_integer", loc,
+            "token is not integer", {"integer is like: +42",
+            "hex integer is like: 0xC0FFEE", "octal integer is like: 0o775",
+            "binary integer is like: 0b0011"}));
+}
+
+template<typename Container>
+result<floating, std::string> parse_floating(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_float::invoke(loc))
+    {
+        auto str = token.unwrap().str();
+        if(str == "inf" || str == "+inf")
+        {
+            if(std::numeric_limits<floating>::has_infinity)
+            {
+                return ok(std::numeric_limits<floating>::infinity());
             }
             else
             {
-                result += *iter;
-                ++iter;
+                throw std::domain_error("toml::parse_floating: inf value found"
+                    " but the current environment does not support inf. Please"
+                    " make sure that the floating-point implementation conforms"
+                    " IEEE 754/ISO 60559 international standard.");
             }
         }
-        return std::make_pair(ok(result), end);
-    }
-};
-
-struct parse_basic_multiline_string
-{
-    typedef toml::character value_type;
-    typedef toml::String    string_type;
-    typedef result<string_type, std::string> result_type;
-
-    typedef is_chain_of<is_character<value_type, '\\'>, is_newline<value_type>>
-            is_line_ending_backslash;
-    typedef is_repeat_of<is_one_of<is_whitespace<value_type>, is_newline<value_type>>,
-                         repeat_infinite()> ws_nl_after_backslash_remover;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end =
-            is_basic_multiline_string<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-        if(std::distance(iter, end) < 6)
-            throw internal_error("is_basic_inline_string");
-
-        toml::String result; result.reserve(std::distance(iter, end)-6);
-        std::advance(iter, 3);
-        const Iterator last = end - 3;
-        iter = is_newline<value_type>::invoke(iter, last);
-        while(iter != last)
+        else if(str == "-inf")
         {
-            if(*iter == '\\')
+            if(std::numeric_limits<floating>::has_infinity)
             {
-                if(is_line_ending_backslash::invoke(iter, last) != iter)
+                return ok(-std::numeric_limits<floating>::infinity());
+            }
+            else
+            {
+                throw std::domain_error("toml::parse_floating: inf value found"
+                    " but the current environment does not support inf. Please"
+                    " make sure that the floating-point implementation conforms"
+                    " IEEE 754/ISO 60559 international standard.");
+            }
+        }
+        else if(str == "nan" || str == "+nan")
+        {
+            if(std::numeric_limits<floating>::has_quiet_NaN)
+            {
+                return ok(std::numeric_limits<floating>::quiet_NaN());
+            }
+            else if(std::numeric_limits<floating>::has_signaling_NaN)
+            {
+                return ok(std::numeric_limits<floating>::signaling_NaN());
+            }
+            else
+            {
+                throw std::domain_error("toml::parse_floating: NaN value found"
+                    " but the current environment does not support NaN. Please"
+                    " make sure that the floating-point implementation conforms"
+                    " IEEE 754/ISO 60559 international standard.");
+            }
+        }
+        else if(str == "-nan")
+        {
+            if(std::numeric_limits<floating>::has_quiet_NaN)
+            {
+                return ok(-std::numeric_limits<floating>::quiet_NaN());
+            }
+            else if(std::numeric_limits<floating>::has_signaling_NaN)
+            {
+                return ok(-std::numeric_limits<floating>::signaling_NaN());
+            }
+            else
+            {
+                throw std::domain_error("toml::parse_floating: NaN value found"
+                    " but the current environment does not support NaN. Please"
+                    " make sure that the floating-point implementation conforms"
+                    " IEEE 754/ISO 60559 international standard.");
+            }
+        }
+        str.erase(std::remove(str.begin(), str.end(), '_'), str.end());
+        std::istringstream iss(str);
+        floating v(0.0);
+        iss >> v;
+        return ok(v);
+    }
+    loc.iter() = first;
+    return err(format_underline("[error] toml::parse_floating: ", loc,
+                "token is not a float", {"floating point is like: -3.14e+1"}));
+}
+
+inline std::string read_utf8_codepoint(const std::string& str)
+{
+    std::uint_least32_t codepoint;
+    std::istringstream iss(str);
+    iss >> std::hex >> codepoint;
+
+    std::string character;
+    if(codepoint < 0x80) // U+0000 ... U+0079 ; just an ASCII.
+    {
+        character += static_cast<char>(codepoint);
+    }
+    else if(codepoint < 0x800) //U+0080 ... U+07FF
+    {
+        // 110yyyyx 10xxxxxx; 0x3f == 0b0011'1111
+        character += static_cast<unsigned char>(0xC0| codepoint >> 6);
+        character += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
+    }
+    else if(codepoint < 0x10000) // U+0800...U+FFFF
+    {
+        // 1110yyyy 10yxxxxx 10xxxxxx
+        character += static_cast<unsigned char>(0xE0| codepoint >> 12);
+        character += static_cast<unsigned char>(0x80|(codepoint >> 6 & 0x3F));
+        character += static_cast<unsigned char>(0x80|(codepoint      & 0x3F));
+    }
+    else if(codepoint < 0x200000) // U+10000 ... U+1FFFFF
+    {
+        if(0x10FFFF < codepoint) // out of Unicode region
+        {
+            std::cerr << "WARNING: input codepoint " << str << " is too large "
+                      << "to decode as a unicode character. It should be in "
+                      << "range [0x00 .. 0x10FFFF]. The result may not be able "
+                      << "to be rendered to your screen." << std::endl;
+        }
+        // 11110yyy 10yyxxxx 10xxxxxx 10xxxxxx
+        character += static_cast<unsigned char>(0xF0| codepoint >> 18);
+        character += static_cast<unsigned char>(0x80|(codepoint >> 12 & 0x3F));
+        character += static_cast<unsigned char>(0x80|(codepoint >> 6  & 0x3F));
+        character += static_cast<unsigned char>(0x80|(codepoint       & 0x3F));
+    }
+    else // out of UTF-8 region
+    {
+        throw std::range_error("toml::read_utf8_codepoint: input codepoint `" +
+                str + "` is too large to decode as utf-8. It should be in range"
+                " 0x00 ... 0x1FFFFF.");
+    }
+    return character;
+}
+
+template<typename Container>
+result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(*first != '\\')
+    {
+        return err(format_underline("[error]: "
+            "toml::parse_escape_sequence: location does not points \"\\\"",
+            loc, "should be \"\\\""));
+    }
+    ++loc.iter();
+    switch(*loc.iter())
+    {
+        case '\\':{++loc.iter(); return ok(std::string("\\"));}
+        case '"' :{++loc.iter(); return ok(std::string("\""));}
+        case 'b' :{++loc.iter(); return ok(std::string("\b"));}
+        case 't' :{++loc.iter(); return ok(std::string("\t"));}
+        case 'n' :{++loc.iter(); return ok(std::string("\n"));}
+        case 'f' :{++loc.iter(); return ok(std::string("\f"));}
+        case 'r' :{++loc.iter(); return ok(std::string("\r"));}
+        case 'u' :
+        {
+            ++loc.iter();
+            if(const auto token = repeat<lex_hex_dig, exactly<4>>::invoke(loc))
+            {
+                return ok(read_utf8_codepoint(token.unwrap().str()));
+            }
+            else
+            {
+                return err(format_underline("[error] parse_escape_sequence: "
+                           "invalid token found in UTF-8 codepoint uXXXX.",
+                           loc, token.unwrap_err()));
+            }
+        }
+        case 'U':
+        {
+            ++loc.iter();
+            if(const auto token = repeat<lex_hex_dig, exactly<8>>::invoke(loc))
+            {
+                return ok(read_utf8_codepoint(token.unwrap().str()));
+            }
+            else
+            {
+                return err(format_underline("[error] parse_escape_sequence: "
+                           "invalid token found in UTF-8 codepoint Uxxxxxxxx",
+                           loc, token.unwrap_err()));
+            }
+        }
+    }
+
+    const auto msg = format_underline("[error] parse_escape_sequence: "
+           "unknown escape sequence appeared.", loc, "escape sequence is one of"
+           " \\, \", b, t, n, f, r, uxxxx, Uxxxxxxxx", {"if you want to write "
+           "backslash as just one backslash, use literal string like:",
+           "regex    = '<\\i\\c*\\s*>'"});
+    loc.iter() = first;
+    return err(msg);
+}
+
+template<typename Container>
+result<toml::string, std::string>
+parse_ml_basic_string(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_ml_basic_string::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+
+        std::string retval;
+        retval.reserve(inner_loc.source()->size());
+
+        auto delim = lex_ml_basic_string_delim::invoke(inner_loc);
+        if(!delim)
+        {
+            throw internal_error(format_underline("[error] "
+                "parse_ml_basic_string: invalid token",
+                inner_loc, "should be \"\"\""));
+        }
+        // immediate newline is ignored (if exists)
+        /* discard return value */ lex_newline::invoke(inner_loc);
+
+        delim = err("tmp");
+        while(!delim)
+        {
+            using lex_unescaped_seq = repeat<
+                either<lex_ml_basic_unescaped, lex_newline>, unlimited>;
+            if(auto unescaped = lex_unescaped_seq::invoke(inner_loc))
+            {
+                retval += unescaped.unwrap().str();
+            }
+            if(auto escaped = parse_escape_sequence(inner_loc))
+            {
+                retval += escaped.unwrap();
+            }
+            if(auto esc_nl = lex_ml_basic_escaped_newline::invoke(inner_loc))
+            {
+                // ignore newline after escape until next non-ws char
+            }
+            if(inner_loc.iter() == inner_loc.end())
+            {
+                throw internal_error(format_underline("[error] "
+                    "parse_ml_basic_string: unexpected end of region",
+                    inner_loc, "not sufficient token"));
+            }
+            delim = lex_ml_basic_string_delim::invoke(inner_loc);
+        }
+        return ok(toml::string(retval));
+    }
+    else
+    {
+        loc.iter() = first;
+        return err(token.unwrap_err());
+    }
+}
+
+template<typename Container>
+result<toml::string, std::string> parse_basic_string(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_basic_string::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+
+        auto quot = lex_quotation_mark::invoke(inner_loc);
+        if(!quot)
+        {
+            throw internal_error(format_underline("[error] parse_basic_string: "
+                "invalid token", inner_loc, "should be \""));
+        }
+
+        std::string retval;
+        retval.reserve(inner_loc.source()->size());
+
+        quot = err("tmp");
+        while(!quot)
+        {
+            using lex_unescaped_seq = repeat<lex_basic_unescaped, unlimited>;
+            if(auto unescaped = lex_unescaped_seq::invoke(inner_loc))
+            {
+                retval += unescaped.unwrap().str();
+            }
+            if(auto escaped = parse_escape_sequence(inner_loc))
+            {
+                retval += escaped.unwrap();
+            }
+            if(inner_loc.iter() == inner_loc.end())
+            {
+                throw internal_error(format_underline("[error] "
+                    "parse_ml_basic_string: unexpected end of region",
+                    inner_loc, "not sufficient token"));
+            }
+            quot = lex_quotation_mark::invoke(inner_loc);
+        }
+        return ok(toml::string(retval));
+    }
+    else
+    {
+        loc.iter() = first; // rollback
+        return err(token.unwrap_err());
+    }
+}
+
+template<typename Container>
+result<toml::string, std::string>
+parse_ml_literal_string(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_ml_literal_string::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+
+        const auto open = lex_ml_literal_string_delim::invoke(inner_loc);
+        if(!open)
+        {
+            throw internal_error(format_underline("[error] "
+                "parse_ml_literal_string: invalid token",
+                inner_loc, "should be '''"));
+        }
+        // immediate newline is ignored (if exists)
+        /* discard return value */ lex_newline::invoke(inner_loc);
+
+        const auto body = lex_ml_literal_body::invoke(inner_loc);
+
+        const auto close = lex_ml_literal_string_delim::invoke(inner_loc);
+        if(!close)
+        {
+            throw internal_error(format_underline("[error] "
+                "parse_ml_literal_string: invalid token",
+                inner_loc, "should be '''"));
+        }
+        return ok(toml::string(body.unwrap().str()));
+    }
+    else
+    {
+        loc.iter() = first; // rollback
+        return err(token.unwrap_err());
+    }
+}
+
+template<typename Container>
+result<toml::string, std::string> parse_literal_string(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_literal_string::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+
+        const auto open = lex_apostrophe::invoke(inner_loc);
+        if(!open)
+        {
+            throw internal_error(format_underline("[error] "
+                "parse_literal_string: invalid token",
+                inner_loc, "should be '"));
+        }
+
+        const auto body = repeat<lex_literal_char, unlimited>::invoke(inner_loc);
+
+        const auto close = lex_apostrophe::invoke(inner_loc);
+        if(!close)
+        {
+            throw internal_error(format_underline("[error] "
+                "parse_literal_string: invalid token",
+                inner_loc, "should be '"));
+        }
+        return ok(toml::string(body.unwrap().str()));
+    }
+    else
+    {
+        loc.iter() = first; // rollback
+        return err(token.unwrap_err());
+    }
+}
+
+template<typename Container>
+result<toml::string, std::string> parse_string(location<Container>& loc)
+{
+    if(const auto rslt = parse_ml_basic_string(loc))
+    {
+        return ok(rslt.unwrap());
+    }
+    if(const auto rslt = parse_ml_literal_string(loc))
+    {
+        return ok(rslt.unwrap());
+    }
+    if(const auto rslt = parse_basic_string(loc))
+    {
+        return ok(rslt.unwrap());
+    }
+    if(const auto rslt = parse_literal_string(loc))
+    {
+        return ok(rslt.unwrap());
+    }
+    return err(format_underline("[error] toml::parse_string: not a string",
+               loc, "not a string"));
+}
+
+template<typename Container>
+result<local_date, std::string> parse_local_date(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_local_date::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+
+        const auto y = lex_date_fullyear::invoke(inner_loc);
+        if(!y || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != '-')
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_inner_local_date: invalid year format",
+                inner_loc, y.map_err_or_else([](const std::string& msg) {
+                        return msg;
+                    }, "should be `-`")));
+        }
+        ++inner_loc.iter();
+        const auto m = lex_date_month::invoke(inner_loc);
+        if(!m || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != '-')
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_local_date: invalid month format",
+                inner_loc, m.map_err_or_else([](const std::string& msg) {
+                        return msg;
+                    }, "should be `-`")));
+        }
+        ++inner_loc.iter();
+        const auto d = lex_date_mday::invoke(inner_loc);
+        if(!d)
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_local_date: invalid day format",
+                inner_loc, d.unwrap_err()));
+        }
+        return ok(local_date(
+            static_cast<std::int16_t>(from_string<int>(y.unwrap().str(), 0)),
+            static_cast<month_t>(
+                static_cast<std::int8_t>(from_string<int>(m.unwrap().str(), 0)-1)),
+            static_cast<std::int8_t>(from_string<int>(d.unwrap().str(), 0))));
+    }
+    else
+    {
+        auto msg = format_underline("[error]: toml::parse_local_date: "
+                "invalid format", loc, token.unwrap_err(),
+                {"local date is like: 1979-05-27"});
+        loc.iter() = first;
+        return err(std::move(msg));
+    }
+}
+
+template<typename Container>
+result<local_time, std::string> parse_local_time(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_local_time::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+
+        const auto h = lex_time_hour::invoke(inner_loc);
+        if(!h || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != ':')
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_local_time: invalid year format",
+                inner_loc, h.map_err_or_else([](const std::string& msg) {
+                        return msg;
+                    }, "should be `:`")));
+        }
+        ++inner_loc.iter();
+        const auto m = lex_time_minute::invoke(inner_loc);
+        if(!m || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != ':')
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_local_time: invalid month format",
+                inner_loc, m.map_err_or_else([](const std::string& msg) {
+                        return msg;
+                    }, "should be `:`")));
+        }
+        ++inner_loc.iter();
+        const auto s = lex_time_second::invoke(inner_loc);
+        if(!s)
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_local_time: invalid second format",
+                inner_loc, s.unwrap_err()));
+        }
+        local_time time(
+            static_cast<std::int8_t>(from_string<int>(h.unwrap().str(), 0)),
+            static_cast<std::int8_t>(from_string<int>(m.unwrap().str(), 0)),
+            static_cast<std::int8_t>(from_string<int>(s.unwrap().str(), 0)), 0, 0);
+
+        const auto before_secfrac = inner_loc.iter();
+        if(const auto secfrac = lex_time_secfrac::invoke(inner_loc))
+        {
+            auto sf = secfrac.unwrap().str();
+            sf.erase(sf.begin()); // sf.front() == '.'
+            switch(sf.size() % 3)
+            {
+                case 2:  sf += '0';  break;
+                case 1:  sf += "00"; break;
+                case 0:  break;
+                default: break;
+            }
+            if(sf.size() >= 6)
+            {
+                time.millisecond = from_string<std::int16_t>(sf.substr(0, 3), 0);
+                time.microsecond = from_string<std::int16_t>(sf.substr(3, 3), 0);
+            }
+            else if(sf.size() >= 3)
+            {
+                time.millisecond = from_string<std::int16_t>(sf, 0);
+                time.microsecond = 0;
+            }
+        }
+        else
+        {
+            if(before_secfrac != loc.iter())
+            {
+                throw internal_error(format_underline("[error]: "
+                    "toml::parse_local_time: invalid subsecond format",
+                    inner_loc, secfrac.unwrap_err()));
+            }
+        }
+        return ok(time);
+    }
+    else
+    {
+        auto msg = format_underline("[error]: toml::parse_local_time: "
+                "invalid format", loc, token.unwrap_err(),
+                {"local time is like: 00:32:00.999999"});
+        loc.iter() = first;
+        return err(std::move(msg));
+    }
+}
+
+template<typename Container>
+result<local_datetime, std::string>
+parse_local_datetime(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_local_date_time::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+        const auto date = parse_local_date(inner_loc);
+        if(!date || inner_loc.iter() == inner_loc.end())
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_local_datetime: invalid datetime format",
+                inner_loc, date.map_err_or_else([](const std::string& msg){
+                        return msg;
+                    }, "date, not datetime")));
+        }
+        const char delim = *(inner_loc.iter()++);
+        if(delim != 'T' && delim != 't' && delim != ' ')
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_local_datetime: invalid datetime format",
+                inner_loc, "should be `T` or ` ` (space)"));
+        }
+        const auto time = parse_local_time(inner_loc);
+        if(!time)
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_local_datetime: invalid datetime format",
+                inner_loc, "invalid time fomrat"));
+        }
+        return ok(local_datetime(date.unwrap(), time.unwrap()));
+    }
+    else
+    {
+        auto msg = format_underline("[error]: toml::parse_local_datetime: "
+                    "invalid format", loc, token.unwrap_err(),
+                    {"local datetime is like: 1979-05-27T00:32:00.999999"});
+        loc.iter() = first;
+        return err(std::move(msg));
+    }
+}
+
+template<typename Container>
+result<offset_datetime, std::string>
+parse_offset_datetime(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(const auto token = lex_offset_date_time::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+        const auto datetime = parse_local_datetime(inner_loc);
+        if(!datetime || inner_loc.iter() == inner_loc.end())
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_offset_datetime: invalid datetime format",
+                inner_loc, datetime.map_err_or_else([](const std::string& msg){
+                        return msg;
+                    }, "date, not datetime")));
+        }
+        time_offset offset(0, 0);
+        if(const auto ofs = lex_time_numoffset::invoke(inner_loc))
+        {
+            const auto str = ofs.unwrap().str();
+            if(str.front() == '+')
+            {
+                offset.hour   = static_cast<std::int8_t>(from_string<int>(str.substr(1,2), 0));
+                offset.minute = static_cast<std::int8_t>(from_string<int>(str.substr(4,2), 0));
+            }
+            else
+            {
+                offset.hour   = -static_cast<std::int8_t>(from_string<int>(str.substr(1,2), 0));
+                offset.minute = -static_cast<std::int8_t>(from_string<int>(str.substr(4,2), 0));
+            }
+        }
+        else if(*inner_loc.iter() != 'Z' && *inner_loc.iter() != 'z')
+        {
+            throw internal_error(format_underline("[error]: "
+                "toml::parse_offset_datetime: invalid datetime format",
+                inner_loc, "should be `Z` or `+HH:MM`"));
+        }
+        return ok(offset_datetime(datetime.unwrap(), offset));
+    }
+    else
+    {
+        auto msg = format_underline("[error]: toml::parse_offset_datetime: "
+                    "invalid format", loc, token.unwrap_err(),
+                    {"offset datetime is like: 1979-05-27T00:32:00-07:00",
+                     "or in UTC (w/o offset) : 1979-05-27T00:32:00Z"});
+        loc.iter() = first;
+        return err(std::move(msg));
+    }
+}
+
+template<typename Container>
+result<key, std::string> parse_simple_key(location<Container>& loc)
+{
+    if(const auto bstr = parse_basic_string(loc))
+    {
+        return ok(bstr.unwrap().str);
+    }
+    if(const auto lstr = parse_literal_string(loc))
+    {
+        return ok(lstr.unwrap().str);
+    }
+    if(const auto bare = lex_unquoted_key::invoke(loc))
+    {
+        return ok(bare.unwrap().str());
+    }
+    return err(format_underline("[error] toml::parse_simple_key: "
+        "the next token is not a simple key", loc, "not a key"));
+}
+
+// dotted key become vector of keys
+template<typename Container>
+result<std::vector<key>, std::string> parse_key(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    // dotted key -> foo.bar.baz
+    if(const auto token = lex_dotted_key::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+        std::vector<key> keys;
+
+        while(inner_loc.iter() != inner_loc.end())
+        {
+            if(const auto k = parse_simple_key(inner_loc))
+            {
+                keys.push_back(k.unwrap());
+            }
+            else
+            {
+                throw internal_error(format_underline("[error] "
+                    "toml::detail::parse_key: dotted key contains invalid key",
+                    inner_loc, k.unwrap_err()));
+            }
+
+            if(inner_loc.iter() == inner_loc.end())
+            {
+                break;
+            }
+            else if(*inner_loc.iter() == '.')
+            {
+                ++inner_loc.iter(); // to skip `.`
+            }
+            else
+            {
+                throw internal_error(format_underline("[error] toml::parse_key: "
+                    "dotted key contains invalid key ", inner_loc,
+                    "should be `.`"));
+            }
+        }
+        return ok(keys);
+    }
+    loc.iter() = first;
+
+    // simple key -> foo
+    if(const auto smpl = parse_simple_key(loc))
+    {
+        return ok(std::vector<key>(1, smpl.unwrap()));
+    }
+    return err(format_underline("toml::parse_key: the next token is not a key",
+                loc, "not a key"));
+}
+
+// forward-decl to implement parse_array and parse_table
+template<typename Container>
+result<value, std::string> parse_value(location<Container>&);
+
+template<typename Container>
+result<array, std::string> parse_array(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    if(loc.iter() == loc.end())
+    {
+        return err("[error] toml::parse_array: input is empty");
+    }
+    if(*loc.iter() != '[')
+    {
+        return err(format_underline("[error] toml::parse_array: "
+            "token is not an array", loc,  "should be ["));
+    }
+    ++loc.iter();
+
+    using lex_ws_comment_newline = repeat<
+        either<lex_wschar, lex_newline, lex_comment>, unlimited>;
+
+    array retval;
+    while(loc.iter() != loc.end())
+    {
+        lex_ws_comment_newline::invoke(loc); // skip
+
+        if(loc.iter() != loc.end() && *loc.iter() == ']')
+        {
+            ++loc.iter(); // skip ']'
+            return ok(retval);
+        }
+
+        if(auto val = parse_value(loc))
+        {
+            retval.push_back(std::move(val.unwrap()));
+        }
+        else
+        {
+            return err("[error] toml::parse_array: while reading an element of "
+                       "an array\n" + val.unwrap_err());
+        }
+
+        using lex_array_separator = sequence<maybe<lex_ws>, character<','>>;
+        const auto sp = lex_array_separator::invoke(loc);
+        if(!sp)
+        {
+            lex_ws_comment_newline::invoke(loc);
+            if(loc.iter() != loc.end() && *loc.iter() == ']')
+            {
+                ++loc.iter(); // skip ']'
+                return ok(retval);
+            }
+            else
+            {
+                return err(format_underline("[error] toml::parse_array: "
+                    "missing array separator `,`", loc, "should be `,`"));
+            }
+        }
+    }
+    loc.iter() = first;
+    return err(format_underline("[error] toml::parse_array: "
+            "array did not closed by `]`", loc, "should be closed"));
+}
+
+template<typename Container>
+result<std::pair<std::vector<key>, value>, std::string>
+parse_key_value_pair(location<Container>& loc)
+{
+    const auto first = loc.iter();
+    auto key = parse_key(loc);
+    if(!key)
+    {
+        loc.iter() = first;
+        return err("[error] toml::parse_key_value_pair: while reading key-value"
+                   " pair" + key.unwrap_err());
+    }
+
+    const auto kvsp = lex_keyval_sep::invoke(loc);
+    if(!kvsp)
+    {
+        const auto msg = format_underline("[error] toml::parse_key_value_pair: "
+            "missing key-value separator `=`", loc, "should be `=`");
+        loc.iter() = first;
+        return err(msg);
+    }
+
+    auto val = parse_value(loc);
+    if(!val)
+    {
+        loc.iter() = first;
+        return err("[error] toml::parse_key_value_pair: while reading key-value"
+                   " pair" + val.unwrap_err());
+    }
+    return ok(std::make_pair(std::move(key.unwrap()), std::move(val.unwrap())));
+}
+
+// for error messages.
+template<typename InputIterator>
+std::string format_dotted_keys(InputIterator first, const InputIterator last)
+{
+    static_assert(std::is_same<key,
+        typename std::iterator_traits<InputIterator>::value_type>::value,"");
+
+    std::string retval(*first++);
+    for(; first != last; ++first)
+    {
+        retval += '.';
+        retval += *first;
+    }
+    return retval;
+}
+
+template<typename InputIterator>
+result<bool, std::string>
+insert_nested_key(table& root, const toml::value& v,
+                  InputIterator iter, const InputIterator last,
+                  const bool is_array_of_table = false)
+{
+    static_assert(std::is_same<key,
+        typename std::iterator_traits<InputIterator>::value_type>::value,"");
+
+    const auto first = iter;
+    assert(iter != last);
+
+    table* tab = std::addressof(root);
+    for(; iter != last; ++iter) // search recursively
+    {
+        const key& k = *iter;
+        if(std::next(iter) == last) // k is the last key
+        {
+            // XXX if the value is array-of-tables, there can be several
+            //     tables that are in the same array. in that case, we need to
+            //     find the last element and insert it to there.
+            if(is_array_of_table)
+            {
+                if(tab->count(k) == 1) // there is already an array of table
                 {
-                    iter = ws_nl_after_backslash_remover::invoke(std::next(iter), last);
+                    if(!(tab->at(k).is(value_t::Array)))
+                    {
+                        throw syntax_error("toml::detail::insert_nested_key: "
+                            "target is not an array of table: " +
+                            format_dotted_keys(first, last));
+                    }
+                    array& a = tab->at(k).template cast<toml::value_t::Array>();
+                    if(!(a.front().is(value_t::Table)))
+                    {
+                        throw syntax_error("toml::detail::insert_nested_key: "
+                            "target is not an array of table: " +
+                            format_dotted_keys(first, last));
+                    }
+                    a.push_back(v);
+                    return ok(true);
                 }
-                else
+                else // if not, we need to create the array of table
                 {
-                    auto r = parse_escape_sequence::invoke(iter, last);
-                    if(!r.first.is_ok())
-                        throw internal_error("parse_basic_inline_string");
-                    result += r.first.unwrap();
-                    iter = r.second;
+                    array aot(1, v); // array having one table
+                    tab->insert(std::make_pair(k, value(aot)));
+                    return ok(true);
                 }
             }
-            else
+            if(tab->count(k) == 1)
             {
-                result.push_back(*iter);
-                ++iter;
+                throw syntax_error("[error] toml::detail::insert_nested_key: "
+                    "while inserting value to table: value already exists. " +
+                    format_dotted_keys(first, last));
             }
-        }
-        return std::make_pair(ok(result), end);
-    }
-};
-
-struct parse_literal_inline_string
-{
-    typedef toml::character value_type;
-    typedef result<toml::String, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end =
-            is_literal_inline_string<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-        if(std::distance(iter, end) < 2)
-            throw internal_error("is_literal_inline_string");
-
-        toml::String result; result.reserve(std::distance(iter, end)-2);
-        ++iter;
-        const Iterator last = end - 1;
-        while(iter != last)
-        {
-            result.push_back(*iter);
-            ++iter;
-        }
-        return std::make_pair(ok(result), end);
-    }
-};
-
-struct parse_literal_multiline_string
-{
-    typedef toml::character value_type;
-    typedef result<toml::String, std::string> result_type;
-
-    typedef is_chain_of<is_character<value_type, '\\'>, is_newline<value_type>>
-            is_line_ending_backslash;
-    typedef is_repeat_of<is_one_of<is_whitespace<value_type>, is_newline<value_type>>,
-                         repeat_infinite()> ws_nl_after_backslash_remover;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end =
-            is_literal_multiline_string<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-        if(std::distance(iter, end) < 6)
-            throw internal_error("is_literal_multiline_string");
-
-        toml::String result; result.reserve(std::distance(iter, end)-6);
-        std::advance(iter, 3);
-        const Iterator last = end - 3;
-        iter = is_newline<value_type>::invoke(iter, last); // trim first newline if exist
-        while(iter != last)
-        {
-            result.push_back(*iter);
-            ++iter;
-        }
-        return std::make_pair(ok(result), end);
-    }
-};
-
-struct parse_string
-{
-    typedef toml::character value_type;
-    typedef result<toml::String, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        std::pair<result_type, Iterator> result(err(""), Iterator());
-        if((result = parse_basic_inline_string::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_basic_multiline_string::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_literal_inline_string::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_literal_multiline_string::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else
-            return std::make_pair(err("does not match anything"), iter);
-    }
-};
-
-struct parse_integer
-{
-    typedef toml::character value_type;
-    typedef std::basic_string<value_type> string_type;
-    typedef result<toml::Integer, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end = is_integer<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-
-        string_type result; result.resize(std::distance(iter, end));
-        std::copy_if(iter, end, result.begin(), [](value_type c){return c != '_';});
-        return std::make_pair(ok(std::stoll(result)), end);
-    }
-};
-
-struct parse_float
-{
-    typedef toml::character value_type;
-    typedef std::basic_string<value_type> string_type;
-    typedef result<toml::Float, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end = is_float<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-
-        string_type result; result.resize(std::distance(iter, end));
-        std::copy_if(iter, end, result.begin(), [](value_type c){return c != '_';});
-        try{
-            return std::make_pair(ok(std::stod(result)), end);
-        }
-        catch(std::out_of_range& oor)
-        {
-            std::cout << "extremely large Float value appeared: "
-                      << result << "; it is negrected" << std::endl;
-            return std::make_pair(ok(0.0), end);
-        }
-    }
-};
-
-struct parse_boolean
-{
-    typedef toml::character value_type;
-    typedef result<toml::Boolean, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end = is_boolean<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-        return std::make_pair(ok(std::distance(iter, end) == 4), end);
-    }
-};
-
-struct parse_local_time
-{
-    typedef toml::character value_type;
-    typedef std::basic_string<value_type>  string_type;
-    typedef result<toml::Datetime, std::string> result_type;
-    typedef typename toml::Datetime::number_type number_type;
-    template<std::size_t N>
-    using nums = is_repeat_of<is_number<toml::character>, N>;
-    typedef is_character<toml::character, ':'> delim;
-    typedef is_character<toml::character, '.'> fract;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end = is_local_time<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-
-        toml::Datetime result;
-        result.hour   = std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
-        iter = delim::invoke(nums<2>::invoke(iter, end), end);
-        result.minute = std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
-        iter = delim::invoke(nums<2>::invoke(iter, end), end);
-        result.second = std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
-        iter = fract::invoke(nums<2>::invoke(iter, end), end);
-        if(iter == end)
-        {
-            result.millisecond = 0.0;
-            result.microsecond = 0.0;
-        }
-        else if(std::distance(iter, end) <= 3)
-        {
-            result.millisecond = parse_number(iter, end);
-            result.microsecond = 0.0;
+            tab->insert(std::make_pair(k, v));
+            return ok(true);
         }
         else
         {
-            result.millisecond = parse_number(iter, iter + 3);
-            result.microsecond = parse_number(iter + 3, end);
-        }
-        result.offset_hour   = toml::Datetime::nooffset;
-        result.offset_minute = toml::Datetime::nooffset;
-        result.year  = toml::Datetime::undef;
-        result.month = toml::Datetime::undef;
-        result.day   = toml::Datetime::undef;
-        return std::make_pair(ok(result), end);
-    }
+            // if there is no corresponding value, insert it first.
+            if(tab->count(k) == 0) {(*tab)[k] = table{};}
 
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static number_type parse_number(Iterator iter, Iterator end)
-    {
-        if(std::distance(iter, end) > 3) end = iter + 3;
-        string_type str(iter, end);
-        while(str.size() < 3){str += '0';}
-        return std::stoi(str);
-    }
-};
-
-struct parse_local_date
-{
-    typedef toml::character value_type;
-    typedef std::basic_string<value_type> string_type;
-    typedef result<toml::Datetime, std::string> result_type;
-    template<std::size_t N>
-    using nums = is_repeat_of<is_number<value_type>, N>;
-    typedef is_character<value_type, '-'> delim;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end = is_local_date<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-
-        toml::Datetime result;
-        result.year   = std::stoi(string_type(iter, nums<4>::invoke(iter, end)));
-        iter = delim::invoke(nums<4>::invoke(iter, end), end);
-        result.month  = std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
-        iter = delim::invoke(nums<2>::invoke(iter, end), end);
-        result.day    = std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
-
-        result.offset_hour   = toml::Datetime::nooffset;
-        result.offset_minute = toml::Datetime::nooffset;
-        result.hour   = toml::Datetime::undef;
-        result.minute = toml::Datetime::undef;
-        result.second = toml::Datetime::undef;
-        result.millisecond = toml::Datetime::undef;
-        result.microsecond = toml::Datetime::undef;
-        return std::make_pair(ok(result), end);
-    }
-};
-
-struct parse_local_date_time
-{
-    typedef toml::character value_type;
-    typedef std::basic_string<value_type> string_type;
-    typedef result<toml::Datetime, std::string> result_type;
-    template<std::size_t N>
-    using nums = is_repeat_of<is_number<toml::character>, N>;
-    typedef is_character<toml::character, 'T'> delim;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end =
-            is_local_date_time<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-
-        auto ld = parse_local_date::invoke(iter, end);
-        if(!ld.first.is_ok())
-            throw std::make_pair(iter, syntax_error("invalid local datetime"));
-        toml::Datetime result(ld.first.unwrap());
-        iter = delim::invoke(ld.second, end);// 'T'
-
-        const auto time = parse_local_time::invoke(iter, end);
-        result.hour          = time.first.unwrap().hour;
-        result.minute        = time.first.unwrap().minute;
-        result.second        = time.first.unwrap().second;
-        result.millisecond   = time.first.unwrap().millisecond;
-        result.microsecond   = time.first.unwrap().microsecond;
-        result.offset_hour   = toml::Datetime::nooffset;
-        result.offset_minute = toml::Datetime::nooffset;
-        return std::make_pair(ok(result), end);
-    }
-};
-
-struct parse_offset_date_time
-{
-    typedef toml::character value_type;
-    typedef std::basic_string<value_type> string_type;
-    typedef result<toml::Datetime, std::string> result_type;
-    template<std::size_t N>
-    using nums = is_repeat_of<is_number<toml::character>, N>;
-    typedef is_character<toml::character, ':'> delim;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end =
-            is_offset_date_time<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-
-        auto ldt = parse_local_date_time::invoke(iter, end);
-        if(!ldt.first.is_ok())
-            throw std::make_pair(iter, syntax_error("invalid offset datetime"));
-        toml::Datetime result(ldt.first.unwrap());
-        iter = ldt.second;
-        if(*iter == 'Z')
-        {
-            result.offset_hour   = 0;
-            result.offset_minute = 0;
-        }
-        else
-        {
-            if(*iter != '+' && *iter != '-')
-                throw std::make_pair(iter, syntax_error("invalid offset-datetime"));
-            const int sign = (*iter == '-') ? -1 : 1;
-            ++iter;
-            result.offset_hour   = sign *
-                std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
-            iter = delim::invoke(nums<2>::invoke(iter, end), end);
-            result.offset_minute = sign *
-                std::stoi(string_type(iter, nums<2>::invoke(iter, end)));
-        }
-        return std::make_pair(ok(result), end);
-    }
-};
-
-struct parse_datetime
-{
-    typedef toml::character value_type;
-    typedef result<toml::Datetime, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        std::pair<result_type, Iterator> result(err(""), Iterator());
-        if((result = parse_offset_date_time::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_local_date_time::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_local_date::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_local_time::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else
-            return std::make_pair(err("does not match anything"), iter);
-    }
-};
-
-template<typename acceptorT, typename parserT>
-struct parse_fixed_type_array
-{
-    typedef toml::character value_type;
-    typedef result<toml::Array, std::string> result_type;
-    typedef acceptorT acceptor_type;
-    typedef parserT   parser_type;
-    typedef is_skippable_in_array<value_type> skippable;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator> invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end =
-            is_fixed_type_array<value_type, acceptorT>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-
-        toml::Array result;
-        const Iterator last = std::prev(end);
-        iter = skippable::invoke(std::next(iter), last);
-        while(iter != last)
-        {
-            const Iterator tmp = acceptor_type::invoke(iter, last);
-            if(tmp == iter)
-                throw std::make_pair(iter, syntax_error("parse_array"));
-            auto next = parser_type::invoke(iter, last);
-            if(!next.first.is_ok())
-                throw std::make_pair(iter, syntax_error("parse_array"));
-            result.emplace_back(next.first.unwrap());
-            iter = tmp;
-            iter = skippable::invoke(iter, last);
-            iter = is_character<value_type, ','>::invoke(iter, last);
-            iter = skippable::invoke(iter, last);
-        }
-        return std::make_pair(ok(result), end);
-    }
-};
-
-template<typename charT>
-struct parse_inline_table;
-
-template<typename charT>
-struct parse_array
-{
-    typedef charT value_type;
-    static_assert(std::is_same<charT, toml::character>::value, "");
-    typedef result<toml::Array, std::string> result_type;
-    typedef is_skippable_in_array<value_type> skippable;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        if(iter == is_array<value_type>::invoke(iter, range_end))
-            return std::make_pair(err("input is not an array"), iter);
-
-        std::pair<result_type, Iterator> result(err(""), Iterator());
-        if((result = parse_fixed_type_array<is_boolean<value_type>,
-                     parse_boolean>::invoke(iter, range_end)).first.is_ok()) return result;
-        else if((result = parse_fixed_type_array<is_string<value_type>,
-                parse_string>::invoke(iter, range_end)).first.is_ok()) return result;
-        else if((result = parse_fixed_type_array<is_datetime<value_type>,
-                parse_datetime>::invoke(iter, range_end)).first.is_ok()) return result;
-        else if((result = parse_fixed_type_array<is_float<value_type>,
-                parse_float>::invoke(iter, range_end)).first.is_ok()) return result;
-        else if((result = parse_fixed_type_array<is_integer<value_type>,
-                parse_integer>::invoke(iter, range_end)).first.is_ok()) return result;
-        else if((result = parse_fixed_type_array<is_array<value_type>,
-                parse_array<value_type>>::invoke(iter, range_end)).first.is_ok()) return result;
-        else if((result = parse_fixed_type_array<is_inline_table<value_type>,
-                parse_inline_table<value_type>>::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if(skippable::invoke(std::next(iter), range_end) == // empty
-                std::prev(is_array<value_type>::invoke(iter, range_end))
-                ) return std::make_pair(
-                    ok(toml::Array{}), is_array<value_type>::invoke(iter, range_end));
-        else throw std::make_pair(iter, syntax_error("no valid array here"));
-    }
-};
-
-template<typename charT>
-struct parse_value
-{
-    typedef charT value_type;
-    static_assert(std::is_same<charT, toml::character>::value, "");
-    typedef result<toml::value, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        std::pair<result_type, Iterator> result(err(""), Iterator());
-        if((result = parse_boolean::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_string::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_datetime::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_float::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_integer::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_array<value_type>::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_inline_table<value_type>::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else
-            return std::make_pair(err("does not match any value type"), iter);
-    }
-};
-
-struct parse_barekey
-{
-    typedef toml::character value_type;
-    typedef result<toml::key, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end = is_barekey<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-        return std::make_pair(ok(toml::key(iter, end)), end);
-    }
-};
-
-struct parse_key
-{
-    typedef toml::character value_type;
-    typedef result<toml::key, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        std::pair<result_type, Iterator> result(err(""), Iterator());
-        if((result = parse_barekey::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else if((result = parse_string::invoke(iter, range_end)).first.is_ok())
-            return result;
-        else return std::make_pair(err("does not match anything"), iter);
-    }
-};
-
-template<typename charT>
-struct parse_key_value_pair
-{
-    typedef charT value_type;
-    static_assert(std::is_same<charT, toml::character>::value, "");
-    typedef result<std::pair<toml::key, toml::value>, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        auto tmp_key = parse_key::invoke(iter, range_end);
-        if(!tmp_key.first.is_ok())
-            return std::make_pair(err(tmp_key.first.unwrap_err()), iter);
-        iter = is_any_num_of_ws<charT>::invoke(tmp_key.second, range_end);
-        if(*iter != '=')
-            throw std::make_pair(iter, syntax_error("invalid key value pair"));
-        iter = is_any_num_of_ws<charT>::invoke(std::next(iter), range_end);
-
-        auto tmp_value = parse_value<toml::character>::invoke(iter, range_end);
-        if(!tmp_value.first.is_ok())
-            throw std::make_pair(iter, syntax_error("invalid key value pair"));
-
-        iter = tmp_value.second;
-
-        return std::make_pair(ok(std::make_pair(
-                    tmp_key.first.unwrap(), tmp_value.first.unwrap())),
-                is_any_num_of_ws<charT>::invoke(tmp_value.second, range_end));
-    }
-};
-
-template<typename charT>
-struct parse_inline_table
-{
-    typedef charT value_type;
-    static_assert(std::is_same<charT, toml::character>::value, "");
-    typedef result<toml::Table, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end = is_inline_table<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-
-        iter = is_any_num_of_ws<value_type>::invoke(std::next(iter), range_end);
-
-        const Iterator last = std::prev(end);
-        toml::Table result;
-        while(iter != last)
-        {
-            auto tmp = parse_key_value_pair<value_type>::invoke(iter, last);
-            if(!tmp.first.is_ok())
-                throw std::make_pair(iter, syntax_error("parse_inline_table"));
-
-            result.emplace(tmp.first.unwrap());
-            iter = tmp.second;
-
-            iter = is_any_num_of_ws<value_type>::invoke(iter, last);
-            iter = is_character<value_type, ','>::invoke(iter, last);
-            iter = is_any_num_of_ws<value_type>::invoke(iter, last);
-        }
-        return std::make_pair(ok(result), end);
-    }
-};
-
-struct parse_table_definition
-{
-    typedef toml::character value_type;
-    typedef result<std::vector<toml::key>, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end =
-            is_table_definition<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-
-        std::vector<toml::key> result;
-        result.reserve(std::count(iter, end, '.')+1);
-
-        const Iterator last = std::prev(end);
-        iter = is_any_num_of_ws<value_type>::invoke(iter, last);
-        iter = is_any_num_of_ws<value_type>::invoke(std::next(iter), last);
-
-        auto tmp = parse_key::invoke(iter, last);
-        if(!tmp.first.is_ok())
-            throw std::make_pair(iter, syntax_error("table definition"));
-        result.emplace_back(tmp.first.unwrap());
-        iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
-
-        while(iter != last)
-        {
-            iter = is_character<value_type, '.'>::invoke(iter, last);
-            iter = is_any_num_of_ws<value_type>::invoke(iter, last);
-
-            tmp = parse_key::invoke(iter, last);
-            if(!tmp.first.is_ok())
-                throw std::make_pair(iter, syntax_error("table definition"));
-            result.emplace_back(tmp.first.unwrap());
-            iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
-        }
-        return std::make_pair(ok(result), end);
-    }
-};
-
-struct parse_array_of_table_definition
-{
-    typedef toml::character value_type;
-    typedef result<std::vector<toml::key>, std::string> result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<result_type, Iterator>
-    invoke(Iterator iter, Iterator range_end)
-    {
-        const Iterator end =
-            is_array_of_table_definition<value_type>::invoke(iter, range_end);
-        if(iter == end) return std::make_pair(err("input is empty"), iter);
-
-        if(std::distance(iter, end) < 5)
-            throw std::make_pair(iter, syntax_error("invalid array_of_table definition"));
-
-        std::vector<toml::key> result;
-        result.reserve(std::count(iter, end, '.')+1);
-
-        const Iterator last = end - 2;
-        iter = is_any_num_of_ws<value_type>::invoke(iter, last) + 2;
-        iter = is_any_num_of_ws<value_type>::invoke(iter, last);
-
-        auto tmp = parse_key::invoke(iter, last);
-        if(!tmp.first.is_ok())
-            throw std::make_pair(iter, syntax_error("array of table definition"));
-        result.emplace_back(tmp.first.unwrap());
-        iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
-
-        while(iter != last)
-        {
-            iter = is_character<value_type, '.'>::invoke(iter, last);
-            iter = is_any_num_of_ws<value_type>::invoke(iter, last);
-
-            tmp  = parse_key::invoke(iter, last);
-            if(!tmp.first.is_ok())
-                throw std::make_pair(iter, syntax_error("array of table definition"));
-            result.emplace_back(tmp.first.unwrap());
-            iter = is_any_num_of_ws<value_type>::invoke(tmp.second, last);
-        }
-        return std::make_pair(ok(result), end);
-    }
-};
-
-struct parse_data
-{
-    typedef toml::character value_type;
-    typedef toml::Table result_type;
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static result_type invoke(Iterator iter, const Iterator end)
-    {
-        toml::Table result;
-        auto noname = parse_table_contents(iter, end);
-        result = std::move(noname.first);
-        iter = skip_empty(noname.second, end);
-
-        while(iter != end)
-        {
-            iter = skip_empty(iter, end);
-            std::pair<::toml::result<std::vector<toml::key>, std::string>, Iterator>
-                tabname(err(""), Iterator());
-            if((tabname = parse_table_definition::invoke(iter, end)).first.is_ok())
+            // type checking...
+            if(tab->at(k).is(value_t::Table))
             {
-                auto contents = parse_table_contents(tabname.second, end);
-                push_table(result, std::move(contents.first),
-                           tabname.first.unwrap().begin(), tabname.first.unwrap().end());
-                iter = contents.second;
+                tab = std::addressof((*tab)[k].template cast<value_t::Table>());
             }
-            else if((tabname = parse_array_of_table_definition::invoke(iter, end)).first.is_ok())
+            else if(tab->at(k).is(value_t::Array)) // array-of-table case
             {
-                auto contents = parse_table_contents(tabname.second, end);
-                push_array_of_table(result, std::move(contents.first),
-                           tabname.first.unwrap().begin(), tabname.first.unwrap().end());
-                iter = contents.second;
-            }
-            else
-                throw std::make_pair(iter, syntax_error("parse_data: unknown line"));
-        }
-        return result;
-    }
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static Iterator
-    skip_empty(Iterator iter, Iterator end)
-    {
-        while(iter != end)
-        {
-            if(*iter == '#')
-            {
-                while(iter != end &&
-                      iter == is_newline<value_type>::invoke(iter, end)){++iter;}
-            }
-            else if(iter == is_newline<value_type>::invoke(iter, end) &&
-                    iter == is_whitespace<value_type>::invoke(iter, end))
-            {
-                return iter;
+                array& a = (*tab)[k].template cast<value_t::Array>();
+                if(!a.back().is(value_t::Table))
+                {
+                    throw syntax_error("toml::detail::insert_nested_key: value "
+                        "is not a table but an array: " +
+                        format_dotted_keys(first, last));
+                }
+                tab = std::addressof(a.back().template cast<value_t::Table>());
             }
             else
             {
-                ++iter;
+                throw syntax_error("toml::detail::insert_nested_key: value "
+                    "is not a table but an array: " +
+                    format_dotted_keys(first, last));
             }
         }
-        return iter;
     }
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     value_type>::value>::type>
-    static std::pair<toml::Table, Iterator>
-    parse_table_contents(Iterator iter, Iterator end)
-    {
-        toml::Table table;
-        iter = skip_empty(iter, end);
-        while(iter != end)
-        {
-            auto kv = parse_key_value_pair<value_type>::invoke(iter, end);
-            if(!kv.first.is_ok()) return std::make_pair(table, iter);
-
-            table.emplace(kv.first.unwrap());
-            iter = kv.second;
-            iter = skip_empty(iter, end);
-        }
-        return std::make_pair(table, iter);
-    }
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     toml::key>::value>::type>
-    static void
-    push_table(toml::Table& data, toml::Table&& v, Iterator iter, Iterator end)
-    {
-        if(iter == std::prev(end))
-        {
-            if(data.count(*iter) == 1)
-                throw syntax_error("duplicate key: " + *iter);
-            data.emplace(*iter, std::move(v));
-            return;
-        }
-
-        if(data.count(*iter) == 0)
-        {
-            data.emplace(*iter, toml::Table());
-            return push_table(data[*iter].template cast<value_t::Table>(),
-                              std::move(v), std::next(iter), end);
-        }
-        else if(data[*iter].type() == value_t::Table)
-        {
-            return push_table(data[*iter].template cast<value_t::Table>(),
-                              std::move(v), std::next(iter), end);
-        }
-        else if(data[*iter].type() == value_t::Array)
-        {
-            auto& ar = data[*iter].template cast<value_t::Array>();
-            if(ar.empty()) ar.emplace_back(toml::Table{});
-            if(ar.back().type() != value_t::Table)
-                throw syntax_error("assign table into array having non-table type: " + *iter);
-            return push_table(ar.back().template cast<value_t::Table>(),
-                              std::move(v), std::next(iter), end);
-        }
-        else
-            throw syntax_error("assign table into not table: " + *iter);
-    }
-
-    template<typename Iterator, class = typename std::enable_if<
-        std::is_same<typename std::iterator_traits<Iterator>::value_type,
-                     toml::key>::value>::type>
-    static void
-    push_array_of_table(toml::Table& data, toml::Table&& v,
-                        Iterator iter, Iterator end)
-    {
-        //XXX Iterator::value_type == toml::key
-        if(iter == std::prev(end))
-        {
-            if(data.count(*iter) == 0)
-                data.emplace(*iter, toml::Array());
-            else if(data.at(*iter).type() != value_t::Array)
-                throw syntax_error("duplicate key: " + *iter);
-
-            data[*iter].template cast<value_t::Array>().emplace_back(std::move(v));
-            return;
-        }
-
-        if(data.count(*iter) == 0)
-        {
-            data.emplace(*iter, toml::Table());
-            return push_array_of_table(data[*iter].template cast<value_t::Table>(),
-                                       std::move(v), std::next(iter), end);
-        }
-        else if(data[*iter].type() == value_t::Table)
-        {
-            return push_array_of_table(data[*iter].template cast<value_t::Table>(),
-                              std::move(v), std::next(iter), end);
-        }
-        else if(data[*iter].type() == value_t::Array)
-        {
-            auto& ar = data[*iter].template cast<value_t::Array>();
-            if(ar.empty()) ar.emplace_back(toml::Table{});
-            if(ar.back().type() != value_t::Table)
-                throw syntax_error("assign table into array having non-table type: " + *iter);
-            return push_array_of_table(ar.back().template cast<value_t::Table>(),
-                              std::move(v), std::next(iter), end);
-        }
-        else
-            throw syntax_error("assign array of table into not table: " + *iter);
-    }
-
-};
-
-template<typename traits = std::char_traits<toml::character>>
-toml::Table parse(std::basic_istream<toml::character, traits>& is)
-{
-    const auto initial = is.tellg();
-    is.seekg(0, std::ios::end);
-    const auto eofpos  = is.tellg();
-    const std::size_t size = eofpos - initial;
-    is.seekg(initial);
-    std::vector<toml::character> contents(size);
-    typedef std::vector<toml::character>::const_iterator iterator_type;
-    is.read(contents.data(), size);
-    try
-    {
-        return parse_data::invoke(contents.cbegin(), contents.cend());
-    }
-    catch(std::pair<iterator_type, syntax_error> iter_except)
-    {
-        std::cerr << "toml syntax error." << std::endl;
-        auto iter = iter_except.first;
-        const std::size_t nline = 1 + std::count(contents.cbegin(), iter, '\n');
-        std::cerr << "processing at line " << nline << std::endl;
-        while(*iter != '\n' && iter != contents.cbegin()){--iter;}
-        ++iter;
-        while(*iter != '\n' && iter != contents.cend())
-        {
-            std::cerr << *iter; ++iter;
-        }
-        std::cerr << std::endl;
-
-        throw iter_except.second;
-    }
+    return err(std::string("toml::detail::insert_nested_key: never reach here"));
 }
 
-inline toml::Table parse(const char* filename)
+template<typename Container>
+result<table, std::string> parse_inline_table(location<Container>& loc)
 {
-    std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
-    if(!ifs.good())
+    const auto first = loc.iter();
+    table retval;
+    if(!(loc.iter() != loc.end() && *loc.iter() == '{'))
     {
-        throw std::runtime_error("file open error: " + std::string(filename));
+        return err(format_underline("[error] toml::parse_inline_table: "
+            "the next token is not an inline table", loc, "not `{`."));
     }
-    return parse(ifs);
+    ++loc.iter();
+    while(loc.iter() != loc.end())
+    {
+        maybe<lex_ws>::invoke(loc);
+        if(loc.iter() != loc.end() && *loc.iter() == '}')
+        {
+            ++loc.iter(); // skip `}`
+            return ok(retval);
+        }
+
+        const auto kv_r = parse_key_value_pair(loc);
+        if(!kv_r)
+        {
+            return err(kv_r.unwrap_err());
+        }
+        const std::vector<key>& keys = kv_r.unwrap().first;
+        const value&            val  = kv_r.unwrap().second;
+
+        const auto inserted =
+            insert_nested_key(retval, val, keys.begin(), keys.end());
+        if(!inserted)
+        {
+            throw internal_error("[error] toml::parse_inline_table: "
+                "failed to insert value into table: " + inserted.unwrap_err());
+        }
+
+        using lex_table_separator = sequence<maybe<lex_ws>, character<','>>;
+        const auto sp = lex_table_separator::invoke(loc);
+        if(!sp)
+        {
+            maybe<lex_ws>::invoke(loc);
+            if(loc.iter() != loc.end() && *loc.iter() == '}')
+            {
+                ++loc.iter(); // skip `}`
+                return ok(retval);
+            }
+            else
+            {
+                return err(format_underline("[error] toml:::parse_inline_table:"
+                    " missing table separator `,` ", loc, "should be `,`"));
+            }
+        }
+    }
+    loc.iter() = first;
+    return err(format_underline("[error] toml::parse_inline_table: "
+            "inline table did not closed by `}`", loc, "should be closed"));
 }
 
-template<typename charT, typename traits = std::char_traits<charT>>
-inline toml::Table parse(const std::basic_string<charT, traits>& filename)
+template<typename Container>
+result<value, std::string> parse_value(location<Container>& loc)
 {
-    std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
-    if(!ifs.good())
+    const auto first = loc.iter();
+    if(first == loc.end())
     {
-        throw std::runtime_error("file open error: " + filename);
+        return err(std::string("toml::parse_value: input is empty"));
     }
-    return parse(ifs);
+
+    std::vector<std::string> helps;
+    if(auto r = parse_string(loc))          {return ok(value(r.unwrap()));}
+    else                                    {helps.push_back(r.unwrap_err());}
+    if(auto r = parse_array(loc))           {return ok(value(r.unwrap()));}
+    else                                    {helps.push_back(r.unwrap_err());}
+    if(auto r = parse_inline_table(loc))    {return ok(value(r.unwrap()));}
+    else                                    {helps.push_back(r.unwrap_err());}
+    if(auto r = parse_boolean(loc))         {return ok(value(r.unwrap()));}
+    else                                    {helps.push_back(r.unwrap_err());}
+    if(auto r = parse_offset_datetime(loc)) {return ok(value(r.unwrap()));}
+    else                                    {helps.push_back(r.unwrap_err());}
+    if(auto r = parse_local_datetime(loc))  {return ok(value(r.unwrap()));}
+    else                                    {helps.push_back(r.unwrap_err());}
+    if(auto r = parse_local_date(loc))      {return ok(value(r.unwrap()));}
+    else                                    {helps.push_back(r.unwrap_err());}
+    if(auto r = parse_local_time(loc))      {return ok(value(r.unwrap()));}
+    else                                    {helps.push_back(r.unwrap_err());}
+    if(auto r = parse_floating(loc))        {return ok(value(r.unwrap()));}
+    else                                    {helps.push_back(r.unwrap_err());}
+    if(auto r = parse_integer(loc))         {return ok(value(r.unwrap()));}
+    else                                    {helps.push_back(r.unwrap_err());}
+    const auto msg = format_underline("[error] toml::parse_value: "
+            "unknown token appeared", loc, "unknown", std::move(helps));
+    loc.iter() = first;
+    return err(msg);
 }
 
-}// toml
-#endif// TOML11_PARSER
+} // detail
+} // toml
+#endif// TOML11_PARSER_HPP
