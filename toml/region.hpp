@@ -2,6 +2,7 @@
 #define TOML11_REGION_H
 #include "exception.hpp"
 #include <memory>
+#include <vector>
 #include <algorithm>
 #include <initializer_list>
 #include <iterator>
@@ -225,7 +226,7 @@ template<typename Container>
 std::string
 format_underline(const std::string& message, const location<Container>& loc,
                  const std::string& comment_for_underline,
-                 std::initializer_list<std::string> helps = {})
+                 std::vector<std::string> helps = {})
 {
     using const_iterator   = typename location<Container>::const_iterator;
     using reverse_iterator = std::reverse_iterator<const_iterator>;
