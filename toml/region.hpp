@@ -3,6 +3,7 @@
 #include "exception.hpp"
 #include <memory>
 #include <algorithm>
+#include <initializer_list>
 #include <iterator>
 #include <iostream>
 
@@ -78,8 +79,8 @@ struct region_base
     virtual bool        is_ok()  const noexcept {return false;}
 
     virtual std::string str()      const {return std::string("");}
-    virtual std::string name()     const {return std::string("");}
-    virtual std::string line()     const {return std::string("");}
+    virtual std::string name()     const {return std::string("unknown location");}
+    virtual std::string line()     const {return std::string("unknown line");}
     virtual std::string line_num() const {return std::string("?");}
 
     virtual std::size_t before()   const noexcept {return 0;}
@@ -187,7 +188,6 @@ struct region final : public region_base
 inline std::string format_underline(const std::string& message,
         const region_base& reg, const std::string& comment_for_underline)
 {
-
     const auto line        = reg.line();
     const auto line_number = reg.line_num();
 
@@ -213,7 +213,8 @@ inline std::string format_underline(const std::string& message,
 template<typename Container>
 std::string
 format_underline(const std::string& message, const location<Container>& loc,
-                 const std::string& comment_for_underline)
+                 const std::string& comment_for_underline,
+                 std::initializer_list<std::string> helps = {})
 {
     using const_iterator   = typename location<Container>::const_iterator;
     using reverse_iterator = std::reverse_iterator<const_iterator>;
@@ -238,10 +239,20 @@ format_underline(const std::string& message, const location<Container>& loc,
     retval += " | ";
     retval += make_string(std::distance(line_begin, loc.iter()),' ');
     retval += '^';
-    retval += make_string(std::distance(loc.iter(), line_end), '~');
+    retval += make_string(std::distance(loc.iter(), line_end), '-');
     retval += ' ';
     retval += comment_for_underline;
-
+    if(helps.size() != 0)
+    {
+        retval += '\n';
+        retval += make_string(line_number.size() + 1, ' ');
+        retval += " | ";
+        for(const auto help : helps)
+        {
+            retval += "\nHint: ";
+            retval += help;
+        }
+    }
     return retval;
 }
 
