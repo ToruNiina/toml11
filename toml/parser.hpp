@@ -1082,30 +1082,19 @@ result<value, std::string> parse_value(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return err(std::string("toml::parse_value: input is empty"));
+        return err(std::string("[error] toml::parse_value: input is empty"));
     }
+    if(auto r = parse_string         (loc)) {return ok(value(std::move(r.unwrap())));}
+    if(auto r = parse_array          (loc)) {return ok(value(std::move(r.unwrap())));}
+    if(auto r = parse_inline_table   (loc)) {return ok(value(std::move(r.unwrap())));}
+    if(auto r = parse_boolean        (loc)) {return ok(value(std::move(r.unwrap())));}
+    if(auto r = parse_offset_datetime(loc)) {return ok(value(std::move(r.unwrap())));}
+    if(auto r = parse_local_datetime (loc)) {return ok(value(std::move(r.unwrap())));}
+    if(auto r = parse_local_date     (loc)) {return ok(value(std::move(r.unwrap())));}
+    if(auto r = parse_local_time     (loc)) {return ok(value(std::move(r.unwrap())));}
+    if(auto r = parse_floating       (loc)) {return ok(value(std::move(r.unwrap())));}
+    if(auto r = parse_integer        (loc)) {return ok(value(std::move(r.unwrap())));}
 
-    std::vector<std::string> helps;
-    if(auto r = parse_string(loc))          {return ok(value(r.unwrap()));}
-    else                                    {helps.push_back(r.unwrap_err());}
-    if(auto r = parse_array(loc))           {return ok(value(r.unwrap()));}
-    else                                    {helps.push_back(r.unwrap_err());}
-    if(auto r = parse_inline_table(loc))    {return ok(value(r.unwrap()));}
-    else                                    {helps.push_back(r.unwrap_err());}
-    if(auto r = parse_boolean(loc))         {return ok(value(r.unwrap()));}
-    else                                    {helps.push_back(r.unwrap_err());}
-    if(auto r = parse_offset_datetime(loc)) {return ok(value(r.unwrap()));}
-    else                                    {helps.push_back(r.unwrap_err());}
-    if(auto r = parse_local_datetime(loc))  {return ok(value(r.unwrap()));}
-    else                                    {helps.push_back(r.unwrap_err());}
-    if(auto r = parse_local_date(loc))      {return ok(value(r.unwrap()));}
-    else                                    {helps.push_back(r.unwrap_err());}
-    if(auto r = parse_local_time(loc))      {return ok(value(r.unwrap()));}
-    else                                    {helps.push_back(r.unwrap_err());}
-    if(auto r = parse_floating(loc))        {return ok(value(r.unwrap()));}
-    else                                    {helps.push_back(r.unwrap_err());}
-    if(auto r = parse_integer(loc))         {return ok(value(r.unwrap()));}
-    else                                    {helps.push_back(r.unwrap_err());}
     const auto msg = format_underline("[error] toml::parse_value: "
             "unknown token appeared", loc, "unknown", std::move(helps));
     loc.iter() = first;
