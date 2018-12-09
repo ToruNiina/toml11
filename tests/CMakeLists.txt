@@ -9,7 +9,7 @@ set(TEST_NAMES
     test_utility
     test_result
     test_traits
-#     test_value
+    test_value
 #     test_to_toml
 #     test_from_toml
 #     test_get
