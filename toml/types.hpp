@@ -38,18 +38,18 @@ using table    = Table;
 
 enum class value_t : std::uint8_t
 {
-    Boolean       = 1,
-    Integer       = 2,
-    Float         = 3,
-    String        = 4,
-    Datetime      = 5,
-    LocalDatetime = 6,
-    LocalDate     = 7,
-    LocalTime     = 8,
-    Array         = 9,
-    Table         = 10,
-    Empty         = 0,
-    Unknown       = 255,
+    Empty          = 0,
+    Boolean        = 1,
+    Integer        = 2,
+    Float          = 3,
+    String         = 4,
+    OffsetDatetime = 5,
+    LocalDatetime  = 6,
+    LocalDate      = 7,
+    LocalTime      = 8,
+    Array          = 9,
+    Table          = 10,
+    Unknown        = 255,
 };
 
 constexpr inline bool is_valid(value_t vt)
