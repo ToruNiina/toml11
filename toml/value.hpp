@@ -3,6 +3,8 @@
 #include "traits.hpp"
 #include "utility.hpp"
 #include "exception.hpp"
+#include "storage.hpp"
+#include "region.hpp"
 #include "types.hpp"
 #include <vector>
 #include <tuple>
@@ -12,38 +14,6 @@
 
 namespace toml
 {
-
-namespace detail
-{
-struct storage_base
-{
-    storage_base(): type(toml::value_t::Empty){}
-    storage_base(toml::value_t t): type(t){}
-    virtual ~storage_base() = default;
-    toml::value_t type;
-};
-
-template<typename T>
-struct storage : public storage_base
-{
-    static_assert(std::is_same<T, toml::Array>::value ||
-                  std::is_same<T, toml::Table>::value,
-                  "toml::detail::storage is for toml::Array or toml::Table!");
-    typedef T value_type;
-
-    storage() = default;
-    ~storage() noexcept override = default;
-    storage(storage const&) = default;
-    storage(storage&&)      = default;
-    storage& operator=(storage const&) = default;
-    storage& operator=(storage&&)      = default;
-
-    storage(value_type const& v) : value(v){}
-    storage(value_type&& v) : value(std::move(v)){}
-
-    value_type value;
-};
-} // detail
 
 template<typename T>
 struct value_traits
