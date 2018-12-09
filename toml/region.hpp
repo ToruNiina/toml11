@@ -78,8 +78,8 @@ struct region_base
 
     virtual bool        is_ok()  const noexcept {return false;}
 
-    virtual std::string str()      const {return std::string("");}
-    virtual std::string name()     const {return std::string("unknown location");}
+    virtual std::string str()      const {return std::string("unknown region");}
+    virtual std::string name()     const {return std::string("unknown file");}
     virtual std::string line()     const {return std::string("unknown line");}
     virtual std::string line_num() const {return std::string("?");}
 
