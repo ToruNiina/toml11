@@ -65,13 +65,37 @@ struct location
 // region in a container, normally in a file content.
 // shared_ptr points the resource that the iter points.
 // combinators returns this.
-// it can be used not only for resource handling, but also error message.
+// it will be used to generate better error messages.
+struct region_base
+{
+    region_base() = default;
+    virtual ~region_base() = default;
+    region_base(const region_base&) = default;
+    region_base(region_base&&     ) = default;
+    region_base& operator=(const region_base&) = default;
+    region_base& operator=(region_base&&     ) = default;
+
+    virtual bool        is_ok()  const noexcept {return false;}
+
+    virtual std::string str()      const {return std::string("");}
+    virtual std::string name()     const {return std::string("");}
+    virtual std::string line()     const {return std::string("");}
+    virtual std::string line_num() const {return std::string("?");}
+
+    virtual std::size_t before()   const noexcept {return 0;}
+    virtual std::size_t size()     const noexcept {return 0;}
+    virtual std::size_t after()    const noexcept {return 0;}
+};
+
 template<typename Container>
-struct region
+struct region final : public region_base
 {
     static_assert(std::is_same<char, typename Container::value_type>::value,"");
     using const_iterator = typename Container::const_iterator;
     using source_ptr     = std::shared_ptr<const Container>;
+
+    // delete default constructor. source_ never be null.
+    region() = delete;
 
     region(const location<Container>& loc)
       : source_(loc.source()), source_name_(loc.name()),
@@ -106,18 +130,51 @@ struct region
         return *this;
     }
 
-    std::string str()  const {return make_string(first_, last_);}
-    std::size_t size() const {return std::distance(first_, last_);}
+    bool is_ok() const noexcept override {return static_cast<bool>(source_);}
 
-    const_iterator  begin() const noexcept {return source_->cbegin();}
-    const_iterator  end()   const noexcept {return source_->cend();}
-    const_iterator  first() const noexcept {return first_;}
-    const_iterator  last()  const noexcept {return last_;}
+    std::string str()  const override {return make_string(first_, last_);}
+    std::string line() const override
+    {
+        return make_string(this->line_begin(), this->line_end());
+    }
+    std::string line_num() const override
+    {
+        return std::to_string(1 + std::count(this->begin(), this->first(), '\n'));
+    }
+
+    std::size_t size() const noexcept override
+    {
+        return std::distance(first_, last_);
+    }
+    std::size_t before() const noexcept override
+    {
+        return std::distance(this->line_begin(), this->first());
+    }
+    std::size_t after() const noexcept override
+    {
+        return std::distance(this->last(), this->line_end());
+    }
+
+    const_iterator line_begin() const noexcept
+    {
+        using reverse_iterator = std::reverse_iterator<const_iterator>;
+        return std::find(reverse_iterator(this->first()),
+                         reverse_iterator(this->begin()), '\n').base();
+    }
+    const_iterator line_end() const noexcept
+    {
+        return std::find(this->last(), this->end(), '\n');
+    }
+
+    const_iterator begin() const noexcept {return source_->cbegin();}
+    const_iterator end()   const noexcept {return source_->cend();}
+    const_iterator first() const noexcept {return first_;}
+    const_iterator last()  const noexcept {return last_;}
 
     source_ptr const& source() const& noexcept {return source_;}
     source_ptr&&      source() &&     noexcept {return std::move(source_);}
 
-    std::string const& name() const noexcept {return source_name_;}
+    std::string name() const override {return source_name_;}
 
   private:
 
@@ -127,20 +184,12 @@ struct region
 };
 
 // to show a better error message.
-template<typename Container>
-std::string
-format_underline(const std::string& message, const region<Container>& reg,
-                 const std::string& comment_for_underline)
+inline std::string format_underline(const std::string& message,
+        const region_base& reg, const std::string& comment_for_underline)
 {
-    using const_iterator = typename region<Container>::const_iterator;
-    using reverse_iterator = std::reverse_iterator<const_iterator>;
-    const auto line_begin = std::find(reverse_iterator(reg.first()),
-                                      reverse_iterator(reg.begin()),
-                                      '\n').base();
-    const auto line_end   = std::find(reg.last(), reg.end(), '\n');
 
-    const auto line_number = std::to_string(
-            1 + std::count(reg.begin(), reg.first(), '\n'));
+    const auto line        = reg.line();
+    const auto line_number = reg.line_num();
 
     std::string retval;
     retval += message;
@@ -149,12 +198,12 @@ format_underline(const std::string& message, const region<Container>& reg,
     retval += "\n ";
     retval += line_number;
     retval += " | ";
-    retval += make_string(line_begin, line_end);
+    retval += line;
     retval += '\n';
     retval += make_string(line_number.size() + 1, ' ');
     retval += " | ";
-    retval += make_string(std::distance(line_begin, reg.first()), ' ');
-    retval += make_string(std::distance(reg.first(), reg.last()), '~');
+    retval += make_string(reg.before(), ' ');
+    retval += make_string(reg.size(),   '~');
     retval += ' ';
     retval += comment_for_underline;
     return retval;
@@ -189,7 +238,7 @@ format_underline(const std::string& message, const location<Container>& loc,
     retval += " | ";
     retval += make_string(std::distance(line_begin, loc.iter()),' ');
     retval += '^';
-    retval += make_string(std::distance(loc.iter(), line_end), '-');
+    retval += make_string(std::distance(loc.iter(), line_end), '~');
     retval += ' ';
     retval += comment_for_underline;
 
