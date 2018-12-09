@@ -76,12 +76,13 @@ struct region_base
     region_base& operator=(const region_base&) = default;
     region_base& operator=(region_base&&     ) = default;
 
-    virtual bool        is_ok()  const noexcept {return false;}
+    virtual bool is_ok()           const noexcept {return false;}
 
     virtual std::string str()      const {return std::string("unknown region");}
     virtual std::string name()     const {return std::string("unknown file");}
     virtual std::string line()     const {return std::string("unknown line");}
     virtual std::string line_num() const {return std::string("?");}
+
 
     virtual std::size_t before()   const noexcept {return 0;}
     virtual std::size_t size()     const noexcept {return 0;}
@@ -136,6 +137,11 @@ struct region final : public region_base
     std::string str()  const override {return make_string(first_, last_);}
     std::string line() const override
     {
+        if(this->contain_newline())
+        {
+            return make_string(this->line_begin(),
+                    std::find(this->line_begin(), this->last(), '\n'));
+        }
         return make_string(this->line_begin(), this->line_end());
     }
     std::string line_num() const override
@@ -154,6 +160,11 @@ struct region final : public region_base
     std::size_t after() const noexcept override
     {
         return std::distance(this->last(), this->line_end());
+    }
+
+    bool contain_newline() const noexcept
+    {
+        return std::find(this->first(), this->last(), '\n') != this->last();
     }
 
     const_iterator line_begin() const noexcept
