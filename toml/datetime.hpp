@@ -145,21 +145,21 @@ struct local_time
     {}
 
     template<typename Rep, typename Period>
-    explicit local_time(std::chrono::duration<Rep, Period> t)
+    explicit local_time(const std::chrono::duration<Rep, Period>& t)
     {
         const auto h = std::chrono::duration_cast<std::chrono::hours>(t);
         this->hour = h.count();
-        t -= h;
-        const auto m = std::chrono::duration_cast<std::chrono::minutes>(t);
+        const auto t2 = t - h;
+        const auto m = std::chrono::duration_cast<std::chrono::minutes>(t2);
         this->minute = m.count();
-        t -= m;
-        const auto s = std::chrono::duration_cast<std::chrono::seconds>(t);
+        const auto t3 = t2 - m;
+        const auto s = std::chrono::duration_cast<std::chrono::seconds>(t3);
         this->second = s.count();
-        t -= s;
-        const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t);
+        const auto t4 = t3 - s;
+        const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t4);
         this->millisecond = ms.count();
-        t -= ms;
-        const auto us = std::chrono::duration_cast<std::chrono::microseconds>(t);
+        const auto t5 = t4 - ms;
+        const auto us = std::chrono::duration_cast<std::chrono::microseconds>(t5);
         this->microsecond = us.count();
     }
 
