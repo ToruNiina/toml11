@@ -38,11 +38,11 @@ struct local_date
         : year(y), month(static_cast<std::int8_t>(m)), day(d)
     {}
 
-    local_date(const std::tm& t)
+    explicit local_date(const std::tm& t)
         : year(t.tm_year + 1900), month(t.tm_mon), day(t.tm_mday)
     {}
 
-    local_date(const std::chrono::system_clock::time_point& tp)
+    explicit local_date(const std::chrono::system_clock::time_point& tp)
     {
         const auto t = std::chrono::system_clock::to_time_t(tp);
         const auto tmp = std::localtime(&t); //XXX: not threadsafe!
@@ -51,7 +51,7 @@ struct local_date
         *this = local_date(time);
     }
 
-    local_date(const std::time_t t)
+    explicit local_date(const std::time_t t)
         : local_date(std::chrono::system_clock::from_time_t(t))
     {}
 
@@ -139,7 +139,7 @@ struct local_time
         : hour(h), minute(m), second(s), millisecond(ms), microsecond(us)
     {}
 
-    local_time(const std::tm& t)
+    explicit local_time(const std::tm& t)
         : hour(t.tm_hour), minute(t.tm_min), second(t.tm_sec),
           millisecond(0), microsecond(0)
     {}
@@ -282,9 +282,9 @@ struct local_datetime
 
     local_datetime(local_date d, local_time t): date(d), time(t) {}
 
-    local_datetime(const std::tm& t): date(t), time(t){}
+    explicit local_datetime(const std::tm& t): date(t), time(t){}
 
-    local_datetime(const std::chrono::system_clock::time_point& tp)
+    explicit local_datetime(const std::chrono::system_clock::time_point& tp)
     {
         const auto t = std::chrono::system_clock::to_time_t(tp);
         const auto tmp = std::localtime(&t); //XXX: not threadsafe!
@@ -304,7 +304,7 @@ struct local_datetime
             std::chrono::microseconds>(t_diff).count();
     }
 
-    local_datetime(const std::time_t t)
+    explicit local_datetime(const std::time_t t)
         : local_datetime(std::chrono::system_clock::from_time_t(t))
     {}
 
@@ -376,16 +376,16 @@ struct offset_datetime
     offset_datetime(const local_datetime& dt, time_offset o)
         : date(dt.date), time(dt.time), offset(o)
     {}
-    offset_datetime(const local_datetime& ld)
+    explicit offset_datetime(const local_datetime& ld)
         : date(ld.date), time(ld.time), offset(get_local_offset())
     {}
-    offset_datetime(const std::chrono::system_clock::time_point& tp)
+    explicit offset_datetime(const std::chrono::system_clock::time_point& tp)
         : offset_datetime(local_datetime(tp))
     {}
-    offset_datetime(const std::time_t& t)
+    explicit offset_datetime(const std::time_t& t)
         : offset_datetime(local_datetime(t))
     {}
-    offset_datetime(const std::tm& t)
+    explicit offset_datetime(const std::tm& t)
         : offset_datetime(local_datetime(t))
     {}
 
