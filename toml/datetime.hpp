@@ -144,6 +144,25 @@ struct local_time
           millisecond(0), microsecond(0)
     {}
 
+    template<typename Rep, typename Period>
+    explicit local_time(std::chrono::duration<Rep, Period> t)
+    {
+        const auto h = std::chrono::duration_cast<std::chrono::hours>(t);
+        this->hour = h.count();
+        t -= h;
+        const auto m = std::chrono::duration_cast<std::chrono::minutes>(t);
+        this->minute = m.count();
+        t -= m;
+        const auto s = std::chrono::duration_cast<std::chrono::seconds>(t);
+        this->second = s.count();
+        t -= s;
+        const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t);
+        this->millisecond = ms.count();
+        t -= ms;
+        const auto us = std::chrono::duration_cast<std::chrono::microseconds>(t);
+        this->microsecond = us.count();
+    }
+
     operator std::chrono::microseconds() const
     {
         return std::chrono::microseconds(this->microsecond) +
