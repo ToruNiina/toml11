@@ -1209,8 +1209,9 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
         return err(std::string("toml::parse_ml_table: input is empty"));
     }
 
+    // XXX at lest one newline is needed
     using skip_line = repeat<
-        sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>, unlimited>;
+        sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>, at_least<1>>;
     skip_line::invoke(loc);
 
     table tab;
@@ -1244,7 +1245,18 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
             return err(kv.unwrap_err());
         }
 
-        skip_line::invoke(loc);
+        const auto newline = skip_line::invoke(loc);
+        if(!newline && loc.iter() != loc.end())
+        {
+            const auto before = loc.iter();
+            lex_ws::invoke(loc); // skip whitespace
+            const auto msg = format_underline("[error] toml::parse_table: "
+                "invalid line format", loc, concat_to_string(
+                "expected newline, but got '", show_char(*loc.iter()), "'."));
+            loc.iter() = before;
+            return err(msg);
+        }
+
         // comment lines are skipped by the above function call.
         // However, if the file ends with comment without newline,
         // it might cause parsing error because skip_line matches
