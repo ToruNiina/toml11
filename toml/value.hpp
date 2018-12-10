@@ -669,7 +669,7 @@ typename detail::toml_default_type<T>::type& value::cast() &
     if(T != this->type_)
     {
         throw type_error(this->format_error(concat_to_string(
-            "[error] toml::value bad_cast type-casting to ", T),
+            "[error] toml::value bad_cast to ", T),
             concat_to_string("the actual type is ", this->type_)));
     }
     return switch_cast<T>::invoke(*this);
@@ -680,7 +680,7 @@ typename detail::toml_default_type<T>::type const& value::cast() const&
     if(T != this->type_)
     {
         throw type_error(this->format_error(concat_to_string(
-            "[error] toml::value bad_cast type-casting to ", T),
+            "[error] toml::value bad_cast to ", T),
             concat_to_string("the actual type is ", this->type_)));
     }
     return switch_cast<T>::invoke(*this);
@@ -691,7 +691,7 @@ typename detail::toml_default_type<T>::type&&      value::cast() &&
     if(T != this->type_)
     {
         throw type_error(this->format_error(concat_to_string(
-            "[error] toml::value bad_cast type-casting to ", T),
+            "[error] toml::value bad_cast to ", T),
             concat_to_string("the actual type is ", this->type_)));
     }
     return switch_cast<T>::invoke(std::move(*this));
