@@ -127,6 +127,29 @@ template<> struct toml_default_type<value_t::Table   >      {typedef table      
 template<> struct toml_default_type<value_t::Empty   >      {typedef void            type;};
 template<> struct toml_default_type<value_t::Unknown >      {typedef void            type;};
 
+template<typename T> struct toml_value_t      {static constexpr value_t value = value_t::Unknown       ;};
+template<> struct toml_value_t<Boolean       >{static constexpr value_t value = value_t::Boolean       ;};
+template<> struct toml_value_t<Integer       >{static constexpr value_t value = value_t::Integer       ;};
+template<> struct toml_value_t<Float         >{static constexpr value_t value = value_t::Float         ;};
+template<> struct toml_value_t<String        >{static constexpr value_t value = value_t::String        ;};
+template<> struct toml_value_t<OffsetDatetime>{static constexpr value_t value = value_t::OffsetDatetime;};
+template<> struct toml_value_t<LocalDatetime >{static constexpr value_t value = value_t::LocalDatetime ;};
+template<> struct toml_value_t<LocalDate     >{static constexpr value_t value = value_t::LocalDate     ;};
+template<> struct toml_value_t<LocalTime     >{static constexpr value_t value = value_t::LocalTime     ;};
+template<> struct toml_value_t<Array         >{static constexpr value_t value = value_t::Array         ;};
+template<> struct toml_value_t<Table         >{static constexpr value_t value = value_t::Table         ;};
+template<typename T> constexpr value_t toml_value_t<T>::value;
+constexpr value_t toml_value_t<Boolean       >::value;
+constexpr value_t toml_value_t<Integer       >::value;
+constexpr value_t toml_value_t<Float         >::value;
+constexpr value_t toml_value_t<String        >::value;
+constexpr value_t toml_value_t<OffsetDatetime>::value;
+constexpr value_t toml_value_t<LocalDatetime >::value;
+constexpr value_t toml_value_t<LocalDate     >::value;
+constexpr value_t toml_value_t<LocalTime     >::value;
+constexpr value_t toml_value_t<Array         >::value;
+constexpr value_t toml_value_t<Table         >::value;
+
 template<typename T>
 struct is_exact_toml_type : disjunction<
     std::is_same<T, Boolean >,
