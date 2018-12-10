@@ -82,9 +82,6 @@ inline std::basic_string<charT, traits, alloc> stringize(value_t t)
 
 namespace detail
 {
-template<typename T> struct is_chrono_duration: std::false_type{};
-template<typename Rep, typename Period>
-struct is_chrono_duration<std::chrono::duration<Rep, Period>>: std::true_type{};
 
 template<typename T>
 constexpr inline value_t check_type()
