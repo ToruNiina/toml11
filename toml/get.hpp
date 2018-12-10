@@ -80,9 +80,48 @@ inline std::string get(value&& v)
     return std::move(v.cast<value_t::String>().str);
 }
 
+// ============================================================================
+// std::chrono::duration from toml::local_time.
+
+template<typename T, typename std::enable_if<
+    detail::is_chrono_duration<T>::value, std::nullptr_t>::type = nullptr>
+inline T get(value& v)
+{
+    return std::chrono::duration_cast<T>(
+            std::chrono::microseconds(v.cast<value_t::LocalTime>()));
+}
 
 // ============================================================================
-// forward declaration. ignore this.
+// std::chrono::system_clock::time_point from toml::datetime variants
+
+template<typename T, typename std::enable_if<
+    std::is_same<std::chrono::system_clock::time_point, T>::value,
+    std::nullptr_t>::type = nullptr>
+inline T get(value& v)
+{
+    switch(v.type())
+    {
+        case value_t::LocalDate:
+        {
+            return std::chrono::system_clock::time_point(
+                    v.cast<value_t::LocalDate>());
+        }
+        case value_t::LocalDatetime:
+        {
+            return std::chrono::system_clock::time_point(
+                    v.cast<value_t::LocalDatetime>());
+        }
+        default:
+        {
+            return std::chrono::system_clock::time_point(
+                    v.cast<value_t::OffsetDatetime>());
+        }
+    }
+}
+
+// ============================================================================
+// forward declaration to use this recursively. ignore this and go ahead.
+
 template<typename T, typename std::enable_if<detail::conjunction<
     detail::is_container<T>,                        // T is container
     detail::has_resize_method<T>,                   // T::resize(N) works
