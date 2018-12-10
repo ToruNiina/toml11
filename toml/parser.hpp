@@ -13,14 +13,15 @@ namespace detail
 {
 
 template<typename Container>
-result<boolean, std::string> parse_boolean(location<Container>& loc)
+result<std::pair<boolean, region<Container>>, std::string>
+parse_boolean(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_boolean::invoke(loc))
     {
         const auto reg = token.unwrap();
-        if     (reg.str() == "true")  {return ok(true);}
-        else if(reg.str() == "false") {return ok(false);}
+        if     (reg.str() == "true")  {return ok(std::make_pair(true,  reg));}
+        else if(reg.str() == "false") {return ok(std::make_pair(false, reg));}
         else // internal error.
         {
             throw toml::internal_error(format_underline(
@@ -34,7 +35,8 @@ result<boolean, std::string> parse_boolean(location<Container>& loc)
 }
 
 template<typename Container>
-result<integer, std::string> parse_binary_integer(location<Container>& loc)
+result<std::pair<integer, region<Container>>, std::string>
+parse_binary_integer(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_bin_int::invoke(loc))
@@ -54,7 +56,7 @@ result<integer, std::string> parse_binary_integer(location<Container>& loc)
                     token.unwrap(), "invalid token"));
             }
         }
-        return ok(retval);
+        return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
     return err(format_underline("[error] toml::parse_binary_integer", loc,
@@ -62,7 +64,8 @@ result<integer, std::string> parse_binary_integer(location<Container>& loc)
 }
 
 template<typename Container>
-result<integer, std::string> parse_octal_integer(location<Container>& loc)
+result<std::pair<integer, region<Container>>, std::string>
+parse_octal_integer(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_oct_int::invoke(loc))
@@ -74,7 +77,7 @@ result<integer, std::string> parse_octal_integer(location<Container>& loc)
         std::istringstream iss(str);
         integer retval(0);
         iss >> std::oct >> retval;
-        return ok(retval);
+        return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
 
@@ -83,7 +86,8 @@ result<integer, std::string> parse_octal_integer(location<Container>& loc)
 }
 
 template<typename Container>
-result<integer, std::string> parse_hexadecimal_integer(location<Container>& loc)
+result<std::pair<integer, region<Container>>, std::string>
+parse_hexadecimal_integer(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_hex_int::invoke(loc))
@@ -95,7 +99,7 @@ result<integer, std::string> parse_hexadecimal_integer(location<Container>& loc)
         std::istringstream iss(str);
         integer retval(0);
         iss >> std::hex >> retval;
-        return ok(retval);
+        return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
     return err(format_underline("[error] toml::parse_hexadecimal_integer", loc,
@@ -103,7 +107,8 @@ result<integer, std::string> parse_hexadecimal_integer(location<Container>& loc)
 }
 
 template<typename Container>
-result<integer, std::string> parse_integer(location<Container>& loc)
+result<std::pair<integer, region<Container>>, std::string>
+parse_integer(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(first != loc.end() && *first == '0')
@@ -111,6 +116,7 @@ result<integer, std::string> parse_integer(location<Container>& loc)
         if(const auto bin = parse_binary_integer     (loc)) {return bin;}
         if(const auto oct = parse_octal_integer      (loc)) {return oct;}
         if(const auto hex = parse_hexadecimal_integer(loc)) {return hex;}
+        // else, maybe just zero.
     }
 
     if(const auto token = lex_dec_int::invoke(loc))
@@ -121,7 +127,7 @@ result<integer, std::string> parse_integer(location<Container>& loc)
         std::istringstream iss(str);
         integer retval(0);
         iss >> retval;
-        return ok(retval);
+        return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
     return err(format_underline("[error] toml::parse_integer", loc,
@@ -131,7 +137,8 @@ result<integer, std::string> parse_integer(location<Container>& loc)
 }
 
 template<typename Container>
-result<floating, std::string> parse_floating(location<Container>& loc)
+result<std::pair<floating, region<Container>>, std::string>
+parse_floating(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_float::invoke(loc))
@@ -141,7 +148,8 @@ result<floating, std::string> parse_floating(location<Container>& loc)
         {
             if(std::numeric_limits<floating>::has_infinity)
             {
-                return ok(std::numeric_limits<floating>::infinity());
+                return ok(std::make_pair(
+                    std::numeric_limits<floating>::infinity(), token.unwrap()));
             }
             else
             {
@@ -155,7 +163,8 @@ result<floating, std::string> parse_floating(location<Container>& loc)
         {
             if(std::numeric_limits<floating>::has_infinity)
             {
-                return ok(-std::numeric_limits<floating>::infinity());
+                return ok(std::make_pair(
+                    -std::numeric_limits<floating>::infinity(), token.unwrap()));
             }
             else
             {
@@ -169,11 +178,13 @@ result<floating, std::string> parse_floating(location<Container>& loc)
         {
             if(std::numeric_limits<floating>::has_quiet_NaN)
             {
-                return ok(std::numeric_limits<floating>::quiet_NaN());
+                return ok(std::make_pair(
+                    std::numeric_limits<floating>::quiet_NaN(), token.unwrap()));
             }
             else if(std::numeric_limits<floating>::has_signaling_NaN)
             {
-                return ok(std::numeric_limits<floating>::signaling_NaN());
+                return ok(std::make_pair(
+                    std::numeric_limits<floating>::signaling_NaN(), token.unwrap()));
             }
             else
             {
@@ -187,11 +198,13 @@ result<floating, std::string> parse_floating(location<Container>& loc)
         {
             if(std::numeric_limits<floating>::has_quiet_NaN)
             {
-                return ok(-std::numeric_limits<floating>::quiet_NaN());
+                return ok(std::make_pair(
+                    -std::numeric_limits<floating>::quiet_NaN(), token.unwrap()));
             }
             else if(std::numeric_limits<floating>::has_signaling_NaN)
             {
-                return ok(-std::numeric_limits<floating>::signaling_NaN());
+                return ok(std::make_pair(
+                    -std::numeric_limits<floating>::signaling_NaN(), token.unwrap()));
             }
             else
             {
@@ -205,7 +218,7 @@ result<floating, std::string> parse_floating(location<Container>& loc)
         std::istringstream iss(str);
         floating v(0.0);
         iss >> v;
-        return ok(v);
+        return ok(std::make_pair(v, token.unwrap()));
     }
     loc.iter() = first;
     return err(format_underline("[error] toml::parse_floating: ", loc,
@@ -320,7 +333,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
 }
 
 template<typename Container>
-result<toml::string, std::string>
+result<std::pair<toml::string, region<Container>>, std::string>
 parse_ml_basic_string(location<Container>& loc)
 {
     const auto first = loc.iter();
@@ -366,7 +379,7 @@ parse_ml_basic_string(location<Container>& loc)
             }
             delim = lex_ml_basic_string_delim::invoke(inner_loc);
         }
-        return ok(toml::string(retval));
+        return ok(std::make_pair(toml::string(retval), token.unwrap()));
     }
     else
     {
@@ -376,7 +389,8 @@ parse_ml_basic_string(location<Container>& loc)
 }
 
 template<typename Container>
-result<toml::string, std::string> parse_basic_string(location<Container>& loc)
+result<std::pair<toml::string, region<Container>>, std::string>
+parse_basic_string(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_basic_string::invoke(loc))
@@ -413,7 +427,7 @@ result<toml::string, std::string> parse_basic_string(location<Container>& loc)
             }
             quot = lex_quotation_mark::invoke(inner_loc);
         }
-        return ok(toml::string(retval));
+        return ok(std::make_pair(toml::string(retval), token.unwrap()));
     }
     else
     {
@@ -423,7 +437,7 @@ result<toml::string, std::string> parse_basic_string(location<Container>& loc)
 }
 
 template<typename Container>
-result<toml::string, std::string>
+result<std::pair<toml::string, region<Container>>, std::string>
 parse_ml_literal_string(location<Container>& loc)
 {
     const auto first = loc.iter();
@@ -450,7 +464,9 @@ parse_ml_literal_string(location<Container>& loc)
                 "parse_ml_literal_string: invalid token",
                 inner_loc, "should be '''"));
         }
-        return ok(toml::string(body.unwrap().str()));
+        return ok(std::make_pair(
+                  toml::string(body.unwrap().str(), toml::string_t::literal),
+                  token.unwrap()));
     }
     else
     {
@@ -460,7 +476,8 @@ parse_ml_literal_string(location<Container>& loc)
 }
 
 template<typename Container>
-result<toml::string, std::string> parse_literal_string(location<Container>& loc)
+result<std::pair<toml::string, region<Container>>, std::string>
+parse_literal_string(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_literal_string::invoke(loc))
@@ -484,7 +501,9 @@ result<toml::string, std::string> parse_literal_string(location<Container>& loc)
                 "parse_literal_string: invalid token",
                 inner_loc, "should be '"));
         }
-        return ok(toml::string(body.unwrap().str()));
+        return ok(std::make_pair(
+                  toml::string(body.unwrap().str(), toml::string_t::literal),
+                  token.unwrap()));
     }
     else
     {
@@ -494,30 +513,20 @@ result<toml::string, std::string> parse_literal_string(location<Container>& loc)
 }
 
 template<typename Container>
-result<toml::string, std::string> parse_string(location<Container>& loc)
+result<std::pair<toml::string, region<Container>>, std::string>
+parse_string(location<Container>& loc)
 {
-    if(const auto rslt = parse_ml_basic_string(loc))
-    {
-        return ok(rslt.unwrap());
-    }
-    if(const auto rslt = parse_ml_literal_string(loc))
-    {
-        return ok(rslt.unwrap());
-    }
-    if(const auto rslt = parse_basic_string(loc))
-    {
-        return ok(rslt.unwrap());
-    }
-    if(const auto rslt = parse_literal_string(loc))
-    {
-        return ok(rslt.unwrap());
-    }
+    if(const auto rslt = parse_ml_basic_string(loc))   {return rslt;}
+    if(const auto rslt = parse_ml_literal_string(loc)) {return rslt;}
+    if(const auto rslt = parse_basic_string(loc))      {return rslt;}
+    if(const auto rslt = parse_literal_string(loc))    {return rslt;}
     return err(format_underline("[error] toml::parse_string: not a string",
                loc, "not a string"));
 }
 
 template<typename Container>
-result<local_date, std::string> parse_local_date(location<Container>& loc)
+result<std::pair<local_date, region<Container>>, std::string>
+parse_local_date(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_local_date::invoke(loc))
@@ -551,11 +560,12 @@ result<local_date, std::string> parse_local_date(location<Container>& loc)
                 "toml::parse_local_date: invalid day format",
                 inner_loc, d.unwrap_err()));
         }
-        return ok(local_date(
+        return ok(std::make_pair(local_date(
             static_cast<std::int16_t>(from_string<int>(y.unwrap().str(), 0)),
             static_cast<month_t>(
                 static_cast<std::int8_t>(from_string<int>(m.unwrap().str(), 0)-1)),
-            static_cast<std::int8_t>(from_string<int>(d.unwrap().str(), 0))));
+            static_cast<std::int8_t>(from_string<int>(d.unwrap().str(), 0))),
+            token.unwrap()));
     }
     else
     {
@@ -568,7 +578,8 @@ result<local_date, std::string> parse_local_date(location<Container>& loc)
 }
 
 template<typename Container>
-result<local_time, std::string> parse_local_time(location<Container>& loc)
+result<std::pair<local_time, region<Container>>, std::string>
+parse_local_time(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_local_time::invoke(loc))
@@ -639,7 +650,7 @@ result<local_time, std::string> parse_local_time(location<Container>& loc)
                     inner_loc, secfrac.unwrap_err()));
             }
         }
-        return ok(time);
+        return ok(std::make_pair(time, token.unwrap()));
     }
     else
     {
@@ -652,7 +663,7 @@ result<local_time, std::string> parse_local_time(location<Container>& loc)
 }
 
 template<typename Container>
-result<local_datetime, std::string>
+result<std::pair<local_datetime, region<Container>>, std::string>
 parse_local_datetime(location<Container>& loc)
 {
     const auto first = loc.iter();
@@ -682,7 +693,9 @@ parse_local_datetime(location<Container>& loc)
                 "toml::parse_local_datetime: invalid datetime format",
                 inner_loc, "invalid time fomrat"));
         }
-        return ok(local_datetime(date.unwrap(), time.unwrap()));
+        return ok(std::make_pair(
+            local_datetime(date.unwrap().first, time.unwrap().first),
+            token.unwrap()));
     }
     else
     {
@@ -695,7 +708,7 @@ parse_local_datetime(location<Container>& loc)
 }
 
 template<typename Container>
-result<offset_datetime, std::string>
+result<std::pair<offset_datetime, region<Container>>, std::string>
 parse_offset_datetime(location<Container>& loc)
 {
     const auto first = loc.iter();
@@ -732,7 +745,8 @@ parse_offset_datetime(location<Container>& loc)
                 "toml::parse_offset_datetime: invalid datetime format",
                 inner_loc, "should be `Z` or `+HH:MM`"));
         }
-        return ok(offset_datetime(datetime.unwrap(), offset));
+        return ok(std::make_pair(offset_datetime(datetime.unwrap().first, offset),
+                                 token.unwrap()));
     }
     else
     {
@@ -750,11 +764,11 @@ result<key, std::string> parse_simple_key(location<Container>& loc)
 {
     if(const auto bstr = parse_basic_string(loc))
     {
-        return ok(bstr.unwrap().str);
+        return ok(bstr.unwrap().first.str);
     }
     if(const auto lstr = parse_literal_string(loc))
     {
-        return ok(lstr.unwrap().str);
+        return ok(lstr.unwrap().first.str);
     }
     if(const auto bare = lex_unquoted_key::invoke(loc))
     {
@@ -821,7 +835,8 @@ template<typename Container>
 result<value, std::string> parse_value(location<Container>&);
 
 template<typename Container>
-result<array, std::string> parse_array(location<Container>& loc)
+result<std::pair<array, region<Container>>, std::string>
+parse_array(location<Container>& loc)
 {
     const auto first = loc.iter();
     if(loc.iter() == loc.end())
@@ -846,7 +861,8 @@ result<array, std::string> parse_array(location<Container>& loc)
         if(loc.iter() != loc.end() && *loc.iter() == ']')
         {
             ++loc.iter(); // skip ']'
-            return ok(retval);
+            return ok(std::make_pair(retval,
+                      region<Container>(loc, first, loc.iter())));
         }
 
         if(auto val = parse_value(loc))
@@ -867,7 +883,8 @@ result<array, std::string> parse_array(location<Container>& loc)
             if(loc.iter() != loc.end() && *loc.iter() == ']')
             {
                 ++loc.iter(); // skip ']'
-                return ok(retval);
+                return ok(std::make_pair(retval,
+                          region<Container>(loc, first, loc.iter())));
             }
             else
             {
@@ -1019,7 +1036,8 @@ insert_nested_key(table& root, const toml::value& v,
 }
 
 template<typename Container>
-result<table, std::string> parse_inline_table(location<Container>& loc)
+result<std::pair<table, region<Container>>, std::string>
+parse_inline_table(location<Container>& loc)
 {
     const auto first = loc.iter();
     table retval;
@@ -1035,7 +1053,8 @@ result<table, std::string> parse_inline_table(location<Container>& loc)
         if(loc.iter() != loc.end() && *loc.iter() == '}')
         {
             ++loc.iter(); // skip `}`
-            return ok(retval);
+            return ok(std::make_pair(
+                        retval, region<Container>(loc, first, loc.iter())));
         }
 
         const auto kv_r = parse_key_value_pair(loc);
@@ -1062,7 +1081,8 @@ result<table, std::string> parse_inline_table(location<Container>& loc)
             if(loc.iter() != loc.end() && *loc.iter() == '}')
             {
                 ++loc.iter(); // skip `}`
-                return ok(retval);
+                return ok(std::make_pair(
+                            retval, region<Container>(loc, first, loc.iter())));
             }
             else
             {
@@ -1084,16 +1104,26 @@ result<value, std::string> parse_value(location<Container>& loc)
     {
         return err(std::string("[error] toml::parse_value: input is empty"));
     }
-    if(auto r = parse_string         (loc)) {return ok(value(std::move(r.unwrap())));}
-    if(auto r = parse_array          (loc)) {return ok(value(std::move(r.unwrap())));}
-    if(auto r = parse_inline_table   (loc)) {return ok(value(std::move(r.unwrap())));}
-    if(auto r = parse_boolean        (loc)) {return ok(value(std::move(r.unwrap())));}
-    if(auto r = parse_offset_datetime(loc)) {return ok(value(std::move(r.unwrap())));}
-    if(auto r = parse_local_datetime (loc)) {return ok(value(std::move(r.unwrap())));}
-    if(auto r = parse_local_date     (loc)) {return ok(value(std::move(r.unwrap())));}
-    if(auto r = parse_local_time     (loc)) {return ok(value(std::move(r.unwrap())));}
-    if(auto r = parse_floating       (loc)) {return ok(value(std::move(r.unwrap())));}
-    if(auto r = parse_integer        (loc)) {return ok(value(std::move(r.unwrap())));}
+    if(auto r = parse_string         (loc))
+    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
+    if(auto r = parse_array          (loc))
+    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
+    if(auto r = parse_inline_table   (loc))
+    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
+    if(auto r = parse_boolean        (loc))
+    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
+    if(auto r = parse_offset_datetime(loc))
+    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
+    if(auto r = parse_local_datetime (loc))
+    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
+    if(auto r = parse_local_date     (loc))
+    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
+    if(auto r = parse_local_time     (loc))
+    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
+    if(auto r = parse_floating       (loc))
+    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
+    if(auto r = parse_integer        (loc))
+    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
 
     const auto msg = format_underline("[error] toml::parse_value: "
             "unknown token appeared", loc, "unknown");
@@ -1102,7 +1132,8 @@ result<value, std::string> parse_value(location<Container>& loc)
 }
 
 template<typename Container>
-result<std::vector<key>, std::string> parse_table_key(location<Container>& loc)
+result<std::pair<std::vector<key>, region<Container>>, std::string>
+parse_table_key(location<Container>& loc)
 {
     if(auto token = lex_std_table::invoke(loc))
     {
@@ -1126,7 +1157,7 @@ result<std::vector<key>, std::string> parse_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]`", inner_loc, "should be `]`"));
         }
-        return keys;
+        return ok(std::make_pair(keys.unwrap(), token.unwrap()));
     }
     else
     {
@@ -1135,7 +1166,7 @@ result<std::vector<key>, std::string> parse_table_key(location<Container>& loc)
 }
 
 template<typename Container>
-result<std::vector<key>, std::string>
+result<std::pair<std::vector<key>, region<Container>>, std::string>
 parse_array_table_key(location<Container>& loc)
 {
     if(auto token = lex_array_table::invoke(loc))
@@ -1162,7 +1193,7 @@ parse_array_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]]`", inner_loc, "should be `]]`"));
         }
-        return keys;
+        return ok(std::make_pair(keys.unwrap(), token.unwrap()));
     }
     else
     {
@@ -1241,19 +1272,27 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
     {
         data = std::move(tab.unwrap());
     }
-    else // failed (empty table is also success)
+    else // failed (empty table is regarded as success in parse_ml_table)
     {
         return err(tab.unwrap_err());
     }
     while(loc.iter() != loc.end())
     {
+        // here, the region of [table] is regarded as the table-key because
+        // the table body is normally too big and it is not so informative
+        // if the first key-value pair of the table is shown in the error
+        // message.
         if(const auto tabkey = parse_array_table_key(loc))
         {
             const auto tab = parse_ml_table(loc);
             if(!tab){return err(tab.unwrap_err());}
 
-            const auto inserted = insert_nested_key(data, tab.unwrap(),
-                    tabkey.unwrap().begin(), tabkey.unwrap().end(), true);
+            const auto& keys = tabkey.unwrap().first;
+            const auto& reg  = tabkey.unwrap().second;
+
+            const auto inserted = insert_nested_key(data,
+                    toml::value(tab.unwrap(), reg),
+                    keys.begin(), keys.end(), /*is_array_of_table=*/ true);
             if(!inserted) {return err(inserted.unwrap_err());}
 
             continue;
@@ -1263,8 +1302,11 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
             const auto tab = parse_ml_table(loc);
             if(!tab){return err(tab.unwrap_err());}
 
-            const auto inserted = insert_nested_key(data, tab.unwrap(),
-                    tabkey.unwrap().begin(), tabkey.unwrap().end());
+            const auto& keys = tabkey.unwrap().first;
+            const auto& reg  = tabkey.unwrap().second;
+
+            const auto inserted = insert_nested_key(data,
+                    toml::value(tab.unwrap(), reg), keys.begin(), keys.end());
             if(!inserted) {return err(inserted.unwrap_err());}
 
             continue;
