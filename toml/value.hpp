@@ -15,6 +15,12 @@
 namespace toml
 {
 
+namespace detail
+{
+std::string // forward decl
+format_error_for_value(const value&, const std::string&, const std::string&);
+}// detail
+
 template<typename T>
 struct value_traits
 {
@@ -555,6 +561,9 @@ class value
         return detail::format_underline(msg, *(this->region_info_), com);
     }
 
+    friend std::string detail::format_error_for_value(
+            const value&, const std::string&, const std::string&);
+
     template<value_t T>
     struct switch_cast;
 
@@ -582,6 +591,16 @@ class value
         table_storage   table_;
     };
 };
+
+namespace detail
+{
+inline std::string format_error_for_value(
+        const value& v, const std::string& m, const std::string& c)
+{
+    return v.format_error(m, c);
+}
+}// detail
+
 
 template<> struct value::switch_cast<value_t::Boolean>
 {
