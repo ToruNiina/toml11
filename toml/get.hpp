@@ -6,90 +6,174 @@
 namespace toml
 {
 
+// ============================================================================
+// exact toml::* type
+
 template<typename T, typename std::enable_if<
     detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
 inline T& get(value& v)
 {
-    constexpr value_t kind = detail::check_type<T>();
-    return v.cast<kind>();
+    return v.cast<detail::toml_value_t<T>::value>();
 }
 
 template<typename T, typename std::enable_if<
     detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
 inline T const& get(const value& v)
 {
-    constexpr value_t kind = detail::check_type<T>();
-    return v.cast<kind>();
+    return v.cast<detail::toml_value_t<T>::value>();
 }
 
+template<typename T, typename std::enable_if<
+    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
+inline T && get(value&& v)
+{
+    return v.cast<detail::toml_value_t<T>::value>();
+}
+
+// ============================================================================
+// integer convertible from toml::Integer
+
 template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>,
-    detail::negation<std::is_same<T, bool>>, std::is_integral<T>
+    std::is_integral<T>,                            // T is integral
+    detail::negation<std::is_same<T, bool>>,        // but not bool
+    detail::negation<detail::is_exact_toml_type<T>> // but not toml::integer
     >::value, std::nullptr_t>::type = nullptr>
 inline T get(const value& v)
 {
     return static_cast<T>(v.cast<value_t::Integer>());
 }
+
+// ============================================================================
+// floating point convertible from toml::Float
+
 template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>, std::is_floating_point<T>
+    std::is_floating_point<T>,                      // T is floating_point
+    detail::negation<detail::is_exact_toml_type<T>> // but not toml::Float
     >::value, std::nullptr_t>::type = nullptr>
 inline T get(const value& v)
 {
     return static_cast<T>(v.cast<value_t::Float>());
 }
 
-// array-like type
+// ============================================================================
+// std::string; toml uses its own toml::string, but it should be convertible to
+// std::string seamlessly
+
+template<typename T, typename std::enable_if<
+    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
+inline std::string& get(value& v)
+{
+    return v.cast<value_t::String>().str;
+}
+
+template<typename T, typename std::enable_if<
+    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
+inline std::string const& get(const value& v)
+{
+    return v.cast<value_t::String>().str;
+}
+
+template<typename T, typename std::enable_if<
+    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
+inline std::string get(value&& v)
+{
+    return std::move(v.cast<value_t::String>().str);
+}
+
+
+// ============================================================================
+// forward declaration. ignore this.
 template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>, detail::is_container<T>
+    detail::is_container<T>,                        // T is container
+    detail::has_resize_method<T>,                   // T::resize(N) works
+    detail::negation<detail::is_exact_toml_type<T>> // but not toml::array
+    >::value, std::nullptr_t>::type = nullptr>
+T get(const value& v);
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::is_container<T>,                        // T is container
+    detail::negation<detail::has_resize_method<T>>, // no T::resize() exists
+    detail::negation<detail::is_exact_toml_type<T>> // not toml::array
+    >::value, std::nullptr_t>::type = nullptr>
+T get(const value& v);
+template<typename T, typename std::enable_if<
+    detail::is_std_pair<T>::value, std::nullptr_t>::type = nullptr>
+T get(const value& v);
+template<typename T, typename std::enable_if<
+    detail::is_std_tuple<T>::value, std::nullptr_t>::type = nullptr>
+T get(const value& v);
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::is_map<T>,                              // T is map
+    detail::negation<detail::is_exact_toml_type<T>> // but not toml::table
+    >::value, std::nullptr_t>::type = nullptr>
+T get(const toml::value& v);
+
+// ============================================================================
+// array-like types; most likely STL container, like std::vector, etc.
+
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::is_container<T>,                        // T is container
+    detail::has_resize_method<T>,                   // T::resize(N) works
+    detail::negation<detail::is_exact_toml_type<T>> // but not toml::array
     >::value, std::nullptr_t>::type = nullptr>
 T get(const value& v)
 {
+    using value_type = typename T::value_type;
     const auto& ar = v.cast<value_t::Array>();
-    T tmp;
-    try
-    {
-        ::toml::resize(tmp, ar.size());
-    }
-    catch(std::invalid_argument& iv)
-    {
-        throw type_error("toml::get: static array: size is not enough");
-    }
-    std::transform(ar.cbegin(), ar.cend(), tmp.begin(),
-        [](value const& elem){return get<typename T::value_type>(elem);});
-    return tmp;
+
+    T container; container.resize(ar.size());
+    std::transform(ar.cbegin(), ar.cend(), container.begin(),
+                   [](const value& x){return ::toml::get<value_type>(x);});
+    return container;
 }
 
-// table-like case
+// ============================================================================
+// array-like types; but does not have resize(); most likely std::array.
+
 template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>, detail::is_map<T>
+    detail::is_container<T>,                        // T is container
+    detail::negation<detail::has_resize_method<T>>, // no T::resize() exists
+    detail::negation<detail::is_exact_toml_type<T>> // not toml::array
     >::value, std::nullptr_t>::type = nullptr>
-T get(const toml::value& v)
+T get(const value& v)
 {
-    const auto& tb = v.cast<value_t::Table>();
-    T tmp;
-    for(const auto& kv : tb){tmp.insert(kv);}
-    return tmp;
+    using value_type = typename T::value_type;
+    const auto& ar = v.cast<value_t::Array>();
+
+    T container;
+    if(ar.size() != container.size())
+    {
+        throw std::out_of_range(detail::format_error_for_value(v, concat_to_string(
+            "[erorr] toml::get specified container size is ", container.size(),
+            " but there are ", ar.size(), " elements in toml array."), "here"));
+    }
+    std::transform(ar.cbegin(), ar.cend(), container.begin(),
+                   [](const value& x){return ::toml::get<value_type>(x);});
+    return container;
 }
 
-// array -> pair
-template<typename T, typename std::enable_if<detail::is_std_pair<T>::value,
-    std::nullptr_t>::type = nullptr>
+// ============================================================================
+// std::pair.
+
+template<typename T, typename std::enable_if<
+    detail::is_std_pair<T>::value, std::nullptr_t>::type = nullptr>
 T get(const value& v)
 {
     using first_type  = typename T::first_type;
     using second_type = typename T::second_type;
+
     const auto& ar = v.cast<value_t::Array>();
     if(ar.size() != 2)
     {
-        throw std::out_of_range(
-                "toml::get<std::pair>: value does not have 2 elements.");
+        throw std::out_of_range(detail::format_error_for_value(v, concat_to_string(
+            "[erorr] toml::get specified std::pair but there are ", ar.size(),
+            " elements in toml array."), "here"));
     }
-
-    T tmp;
-    tmp.first  = get<first_type >(ar.at(0));
-    tmp.second = get<second_type>(ar.at(1));
-    return tmp;
+    return std::make_pair(::toml::get<first_type >(ar.at(0)),
+                          ::toml::get<second_type>(ar.at(1)));
 }
+
+// ============================================================================
+// std::tuple.
 
 namespace detail
 {
@@ -103,25 +187,46 @@ T get_tuple_impl(const toml::Array& a, index_sequence<I...>)
 
 } // detail
 
-// array -> tuple
-template<typename T, typename std::enable_if<detail::is_std_tuple<T>::value,
-    std::nullptr_t>::type = nullptr>
+template<typename T, typename std::enable_if<
+    detail::is_std_tuple<T>::value, std::nullptr_t>::type = nullptr>
 T get(const value& v)
 {
     const auto& ar = v.cast<value_t::Array>();
     if(ar.size() != std::tuple_size<T>::value)
     {
-        throw std::out_of_range(
-            "toml::get<std::tuple>: array value does not have " +
-            std::to_string(std::tuple_size<T>::value) +
-            std::string(" elements (array has ") + std::to_string(ar.size()) +
-            std::string(" elements)."));
+        throw std::out_of_range(detail::format_error_for_value(v, concat_to_string(
+            "[erorr] toml::get specified std::tuple with ",
+            std::tuple_size<T>::value, "elements, but there are ", ar.size(),
+            " elements in toml array."), "here"));
     }
     return detail::get_tuple_impl<T>(ar,
             detail::make_index_sequence<std::tuple_size<T>::value>{});
 }
 
-//  get_or -----------------------------------------------------------------
+// ============================================================================
+// map-like types; most likely STL map, like std::map or std::unordered_map.
+
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::is_map<T>,                              // T is map
+    detail::negation<detail::is_exact_toml_type<T>> // but not toml::table
+    >::value, std::nullptr_t>::type = nullptr>
+T get(const toml::value& v)
+{
+    using key_type    = typename T::key_type;
+    using mapped_type = typename T::mapped_type;
+    static_assert(std::is_convertible<std::string, key_type>::value,
+                  "toml::get only supports map type of which key_type is "
+                  "convertible from std::string.");
+    T map;
+    for(const auto& kv : v.cast<value_t::Table>())
+    {
+        map[key_type(kv.first)] = ::toml::get<mapped_type>(kv.second);
+    }
+    return map;
+}
+
+// ============================================================================
+// get_or
 
 template<typename T>
 inline typename std::remove_cv<typename std::remove_reference<T>::type>::type
