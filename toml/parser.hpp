@@ -907,8 +907,7 @@ parse_key_value_pair(location<Container>& loc)
     if(!key)
     {
         loc.iter() = first;
-        return err("[error] toml::parse_key_value_pair: while reading key-value"
-                   " pair" + key.unwrap_err());
+        return err(key.unwrap_err());
     }
 
     const auto kvsp = lex_keyval_sep::invoke(loc);
@@ -924,8 +923,7 @@ parse_key_value_pair(location<Container>& loc)
     if(!val)
     {
         loc.iter() = first;
-        return err("[error] toml::parse_key_value_pair: while reading key-value"
-                   " pair" + val.unwrap_err());
+        return err(val.unwrap_err());
     }
     return ok(std::make_pair(std::move(key.unwrap()), std::move(val.unwrap())));
 }
