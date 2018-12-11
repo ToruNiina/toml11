@@ -15,6 +15,7 @@ set(TEST_NAMES
     test_parse_floating
     test_parse_string
     test_parse_array
+    test_parse_inline_table
     test_parse_key
 
 #     test_to_toml
