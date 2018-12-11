@@ -1,15 +1,19 @@
 set(TEST_NAMES
+    test_datetime
+    test_utility
+    test_result
+    test_traits
+    test_value
     test_lex_boolean
     test_lex_integer
     test_lex_floating
     test_lex_datetime
     test_lex_string
     test_lex_key_comment
-    test_datetime
-    test_utility
-    test_result
-    test_traits
-    test_value
+    test_parse_boolean
+    test_parse_integer
+    test_parse_floating
+
 #     test_to_toml
 #     test_from_toml
 #     test_get
