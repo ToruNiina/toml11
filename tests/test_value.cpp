@@ -39,6 +39,8 @@ BOOST_AUTO_TEST_CASE(test_value_boolean)
 
     toml::value v3(v1);
     toml::value v4(v2);
+    BOOST_CHECK(v3 == v1);
+    BOOST_CHECK(v4 == v2);
 
     BOOST_CHECK_EQUAL(v3.type(), toml::value_t::Boolean);
     BOOST_CHECK_EQUAL(v4.type(), toml::value_t::Boolean);
@@ -107,6 +109,8 @@ BOOST_AUTO_TEST_CASE(test_value_integer)
 
     toml::value v3(v1);
     toml::value v4(v2);
+    BOOST_CHECK(v3 == v1);
+    BOOST_CHECK(v4 == v2);
 
     BOOST_CHECK_EQUAL(v3.type(), toml::value_t::Integer);
     BOOST_CHECK_EQUAL(v4.type(), toml::value_t::Integer);
@@ -175,6 +179,8 @@ BOOST_AUTO_TEST_CASE(test_value_float)
 
     toml::value v3(v1);
     toml::value v4(v2);
+    BOOST_CHECK(v3 == v1);
+    BOOST_CHECK(v4 == v2);
 
     BOOST_CHECK_EQUAL(v3.type(), toml::value_t::Float);
     BOOST_CHECK_EQUAL(v4.type(), toml::value_t::Float);
@@ -254,6 +260,9 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     toml::value v4(v1);
     toml::value v5(v2);
     toml::value v6(v3);
+    BOOST_CHECK(v4 == v1);
+    BOOST_CHECK(v5 == v2);
+    BOOST_CHECK(v6 == v3);
 
     BOOST_CHECK_EQUAL(v4.type(), toml::value_t::String);
     BOOST_CHECK_EQUAL(v5.type(), toml::value_t::String);
@@ -327,6 +336,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_date)
                       toml::local_date(2018, toml::month_t::Apr, 1));
 
     toml::value v2(v1);
+    BOOST_CHECK(v2 == v1);
 
     BOOST_CHECK_EQUAL(v2.type(), toml::value_t::LocalDate);
     BOOST_CHECK(v2.is(toml::value_t::LocalDate));
@@ -371,6 +381,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_time)
                       toml::local_time(1, 30, 0, 100, 0));
 
     toml::value v3(v1);
+    BOOST_CHECK(v3 == v1);
 
     BOOST_CHECK_EQUAL(v3.type(), toml::value_t::LocalTime);
     BOOST_CHECK(v3.is(toml::value_t::LocalTime));
@@ -416,6 +427,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_datetime)
                           toml::local_time(1, 15, 30)));
 
     toml::value v2(v1);
+    BOOST_CHECK(v2 == v1);
 
     BOOST_CHECK_EQUAL(v2.type(), toml::value_t::LocalDatetime);
     BOOST_CHECK(v2.is(toml::value_t::LocalDatetime));
@@ -468,6 +480,7 @@ BOOST_AUTO_TEST_CASE(test_value_offset_datetime)
                 toml::time_offset(9, 0)));
 
     toml::value v2(v1);
+    BOOST_CHECK(v2 == v1);
 
     BOOST_CHECK_EQUAL(v2.type(), toml::value_t::OffsetDatetime);
     BOOST_CHECK(v2.is(toml::value_t::OffsetDatetime));
@@ -535,6 +548,7 @@ BOOST_AUTO_TEST_CASE(test_value_array)
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Array>().at(4).cast<toml::value_t::Integer>(), 5);
 
     toml::value v3(v1);
+    BOOST_CHECK(v3 == v1);
 
     BOOST_CHECK_EQUAL(v3.type(), toml::value_t::Array);
     BOOST_CHECK(v3.is(toml::value_t::Array));
@@ -576,6 +590,7 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Table>().at("baz").cast<toml::value_t::String>().str, "quux");
 
     toml::value v3(v1);
+    BOOST_CHECK(v3 == v1);
 
     BOOST_CHECK_EQUAL(v3.type(), toml::value_t::Table);
     BOOST_CHECK(v3.is(toml::value_t::Table));
