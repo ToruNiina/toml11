@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(test_basic_string_value)
         "\"192.168.1.1\"",
         value("192.168.1.1", string_t::basic));
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, ,
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value,
         "\"\xE4\xB8\xAD\xE5\x9B\xBD\"",
         value("\xE4\xB8\xAD\xE5\x9B\xBD", string_t::basic));
 #else
