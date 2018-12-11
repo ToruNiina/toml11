@@ -13,6 +13,8 @@ set(TEST_NAMES
     test_parse_boolean
     test_parse_integer
     test_parse_floating
+    test_parse_string
+    test_parse_key
 
 #     test_to_toml
 #     test_from_toml
