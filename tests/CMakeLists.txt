@@ -18,8 +18,6 @@ set(TEST_NAMES
 #     test_from_toml
 #     test_get
 #     test_get_or
-#     test_value_operator
-#     test_acceptor
 #     test_parser
 #     test_parse_file
 #     test_parse_unicode
