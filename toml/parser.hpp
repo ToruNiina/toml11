@@ -6,6 +6,7 @@
 #include "lexer.hpp"
 #include "types.hpp"
 #include "value.hpp"
+#include <cstring>
 
 namespace toml
 {
@@ -1343,6 +1344,22 @@ inline table parse(std::istream& is, std::string fname = "unknown file")
 
     detail::location<std::vector<char>>
         loc(std::move(fname), std::move(letters));
+
+    // skip BOM if exists.
+    // XXX component of BOM (like 0xEF) exceeds the representable range of
+    // signed char, so on some (actually, most) of the environment, these cannot
+    // be compared to char. However, since we are always out of luck, we need to
+    // check our chars are equivalent to BOM. To do this, first we need to
+    // convert char to unsigned char to guarantee the comparability.
+    if(letters.size() >= 3)
+    {
+        std::array<unsigned char, 3> BOM;
+        std::memcpy(BOM.data(), letters.data(), 3);
+        if(BOM[0] == 0xEF && BOM[1] == 0xBB && BOM[2] == 0xBF)
+        {
+            loc.iter() += 3; // BOM found. skip.
+        }
+    }
 
     const auto data = detail::parse_toml_file(loc);
     if(!data)
