@@ -188,7 +188,8 @@ using lex_quoted_key = either<lex_basic_string, lex_literal_string>;
 using lex_simple_key = either<lex_unquoted_key, lex_quoted_key>;
 using lex_dotted_key = sequence<lex_simple_key,
                                 repeat<sequence<lex_dot_sep, lex_simple_key>,
-                                       at_least<1>>
+                                       at_least<1>
+                                       >
                                 >;
 using lex_key = either<lex_dotted_key, lex_simple_key>;
 
@@ -199,13 +200,17 @@ using lex_keyval_sep = sequence<maybe<lex_ws>,
 using lex_std_table_open  = character<'['>;
 using lex_std_table_close = character<']'>;
 using lex_std_table       = sequence<lex_std_table_open,
+                                     maybe<lex_ws>,
                                      lex_key,
+                                     maybe<lex_ws>,
                                      lex_std_table_close>;
 
 using lex_array_table_open  = sequence<lex_std_table_open,  lex_std_table_open>;
 using lex_array_table_close = sequence<lex_std_table_close, lex_std_table_close>;
 using lex_array_table       = sequence<lex_array_table_open,
+                                       maybe<lex_ws>,
                                        lex_key,
+                                       maybe<lex_ws>,
                                        lex_array_table_close>;
 
 } // detail
