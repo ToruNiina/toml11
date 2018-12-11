@@ -198,7 +198,8 @@ struct region final : public region_base
 
 // to show a better error message.
 inline std::string format_underline(const std::string& message,
-        const region_base& reg, const std::string& comment_for_underline)
+        const region_base& reg, const std::string& comment_for_underline,
+        std::vector<std::string> helps = {})
 {
     const auto line        = reg.line();
     const auto line_number = reg.line_num();
@@ -218,6 +219,17 @@ inline std::string format_underline(const std::string& message,
     retval += make_string(reg.size(),   '~');
     retval += ' ';
     retval += comment_for_underline;
+    if(helps.size() != 0)
+    {
+        retval += '\n';
+        retval += make_string(line_number.size() + 1, ' ');
+        retval += " | ";
+        for(const auto help : helps)
+        {
+            retval += "\nHint: ";
+            retval += help;
+        }
+    }
     return retval;
 }
 
