@@ -868,6 +868,13 @@ parse_array(location<Container>& loc)
 
         if(auto val = parse_value(loc))
         {
+            if(!retval.empty() && retval.front().type() != val.as_ok().type())
+            {
+                throw syntax_error(format_underline(
+                    "[error] toml::parse_array: type of elements should be the "
+                    "same each other.", region<Container>(loc, first, loc.iter()),
+                    "inhomogenous types"));
+            }
             retval.push_back(std::move(val.unwrap()));
         }
         else
