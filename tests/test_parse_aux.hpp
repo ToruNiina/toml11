@@ -21,11 +21,11 @@ do {                                                                           \
 } while(false);                                                                \
 /**/
 
-#define TOML11_TEST_PARSE_EQUAL_VALUE(tkn, expct)                              \
+#define TOML11_TEST_PARSE_EQUAL_VALUE(psr, tkn, expct)                         \
 do {                                                                           \
     const std::string token(tkn);                                              \
     toml::detail::location<std::string> loc("test", token);                    \
-    const auto result = toml::detail::parse_value(loc);                        \
+    const auto result = psr(loc);                                              \
     BOOST_CHECK(result.is_ok());                                               \
     if(result.is_ok()){                                                        \
     BOOST_CHECK(result.unwrap() == expct);                                     \
