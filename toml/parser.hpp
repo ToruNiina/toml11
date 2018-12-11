@@ -784,7 +784,7 @@ template<typename Container>
 result<std::vector<key>, std::string> parse_key(location<Container>& loc)
 {
     const auto first = loc.iter();
-    // dotted key -> foo.bar.baz
+    // dotted key -> foo.bar.baz whitespaces are allowed
     if(const auto token = lex_dotted_key::invoke(loc))
     {
         location<std::string> inner_loc(loc.name(), token.unwrap().str());
@@ -792,6 +792,7 @@ result<std::vector<key>, std::string> parse_key(location<Container>& loc)
 
         while(inner_loc.iter() != inner_loc.end())
         {
+            lex_ws::invoke(inner_loc);
             if(const auto k = parse_simple_key(inner_loc))
             {
                 keys.push_back(k.unwrap());
@@ -803,6 +804,7 @@ result<std::vector<key>, std::string> parse_key(location<Container>& loc)
                     inner_loc, k.unwrap_err()));
             }
 
+            lex_ws::invoke(inner_loc);
             if(inner_loc.iter() == inner_loc.end())
             {
                 break;
@@ -1173,12 +1175,18 @@ parse_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `[`", inner_loc, "should be `[`"));
         }
+        // to skip [ a . b . c ]
+        //          ^----------- this whitespace
+        lex_ws::invoke(inner_loc);
         const auto keys = parse_key(inner_loc);
         if(!keys)
         {
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: invalid key", inner_loc, "not key"));
         }
+        // to skip [ a . b . c ]
+        //                    ^-- this whitespace
+        lex_ws::invoke(inner_loc);
         const auto close = lex_std_table_close::invoke(inner_loc);
         if(!close)
         {
