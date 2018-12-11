@@ -276,5 +276,48 @@ get_or(const toml::Table& tab, const toml::key& ky, T&& opt)
         typename std::remove_reference<T>::type>::type>(tab.find(ky)->second);
 }
 
+// ============================================================================
+// expect
+
+template<typename T>
+auto expect(const toml::value& v)
+    -> result<decltype(::toml::get<T>(v)), std::string>
+{
+    try
+    {
+        return ok(get<T>(v));
+    }
+    catch(const type_error& te)
+    {
+        return err(te.what());
+    }
+}
+template<typename T>
+auto expect(toml::value& v)
+    -> result<decltype(::toml::get<T>(v)), std::string>
+{
+    try
+    {
+        return ok(get<T>(v));
+    }
+    catch(const type_error& te)
+    {
+        return err(te.what());
+    }
+}
+template<typename T>
+auto expect(toml::value&& v)
+    -> result<decltype(::toml::get<T>(std::move(v))), std::string>
+{
+    try
+    {
+        return ok(get<T>(std::move(v)));
+    }
+    catch(const type_error& te)
+    {
+        return err(te.what());
+    }
+}
+
 } // toml
 #endif// TOML11_GET
