@@ -914,17 +914,39 @@ parse_key_value_pair(location<Container>& loc)
     auto key = parse_key(loc);
     if(!key)
     {
-        loc.iter() = first;
-        return err(key.unwrap_err());
+        std::string msg = std::move(key.unwrap_err());
+        // if the next token is keyvalue-separator, it means that there are no
+        // key. then we need to show error as "empty key is not allowed".
+        if(const auto keyval_sep = lex_keyval_sep::invoke(loc))
+        {
+            loc.iter() = first;
+            msg = format_underline("[error] toml::parse_key_value_pair: "
+                "empty key is not allowed.", loc, "key expected before '='");
+        }
+        return err(std::move(msg));
     }
 
     const auto kvsp = lex_keyval_sep::invoke(loc);
     if(!kvsp)
     {
-        const auto msg = format_underline("[error] toml::parse_key_value_pair: "
-            "missing key-value separator `=`", loc, "should be `=`");
+        std::string msg;
+        // if the line contains '=' after the invalid sequence, possibly the
+        // error is in the key (like, invalid character in bare key).
+        const auto line_end = std::find(loc.iter(), loc.end(), '\n');
+        if(std::find(loc.iter(), line_end, '=') != line_end)
+        {
+            msg = format_underline("[error] toml::parse_key_value_pair: "
+                "invalid format for key", loc, "invalid character in key", {
+                "Did you forget '.' to separate dotted-key?",
+                "Allowed characters for bare key are [0-9a-zA-Z_-]."});
+        }
+        else // if not, the error is lack of key-value separator.
+        {
+            msg = format_underline("[error] toml::parse_key_value_pair: "
+                "missing key-value separator `=`", loc, "should be `=`");
+        }
         loc.iter() = first;
-        return err(msg);
+        return err(std::move(msg));
     }
 
     auto val = parse_value(loc);
