@@ -358,3 +358,35 @@ BOOST_AUTO_TEST_CASE(test_get_toml_offset_datetime)
     BOOST_CHECK_EQUAL(tm.tm_sec,            0);
     }
 }
+
+
+BOOST_AUTO_TEST_CASE(test_find_and_get)
+{
+    {
+        toml::value v(true);
+        bool thrown = false;
+        try
+        {
+            toml::get<toml::boolean>(v, "key");
+        }
+        catch(toml::type_error const& te)
+        {
+            thrown = true;
+        }
+        BOOST_CHECK(thrown);
+    }
+
+    {
+        toml::table v{{"num", 42}};
+        BOOST_CHECK_EQUAL(42, toml::get<int>(v, "num"));
+        toml::get<toml::integer>(v, "num") = 54;
+        BOOST_CHECK_EQUAL(54, toml::get<int>(v, "num"));
+    }
+
+    {
+        toml::value v = toml::table{{"num", 42}};
+        BOOST_CHECK_EQUAL(42, toml::get<int>(v, "num"));
+        toml::get<toml::integer>(v, "num") = 54;
+        BOOST_CHECK_EQUAL(54, toml::get<int>(v, "num"));
+    }
+}
