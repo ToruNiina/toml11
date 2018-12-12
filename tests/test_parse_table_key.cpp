@@ -101,6 +101,12 @@ BOOST_AUTO_TEST_CASE(test_array_of_table_dotted_key)
         keys[2] = "z";
         keys[3] = "w";
         TOML11_TEST_PARSE_EQUAL(parse_array_table_key, "[[x.y.z.w]]", keys);
+        TOML11_TEST_PARSE_EQUAL(parse_array_table_key, "[[x . y . z . w]]", keys);
+        TOML11_TEST_PARSE_EQUAL(parse_array_table_key, "[[x. y .z. w]]", keys);
+        TOML11_TEST_PARSE_EQUAL(parse_array_table_key, "[[x .y. z .w]]", keys);
+        TOML11_TEST_PARSE_EQUAL(parse_array_table_key, "[[ x. y .z . w ]]", keys);
+        TOML11_TEST_PARSE_EQUAL(parse_array_table_key, "[[ x . y . z . w ]]", keys);
+
     }
     {
         std::vector<key> keys(2);
