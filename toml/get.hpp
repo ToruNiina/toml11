@@ -26,9 +26,9 @@ inline T const& get(const value& v)
 
 template<typename T, typename std::enable_if<
     detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-inline T && get(value&& v)
+inline T&& get(value&& v)
 {
-    return v.cast<detail::toml_value_t<T>::value>();
+    return std::move(v.cast<detail::toml_value_t<T>::value>());
 }
 
 // ============================================================================
