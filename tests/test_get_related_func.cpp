@@ -12,14 +12,14 @@
 #include <deque>
 #include <array>
 
-BOOST_AUTO_TEST_CASE(test_find_and_get)
+BOOST_AUTO_TEST_CASE(test_find)
 {
     {
         toml::value v(true);
         bool thrown = false;
         try
         {
-            toml::get<toml::boolean>(v, "key");
+            toml::find<toml::boolean>(v, "key");
         }
         catch(toml::type_error const& te)
         {
@@ -30,16 +30,16 @@ BOOST_AUTO_TEST_CASE(test_find_and_get)
 
     {
         toml::table v{{"num", 42}};
-        BOOST_CHECK_EQUAL(42, toml::get<int>(v, "num"));
-        toml::get<toml::integer>(v, "num") = 54;
-        BOOST_CHECK_EQUAL(54, toml::get<int>(v, "num"));
+        BOOST_CHECK_EQUAL(42, toml::find<int>(v, "num"));
+        toml::find<toml::integer>(v, "num") = 54;
+        BOOST_CHECK_EQUAL(54, toml::find<int>(v, "num"));
     }
 
     {
         toml::value v = toml::table{{"num", 42}};
-        BOOST_CHECK_EQUAL(42, toml::get<int>(v, "num"));
-        toml::get<toml::integer>(v, "num") = 54;
-        BOOST_CHECK_EQUAL(54, toml::get<int>(v, "num"));
+        BOOST_CHECK_EQUAL(42, toml::find<int>(v, "num"));
+        toml::find<toml::integer>(v, "num") = 54;
+        BOOST_CHECK_EQUAL(54, toml::find<int>(v, "num"));
     }
 }
 

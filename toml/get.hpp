@@ -270,8 +270,8 @@ T get(const toml::value& v)
 
 template<typename T>
 decltype(::toml::get<T>(std::declval<const ::toml::value&>()))
-get(const toml::table& tab, const toml::key& ky,
-    std::string tablename = "unknown table")
+find(const toml::table& tab, const toml::key& ky,
+     std::string tablename = "unknown table")
 {
     if(tab.count(ky) == 0)
     {
@@ -282,8 +282,8 @@ get(const toml::table& tab, const toml::key& ky,
 }
 template<typename T>
 decltype(::toml::get<T>(std::declval<::toml::value&>()))
-get(toml::table& tab, const toml::key& ky,
-    std::string tablename = "unknown table")
+find(toml::table& tab, const toml::key& ky,
+     std::string tablename = "unknown table")
 {
     if(tab.count(ky) == 0)
     {
@@ -294,8 +294,8 @@ get(toml::table& tab, const toml::key& ky,
 }
 template<typename T>
 decltype(::toml::get<T>(std::declval<::toml::value&&>()))
-get(toml::table&& tab, const toml::key& ky,
-    std::string tablename = "unknown table")
+find(toml::table&& tab, const toml::key& ky,
+     std::string tablename = "unknown table")
 {
     if(tab.count(ky) == 0)
     {
@@ -307,7 +307,7 @@ get(toml::table&& tab, const toml::key& ky,
 
 template<typename T>
 decltype(::toml::get<T>(std::declval<const ::toml::value&>()))
-get(const toml::value& v, const toml::key& ky)
+find(const toml::value& v, const toml::key& ky)
 {
     const auto& tab = ::toml::get<toml::table>(v);
     if(tab.count(ky) == 0)
@@ -320,7 +320,7 @@ get(const toml::value& v, const toml::key& ky)
 }
 template<typename T>
 decltype(::toml::get<T>(std::declval<::toml::value&>()))
-get(toml::value& v, const toml::key& ky)
+find(toml::value& v, const toml::key& ky)
 {
     auto& tab = ::toml::get<toml::table>(v);
     if(tab.count(ky) == 0)
@@ -333,7 +333,7 @@ get(toml::value& v, const toml::key& ky)
 }
 template<typename T>
 decltype(::toml::get<T>(std::declval<::toml::value&&>()))
-get(toml::value&& v, const toml::key& ky)
+find(toml::value&& v, const toml::key& ky)
 {
     auto tab = ::toml::get<toml::table>(std::move(v));
     if(tab.count(ky) == 0)
