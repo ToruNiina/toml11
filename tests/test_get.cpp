@@ -250,3 +250,94 @@ BOOST_AUTO_TEST_CASE(test_get_toml_array_of_array)
     BOOST_CHECK_EQUAL(std::get<1>(t).at(1), "bar");
     BOOST_CHECK_EQUAL(std::get<1>(t).at(2), "baz");
 }
+
+BOOST_AUTO_TEST_CASE(test_get_toml_local_date)
+{
+    toml::value v1(toml::local_date{2018, toml::month_t::Apr, 1});
+    const auto date = toml::get<std::chrono::system_clock::time_point>(v1);
+
+    std::tm t;
+    t.tm_year = 2018 - 1900;
+    t.tm_mon  = 4    - 1;
+    t.tm_mday = 1;
+    t.tm_hour = 0;
+    t.tm_min  = 0;
+    t.tm_sec  = 0;
+    const auto c = std::chrono::system_clock::from_time_t(std::mktime(&t));
+    BOOST_CHECK(c == date);
+}
+
+BOOST_AUTO_TEST_CASE(test_get_toml_local_time)
+{
+    toml::value v1(toml::local_time{12, 30, 45});
+    const auto time = toml::get<std::chrono::seconds>(v1);
+    BOOST_CHECK(time == std::chrono::hours(12) +
+                        std::chrono::minutes(30) + std::chrono::seconds(45));
+}
+
+BOOST_AUTO_TEST_CASE(test_get_toml_local_datetime)
+{
+    toml::value v1(toml::local_datetime(
+                toml::local_date{2018, toml::month_t::Apr, 1},
+                toml::local_time{12, 30, 45}));
+
+    const auto date = toml::get<std::chrono::system_clock::time_point>(v1);
+    std::tm t;
+    t.tm_year = 2018 - 1900;
+    t.tm_mon  = 4    - 1;
+    t.tm_mday = 1;
+    t.tm_hour = 12;
+    t.tm_min  = 30;
+    t.tm_sec  = 45;
+    const auto c = std::chrono::system_clock::from_time_t(std::mktime(&t));
+    BOOST_CHECK(c == date);
+}
+
+BOOST_AUTO_TEST_CASE(test_get_toml_offset_datetime)
+{
+    {
+    toml::value v1(toml::offset_datetime(
+                toml::local_date{2018, toml::month_t::Apr, 1},
+                toml::local_time{12, 30, 0},
+                toml::time_offset{9, 0}));
+    //    2018-04-01T12:30:00+09:00
+    // == 2018-04-01T03:30:00Z
+
+    const auto date = toml::get<std::chrono::system_clock::time_point>(v1);
+    const auto timet = std::chrono::system_clock::to_time_t(date);
+
+    // get time_t as gmtime (2018-04-01T03:30:00Z)
+    const auto tmp = std::gmtime(std::addressof(timet)); // XXX not threadsafe!
+    BOOST_CHECK(tmp);
+    const auto tm = *tmp;
+    BOOST_CHECK_EQUAL(tm.tm_year + 1900, 2018);
+    BOOST_CHECK_EQUAL(tm.tm_mon  + 1,       4);
+    BOOST_CHECK_EQUAL(tm.tm_mday,           1);
+    BOOST_CHECK_EQUAL(tm.tm_hour,           3);
+    BOOST_CHECK_EQUAL(tm.tm_min,           30);
+    BOOST_CHECK_EQUAL(tm.tm_sec,            0);
+    }
+
+    {
+    toml::value v1(toml::offset_datetime(
+                toml::local_date{2018, toml::month_t::Apr, 1},
+                toml::local_time{12, 30, 0},
+                toml::time_offset{-8, 0}));
+    //    2018-04-01T12:30:00-08:00
+    // == 2018-04-01T20:30:00Z
+
+    const auto date = toml::get<std::chrono::system_clock::time_point>(v1);
+    const auto timet = std::chrono::system_clock::to_time_t(date);
+
+    // get time_t as gmtime (2018-04-01T03:30:00Z)
+    const auto tmp = std::gmtime(std::addressof(timet)); // XXX not threadsafe!
+    BOOST_CHECK(tmp);
+    const auto tm = *tmp;
+    BOOST_CHECK_EQUAL(tm.tm_year + 1900, 2018);
+    BOOST_CHECK_EQUAL(tm.tm_mon  + 1,       4);
+    BOOST_CHECK_EQUAL(tm.tm_mday,           1);
+    BOOST_CHECK_EQUAL(tm.tm_hour,          20);
+    BOOST_CHECK_EQUAL(tm.tm_min,           30);
+    BOOST_CHECK_EQUAL(tm.tm_sec,            0);
+    }
+}
