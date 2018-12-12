@@ -1216,6 +1216,7 @@ parse_array_table_key(location<Container>& loc)
                 "toml::parse_array_table_key: no `[[`", inner_loc,
                 "should be `[[`"));
         }
+        lex_ws::invoke(inner_loc);
         const auto keys = parse_key(inner_loc);
         if(!keys)
         {
@@ -1223,6 +1224,7 @@ parse_array_table_key(location<Container>& loc)
                 "toml::parse_array_table_key: invalid key", inner_loc,
                 "not key"));
         }
+        lex_ws::invoke(inner_loc);
         const auto close = lex_array_table_close::invoke(inner_loc);
         if(!close)
         {
