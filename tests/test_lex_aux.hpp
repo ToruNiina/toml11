@@ -15,7 +15,8 @@ do {                                                                           \
     const auto region = result.unwrap();                                       \
     BOOST_CHECK_EQUAL(region.str(), expected);                                 \
     BOOST_CHECK_EQUAL(region.str().size(), expected.size());                   \
-    BOOST_CHECK_EQUAL(std::distance(loc.begin(), loc.iter()), region.size());  \
+    BOOST_CHECK_EQUAL(static_cast<std::size_t>(std::distance(                  \
+                    loc.begin(), loc.iter())), region.size());                 \
     } else {                                                                   \
     std::cerr << "lexer " << lxr::pattern() << " failed with input `";         \
     std::cerr << token << "`. expected `" << expected << "`\n";                \
