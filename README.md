@@ -96,7 +96,7 @@ std::cout << toml::get<int>(data.at("answer")) << std::endl; // 54
 ```
 
 If the specified type requires conversion, you can't take a reference to the
-return value. See also [underlying types](#underlying-types)
+return value. See also [underlying types](#underlying-types).
 
 #### passing invalid type to toml::get
 
@@ -111,44 +111,6 @@ terminate called after throwing an instance of 'toml::type_error'
 ```
 
 NOTE: In order to show this kind of error message, all the toml values has 1 shared_ptr that points the corresponding byte sequence and 2 iterator that points the range. It is recommended to destruct all the `toml::value` classes after configuring your application to save the memory resource.
-
-#### finding value from table
-
-toml11 provides overloads to find a value from `toml::table`. Of course, you can do this in your own way with `toml::get` because it just searches and returns a value.
-
-```cpp
-const auto data = toml::parse("example.toml");
-const auto num  = toml::get<int>(data, "num", /*optional*/"example.toml");
-```
-
-If the value does not exists, it throws `std::out_of_range` with informative error message.
-
-```console
-terminate called after throwing an instance of 'std::out_of_range'
-  what():  [error] key "num" not found in example.toml
-```
-
-You can use this with a `toml::value` that is expected to be a `toml::table`. It automatically casts the value to table.
-
-```cpp
-const auto data = toml::parse("example.toml");
-const auto num  = toml::get<int>(data.at("table"), "num");
-// expecting the following example.toml
-// [table]
-// num = 42
-```
-
-In this case, because the value `data.at("table")` knows the locatoin of itself, you don't need to pass where you find the value. `toml::get` will show you a great error message.
-
-```console
-terminate called after throwing an instance of 'std::out_of_range'
-  what():  [error] key "num" not found
- --> example.toml
- 3 | [table]
-   | ~~~~~~~ in this table
-```
-
-If it's not a `toml::table`, error like "invalid type" would be thrown.
 
 ### getting arrays
 
@@ -330,6 +292,44 @@ const auto value = toml::expect<int>(data.at("number"))
         return number * 1.5 + 1.0;
     }).unwrap_or(/*default value =*/ 3.14);
 ```
+
+### finding value from table
+
+toml11 provides utility function to find a value from `toml::table`. Of course, you can do this in your own way with `toml::get` because it just searches `unordered_map` and returns a value if exists.
+
+```cpp
+const auto data = toml::parse("example.toml");
+const auto num  = toml::find<int>(data, "num", /*for err msg*/"example.toml");
+```
+
+If the value does not exist, it throws `std::out_of_range` with informative error message.
+
+```console
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  [error] key "num" not found in example.toml
+```
+
+You can use this with a `toml::value` that is expected to be a `toml::table`. It automatically casts the value to table.
+
+```cpp
+const auto data = toml::parse("example.toml");
+const auto num  = toml::find<int>(data.at("table"), "num");
+// expecting the following example.toml
+// [table]
+// num = 42
+```
+
+In this case, because the value `data.at("table")` knows the locatoin of itself, you don't need to pass where you find the value. `toml::find` will show you a great error message.
+
+```console
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  [error] key "num" not found
+ --> example.toml
+ 3 | [table]
+   | ~~~~~~~ in this table
+```
+
+If it's not a `toml::table`, the same error as "invalid type" would be thrown.
 
 ### checking value type
 
