@@ -154,7 +154,7 @@ template<typename T, typename std::enable_if<detail::conjunction<
     detail::is_container<T>,                        // T is container
     detail::has_resize_method<T>,                   // T::resize(N) works
     detail::negation<detail::is_exact_toml_type<T>> // but not toml::array
-    >::value, std::nullptr_t>::type = nullptr>
+    >::value, std::nullptr_t>::type>
 T get(const value& v)
 {
     using value_type = typename T::value_type;
@@ -173,7 +173,7 @@ template<typename T, typename std::enable_if<detail::conjunction<
     detail::is_container<T>,                        // T is container
     detail::negation<detail::has_resize_method<T>>, // no T::resize() exists
     detail::negation<detail::is_exact_toml_type<T>> // not toml::array
-    >::value, std::nullptr_t>::type = nullptr>
+    >::value, std::nullptr_t>::type>
 T get(const value& v)
 {
     using value_type = typename T::value_type;
@@ -195,7 +195,7 @@ T get(const value& v)
 // std::pair.
 
 template<typename T, typename std::enable_if<
-    detail::is_std_pair<T>::value, std::nullptr_t>::type = nullptr>
+    detail::is_std_pair<T>::value, std::nullptr_t>::type>
 T get(const value& v)
 {
     using first_type  = typename T::first_type;
@@ -228,7 +228,7 @@ T get_tuple_impl(const toml::Array& a, index_sequence<I...>)
 } // detail
 
 template<typename T, typename std::enable_if<
-    detail::is_std_tuple<T>::value, std::nullptr_t>::type = nullptr>
+    detail::is_std_tuple<T>::value, std::nullptr_t>::type>
 T get(const value& v)
 {
     const auto& ar = v.cast<value_t::Array>();
@@ -249,7 +249,7 @@ T get(const value& v)
 template<typename T, typename std::enable_if<detail::conjunction<
     detail::is_map<T>,                              // T is map
     detail::negation<detail::is_exact_toml_type<T>> // but not toml::table
-    >::value, std::nullptr_t>::type = nullptr>
+    >::value, std::nullptr_t>::type>
 T get(const toml::value& v)
 {
     using key_type    = typename T::key_type;

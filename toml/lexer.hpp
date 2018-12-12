@@ -117,14 +117,16 @@ using lex_basic_unescaped = exclude<either<in_range<0x00, 0x1F>,
                                            character<0x22>, character<0x5C>,
                                            character<0x7F>>>;
 using lex_escape          = character<'\\'>;
+using lex_escape_unicode_short = sequence<character<'u'>,
+                                          repeat<lex_hex_dig, exactly<4>>>;
+using lex_escape_unicode_long  = sequence<character<'U'>,
+                                          repeat<lex_hex_dig, exactly<8>>>;
 using lex_escape_seq_char = either<character<'"'>, character<'\\'>,
                                    character<'/'>, character<'b'>,
                                    character<'f'>, character<'n'>,
                                    character<'r'>, character<'t'>,
-                                   sequence<character<'u'>,
-                                            repeat<lex_hex_dig, exactly<4>>>,
-                                   sequence<character<'U'>,
-                                            repeat<lex_hex_dig, exactly<8>>>
+                                   lex_escape_unicode_short,
+                                   lex_escape_unicode_long
                                    >;
 using lex_escaped      = sequence<lex_escape, lex_escape_seq_char>;
 using lex_basic_char   = either<lex_basic_unescaped, lex_escaped>;
