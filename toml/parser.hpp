@@ -272,7 +272,7 @@ std::string read_utf8_codepoint(const region<Container>& reg)
     {
         throw std::range_error(format_underline(concat_to_string("[error] "
                 "input codepoint (", str, ") is too large to encode as utf-8."),
-                reg, "should be in [0x00..0x1FFFFF]"));
+                reg, "should be in [0x00..0x10FFFF]"));
     }
     return character;
 }
