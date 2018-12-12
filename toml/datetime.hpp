@@ -410,18 +410,24 @@ struct offset_datetime
 
     operator std::chrono::system_clock::time_point() const
     {
-        // get date-time in local timezone
+        // get date-time
         std::chrono::system_clock::time_point tp =
             std::chrono::system_clock::time_point(this->date) +
             std::chrono::microseconds(this->time);
 
-        // get date-time in UTC by subtracting current offset
+        // get date-time in UTC. let's say we are in +09:00 (JPN).
+        // writing 12:00:00 in +09:00 means 03:00:00Z. to represent
+        // 12:00:00Z, first we need to add +09:00.
         const auto ofs = get_local_offset();
-        tp -= std::chrono::hours  (ofs.hour);
-        tp -= std::chrono::minutes(ofs.minute);
+        tp += std::chrono::hours  (ofs.hour);
+        tp += std::chrono::minutes(ofs.minute);
 
-        // add offset defined in this struct
-        tp += std::chrono::minutes(this->offset);
+        // here, tp represents 12:00:00 in UTC but we have offset information.
+        // we need to subtract it. For example, let's say the input is
+        // 12:00:00-08:00. now we have tp = 12:00:00Z as a result of the above
+        // conversion. But the actual time we need to return is 20:00:00Z
+        // because of -08:00.
+        tp -= std::chrono::minutes(this->offset);
         return tp;
     }
 
