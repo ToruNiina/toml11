@@ -24,7 +24,6 @@ set(TEST_NAMES
 #     test_to_toml
 #     test_from_toml
 #     test_get_or
-#     test_parser
 #     test_parse_file
 #     test_parse_unicode
     )
