@@ -394,6 +394,25 @@ struct result
         return std::move(this->succ.value);
     }
 
+    template<typename U>
+    value_type&       unwrap_or(U& opt) &
+    {
+        if(is_err()) {return opt;}
+        return this->succ.value;
+    }
+    template<typename U>
+    value_type const& unwrap_or(U const& opt) const&
+    {
+        if(is_err()) {return opt;}
+        return this->succ.value;
+    }
+    template<typename U>
+    value_type&&      unwrap_or(U&& opt) &&
+    {
+        if(is_err()) {return std::move(opt);}
+        return std::move(this->succ.value);
+    }
+
     error_type&       unwrap_err() &
     {
         if(is_ok()) {throw std::runtime_error("toml::result: bad unwrap_err");}
