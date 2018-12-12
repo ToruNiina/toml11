@@ -20,9 +20,9 @@ set(TEST_NAMES
     test_parse_key
     test_parse_table_key
     test_get
+    test_get_related_func
     test_to_toml
 #     test_from_toml
-#     test_get_or
 #     test_parse_file
 #     test_parse_unicode
     )
