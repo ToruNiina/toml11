@@ -1,5 +1,6 @@
 #ifndef TOML11_GET
 #define TOML11_GET
+#include "result.hpp"
 #include "value.hpp"
 #include <algorithm>
 
