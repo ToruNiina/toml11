@@ -50,7 +50,7 @@ assert(ifs.good());
 const auto data = toml::parse(ifs /*, "filename" (optional)*/);
 ```
 
-To show a better error message, it is recommended to pass filename with `istream`. See also [in the case of syntax error](in-the-case-of-syntax-error) and [passing invalid type to toml::get](passing-invalid-type-to-tomlget).
+To show a better error message, it is recommended to pass filename with `istream`. See also [in the case of syntax error](#in-the-case-of-syntax-error) and [passing invalid type to toml::get](#passing-invalid-type-to-tomlget).
 
 ### in the case of syntax error
 
@@ -104,7 +104,7 @@ std::cout << toml::get<int>(data.at("answer")) << std::endl; // 54
 If you choose the invalid type, `toml::type_error` will be thrown. Similar to the `syntax_error`, toml11 also displays informative error message. The error message when you choose `int` to get `string` value would be like this.
 
 ```console
-title = terminate called after throwing an instance of 'toml::type_error'
+terminate called after throwing an instance of 'toml::type_error'
   what():  [error] toml::value bad_cast to integer
  --> example.toml
  3 | title = "TOML Example"
@@ -125,7 +125,7 @@ const auto num  = toml::get<int>(data, "num", /*optional*/"example.toml");
 If the value does not exists, it throws `std::out_of_range` with informative error message.
 
 ```console
-title = terminate called after throwing an instance of 'std::out_of_range'
+terminate called after throwing an instance of 'std::out_of_range'
   what():  [error] key "num" not found in example.toml
 ```
 
