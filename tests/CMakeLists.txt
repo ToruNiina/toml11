@@ -24,7 +24,7 @@ set(TEST_NAMES
     test_to_toml
     test_from_toml
     test_parse_file
-#     test_parse_unicode
+    test_parse_unicode
     )
 
 CHECK_CXX_COMPILER_FLAG("-Wall" COMPILER_SUPPORTS_WALL)
