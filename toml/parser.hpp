@@ -341,9 +341,11 @@ parse_ml_basic_string(location<Container>& loc)
     const auto first = loc.iter();
     if(const auto token = lex_ml_basic_string::invoke(loc))
     {
-        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+        auto inner_loc = loc;
+        inner_loc.iter() = first;
+
         std::string retval;
-        retval.reserve(inner_loc.source()->size());
+        retval.reserve(token.unwrap().size());
 
         auto delim = lex_ml_basic_string_delim::invoke(inner_loc);
         if(!delim)
@@ -396,7 +398,8 @@ parse_basic_string(location<Container>& loc)
     const auto first = loc.iter();
     if(const auto token = lex_basic_string::invoke(loc))
     {
-        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+        auto inner_loc = loc;
+        inner_loc.iter() = first;
 
         auto quot = lex_quotation_mark::invoke(inner_loc);
         if(!quot)
@@ -406,7 +409,7 @@ parse_basic_string(location<Container>& loc)
         }
 
         std::string retval;
-        retval.reserve(inner_loc.source()->size());
+        retval.reserve(token.unwrap().size());
 
         quot = err("tmp");
         while(!quot)
