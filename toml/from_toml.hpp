@@ -8,7 +8,7 @@ namespace toml
 template<typename T>
 void from_toml(T& x, const toml::value& v)
 {
-    x = toml::get<T>(v);
+    x = toml::get<typename std::remove_reference<T>::type>(v);
     return;
 }
 
