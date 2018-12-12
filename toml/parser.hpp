@@ -884,8 +884,7 @@ parse_array(location<Container>& loc)
         }
         else
         {
-            return err("[error] toml::parse_array: while reading an element of "
-                       "an array\n" + val.unwrap_err());
+            return err(val.unwrap_err());
         }
 
         using lex_array_separator = sequence<maybe<lex_ws>, character<','>>;
