@@ -251,6 +251,23 @@ BOOST_AUTO_TEST_CASE(test_get_toml_array_of_array)
     BOOST_CHECK_EQUAL(std::get<1>(t).at(2), "baz");
 }
 
+BOOST_AUTO_TEST_CASE(test_get_toml_table)
+{
+    toml::value v1(toml::table{
+            {"key1", 1},
+            {"key2", 2},
+            {"key3", 3},
+            {"key4", 4}
+            });
+
+    const auto v = toml::get<std::map<std::string, int>>(v1);
+    BOOST_CHECK_EQUAL(v.at("key1"), 1);
+    BOOST_CHECK_EQUAL(v.at("key2"), 2);
+    BOOST_CHECK_EQUAL(v.at("key3"), 3);
+    BOOST_CHECK_EQUAL(v.at("key4"), 4);
+}
+
+
 BOOST_AUTO_TEST_CASE(test_get_toml_local_date)
 {
     toml::value v1(toml::local_date{2018, toml::month_t::Apr, 1});
