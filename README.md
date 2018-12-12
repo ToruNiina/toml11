@@ -56,7 +56,7 @@ To show a better error message, it is recommended to pass filename with `istream
 
 If there is a syntax error in a toml file, `toml::parse` will throw `toml::syntax_error`.
 
-toml11 now has clean error messages inspired the Rust compiler and it looks like the following.
+toml11 now has clean error messages inspired the Rust compiler and it looks like the following (comment after hash sign are actually not shown).
 
 ```console
 terminate called after throwing an instance of 'toml::syntax_error'
