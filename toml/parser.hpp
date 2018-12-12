@@ -226,8 +226,10 @@ parse_floating(location<Container>& loc)
                 "token is not a float", {"floating point is like: -3.14e+1"}));
 }
 
-inline std::string read_utf8_codepoint(const std::string& str)
+template<typename Container>
+std::string read_utf8_codepoint(const region<Container>& reg)
 {
+    const auto str = reg.str().substr(1);
     std::uint_least32_t codepoint;
     std::istringstream iss(str);
     iss >> std::hex >> codepoint;
@@ -254,10 +256,11 @@ inline std::string read_utf8_codepoint(const std::string& str)
     {
         if(0x10FFFF < codepoint) // out of Unicode region
         {
-            std::cerr << "WARNING: input codepoint " << str << " is too large "
-                      << "to decode as a unicode character. It should be in "
-                      << "range [0x00 .. 0x10FFFF]. The result may not be able "
-                      << "to be rendered to your screen." << std::endl;
+            std::cerr << format_underline(concat_to_string("[warning] "
+                    "input codepoint (", str, ") is too large to decode as "
+                    "a unicode character. The result may not be able to render "
+                    "to your screen."), reg, "should be in [0x00..0x10FFFF]")
+                      << std::endl;
         }
         // 11110yyy 10yyxxxx 10xxxxxx 10xxxxxx
         character += static_cast<unsigned char>(0xF0| codepoint >> 18);
@@ -267,9 +270,9 @@ inline std::string read_utf8_codepoint(const std::string& str)
     }
     else // out of UTF-8 region
     {
-        throw std::range_error("toml::read_utf8_codepoint: input codepoint `" +
-                str + "` is too large to decode as utf-8. It should be in range"
-                " 0x00 ... 0x1FFFFF.");
+        throw std::range_error(format_underline(concat_to_string("[error] "
+                "input codepoint (", str, ") is too large to encode as utf-8."),
+                reg, "should be in [0x00..0x1FFFFF]"));
     }
     return character;
 }
@@ -278,7 +281,7 @@ template<typename Container>
 result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
 {
     const auto first = loc.iter();
-    if(*first != '\\')
+    if(first == loc.end() || *first != '\\')
     {
         return err(format_underline("[error]: "
             "toml::parse_escape_sequence: location does not points \"\\\"",
@@ -296,10 +299,9 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
         case 'r' :{++loc.iter(); return ok(std::string("\r"));}
         case 'u' :
         {
-            ++loc.iter();
-            if(const auto token = repeat<lex_hex_dig, exactly<4>>::invoke(loc))
+            if(const auto token = lex_escape_unicode_short::invoke(loc))
             {
-                return ok(read_utf8_codepoint(token.unwrap().str()));
+                return ok(read_utf8_codepoint(token.unwrap()));
             }
             else
             {
@@ -310,10 +312,9 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
         }
         case 'U':
         {
-            ++loc.iter();
-            if(const auto token = repeat<lex_hex_dig, exactly<8>>::invoke(loc))
+            if(const auto token = lex_escape_unicode_long::invoke(loc))
             {
-                return ok(read_utf8_codepoint(token.unwrap().str()));
+                return ok(read_utf8_codepoint(token.unwrap()));
             }
             else
             {
@@ -341,7 +342,6 @@ parse_ml_basic_string(location<Container>& loc)
     if(const auto token = lex_ml_basic_string::invoke(loc))
     {
         location<std::string> inner_loc(loc.name(), token.unwrap().str());
-
         std::string retval;
         retval.reserve(inner_loc.source()->size());
 
