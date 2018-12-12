@@ -201,18 +201,25 @@ inline std::string format_underline(const std::string& message,
         const region_base& reg, const std::string& comment_for_underline,
         std::vector<std::string> helps = {})
 {
+#ifdef _WIN32
+    const auto newline = "\r\n";
+#else
+    const char newline = '\n';
+#endif
     const auto line        = reg.line();
     const auto line_number = reg.line_num();
 
     std::string retval;
     retval += message;
-    retval += "\n --> ";
+    retval += newline;
+    retval += " --> ";
     retval += reg.name();
-    retval += "\n ";
+    retval += newline;
+    retval += ' ';
     retval += line_number;
     retval += " | ";
     retval += line;
-    retval += '\n';
+    retval += newline;
     retval += make_string(line_number.size() + 1, ' ');
     retval += " | ";
     retval += make_string(reg.before(), ' ');
@@ -221,12 +228,13 @@ inline std::string format_underline(const std::string& message,
     retval += comment_for_underline;
     if(helps.size() != 0)
     {
-        retval += '\n';
+        retval += newline;
         retval += make_string(line_number.size() + 1, ' ');
         retval += " | ";
         for(const auto help : helps)
         {
-            retval += "\nHint: ";
+            retval += newline;
+            retval += "Hint: ";
             retval += help;
         }
     }
@@ -240,6 +248,11 @@ format_underline(const std::string& message, const location<Container>& loc,
                  const std::string& comment_for_underline,
                  std::vector<std::string> helps = {})
 {
+#ifdef _WIN32
+    const auto newline = "\r\n";
+#else
+    const char newline = '\n';
+#endif
     using const_iterator   = typename location<Container>::const_iterator;
     using reverse_iterator = std::reverse_iterator<const_iterator>;
     const auto line_begin  = std::find(reverse_iterator(loc.iter()),
@@ -252,13 +265,15 @@ format_underline(const std::string& message, const location<Container>& loc,
 
     std::string retval;
     retval += message;
-    retval += "\n --> ";
+    retval += newline;
+    retval += " --> ";
     retval += loc.name();
-    retval += "\n ";
+    retval += newline;
+    retval += ' ';
     retval += line_number;
     retval += " | ";
     retval += make_string(line_begin, line_end);
-    retval += '\n';
+    retval += newline;
     retval += make_string(line_number.size() + 1, ' ');
     retval += " | ";
     retval += make_string(std::distance(line_begin, loc.iter()),' ');
@@ -268,12 +283,13 @@ format_underline(const std::string& message, const location<Container>& loc,
     retval += comment_for_underline;
     if(helps.size() != 0)
     {
-        retval += '\n';
+        retval += newline;
         retval += make_string(line_number.size() + 1, ' ');
         retval += " | ";
         for(const auto help : helps)
         {
-            retval += "\nHint: ";
+            retval += newline;
+            retval += "Hint: ";
             retval += help;
         }
     }
