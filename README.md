@@ -10,7 +10,7 @@ c++11 header-only toml parser depending only on c++ standard library.
 
 compatible to the latest version of TOML v0.5.0 after version 2.0.0.
 
-Are you looking for pre-C++11 compatible toml parser? Check out [Boost.toml](https://github.com/ToruNiina/Boost.toml)! It has almost the same functionality as this library and work with C++98 & Boost.
+Are you looking for pre-C++11 compatible toml parser? Try [Boost.toml](https://github.com/ToruNiina/Boost.toml)! It has almost the same functionality as this library and work with C++98 & Boost.
 
 ## How to use
 
@@ -54,7 +54,7 @@ To show a better error message, it is recommended to pass filename with `istream
 
 If there is a syntax error in a toml file, `toml::parse` will throw `toml::syntax_error`.
 
-toml11 now has clean error messages inspired the Rust compiler and it looks like the following (comment after hash sign are actually not shown).
+toml11 now has clean and informative error messages inspired by Rust and it looks like the following (comment after hash sign are actually not shown).
 
 ```console
 terminate called after throwing an instance of 'toml::syntax_error'
@@ -64,9 +64,7 @@ terminate called after throwing an instance of 'toml::syntax_error'
    |        ^------ expected newline, but got '='.        # error reason
 ```
 
-It shows almost all the information to fix the error in the toml file like file name, line number, the line that is invalid, and the reason why it fails.
-
-Since the error message generation is generally a difficult task, the current status is not ideal. We need your help. If you encounter a weird error message, please let us know and improve the quality!
+Since the error message generation is generally a difficult task, the current status is not ideal. toml11 need your help. If you encounter a weird error message, please let us know and improve the quality!
 
 ### getting toml value
 
@@ -96,6 +94,9 @@ When you pass an exact TOML type that does not require type conversion, `toml::g
 toml::get<toml::integer>(data["answer"]) = 6 * 9;
 std::cout << toml::get<int>(data.at("answer")) << std::endl; // 54
 ```
+
+If the specified type requires conversion, you can't take a reference to the
+return value. See also [underlying types](#underlying-types)
 
 #### passing invalid type to toml::get
 
