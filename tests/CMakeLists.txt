@@ -18,10 +18,10 @@ set(TEST_NAMES
     test_parse_inline_table
     test_parse_key
     test_parse_table_key
+    test_get
 
 #     test_to_toml
 #     test_from_toml
-#     test_get
 #     test_get_or
 #     test_parser
 #     test_parse_file
