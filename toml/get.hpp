@@ -266,16 +266,160 @@ T get(const toml::value& v)
 }
 
 // ============================================================================
+// find and get
+
+template<typename T>
+decltype(::toml::get<T>(std::declval<const ::toml::value&>()))
+get(const toml::table& tab, const toml::key& ky,
+    std::string tablename = "unknown table")
+{
+    if(tab.count(ky) == 0)
+    {
+        throw std::out_of_range(concat_to_string("[error] key \"", ky,
+                    "\" not found in ", tablename));
+    }
+    return ::toml::get<T>(tab.at(ky));
+}
+template<typename T>
+decltype(::toml::get<T>(std::declval<::toml::value&>()))
+get(toml::table& tab, const toml::key& ky,
+    std::string tablename = "unknown table")
+{
+    if(tab.count(ky) == 0)
+    {
+        throw std::out_of_range(concat_to_string("[error] key \"", ky,
+                    "\" not found in ", tablename));
+    }
+    return ::toml::get<T>(tab[ky]);
+}
+template<typename T>
+decltype(::toml::get<T>(std::declval<::toml::value&&>()))
+get(toml::table&& tab, const toml::key& ky,
+    std::string tablename = "unknown table")
+{
+    if(tab.count(ky) == 0)
+    {
+        throw std::out_of_range(concat_to_string("[error] key \"", ky,
+                    "\" not found in ", tablename));
+    }
+    return ::toml::get<T>(std::move(tab[ky]));
+}
+
+template<typename T>
+decltype(::toml::get<T>(std::declval<const ::toml::value&>()))
+get(const toml::value& v, const toml::key& ky)
+{
+    const auto& tab = ::toml::get<toml::table>(v);
+    if(tab.count(ky) == 0)
+    {
+        throw std::out_of_range(detail::format_error_for_value(v,
+            concat_to_string("[error] key \"", ky, "\" not found"),
+            concat_to_string("in this table")));
+    }
+    return ::toml::get<T>(tab.at(ky));
+}
+template<typename T>
+decltype(::toml::get<T>(std::declval<::toml::value&>()))
+get(toml::value& v, const toml::key& ky)
+{
+    auto& tab = ::toml::get<toml::table>(v);
+    if(tab.count(ky) == 0)
+    {
+        throw std::out_of_range(detail::format_error_for_value(v,
+            concat_to_string("[error] key \"", ky, "\" not found"),
+            concat_to_string("in this table")));
+    }
+    return ::toml::get<T>(tab.at(ky));
+}
+template<typename T>
+decltype(::toml::get<T>(std::declval<::toml::value&&>()))
+get(toml::value&& v, const toml::key& ky)
+{
+    auto tab = ::toml::get<toml::table>(std::move(v));
+    if(tab.count(ky) == 0)
+    {
+        throw std::out_of_range(detail::format_error_for_value(v,
+            concat_to_string("[error] key \"", ky, "\" not found"),
+            concat_to_string("in this table")));
+    }
+    return ::toml::get<T>(std::move(tab[ky]));
+}
+
+
+// ============================================================================
 // get_or
 
 template<typename T>
-inline typename std::remove_cv<typename std::remove_reference<T>::type>::type
-get_or(const toml::Table& tab, const toml::key& ky, T&& opt)
+decltype(::toml::get<typename std::remove_cv<
+            typename std::remove_reference<T>::type>::type>(
+        std::declval<const toml::value&>()))
+get_or(const toml::value& v, T&& opt)
+{
+    try
+    {
+        return get<typename std::remove_cv<
+            typename std::remove_reference<T>::type>::type>(v);
+    }
+    catch(...)
+    {
+        return std::forward<T>(opt);
+    }
+}
+template<typename T>
+decltype(::toml::get<typename std::remove_cv<
+            typename std::remove_reference<T>::type>::type>(
+        std::declval<toml::value&>()))
+get_or(toml::value& v, T&& opt)
+{
+    try
+    {
+        return get<typename std::remove_cv<
+            typename std::remove_reference<T>::type>::type>(v);
+    }
+    catch(...)
+    {
+        return std::forward<T>(opt);
+    }
+}
+template<typename T>
+decltype(::toml::get<typename std::remove_cv<
+            typename std::remove_reference<T>::type>::type>(
+        std::declval<toml::value&&>()))
+get_or(toml::value&& v, T&& opt)
+{
+    try
+    {
+        return get<typename std::remove_cv<
+            typename std::remove_reference<T>::type>::type>(std::move(v));
+    }
+    catch(...)
+    {
+        return std::forward<T>(opt);
+    }
+}
+
+template<typename T>
+auto get_or(const toml::table& tab, const toml::key& ky, T&& opt)
+    -> decltype(get_or(std::declval<value const&>(), std::forward<T>(opt)))
 {
     if(tab.count(ky) == 0) {return std::forward<T>(opt);}
-    return get<typename std::remove_cv<
-        typename std::remove_reference<T>::type>::type>(tab.find(ky)->second);
+    return ::toml::get_or(tab.at(ky), std::forward<T>(opt));
 }
+template<typename T>
+auto get_or(toml::table& tab, const toml::key& ky, T&& opt)
+    -> decltype(get_or(std::declval<value&>(), std::forward<T>(opt)))
+{
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
+    return ::toml::get_or(tab[ky], std::forward<T>(opt));
+}
+template<typename T>
+auto get_or(toml::table&& tab, const toml::key& ky, T&& opt)
+    -> decltype(get_or(std::declval<value&&>(), std::forward<T>(opt)))
+{
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
+    return ::toml::get_or(std::move(tab[ky]), std::forward<T>(opt));
+}
+
 
 // ============================================================================
 // expect
@@ -317,6 +461,86 @@ auto expect(toml::value&& v)
     catch(const type_error& te)
     {
         return err(te.what());
+    }
+}
+
+template<typename T>
+auto expect(const toml::value& v, const toml::key& k)
+    -> result<decltype(::toml::get<T>(v, k)), std::string>
+{
+    try
+    {
+        return ok(get<T>(v, k));
+    }
+    catch(const std::exception& e)
+    {
+        return err(e.what());
+    }
+}
+template<typename T>
+auto expect(toml::value& v, const toml::key& k)
+    -> result<decltype(::toml::get<T>(v, k)), std::string>
+{
+    try
+    {
+        return ok(get<T>(v, k));
+    }
+    catch(const std::exception& e)
+    {
+        return err(e.what());
+    }
+}
+template<typename T>
+auto expect(toml::value&& v, const toml::key& k)
+    -> result<decltype(::toml::get<T>(std::move(v), k)), std::string>
+{
+    try
+    {
+        return ok(get<T>(std::move(v), k));
+    }
+    catch(const std::exception& e)
+    {
+        return err(e.what());
+    }
+}
+
+template<typename T>
+auto expect(const toml::table& t, const toml::key& k, std::string tn)
+    -> result<decltype(::toml::get<T>(t, k, std::move(tn))), std::string>
+{
+    try
+    {
+        return ok(get<T>(t, k, std::move(tn)));
+    }
+    catch(const std::exception& e)
+    {
+        return err(e.what());
+    }
+}
+template<typename T>
+auto expect(toml::table& t, const toml::key& k, std::string tn)
+    -> result<decltype(::toml::get<T>(t, k, std::move(tn))), std::string>
+{
+    try
+    {
+        return ok(get<T>(t, k, std::move(tn)));
+    }
+    catch(const std::exception& e)
+    {
+        return err(e.what());
+    }
+}
+template<typename T>
+auto expect(toml::table&& t, const toml::key& k, std::string tn)
+    -> result<decltype(::toml::get<T>(std::move(t), k, std::move(tn))), std::string>
+{
+    try
+    {
+        return ok(get<T>(std::move(t), k, std::move(tn)));
+    }
+    catch(const std::exception& e)
+    {
+        return err(e.what());
     }
 }
 
