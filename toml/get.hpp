@@ -398,6 +398,7 @@ get_or(toml::value&& v, T&& opt)
     }
 }
 
+
 template<typename T>
 auto get_or(const toml::table& tab, const toml::key& ky, T&& opt)
     -> decltype(get_or(std::declval<value const&>(), std::forward<T>(opt)))
@@ -420,6 +421,33 @@ auto get_or(toml::table&& tab, const toml::key& ky, T&& opt)
     return ::toml::get_or(std::move(tab[ky]), std::forward<T>(opt));
 }
 
+template<typename T>
+auto get_or(const toml::value& v, const toml::key& ky, T&& opt)
+    -> decltype(get_or(std::declval<value const&>(), std::forward<T>(opt)))
+{
+    if(v.type() != toml::value_t::Table){return std::forward<T>(opt);}
+    const auto& tab = toml::get<toml::table>(v);
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
+    return ::toml::get_or(tab.at(ky), std::forward<T>(opt));
+}
+template<typename T>
+auto get_or(toml::value& v, const toml::key& ky, T&& opt)
+    -> decltype(get_or(std::declval<value&>(), std::forward<T>(opt)))
+{
+    if(v.type() != toml::value_t::Table){return std::forward<T>(opt);}
+    auto& tab = toml::get<toml::table>(v);
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
+    return ::toml::get_or(tab[ky], std::forward<T>(opt));
+}
+template<typename T>
+auto get_or(toml::value&& v, const toml::key& ky, T&& opt)
+    -> decltype(get_or(std::declval<value&&>(), std::forward<T>(opt)))
+{
+    if(v.type() != toml::value_t::Table){return std::forward<T>(opt);}
+    auto tab = toml::get<toml::table>(std::move(v));
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
+    return ::toml::get_or(std::move(tab[ky]), std::forward<T>(opt));
+}
 
 // ============================================================================
 // expect
