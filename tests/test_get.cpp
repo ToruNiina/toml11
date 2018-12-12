@@ -271,7 +271,8 @@ BOOST_AUTO_TEST_CASE(test_get_toml_table)
 BOOST_AUTO_TEST_CASE(test_get_toml_local_date)
 {
     toml::value v1(toml::local_date{2018, toml::month_t::Apr, 1});
-    const auto date = toml::get<std::chrono::system_clock::time_point>(v1);
+    const auto date = std::chrono::system_clock::to_time_t(
+            toml::get<std::chrono::system_clock::time_point>(v1));
 
     std::tm t;
     t.tm_year = 2018 - 1900;
@@ -280,8 +281,9 @@ BOOST_AUTO_TEST_CASE(test_get_toml_local_date)
     t.tm_hour = 0;
     t.tm_min  = 0;
     t.tm_sec  = 0;
-    const auto c = std::chrono::system_clock::from_time_t(std::mktime(&t));
-    BOOST_CHECK(c == date);
+    t.tm_isdst = -1;
+    const auto c = std::mktime(&t);
+    BOOST_CHECK_EQUAL(c, date);
 }
 
 BOOST_AUTO_TEST_CASE(test_get_toml_local_time)
@@ -298,7 +300,8 @@ BOOST_AUTO_TEST_CASE(test_get_toml_local_datetime)
                 toml::local_date{2018, toml::month_t::Apr, 1},
                 toml::local_time{12, 30, 45}));
 
-    const auto date = toml::get<std::chrono::system_clock::time_point>(v1);
+    const auto date = std::chrono::system_clock::to_time_t(
+            toml::get<std::chrono::system_clock::time_point>(v1));
     std::tm t;
     t.tm_year = 2018 - 1900;
     t.tm_mon  = 4    - 1;
@@ -306,8 +309,9 @@ BOOST_AUTO_TEST_CASE(test_get_toml_local_datetime)
     t.tm_hour = 12;
     t.tm_min  = 30;
     t.tm_sec  = 45;
-    const auto c = std::chrono::system_clock::from_time_t(std::mktime(&t));
-    BOOST_CHECK(c == date);
+    t.tm_isdst = -1;
+    const auto c = std::mktime(&t);
+    BOOST_CHECK_EQUAL(c, date);
 }
 
 BOOST_AUTO_TEST_CASE(test_get_toml_offset_datetime)
