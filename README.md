@@ -14,7 +14,7 @@ Are you looking for pre-C++11 compatible toml parser? Check out [Boost.toml](htt
 
 ## How to use
 
-### installation
+## installation
 
 Just include the file after adding correct include path.
 
@@ -29,9 +29,7 @@ int main()
 }
 ```
 
-## decoding toml file
-
-### parsing toml file
+### decoding toml file
 
 The only thing you have to do is passing a filename to `toml::parse` function.
 
