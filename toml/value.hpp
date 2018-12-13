@@ -19,6 +19,8 @@ namespace detail
 {
 // to show error messages. not recommended for users.
 region_base const& get_region(const value&);
+// ditto.
+void assign_keeping_region(value&, value);
 }// detail
 
 template<typename T>
@@ -558,6 +560,9 @@ class value
     // for error messages
     friend region_base const& detail::get_region(const value&);
 
+    // to see why it's here, see detail::insert_nested_key.
+    friend void detail::assign_keeping_region(value&, value);
+
     template<value_t T>
     struct switch_cast;
 
@@ -591,6 +596,33 @@ namespace detail
 inline region_base const& get_region(const value& v)
 {
     return *(v.region_info_);
+}
+// If we keep region information after assigning another toml::* types, the
+// error message become different from the actual value contained.
+// To avoid this kind of confusing phenomena, the default assigners clear the
+// old region_info_. But this functionality is actually needed deep inside of
+// parser, so if you want to see the usecase, see toml::detail::insert_nested_key
+// defined in toml/parser.hpp.
+inline void assign_keeping_region(value& v, value other)
+{
+    v.cleanup(); // this keeps region info
+    // keep region_info_ intact
+    v.type_ = other.type();
+    switch(v.type())
+    {
+        case value_t::Boolean       : ::toml::value::assigner(v.boolean_        , other.boolean_        ); break;
+        case value_t::Integer       : ::toml::value::assigner(v.integer_        , other.integer_        ); break;
+        case value_t::Float         : ::toml::value::assigner(v.floating_       , other.floating_       ); break;
+        case value_t::String        : ::toml::value::assigner(v.string_         , other.string_         ); break;
+        case value_t::OffsetDatetime: ::toml::value::assigner(v.offset_datetime_, other.offset_datetime_); break;
+        case value_t::LocalDatetime : ::toml::value::assigner(v.local_datetime_ , other.local_datetime_ ); break;
+        case value_t::LocalDate     : ::toml::value::assigner(v.local_date_     , other.local_date_     ); break;
+        case value_t::LocalTime     : ::toml::value::assigner(v.local_time_     , other.local_time_     ); break;
+        case value_t::Array         : ::toml::value::assigner(v.array_          , other.array_          ); break;
+        case value_t::Table         : ::toml::value::assigner(v.table_          , other.table_          ); break;
+        default: break;
+    }
+    return;
 }
 }// detail
 
