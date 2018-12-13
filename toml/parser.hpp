@@ -6,6 +6,7 @@
 #include "lexer.hpp"
 #include "types.hpp"
 #include "value.hpp"
+#include <iostream>
 #include <cstring>
 
 namespace toml

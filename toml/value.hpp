@@ -17,8 +17,8 @@ namespace toml
 
 namespace detail
 {
-std::string // forward decl
-format_error_for_value(const value&, const std::string&, const std::string&);
+// to show error messages. not recommended for users.
+region_base const& get_region(const value&);
 }// detail
 
 template<typename T>
@@ -555,14 +555,8 @@ class value
         }
     }
 
-    std::string
-    format_error(const std::string& msg, const std::string& com) const
-    {
-        return detail::format_underline(msg, *(this->region_info_), com);
-    }
-
-    friend std::string detail::format_error_for_value(
-            const value&, const std::string&, const std::string&);
+    // for error messages
+    friend region_base const& detail::get_region(const value&);
 
     template<value_t T>
     struct switch_cast;
@@ -594,10 +588,9 @@ class value
 
 namespace detail
 {
-inline std::string format_error_for_value(
-        const value& v, const std::string& m, const std::string& c)
+inline region_base const& get_region(const value& v)
 {
-    return v.format_error(m, c);
+    return *(v.region_info_);
 }
 }// detail
 
@@ -668,8 +661,8 @@ typename detail::toml_default_type<T>::type& value::cast() &
 {
     if(T != this->type_)
     {
-        throw type_error(this->format_error(concat_to_string(
-            "[error] toml::value bad_cast to ", T),
+        throw type_error(format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), *region_info_,
             concat_to_string("the actual type is ", this->type_)));
     }
     return switch_cast<T>::invoke(*this);
@@ -679,8 +672,8 @@ typename detail::toml_default_type<T>::type const& value::cast() const&
 {
     if(T != this->type_)
     {
-        throw type_error(this->format_error(concat_to_string(
-            "[error] toml::value bad_cast to ", T),
+        throw type_error(format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), *region_info_,
             concat_to_string("the actual type is ", this->type_)));
     }
     return switch_cast<T>::invoke(*this);
@@ -690,8 +683,8 @@ typename detail::toml_default_type<T>::type&&      value::cast() &&
 {
     if(T != this->type_)
     {
-        throw type_error(this->format_error(concat_to_string(
-            "[error] toml::value bad_cast to ", T),
+        throw type_error(format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), *region_info_,
             concat_to_string("the actual type is ", this->type_)));
     }
     return switch_cast<T>::invoke(std::move(*this));

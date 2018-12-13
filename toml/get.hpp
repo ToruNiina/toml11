@@ -182,9 +182,10 @@ T get(const value& v)
     T container;
     if(ar.size() != container.size())
     {
-        throw std::out_of_range(detail::format_error_for_value(v, concat_to_string(
+        throw std::out_of_range(detail::format_underline(concat_to_string(
             "[erorr] toml::get specified container size is ", container.size(),
-            " but there are ", ar.size(), " elements in toml array."), "here"));
+            " but there are ", ar.size(), " elements in toml array."),
+            detail::get_region(v), "here"));
     }
     std::transform(ar.cbegin(), ar.cend(), container.begin(),
                    [](const value& x){return ::toml::get<value_type>(x);});
@@ -204,9 +205,9 @@ T get(const value& v)
     const auto& ar = v.cast<value_t::Array>();
     if(ar.size() != 2)
     {
-        throw std::out_of_range(detail::format_error_for_value(v, concat_to_string(
+        throw std::out_of_range(detail::format_underline(concat_to_string(
             "[erorr] toml::get specified std::pair but there are ", ar.size(),
-            " elements in toml array."), "here"));
+            " elements in toml array."), detail::get_region(v), "here"));
     }
     return std::make_pair(::toml::get<first_type >(ar.at(0)),
                           ::toml::get<second_type>(ar.at(1)));
@@ -234,10 +235,10 @@ T get(const value& v)
     const auto& ar = v.cast<value_t::Array>();
     if(ar.size() != std::tuple_size<T>::value)
     {
-        throw std::out_of_range(detail::format_error_for_value(v, concat_to_string(
+        throw std::out_of_range(detail::format_underline(concat_to_string(
             "[erorr] toml::get specified std::tuple with ",
             std::tuple_size<T>::value, "elements, but there are ", ar.size(),
-            " elements in toml array."), "here"));
+            " elements in toml array."), detail::get_region(v), "here"));
     }
     return detail::get_tuple_impl<T>(ar,
             detail::make_index_sequence<std::tuple_size<T>::value>{});
@@ -312,9 +313,9 @@ find(const toml::value& v, const toml::key& ky)
     const auto& tab = ::toml::get<toml::table>(v);
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(detail::format_error_for_value(v,
-            concat_to_string("[error] key \"", ky, "\" not found"),
-            concat_to_string("in this table")));
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), detail::get_region(v),
+            "in this table"));
     }
     return ::toml::get<T>(tab.at(ky));
 }
@@ -325,9 +326,9 @@ find(toml::value& v, const toml::key& ky)
     auto& tab = ::toml::get<toml::table>(v);
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(detail::format_error_for_value(v,
-            concat_to_string("[error] key \"", ky, "\" not found"),
-            concat_to_string("in this table")));
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), detail::get_region(v),
+            "in this table"));
     }
     return ::toml::get<T>(tab.at(ky));
 }
@@ -338,9 +339,9 @@ find(toml::value&& v, const toml::key& ky)
     auto tab = ::toml::get<toml::table>(std::move(v));
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(detail::format_error_for_value(v,
-            concat_to_string("[error] key \"", ky, "\" not found"),
-            concat_to_string("in this table")));
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), detail::get_region(v),
+            "in this table"));
     }
     return ::toml::get<T>(std::move(tab[ky]));
 }
