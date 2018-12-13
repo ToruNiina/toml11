@@ -59,7 +59,7 @@ toml11 now has clean and informative error messages inspired by Rust and it look
 ```console
 terminate called after throwing an instance of 'toml::syntax_error'
   what():  [error] toml::parse_table: invalid line format # error description
- --> example.toml                                         # file name (and path, if any)
+ --> example.toml                                         # file name
  3 | a = 42 = true                                        # line num and content
    |        ^------ expected newline, but got '='.        # error reason
 ```
@@ -95,8 +95,7 @@ toml::get<toml::integer>(data["answer"]) = 6 * 9;
 std::cout << toml::get<int>(data.at("answer")) << std::endl; // 54
 ```
 
-If the specified type requires conversion, you can't take a reference to the
-return value. See also [underlying types](#underlying-types).
+If the specified type requires conversion, you can't take a reference to the value. See also [underlying types](#underlying-types).
 
 #### passing invalid type to toml::get
 
@@ -110,7 +109,7 @@ terminate called after throwing an instance of 'toml::type_error'
    |         ~~~~~~~~~~~~~~ the actual type is string
 ```
 
-NOTE: In order to show this kind of error message, all the toml values has 1 shared_ptr that points the corresponding byte sequence and 2 iterator that points the range. It is recommended to destruct all the `toml::value` classes after configuring your application to save the memory resource.
+NOTE: In order to show this kind of error message, all the toml values has 1 shared_ptr that points the corresponding byte sequence and 2 iterators that point the range. It is recommended to destruct all the `toml::value` classes after configuring your application to save the memory resource.
 
 ### getting arrays
 
@@ -392,7 +391,7 @@ terminate called after throwing an instance of 'std::range_error'
 
 ## underlying types
 
-The toml types (can be used as `toml::*` in this library) and corresponding `enum` name are listed in the table below.
+The toml types (can be used as `toml::*` in this library) and corresponding `enum` names are listed in the table below.
 
 | toml::type     | underlying c++ type                          | enum                            |
 | -------------- | -------------------------------------------- | ------------------------------- |
