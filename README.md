@@ -64,6 +64,19 @@ terminate called after throwing an instance of 'toml::syntax_error'
    |        ^------ expected newline, but got '='.        # error reason
 ```
 
+If you (mistakenly) duplicate tables and got an error, you may want to see where the other is. toml11 shows both at the same time.
+
+```console
+terminate called after throwing an instance of 'toml::syntax_error'
+  what():  [error] toml::insert_value: table ("table") already exists.
+ --> duplicate-table.toml
+ 1 | [table]
+   | ~~~~~~~ table already exists here
+ ...
+ 3 | [table]
+   | ~~~~~~~ table defined twice
+```
+
 Since the error message generation is generally a difficult task, the current status is not ideal. toml11 needs your help. If you encounter a weird error message, please let us know and contribute to improve the quality!
 
 ### Getting a toml value
