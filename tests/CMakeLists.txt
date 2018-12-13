@@ -16,6 +16,7 @@ set(TEST_NAMES
     test_parse_string
     test_parse_datetime
     test_parse_array
+    test_parse_table
     test_parse_inline_table
     test_parse_key
     test_parse_table_key
