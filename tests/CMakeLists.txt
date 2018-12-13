@@ -1,15 +1,29 @@
 set(TEST_NAMES
-    test_traits
+    test_datetime
     test_utility
+    test_result
+    test_traits
     test_value
+    test_lex_boolean
+    test_lex_integer
+    test_lex_floating
+    test_lex_datetime
+    test_lex_string
+    test_lex_key_comment
+    test_parse_boolean
+    test_parse_integer
+    test_parse_floating
+    test_parse_string
+    test_parse_datetime
+    test_parse_array
+    test_parse_table
+    test_parse_inline_table
+    test_parse_key
+    test_parse_table_key
+    test_get
+    test_get_related_func
     test_to_toml
     test_from_toml
-    test_get
-    test_get_or
-    test_value_operator
-    test_datetime
-    test_acceptor
-    test_parser
     test_parse_file
     test_parse_unicode
     )

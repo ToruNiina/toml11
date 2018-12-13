@@ -1,3 +1,5 @@
+//     Copyright Toru Niina 2017.
+// Distributed under the MIT License.
 #ifndef TOML11_TO_TOML
 #define TOML11_TO_TOML
 #include "value.hpp"
@@ -5,76 +7,36 @@
 namespace toml
 {
 
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-inline value to_toml(const T& x)
+template<typename T>
+inline value to_toml(T&& x)
 {
-    return value(x);
-}
-
-template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>, std::is_integral<T>
-    >::value, std::nullptr_t>::type = nullptr>
-inline value to_toml(const T& x)
-{
-    return value(::toml::Integer(x));
-}
-
-template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>, std::is_floating_point<T>
-    >::value, std::nullptr_t>::type = nullptr>
-inline value to_toml(const T& x)
-{
-    return value(::toml::Float(x));
-}
-
-inline value to_toml(const char* str)
-{
-    return value(::toml::String(str));
-}
-
-template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>, detail::is_container<T>
-    >::value, std::nullptr_t>::type = nullptr>
-value to_toml(const T& x)
-{
-    Array tmp;
-    tmp.reserve(std::distance(std::begin(x), std::end(x)));
-    for(auto iter = std::begin(x); iter != std::end(x); ++iter)
-    {
-        tmp.emplace_back(*iter);
-    }
-    return value(std::move(tmp));
-}
-
-template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>, detail::is_map<T>
-    >::value, std::nullptr_t>::type = nullptr>
-value to_toml(const T& x)
-{
-    Table tmp;
-    for(auto iter = std::begin(x); iter != std::end(x); ++iter)
-    {
-        tmp.emplace(iter->first, to_toml(iter->second));
-    }
-    return value(std::move(tmp));
+    return value(std::forward<T>(x));
 }
 
 template<typename T>
-inline value to_toml(std::initializer_list<T> init)
+inline value to_toml(T&& x, string_t kind)
 {
-    return value(std::move(init));
+    return value(std::forward<T>(x), kind);
 }
 
-inline value to_toml(std::initializer_list<std::pair<std::string, value>> init)
+inline value to_toml(local_date d, local_time t)
 {
-    return value(std::move(init));
+    return value(local_datetime(d, t));
+}
+inline value to_toml(local_date d, local_time t, time_offset ofs)
+{
+    return value(offset_datetime(d, t, ofs));
 }
 
-template<typename T>
-inline value to_toml(const value& x)
+template<typename ... Ts>
+inline value to_toml(Ts&& ... xs)
 {
-    return x;
+    return value(toml::array{toml::value(std::forward<Ts>(xs)) ... });
+}
+
+inline value to_toml(std::initializer_list<std::pair<std::string, toml::value>> xs)
+{
+    return value(toml::table(xs.begin(), xs.end()));
 }
 
 } // toml

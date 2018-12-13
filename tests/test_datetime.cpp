@@ -5,26 +5,117 @@
 #define BOOST_TEST_NO_LIB
 #include <boost/test/included/unit_test.hpp>
 #endif
-#include <toml.hpp>
-#include <thread>
+#include <toml/datetime.hpp>
 
-BOOST_AUTO_TEST_CASE(test_datetime_convertible)
+BOOST_AUTO_TEST_CASE(test_local_date)
 {
-    const auto now = std::chrono::system_clock::now();
-    toml::Datetime d1(now);
-    const std::chrono::system_clock::time_point cvt(d1);
-    toml::Datetime d2(cvt);
+    const toml::local_date date(2018, toml::month_t::Jan, 1);
+    const toml::local_date date1(date);
+    BOOST_CHECK_EQUAL(date, date1);
 
-    BOOST_CHECK_EQUAL(d1, d2);
+    const std::chrono::system_clock::time_point tp(date);
+    const toml::local_date date2(tp);
+    BOOST_CHECK_EQUAL(date, date2);
 
-    const auto time = std::chrono::system_clock::to_time_t(now);
-    toml::Datetime d3(time);
-    toml::Datetime d4(std::chrono::system_clock::from_time_t(time));
+    const toml::local_date date3(2017, toml::month_t::Dec, 31);
+    BOOST_CHECK(date > date3);
 
-    BOOST_CHECK_EQUAL(d3, d4);
+    std::ostringstream oss;
+    oss << date;
+    BOOST_CHECK_EQUAL(oss.str(), std::string("2018-01-01"));
+}
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    const auto later = std::chrono::system_clock::now();
-    toml::Datetime d5(later);
-    BOOST_CHECK(d1 < d5);
+BOOST_AUTO_TEST_CASE(test_local_time)
+{
+    const toml::local_time time(12, 30, 45);
+    const toml::local_time time1(time);
+    BOOST_CHECK_EQUAL(time, time1);
+
+    const std::chrono::nanoseconds dur(time);
+    std::chrono::nanoseconds ns(0);
+    ns += std::chrono::hours  (12);
+    ns += std::chrono::minutes(30);
+    ns += std::chrono::seconds(45);
+    BOOST_CHECK_EQUAL(dur.count(), ns.count());
+
+    const toml::local_time time3(12, 15, 45);
+    BOOST_CHECK(time > time3);
+
+    {
+        std::ostringstream oss;
+        oss << time;
+        BOOST_CHECK_EQUAL(oss.str(), std::string("12:30:45"));
+    }
+
+    {
+        const toml::local_time time4(12, 30, 45, 123, 456);
+        std::ostringstream oss;
+        oss << time4;
+        BOOST_CHECK_EQUAL(oss.str(), std::string("12:30:45.123456"));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_time_offset)
+{
+    const toml::time_offset time(9, 30);
+    const toml::time_offset time1(time);
+    BOOST_CHECK_EQUAL(time, time1);
+
+    const std::chrono::minutes dur(time);
+    std::chrono::minutes m(0);
+    m += std::chrono::hours  (9);
+    m += std::chrono::minutes(30);
+    BOOST_CHECK_EQUAL(dur.count(), m.count());
+
+    const toml::time_offset time2(9, 0);
+    BOOST_CHECK(time2 < time);
+
+    std::ostringstream oss;
+    oss << time;
+    BOOST_CHECK_EQUAL(oss.str(), std::string("+09:30"));
+}
+
+BOOST_AUTO_TEST_CASE(test_local_datetime)
+{
+    const toml::local_datetime dt(toml::local_date(2018, toml::month_t::Jan, 1),
+                                  toml::local_time(12, 30, 45));
+    const toml::local_datetime dt1(dt);
+    BOOST_CHECK_EQUAL(dt, dt1);
+
+    const std::chrono::system_clock::time_point tp(dt);
+    const toml::local_datetime dt2(tp);
+    BOOST_CHECK_EQUAL(dt, dt2);
+
+    std::ostringstream oss;
+    oss << dt;
+    BOOST_CHECK_EQUAL(oss.str(), std::string("2018-01-01T12:30:45"));
+}
+
+BOOST_AUTO_TEST_CASE(test_offset_datetime)
+{
+    const toml::offset_datetime dt(toml::local_date(2018, toml::month_t::Jan, 1),
+                                   toml::local_time(12, 30, 45),
+                                   toml::time_offset(9, 30));
+    const toml::offset_datetime dt1(dt);
+    BOOST_CHECK_EQUAL(dt, dt1);
+
+    const std::chrono::system_clock::time_point tp1(dt);
+    const toml::offset_datetime dt2(tp1);
+    const std::chrono::system_clock::time_point tp2(dt2);
+    BOOST_CHECK(tp1 == tp2);
+
+    {
+        std::ostringstream oss;
+        oss << dt;
+        BOOST_CHECK_EQUAL(oss.str(), std::string("2018-01-01T12:30:45+09:30"));
+    }
+    {
+        const toml::offset_datetime dt3(
+                toml::local_date(2018, toml::month_t::Jan, 1),
+                toml::local_time(12, 30, 45),
+                toml::time_offset(0, 0));
+        std::ostringstream oss;
+        oss << dt3;
+        BOOST_CHECK_EQUAL(oss.str(), std::string("2018-01-01T12:30:45Z"));
+    }
 }

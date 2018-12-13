@@ -1,7 +1,10 @@
+//     Copyright Toru Niina 2017.
+// Distributed under the MIT License.
 #ifndef TOML11_TRAITS
 #define TOML11_TRAITS
 #include <type_traits>
 #include <utility>
+#include <chrono>
 #include <tuple>
 
 namespace toml
@@ -84,6 +87,10 @@ struct is_std_pair<std::pair<T1, T2>> : std::true_type{};
 template<typename T> struct is_std_tuple : std::false_type{};
 template<typename ... Ts>
 struct is_std_tuple<std::tuple<Ts...>> : std::true_type{};
+
+template<typename T> struct is_chrono_duration: std::false_type{};
+template<typename Rep, typename Period>
+struct is_chrono_duration<std::chrono::duration<Rep, Period>>: std::true_type{};
 
 // to use toml::get<std::tuple<T1, T2, ...>> in C++11
 template<std::size_t ... Ns> struct index_sequence{};

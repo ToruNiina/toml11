@@ -22,7 +22,8 @@ BOOST_AUTO_TEST_CASE(test_example)
         BOOST_CHECK_EQUAL(toml::get<std::string>(owner.at("bio")),
                           "GitHub Cofounder & CEO\nLikes tater tots and beer.");
         BOOST_CHECK_EQUAL(toml::get<toml::Datetime>(owner.at("dob")),
-                          toml::Datetime(1979, 5, 27, 7, 32, 0, 0, 0, 0, 0));
+                          toml::offset_datetime(toml::local_date(1979, toml::month_t::May, 27),
+                                                toml::local_time(7, 32, 0), toml::time_offset(0, 0)));
     }
 
     toml::Table database = toml::get<toml::Table>(data.at("database"));
@@ -90,7 +91,8 @@ BOOST_AUTO_TEST_CASE(test_example_stream)
         BOOST_CHECK_EQUAL(toml::get<std::string>(owner.at("bio")),
                           "GitHub Cofounder & CEO\nLikes tater tots and beer.");
         BOOST_CHECK_EQUAL(toml::get<toml::Datetime>(owner.at("dob")),
-                          toml::Datetime(1979, 5, 27, 7, 32, 0, 0, 0, 0, 0));
+                          toml::offset_datetime(toml::local_date(1979, toml::month_t::May, 27),
+                                                toml::local_time(7, 32, 0), toml::time_offset(0, 0)));
     }
 
     toml::Table database = toml::get<toml::Table>(data.at("database"));
