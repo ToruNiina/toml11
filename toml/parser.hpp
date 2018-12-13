@@ -1004,24 +1004,35 @@ insert_nested_key(table& root, const toml::value& v,
             {
                 if(tab->count(k) == 1) // there is already an array of table
                 {
-                    if(!(tab->at(k).is(value_t::Array)))
+                    if(tab->at(k).is(value_t::Table))
+                    {
+                        // show special err msg for conflicting table
+                        throw syntax_error(format_underline(concat_to_string(
+                            "[error] toml::insert_value: array of table (\"",
+                            format_dotted_keys(first, last), "\") cannot insert"
+                            "ed"), get_region(tab->at(k)), "table already defined",
+                            get_region(v), "this conflicts with the previous table"));
+                    }
+                    else if(!(tab->at(k).is(value_t::Array)))
                     {
                         throw syntax_error(format_underline(concat_to_string(
-                            "[error] toml::insert_value: target value (\"",
-                            format_dotted_keys(first, last), "\") is"
-                            " not an array of tables"), get_region(tab->at(k)),
-                            concat_to_string("actual type is ", tab->at(k).type()),
-                            get_region(v), "this is an array of tables"));
+                            "[error] toml::insert_value: array of table (\"",
+                            format_dotted_keys(first, last), "\") collides with"
+                            " existing value"), get_region(tab->at(k)),
+                            concat_to_string("this ", tab->at(k).type(), "value"
+                            "already exists"), get_region(v), "while inserting"
+                            "this array-of-tables"));
                     }
                     array& a = tab->at(k).template cast<toml::value_t::Array>();
                     if(!(a.front().is(value_t::Table)))
                     {
                         throw syntax_error(format_underline(concat_to_string(
-                            "[error] toml::insert_value: target value (\"",
-                            format_dotted_keys(first, last), "\") is"
-                            " not an array of tables"), get_region(tab->at(k)),
-                            concat_to_string("actual type is ", tab->at(k).type()),
-                            get_region(v), "this is an array of tables"));
+                            "[error] toml::insert_value: array of table (\"",
+                            format_dotted_keys(first, last), "\") collides with"
+                            " existing value"), get_region(tab->at(k)),
+                            concat_to_string("this ", tab->at(k).type(), "value"
+                            "already exists"), get_region(v), "while inserting"
+                            "this array-of-tables"));
                     }
                     a.push_back(v);
                     return ok(true);
