@@ -8,7 +8,7 @@ toml11
 
 c++11 header-only toml parser depending only on c++ standard library.
 
-compatible to the latest version of TOML v0.5.0 after version 2.0.0.
+compatible to the latest version of [TOML v0.5.0](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v0.5.0.md) after version 2.0.0.
 
 Are you looking for pre-C++11 compatible toml parser? Try [Boost.toml](https://github.com/ToruNiina/Boost.toml)! It has almost the same functionality as this library and works with C++98 & Boost.
 
