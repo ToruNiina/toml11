@@ -954,11 +954,25 @@ parse_key_value_pair(location<Container>& loc)
         return err(std::move(msg));
     }
 
+    const auto after_kvsp = loc.iter(); // err msg
     auto val = parse_value(loc);
     if(!val)
     {
+        std::string msg;
+        loc.iter() = after_kvsp;
+        if(sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>::invoke(loc))
+        {
+            loc.iter() = after_kvsp;
+            msg = format_underline("[error] toml::parse_key_value_pair: "
+                    "missing value after key-value separator '='", loc,
+                    "expected value, but got nothing");
+        }
+        else
+        {
+            msg = val.unwrap_err();
+        }
         loc.iter() = first;
-        return err(val.unwrap_err());
+        return err(msg);
     }
     return ok(std::make_pair(std::move(key.unwrap()), std::move(val.unwrap())));
 }
