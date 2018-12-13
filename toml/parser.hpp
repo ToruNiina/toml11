@@ -1006,32 +1006,67 @@ insert_nested_key(table& root, const toml::value& v,
                 {
                     if(!(tab->at(k).is(value_t::Array)))
                     {
-                        throw syntax_error("toml::detail::insert_nested_key: "
-                            "target is not an array of table: " +
-                            format_dotted_keys(first, last));
+                        throw syntax_error(format_underline(concat_to_string(
+                            "[error] toml::insert_value: target value (\"",
+                            format_dotted_keys(first, last), "\") is"
+                            " not an array of tables"), get_region(tab->at(k)),
+                            concat_to_string("actual type is ", tab->at(k).type()),
+                            get_region(v), "this is an array of tables"));
                     }
                     array& a = tab->at(k).template cast<toml::value_t::Array>();
                     if(!(a.front().is(value_t::Table)))
                     {
-                        throw syntax_error("toml::detail::insert_nested_key: "
-                            "target is not an array of table: " +
-                            format_dotted_keys(first, last));
+                        throw syntax_error(format_underline(concat_to_string(
+                            "[error] toml::insert_value: target value (\"",
+                            format_dotted_keys(first, last), "\") is"
+                            " not an array of tables"), get_region(tab->at(k)),
+                            concat_to_string("actual type is ", tab->at(k).type()),
+                            get_region(v), "this is an array of tables"));
                     }
                     a.push_back(v);
                     return ok(true);
                 }
                 else // if not, we need to create the array of table
                 {
-                    array aot(1, v); // array having one table
-                    tab->insert(std::make_pair(k, value(aot)));
+                    toml::value aot(v); // copy region info from table to array
+                    // update content by an array with one element
+                    detail::assign_keeping_region(aot,
+                            ::toml::value(toml::array(1, v)));
+
+                    tab->insert(std::make_pair(k, aot));
                     return ok(true);
                 }
             }
             if(tab->count(k) == 1)
             {
-                throw syntax_error("[error] toml::detail::insert_nested_key: "
-                    "while inserting value to table: value already exists. " +
-                    format_dotted_keys(first, last));
+                if(tab->at(k).is(value_t::Table) && v.is(value_t::Table))
+                {
+                    throw syntax_error(format_underline(concat_to_string(
+                        "[error] toml::insert_value: table (\"",
+                        format_dotted_keys(first, last), "\") already exists."),
+                        get_region(tab->at(k)), "table already exists here",
+                        get_region(v), "table defined twice"));
+                }
+                else if(v.is(value_t::Table)                          &&
+                        tab->at(k).is(value_t::Array)                 &&
+                        tab->at(k).cast<value_t::Array>().size() > 0  &&
+                        tab->at(k).cast<value_t::Array>().front().is(value_t::Table))
+                {
+                    throw syntax_error(format_underline(concat_to_string(
+                        "[error] toml::insert_value: array of tables (\"",
+                        format_dotted_keys(first, last), "\") already exists."),
+                        get_region(tab->at(k)), "array of tables defined here",
+                        get_region(v), "table conflicts with the previous array"
+                        " of table"));
+                }
+                else
+                {
+                    throw syntax_error(format_underline(concat_to_string(
+                        "[error] toml::insert_value: value (\"",
+                        format_dotted_keys(first, last), "\") already exists."),
+                        get_region(tab->at(k)), "value already exists here",
+                        get_region(v), "value inserted twice"));
+                }
             }
             tab->insert(std::make_pair(k, v));
             return ok(true);
@@ -1039,29 +1074,46 @@ insert_nested_key(table& root, const toml::value& v,
         else
         {
             // if there is no corresponding value, insert it first.
-            if(tab->count(k) == 0) {(*tab)[k] = table{};}
+            // related: you don't need to write
+            // # [x]
+            // # [x.y]
+            // to write
+            // [x.y.z]
+            if(tab->count(k) == 0)
+            {
+                // the region of [x.y] is the same as [x.y.z].
+                (*tab)[k] = v; // copy region_info_
+                detail::assign_keeping_region((*tab)[k],
+                        ::toml::value(::toml::table{}));
+            }
 
             // type checking...
             if(tab->at(k).is(value_t::Table))
             {
                 tab = std::addressof((*tab)[k].template cast<value_t::Table>());
             }
-            else if(tab->at(k).is(value_t::Array)) // array-of-table case
+            else if(tab->at(k).is(value_t::Array)) // inserting to array-of-tables?
             {
                 array& a = (*tab)[k].template cast<value_t::Array>();
                 if(!a.back().is(value_t::Table))
                 {
-                    throw syntax_error("toml::detail::insert_nested_key: value "
-                        "is not a table but an array: " +
-                        format_dotted_keys(first, last));
+                    throw syntax_error(format_underline(concat_to_string(
+                        "[error] toml::insert_value: target (",
+                        format_dotted_keys(first, std::next(iter)),
+                        ") is neither table nor an array of tables"),
+                        get_region(a.back()), concat_to_string("actual type is ",
+                        a.back().type()), get_region(v), "inserting this"));
                 }
                 tab = std::addressof(a.back().template cast<value_t::Table>());
             }
             else
             {
-                throw syntax_error("toml::detail::insert_nested_key: value "
-                    "is not a table but an array: " +
-                    format_dotted_keys(first, last));
+                throw syntax_error(format_underline(concat_to_string(
+                    "[error] toml::insert_value: target (",
+                    format_dotted_keys(first, std::next(iter)),
+                    ") is neither table nor an array of tables"),
+                    get_region(tab->at(k)), concat_to_string("actual type is ",
+                    tab->at(k).type()), get_region(v), "inserting this"));
             }
         }
     }
