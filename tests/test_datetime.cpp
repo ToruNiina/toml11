@@ -31,12 +31,12 @@ BOOST_AUTO_TEST_CASE(test_local_time)
     const toml::local_time time1(time);
     BOOST_CHECK_EQUAL(time, time1);
 
-    const std::chrono::microseconds dur(time);
-    std::chrono::microseconds us(0);
-    us += std::chrono::hours  (12);
-    us += std::chrono::minutes(30);
-    us += std::chrono::seconds(45);
-    BOOST_CHECK_EQUAL(dur.count(), us.count());
+    const std::chrono::nanoseconds dur(time);
+    std::chrono::nanoseconds ns(0);
+    ns += std::chrono::hours  (12);
+    ns += std::chrono::minutes(30);
+    ns += std::chrono::seconds(45);
+    BOOST_CHECK_EQUAL(dur.count(), ns.count());
 
     const toml::local_time time3(12, 15, 45);
     BOOST_CHECK(time > time3);

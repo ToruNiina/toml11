@@ -89,7 +89,7 @@ template<typename T, typename std::enable_if<
 inline T get(value& v)
 {
     return std::chrono::duration_cast<T>(
-            std::chrono::microseconds(v.cast<value_t::LocalTime>()));
+            std::chrono::nanoseconds(v.cast<value_t::LocalTime>()));
 }
 
 // ============================================================================

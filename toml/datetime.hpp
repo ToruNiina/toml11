@@ -31,15 +31,19 @@ enum class month_t : std::int8_t
 struct local_date
 {
     std::int16_t year;   // A.D. (like, 2018)
-    std::int8_t  month;  // [0, 11]
-    std::int8_t  day;    // [1, 31]
+    std::uint8_t month;  // [0, 11]
+    std::uint8_t day;    // [1, 31]
 
-    local_date(std::int16_t y, month_t m, std::int8_t d)
-        : year(y), month(static_cast<std::int8_t>(m)), day(d)
+    local_date(int y, month_t m, int d)
+        : year (static_cast<std::int16_t>(y)),
+          month(static_cast<std::uint8_t>(m)),
+          day  (static_cast<std::uint8_t>(d))
     {}
 
     explicit local_date(const std::tm& t)
-        : year(t.tm_year + 1900), month(t.tm_mon), day(t.tm_mday)
+        : year (static_cast<std::int16_t>(t.tm_year + 1900)),
+          month(static_cast<std::uint8_t>(t.tm_mon)),
+          day  (static_cast<std::uint8_t>(t.tm_mday))
     {}
 
     explicit local_date(const std::chrono::system_clock::time_point& tp)
@@ -124,24 +128,28 @@ operator<<(std::basic_ostream<charT, traits>& os, const local_date& date)
 
 struct local_time
 {
-    std::int8_t  hour;        // [0, 23]
-    std::int8_t  minute;      // [0, 59]
-    std::int8_t  second;      // [0, 60]
-    std::int16_t millisecond; // [0, 999]
-    std::int16_t microsecond; // [0, 999]
+    std::uint8_t  hour;        // [0, 23]
+    std::uint8_t  minute;      // [0, 59]
+    std::uint8_t  second;      // [0, 60]
+    std::uint16_t millisecond; // [0, 999]
+    std::uint16_t microsecond; // [0, 999]
+    std::uint16_t nanosecond;  // [0, 999]
 
-    local_time(std::int8_t h, std::int8_t m, std::int8_t s)
-        : hour(h), minute(m), second(s), millisecond(0), microsecond(0)
-    {}
-
-    local_time(std::int8_t   h, std::int8_t   m, std::int8_t s,
-              std::int16_t ms, std::int16_t us)
-        : hour(h), minute(m), second(s), millisecond(ms), microsecond(us)
+    local_time(int h, int m, int s,
+               int ms = 0, int us = 0, int ns = 0)
+        : hour  (static_cast<std::uint8_t>(h)),
+          minute(static_cast<std::uint8_t>(m)),
+          second(static_cast<std::uint8_t>(s)),
+          millisecond(static_cast<std::uint16_t>(ms)),
+          microsecond(static_cast<std::uint16_t>(us)),
+          nanosecond (static_cast<std::uint16_t>(ns))
     {}
 
     explicit local_time(const std::tm& t)
-        : hour(t.tm_hour), minute(t.tm_min), second(t.tm_sec),
-          millisecond(0), microsecond(0)
+        : hour  (static_cast<std::uint8_t>(t.tm_hour)),
+          minute(static_cast<std::uint8_t>(t.tm_min)),
+          second(static_cast<std::uint8_t>(t.tm_sec)),
+          millisecond(0), microsecond(0), nanosecond(0)
     {}
 
     template<typename Rep, typename Period>
@@ -161,11 +169,15 @@ struct local_time
         const auto t5 = t4 - ms;
         const auto us = std::chrono::duration_cast<std::chrono::microseconds>(t5);
         this->microsecond = us.count();
+        const auto t6 = t5 - us;
+        const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t6);
+        this->nanosecond = ns.count();
     }
 
-    operator std::chrono::microseconds() const
+    operator std::chrono::nanoseconds() const
     {
-        return std::chrono::microseconds(this->microsecond) +
+        return std::chrono::nanoseconds (this->nanosecond)  +
+               std::chrono::microseconds(this->microsecond) +
                std::chrono::milliseconds(this->millisecond) +
                std::chrono::seconds(this->second) +
                std::chrono::minutes(this->minute) +
@@ -182,8 +194,8 @@ struct local_time
 
 inline bool operator==(const local_time& lhs, const local_time& rhs)
 {
-    return std::make_tuple(lhs.hour, lhs.minute, lhs.second, lhs.millisecond, lhs.microsecond) ==
-           std::make_tuple(rhs.hour, rhs.minute, rhs.second, rhs.millisecond, rhs.microsecond);
+    return std::make_tuple(lhs.hour, lhs.minute, lhs.second, lhs.millisecond, lhs.microsecond, lhs.nanosecond) ==
+           std::make_tuple(rhs.hour, rhs.minute, rhs.second, rhs.millisecond, rhs.microsecond, rhs.nanosecond);
 }
 inline bool operator!=(const local_time& lhs, const local_time& rhs)
 {
@@ -191,8 +203,8 @@ inline bool operator!=(const local_time& lhs, const local_time& rhs)
 }
 inline bool operator< (const local_time& lhs, const local_time& rhs)
 {
-    return std::make_tuple(lhs.hour, lhs.minute, lhs.second, lhs.millisecond, lhs.microsecond) <
-           std::make_tuple(rhs.hour, rhs.minute, rhs.second, rhs.millisecond, rhs.microsecond);
+    return std::make_tuple(lhs.hour, lhs.minute, lhs.second, lhs.millisecond, lhs.microsecond, lhs.nanosecond) <
+           std::make_tuple(rhs.hour, rhs.minute, rhs.second, rhs.millisecond, rhs.microsecond, rhs.nanosecond);
 }
 inline bool operator<=(const local_time& lhs, const local_time& rhs)
 {
@@ -211,14 +223,21 @@ template<typename charT, typename traits>
 std::basic_ostream<charT, traits>&
 operator<<(std::basic_ostream<charT, traits>& os, const local_time& time)
 {
-    os << std::setfill('0') << std::setw(2) << static_cast<int>(time.hour       ) << ':';
-    os << std::setfill('0') << std::setw(2) << static_cast<int>(time.minute     ) << ':';
-    os << std::setfill('0') << std::setw(2) << static_cast<int>(time.second     );
-    if(time.millisecond != 0 || time.microsecond != 0)
+    os << std::setfill('0') << std::setw(2) << static_cast<int>(time.hour  ) << ':';
+    os << std::setfill('0') << std::setw(2) << static_cast<int>(time.minute) << ':';
+    os << std::setfill('0') << std::setw(2) << static_cast<int>(time.second);
+    if(time.millisecond != 0 || time.microsecond != 0 || time.nanosecond != 0)
     {
         os << '.';
         os << std::setfill('0') << std::setw(3) << static_cast<int>(time.millisecond);
-        os << std::setfill('0') << std::setw(3) << static_cast<int>(time.microsecond);
+        if(time.microsecond != 0 || time.nanosecond != 0)
+        {
+            os << std::setfill('0') << std::setw(3) << static_cast<int>(time.microsecond);
+            if(time.nanosecond != 0)
+            {
+                os << std::setfill('0') << std::setw(3) << static_cast<int>(time.nanosecond);
+            }
+        }
     }
     return os;
 }
@@ -228,7 +247,10 @@ struct time_offset
     std::int8_t hour;   // [-12, 12]
     std::int8_t minute; // [-59, 59]
 
-    time_offset(std::int8_t h, std::int8_t m): hour(h), minute(m) {}
+    time_offset(int h, int m)
+        : hour  (static_cast<std::int8_t>(h)),
+          minute(static_cast<std::int8_t>(m))
+    {}
 
     operator std::chrono::minutes() const
     {
@@ -321,6 +343,8 @@ struct local_datetime
             std::chrono::milliseconds>(t_diff).count();
         this->time.microsecond = std::chrono::duration_cast<
             std::chrono::microseconds>(t_diff).count();
+        this->time.nanosecond = std::chrono::duration_cast<
+            std::chrono::nanoseconds >(t_diff).count();
     }
 
     explicit local_datetime(const std::time_t t)
@@ -331,7 +355,7 @@ struct local_datetime
     {
         // std::mktime returns date as local time zone. no conversion needed
         return std::chrono::system_clock::time_point(this->date) +
-               std::chrono::microseconds(this->time);
+               std::chrono::nanoseconds(this->time);
     }
 
     operator std::time_t() const
@@ -413,7 +437,7 @@ struct offset_datetime
         // get date-time
         std::chrono::system_clock::time_point tp =
             std::chrono::system_clock::time_point(this->date) +
-            std::chrono::microseconds(this->time);
+            std::chrono::nanoseconds(this->time);
 
         // get date-time in UTC. let's say we are in +09:00 (JPN).
         // writing 12:00:00 in +09:00 means 03:00:00Z. to represent
