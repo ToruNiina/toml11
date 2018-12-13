@@ -1,3 +1,5 @@
+//     Copyright Toru Niina 2017.
+// Distributed under the MIT License.
 #ifndef TOML11_TO_TOML
 #define TOML11_TO_TOML
 #include "value.hpp"

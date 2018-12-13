@@ -1,3 +1,5 @@
+//     Copyright Toru Niina 2017.
+// Distributed under the MIT License.
 #ifndef TOML11_STORAGE_HPP
 #define TOML11_STORAGE_HPP
 #include "utility.hpp"

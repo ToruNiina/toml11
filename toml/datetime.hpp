@@ -1,3 +1,5 @@
+//     Copyright Toru Niina 2017.
+// Distributed under the MIT License.
 #ifndef TOML11_DATETIME
 #define TOML11_DATETIME
 #include <chrono>

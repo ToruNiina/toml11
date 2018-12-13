@@ -1,3 +1,5 @@
+//     Copyright Toru Niina 2017.
+// Distributed under the MIT License.
 #ifndef TOML11_LEXER_HPP
 #define TOML11_LEXER_HPP
 #include "combinator.hpp"

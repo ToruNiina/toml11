@@ -1,3 +1,5 @@
+//     Copyright Toru Niina 2017.
+// Distributed under the MIT License.
 #ifndef TOML11_TRAITS
 #define TOML11_TRAITS
 #include <type_traits>

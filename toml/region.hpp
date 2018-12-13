@@ -1,3 +1,5 @@
+//     Copyright Toru Niina 2017.
+// Distributed under the MIT License.
 #ifndef TOML11_REGION_H
 #define TOML11_REGION_H
 #include "exception.hpp"
