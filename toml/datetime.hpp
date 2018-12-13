@@ -353,9 +353,13 @@ struct local_datetime
 
     operator std::chrono::system_clock::time_point() const
     {
+        using internal_duration =
+            typename std::chrono::system_clock::time_point::duration;
         // std::mktime returns date as local time zone. no conversion needed
-        return std::chrono::system_clock::time_point(this->date) +
-               std::chrono::nanoseconds(this->time);
+        auto dt = std::chrono::system_clock::time_point(this->date);
+        dt += std::chrono::duration_cast<internal_duration>(
+                   std::chrono::nanoseconds(this->time));
+        return dt;
     }
 
     operator std::time_t() const
@@ -435,9 +439,12 @@ struct offset_datetime
     operator std::chrono::system_clock::time_point() const
     {
         // get date-time
+        using internal_duration =
+            typename std::chrono::system_clock::time_point::duration;
         std::chrono::system_clock::time_point tp =
             std::chrono::system_clock::time_point(this->date) +
-            std::chrono::nanoseconds(this->time);
+            std::chrono::duration_cast<internal_duration>(
+                   std::chrono::nanoseconds(this->time));
 
         // get date-time in UTC. let's say we are in +09:00 (JPN).
         // writing 12:00:00 in +09:00 means 03:00:00Z. to represent
