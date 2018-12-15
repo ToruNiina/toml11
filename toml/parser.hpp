@@ -881,7 +881,7 @@ parse_array(location<Container>& loc)
                 throw syntax_error(format_underline(
                     "[error] toml::parse_array: type of elements should be the "
                     "same each other.", region<Container>(loc, first, loc.iter()),
-                    "inhomogenous types"));
+                    "inhomogeneous types"));
             }
             retval.push_back(std::move(val.unwrap()));
         }
