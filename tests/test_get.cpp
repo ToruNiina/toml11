@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(test_get_exact)
 
         toml::value v2(54);
         toml::get<toml::value>(v1) = v2;
-        BOOST_CHECK(v2 == toml::get<toml::table>(v1));
+        BOOST_CHECK(v2 == toml::get<toml::value>(v1));
     }
 }
 
