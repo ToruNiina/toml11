@@ -116,6 +116,14 @@ BOOST_AUTO_TEST_CASE(test_get_exact)
         tab["key3"] = toml::value(123);
         BOOST_CHECK(tab == toml::get<toml::table>(v));
     }
+    {
+        toml::value v1(42);
+        BOOST_CHECK(v1 == toml::get<toml::value>(v1));
+
+        toml::value v2(54);
+        toml::get<toml::value>(v1) = v2;
+        BOOST_CHECK(v2 == toml::get<toml::table>(v1));
+    }
 }
 
 BOOST_AUTO_TEST_CASE(test_get_integer_type)
