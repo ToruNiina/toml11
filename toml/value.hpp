@@ -800,10 +800,18 @@ inline bool operator>=(const toml::value& lhs, const toml::value& rhs)
     return !(lhs < rhs);
 }
 
-inline std::string format_error(const toml::value& v,
-    const std::string& error_msg, const std::string& comment)
+inline std::string format_error(const std::string& err_msg,
+        const toml::value& v, const std::string& comment)
 {
-    return detail::format_underline(error_msg, detail::get_region(v), comment);
+    return detail::format_underline(err_msg, detail::get_region(v), comment);
+}
+
+inline std::string format_error(const std::string& err_msg,
+        const toml::value& v1, const std::string& comment1,
+        const toml::value& v2, const std::string& comment2)
+{
+    return detail::format_underline(err_msg, detail::get_region(v1), comment1,
+                                             detail::get_region(v2), comment2);
 }
 
 }// toml
