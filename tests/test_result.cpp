@@ -409,3 +409,33 @@ BOOST_AUTO_TEST_CASE(test_or_else)
         BOOST_CHECK_EQUAL(mapped.unwrap_err(), "hogehoge");
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_and_or_other)
+{
+    {
+        const toml::result<int, std::string> r1(toml::ok(42));
+        const toml::result<int, std::string> r2(toml::err<std::string>("foo"));
+
+        BOOST_CHECK_EQUAL(r1,    r1.or_other(r2));
+        BOOST_CHECK_EQUAL(r2,    r1.and_other(r2));
+        BOOST_CHECK_EQUAL(42,    r1.or_other(r2).unwrap());
+        BOOST_CHECK_EQUAL("foo", r1.and_other(r2).unwrap_err());
+    }
+    {
+        auto r1_gen = []() -> toml::result<int, std::string> {
+            return toml::ok(42);
+        };
+        auto r2_gen = []() -> toml::result<int, std::string> {
+            return toml::err<std::string>("foo");
+        };
+        const auto r3 = r1_gen();
+        const auto r4 = r2_gen();
+
+        BOOST_CHECK_EQUAL(r3, r1_gen().or_other (r2_gen()));
+        BOOST_CHECK_EQUAL(r4, r1_gen().and_other(r2_gen()));
+        BOOST_CHECK_EQUAL(42,    r1_gen().or_other (r2_gen()).unwrap());
+        BOOST_CHECK_EQUAL("foo", r1_gen().and_other(r2_gen()).unwrap_err());
+    }
+}
+
+

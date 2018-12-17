@@ -592,6 +592,26 @@ struct result
         return ok(std::move(this->as_ok()));
     }
 
+    // if *this is error, returns *this. otherwise, returns other.
+    result and_other(const result& other) const&
+    {
+        return this->is_err() ? *this : other;
+    }
+    result and_other(result&& other) &&
+    {
+        return this->is_err() ? std::move(*this) : std::move(other);
+    }
+
+    // if *this is okay, returns *this. otherwise, returns other.
+    result or_other(const result& other) const&
+    {
+        return this->is_ok() ? *this : other;
+    }
+    result or_other(result&& other) &&
+    {
+        return this->is_ok() ? std::move(*this) : std::move(other);
+    }
+
     void swap(result<T, E>& other)
     {
         result<T, E> tmp(std::move(*this));
@@ -637,6 +657,23 @@ void swap(result<T, E>& lhs, result<T, E>& rhs)
     lhs.swap(rhs);
     return;
 }
+
+// this might be confusing because it eagerly evaluated, while in the other
+// cases operator && and || are short-circuited.
+//
+// template<typename T, typename E>
+// inline result<T, E>
+// operator&&(const result<T, E>& lhs, const result<T, E>& rhs) noexcept
+// {
+//     return lhs.is_ok() ? rhs : lhs;
+// }
+//
+// template<typename T, typename E>
+// inline result<T, E>
+// operator||(const result<T, E>& lhs, const result<T, E>& rhs) noexcept
+// {
+//     return lhs.is_ok() ? lhs : rhs;
+// }
 
 } // toml11
 #endif// TOML11_RESULT_H
