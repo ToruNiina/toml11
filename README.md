@@ -446,7 +446,7 @@ if(max < min)
 you will get an error message like this.
 
 ```console
-[error] value should be positive
+[error] max should be larger than min
  --> example.toml
  3 | min = 54
    |       ~~ minimum number here
