@@ -396,20 +396,17 @@ struct result
         return std::move(this->succ.value);
     }
 
-    template<typename U>
-    value_type&       unwrap_or(U& opt) &
+    value_type&       unwrap_or(value_type& opt) &
     {
         if(is_err()) {return opt;}
         return this->succ.value;
     }
-    template<typename U>
-    value_type const& unwrap_or(U const& opt) const&
+    value_type const& unwrap_or(value_type const& opt) const&
     {
         if(is_err()) {return opt;}
         return this->succ.value;
     }
-    template<typename U>
-    value_type&&      unwrap_or(U&& opt) &&
+    value_type&&      unwrap_or(value_type opt) &&
     {
         if(is_err()) {return std::move(opt);}
         return std::move(this->succ.value);
