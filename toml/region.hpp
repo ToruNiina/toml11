@@ -262,10 +262,8 @@ inline std::string format_underline(const std::string& message,
         std::max(line_number1.size(), line_number2.size());
 
     std::ostringstream retval;
-    retval << message;
-    retval << newline;
-    retval << " --> ";
-    retval << reg1.name() << newline;;
+    retval << message << newline;
+    retval << " --> " << reg1.name() << newline;
 //  ---------------------------------------
     retval << ' ' << std::setw(line_num_width) << line_number1;
     retval << " | " << line1 << newline;
@@ -276,7 +274,14 @@ inline std::string format_underline(const std::string& message,
     retval << ' ';
     retval << comment_for_underline1 << newline;
 //  ---------------------------------------
-    retval << " ..." << newline;
+    if(reg2.name() != reg1.name())
+    {
+        retval << " --> " << reg2.name() << newline;
+    }
+    else
+    {
+        retval << " ..." << newline;
+    }
     retval << ' ' << std::setw(line_num_width) << line_number2;
     retval << " | " << line2 << newline;
     retval << make_string(line_num_width + 1, ' ');
