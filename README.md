@@ -402,6 +402,59 @@ terminate called after throwing an instance of 'std::range_error'
    |                     ~~~~~~~~~ should be in [0x00..0x10FFFF]
 ```
 
+### Formatting your error
+
+When you encounter an error after you read the toml value, you may want to
+show the error with the value.
+
+toml11 provides you a function that formats user-defined error message with
+related values. With a code like the following,
+
+```cpp
+const auto value = toml::find<int>(data, "num");
+if(value < 0)
+{
+    std::cerr << toml::format_error("[error] value should be positive",
+                                    data.at("num"), "positive number required")
+              << std::endl;
+}
+```
+
+you will get an error message like this.
+
+```console
+[error] value should be positive
+ --> example.toml
+ 3 | num = -42
+   |       ~~~ positive number required
+```
+
+When you pass two values to `toml::format_error`,
+
+```cpp
+const auto min = toml::find<int>(range, "min");
+const auto max = toml::find<int>(range, "max");
+if(max < min)
+{
+    std::cerr << toml::format_error("[error] max should be larger than min",
+                                    data.at("min"), "minimum number here",
+                                    data.at("max"), "maximum number here");
+              << std::endl;
+}
+```
+
+you will get an error message like this.
+
+```console
+[error] value should be positive
+ --> example.toml
+ 3 | min = 54
+   |       ~~ minimum number here
+ ...
+ 4 | max = 42
+   |       ~~ maximum number here
+```
+
 ## Underlying types
 
 The toml types (can be used as `toml::*` in this library) and corresponding `enum` names are listed in the table below.
