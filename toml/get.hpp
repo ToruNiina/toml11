@@ -34,6 +34,30 @@ inline T&& get(value&& v)
 }
 
 // ============================================================================
+// T == toml::value; identity transformation.
+
+template<typename T, typename std::enable_if<
+    std::is_same<T, ::toml::value>::value, std::nullptr_t>::type = nullptr>
+inline T& get(value& v)
+{
+    return v;
+}
+
+template<typename T, typename std::enable_if<
+    std::is_same<T, ::toml::value>::value, std::nullptr_t>::type = nullptr>
+inline T const& get(const value& v)
+{
+    return v;
+}
+
+template<typename T, typename std::enable_if<
+    std::is_same<T, ::toml::value>::value, std::nullptr_t>::type = nullptr>
+inline T&& get(value&& v)
+{
+    return std::move(v);
+}
+
+// ============================================================================
 // integer convertible from toml::Integer
 
 template<typename T, typename std::enable_if<detail::conjunction<
