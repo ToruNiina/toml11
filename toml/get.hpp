@@ -480,52 +480,23 @@ auto get_or(toml::value&& v, const toml::key& ky, T&& opt)
 // expect
 
 template<typename T>
-auto expect(const toml::value& v)
-    -> result<decltype(::toml::get<T>(v)), std::string>
+result<T, std::string> expect(const toml::value& v) noexcept
 {
     try
     {
         return ok(get<T>(v));
     }
-    catch(const type_error& te)
+    catch(const std::exception& e)
     {
-        return err(te.what());
+        return err(e.what());
     }
 }
 template<typename T>
-auto expect(toml::value& v)
-    -> result<decltype(::toml::get<T>(v)), std::string>
+result<T, std::string> expect(const toml::value& v, const toml::key& k) noexcept
 {
     try
     {
-        return ok(get<T>(v));
-    }
-    catch(const type_error& te)
-    {
-        return err(te.what());
-    }
-}
-template<typename T>
-auto expect(toml::value&& v)
-    -> result<decltype(::toml::get<T>(std::move(v))), std::string>
-{
-    try
-    {
-        return ok(get<T>(std::move(v)));
-    }
-    catch(const type_error& te)
-    {
-        return err(te.what());
-    }
-}
-
-template<typename T>
-auto expect(const toml::value& v, const toml::key& k)
-    -> result<decltype(::toml::get<T>(v, k)), std::string>
-{
-    try
-    {
-        return ok(get<T>(v, k));
+        return ok(find<T>(v, k));
     }
     catch(const std::exception& e)
     {
@@ -533,65 +504,12 @@ auto expect(const toml::value& v, const toml::key& k)
     }
 }
 template<typename T>
-auto expect(toml::value& v, const toml::key& k)
-    -> result<decltype(::toml::get<T>(v, k)), std::string>
+result<T, std::string> expect(const toml::table& t, const toml::key& k,
+        std::string tablename = "unknown table") noexcept
 {
     try
     {
-        return ok(get<T>(v, k));
-    }
-    catch(const std::exception& e)
-    {
-        return err(e.what());
-    }
-}
-template<typename T>
-auto expect(toml::value&& v, const toml::key& k)
-    -> result<decltype(::toml::get<T>(std::move(v), k)), std::string>
-{
-    try
-    {
-        return ok(get<T>(std::move(v), k));
-    }
-    catch(const std::exception& e)
-    {
-        return err(e.what());
-    }
-}
-
-template<typename T>
-auto expect(const toml::table& t, const toml::key& k, std::string tn)
-    -> result<decltype(::toml::get<T>(t, k, std::move(tn))), std::string>
-{
-    try
-    {
-        return ok(get<T>(t, k, std::move(tn)));
-    }
-    catch(const std::exception& e)
-    {
-        return err(e.what());
-    }
-}
-template<typename T>
-auto expect(toml::table& t, const toml::key& k, std::string tn)
-    -> result<decltype(::toml::get<T>(t, k, std::move(tn))), std::string>
-{
-    try
-    {
-        return ok(get<T>(t, k, std::move(tn)));
-    }
-    catch(const std::exception& e)
-    {
-        return err(e.what());
-    }
-}
-template<typename T>
-auto expect(toml::table&& t, const toml::key& k, std::string tn)
-    -> result<decltype(::toml::get<T>(std::move(t), k, std::move(tn))), std::string>
-{
-    try
-    {
-        return ok(get<T>(std::move(t), k, std::move(tn)));
+        return ok(find<T>(t, k, std::move(tablename)));
     }
     catch(const std::exception& e)
     {
