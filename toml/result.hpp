@@ -406,10 +406,10 @@ struct result
         if(is_err()) {return opt;}
         return this->succ.value;
     }
-    value_type&&      unwrap_or(value_type opt) &&
+    value_type        unwrap_or(value_type opt) &&
     {
-        if(is_err()) {return std::move(opt);}
-        return std::move(this->succ.value);
+        if(is_err()) {return opt;}
+        return this->succ.value;
     }
 
     error_type&       unwrap_err() &
