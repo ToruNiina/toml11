@@ -971,7 +971,8 @@ parse_key_value_pair(location<Container>& loc)
         }
         else
         {
-            msg = val.unwrap_err();
+            msg = format_underline("[error] toml::parse_key_value_pair: "
+                    "invalid value format", loc, val.unwrap_err());
         }
         loc.iter() = first;
         return err(msg);
