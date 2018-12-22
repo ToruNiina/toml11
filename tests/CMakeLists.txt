@@ -26,7 +26,8 @@ set(TEST_NAMES
     test_from_toml
     test_parse_file
     test_parse_unicode
-    )
+    test_error_detection
+)
 
 CHECK_CXX_COMPILER_FLAG("-Wall" COMPILER_SUPPORTS_WALL)
 CHECK_CXX_COMPILER_FLAG("-Wpedantic" COMPILER_SUPPORTS_WPEDANTIC)
