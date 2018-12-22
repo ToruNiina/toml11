@@ -971,7 +971,8 @@ parse_key_value_pair(location<Container>& loc)
         }
         else
         {
-            msg = val.unwrap_err();
+            msg = format_underline("[error] toml::parse_key_value_pair: "
+                    "invalid value format", loc, val.unwrap_err());
         }
         loc.iter() = first;
         return err(msg);
@@ -1035,9 +1036,9 @@ insert_nested_key(table& root, const toml::value& v,
                             "[error] toml::insert_value: array of table (\"",
                             format_dotted_keys(first, last), "\") collides with"
                             " existing value"), get_region(tab->at(k)),
-                            concat_to_string("this ", tab->at(k).type(), "value"
-                            "already exists"), get_region(v), "while inserting"
-                            "this array-of-tables"));
+                            concat_to_string("this ", tab->at(k).type(),
+                            " value already exists"), get_region(v),
+                            "while inserting this array-of-tables"));
                     }
                     array& a = tab->at(k).template cast<toml::value_t::Array>();
                     if(!(a.front().is(value_t::Table)))
@@ -1046,9 +1047,34 @@ insert_nested_key(table& root, const toml::value& v,
                             "[error] toml::insert_value: array of table (\"",
                             format_dotted_keys(first, last), "\") collides with"
                             " existing value"), get_region(tab->at(k)),
-                            concat_to_string("this ", tab->at(k).type(), "value"
-                            "already exists"), get_region(v), "while inserting"
-                            "this array-of-tables"));
+                            concat_to_string("this ", tab->at(k).type(),
+                            " value already exists"), get_region(v),
+                            "while inserting this array-of-tables"));
+                    }
+                    // avoid conflicting array of table like the following.
+                    // ```toml
+                    // a = [{b = 42}] # define a as an array of *inline* tables
+                    // [[a]]          # a is an array of *multi-line* tables
+                    // b = 54
+                    // ```
+                    // Here, from the type information, these cannot be detected
+                    // bacause inline table is also a table.
+                    // But toml v0.5.0 explicitly says it is invalid. The above
+                    // array-of-tables has a static size and appending to the
+                    // array is invalid.
+                    // In this library, multi-line table value has a region
+                    // that points to the key of the table (e.g. [[a]]). By
+                    // comparing the first two letters in key, we can detect
+                    // the array-of-table is inline or multiline.
+                    if(detail::get_region(a.front()).str().substr(0,2) != "[[")
+                    {
+                        throw syntax_error(format_underline(concat_to_string(
+                            "[error] toml::insert_value: array of table (\"",
+                            format_dotted_keys(first, last), "\") collides with"
+                            " existing array-of-tables"), get_region(tab->at(k)),
+                            concat_to_string("this ", tab->at(k).type(),
+                            " value has static size"), get_region(v),
+                            "appending this to the statically sized array"));
                     }
                     a.push_back(v);
                     return ok(true);
