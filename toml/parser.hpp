@@ -1035,9 +1035,9 @@ insert_nested_key(table& root, const toml::value& v,
                             "[error] toml::insert_value: array of table (\"",
                             format_dotted_keys(first, last), "\") collides with"
                             " existing value"), get_region(tab->at(k)),
-                            concat_to_string("this ", tab->at(k).type(), "value"
-                            "already exists"), get_region(v), "while inserting"
-                            "this array-of-tables"));
+                            concat_to_string("this ", tab->at(k).type(),
+                            " value already exists"), get_region(v),
+                            "while inserting this array-of-tables"));
                     }
                     array& a = tab->at(k).template cast<toml::value_t::Array>();
                     if(!(a.front().is(value_t::Table)))
@@ -1046,9 +1046,9 @@ insert_nested_key(table& root, const toml::value& v,
                             "[error] toml::insert_value: array of table (\"",
                             format_dotted_keys(first, last), "\") collides with"
                             " existing value"), get_region(tab->at(k)),
-                            concat_to_string("this ", tab->at(k).type(), "value"
-                            "already exists"), get_region(v), "while inserting"
-                            "this array-of-tables"));
+                            concat_to_string("this ", tab->at(k).type(),
+                            " value already exists"), get_region(v),
+                            "while inserting this array-of-tables"));
                     }
                     a.push_back(v);
                     return ok(true);
