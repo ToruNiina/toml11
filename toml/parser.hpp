@@ -34,8 +34,8 @@ parse_boolean(location<Container>& loc)
         }
     }
     loc.iter() = first; //rollback
-    return err(format_underline("[error] toml::parse_boolean", loc,
-            "token is not boolean", {"boolean is `true` or `false`"}));
+    return err(std::string("[error] toml::parse_boolean: "
+                           "the next token is not a boolean"));
 }
 
 template<typename Container>
@@ -63,8 +63,8 @@ parse_binary_integer(location<Container>& loc)
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
-    return err(format_underline("[error] toml::parse_binary_integer", loc,
-            "token is not binary integer", {"binary integer is like: 0b0011"}));
+    return err(std::string("[error] toml::parse_binary_integer:"
+                           "the next token is not an integer"));
 }
 
 template<typename Container>
@@ -84,9 +84,8 @@ parse_octal_integer(location<Container>& loc)
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
-
-    return err(format_underline("[error] toml::parse_octal_integer", loc,
-            "token is not octal integer", {"octal integer is like: 0o775"}));
+    return err(std::string("[error] toml::parse_octal_integer:"
+                           "the next token is not an integer"));
 }
 
 template<typename Container>
@@ -106,8 +105,8 @@ parse_hexadecimal_integer(location<Container>& loc)
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
-    return err(format_underline("[error] toml::parse_hexadecimal_integer", loc,
-            "token is not hex integer", {"hex integer is like: 0xC0FFEE"}));
+    return err(std::string("[error] toml::parse_hexadecimal_integer"
+                           "the next token is not an integer"));
 }
 
 template<typename Container>
@@ -134,10 +133,8 @@ parse_integer(location<Container>& loc)
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
-    return err(format_underline("[error] toml::parse_integer", loc,
-            "token is not integer", {"integer is like: +42",
-            "hex integer is like: 0xC0FFEE", "octal integer is like: 0o775",
-            "binary integer is like: 0b0011"}));
+    return err(std::string("[error] toml::parse_integer: "
+                           "the next token is not an integer"));
 }
 
 template<typename Container>
@@ -225,8 +222,8 @@ parse_floating(location<Container>& loc)
         return ok(std::make_pair(v, token.unwrap()));
     }
     loc.iter() = first;
-    return err(format_underline("[error] toml::parse_floating: ", loc,
-                "token is not a float", {"floating point is like: -3.14e+1"}));
+    return err(std::string("[error] toml::parse_floating: "
+                           "the next token is not a float"));
 }
 
 template<typename Container>
@@ -286,9 +283,8 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end() || *first != '\\')
     {
-        return err(format_underline("[error]: "
-            "toml::parse_escape_sequence: location does not points \"\\\"",
-            loc, "should be \"\\\""));
+        return err(std::string("[error]: toml::parse_escape_sequence: "
+                    "the next token is not an escape sequence \"\\\""));
     }
     ++loc.iter();
     switch(*loc.iter())
@@ -527,8 +523,8 @@ parse_string(location<Container>& loc)
     if(const auto rslt = parse_ml_literal_string(loc)) {return rslt;}
     if(const auto rslt = parse_basic_string(loc))      {return rslt;}
     if(const auto rslt = parse_literal_string(loc))    {return rslt;}
-    return err(format_underline("[error] toml::parse_string: not a string",
-               loc, "not a string"));
+    return err(std::string("[error] toml::parse_string: "
+                "the next token is not a string"));
 }
 
 template<typename Container>
@@ -576,11 +572,9 @@ parse_local_date(location<Container>& loc)
     }
     else
     {
-        auto msg = format_underline("[error]: toml::parse_local_date: "
-                "invalid format", loc, token.unwrap_err(),
-                {"local date is like: 1979-05-27"});
         loc.iter() = first;
-        return err(std::move(msg));
+        return err(std::string("[error]: toml::parse_local_date: "
+                    "the next token is not a local_date"));
     }
 }
 
@@ -661,11 +655,9 @@ parse_local_time(location<Container>& loc)
     }
     else
     {
-        auto msg = format_underline("[error]: toml::parse_local_time: "
-                "invalid format", loc, token.unwrap_err(),
-                {"local time is like: 00:32:00.999999"});
         loc.iter() = first;
-        return err(std::move(msg));
+        return err(std::string("[error]: toml::parse_local_time: "
+                    "the next token is not a local_time"));
     }
 }
 
@@ -706,11 +698,9 @@ parse_local_datetime(location<Container>& loc)
     }
     else
     {
-        auto msg = format_underline("[error]: toml::parse_local_datetime: "
-                    "invalid format", loc, token.unwrap_err(),
-                    {"local datetime is like: 1979-05-27T00:32:00.999999"});
         loc.iter() = first;
-        return err(std::move(msg));
+        return err(std::string("[error]: toml::parse_local_datetime: "
+                    "the next token is not a local_datetime"));
     }
 }
 
@@ -757,12 +747,9 @@ parse_offset_datetime(location<Container>& loc)
     }
     else
     {
-        auto msg = format_underline("[error]: toml::parse_offset_datetime: "
-                    "invalid format", loc, token.unwrap_err(),
-                    {"offset datetime is like: 1979-05-27T00:32:00-07:00",
-                     "or in UTC (w/o offset) : 1979-05-27T00:32:00Z"});
         loc.iter() = first;
-        return err(std::move(msg));
+        return err(std::string("[error]: toml::parse_offset_datetime: "
+                    "the next token is not a local_datetime"));
     }
 }
 
@@ -781,8 +768,8 @@ result<key, std::string> parse_simple_key(location<Container>& loc)
     {
         return ok(bare.unwrap().str());
     }
-    return err(format_underline("[error] toml::parse_simple_key: "
-        "the next token is not a simple key", loc, "not a key"));
+    return err(std::string("[error] toml::parse_simple_key: "
+        "the next token is not a simple key"));
 }
 
 // dotted key become vector of keys
@@ -835,8 +822,8 @@ result<std::vector<key>, std::string> parse_key(location<Container>& loc)
     {
         return ok(std::vector<key>(1, smpl.unwrap()));
     }
-    return err(format_underline("toml::parse_key: the next token is not a key",
-                loc, "not a key"));
+    return err(std::string("[error] toml::parse_key: "
+                           "the next token is not a key"));
 }
 
 // forward-decl to implement parse_array and parse_table
@@ -854,8 +841,7 @@ parse_array(location<Container>& loc)
     }
     if(*loc.iter() != '[')
     {
-        return err(format_underline("[error] toml::parse_array: "
-            "token is not an array", loc,  "should be ["));
+        return err("[error] toml::parse_array: token is not an array");
     }
     ++loc.iter();
 
@@ -903,13 +889,13 @@ parse_array(location<Container>& loc)
             }
             else
             {
-                return err(format_underline("[error] toml::parse_array: "
-                    "missing array separator `,`", loc, "should be `,`"));
+                throw syntax_error(format_underline("[error] toml::parse_array:"
+                    " missing array separator `,`", loc, "should be `,`"));
             }
         }
     }
     loc.iter() = first;
-    return err(format_underline("[error] toml::parse_array: "
+    throw syntax_error(format_underline("[error] toml::parse_array: "
             "array did not closed by `]`", loc, "should be closed"));
 }
 
@@ -1181,10 +1167,11 @@ parse_inline_table(location<Container>& loc)
     table retval;
     if(!(loc.iter() != loc.end() && *loc.iter() == '{'))
     {
-        return err(format_underline("[error] toml::parse_inline_table: "
-            "the next token is not an inline table", loc, "not `{`."));
+        return err(std::string("[error] toml::parse_inline_table: "
+                               "the next token is not an inline table"));
     }
     ++loc.iter();
+    // it starts from "{". it should be formatted as inline-table
     while(loc.iter() != loc.end())
     {
         maybe<lex_ws>::invoke(loc);
@@ -1224,13 +1211,14 @@ parse_inline_table(location<Container>& loc)
             }
             else
             {
-                return err(format_underline("[error] toml:::parse_inline_table:"
-                    " missing table separator `,` ", loc, "should be `,`"));
+                throw syntax_error(format_underline("[error] "
+                    "toml:::parse_inline_table: missing table separator `,` ",
+                    loc, "should be `,`"));
             }
         }
     }
     loc.iter() = first;
-    return err(format_underline("[error] toml::parse_inline_table: "
+    throw syntax_error(format_underline("[error] toml::parse_inline_table: "
             "inline table did not closed by `}`", loc, "should be closed"));
 }
 
@@ -1377,6 +1365,7 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
             loc.iter() = before;
             return ok(tab);
         }
+
         if(const auto kv = parse_key_value_pair(loc))
         {
             const std::vector<key>& keys = kv.unwrap().first;
