@@ -1345,7 +1345,7 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
         return err(std::string("toml::parse_ml_table: input is empty"));
     }
 
-    // XXX at lest one newline is needed
+    // XXX at lest one newline is needed.
     using skip_line = repeat<
         sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>, at_least<1>>;
     skip_line::invoke(loc);
@@ -1382,6 +1382,17 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
             return err(kv.unwrap_err());
         }
 
+        // comment lines are skipped by the above function call.
+        // However, since the `skip_line` requires at least 1 newline, it fails
+        // if the file ends with ws and/or comment without newline.
+        // `skip_line` matches `ws? + comment? + newline`, not `ws` or `comment`
+        // itself. To skip the last ws and/or comment, call lexers.
+        // It does not matter if these fails, so the return value is discarded.
+        lex_ws::invoke(loc);
+        lex_comment::invoke(loc);
+
+        // skip_line is (whitespace? comment? newline)_{1,}. multiple empty lines
+        // and comments after the last key-value pairs are allowed.
         const auto newline = skip_line::invoke(loc);
         if(!newline && loc.iter() != loc.end())
         {
@@ -1394,11 +1405,10 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
             return err(msg);
         }
 
-        // comment lines are skipped by the above function call.
-        // However, if the file ends with comment without newline,
-        // it might cause parsing error because skip_line matches
-        // `comment + newline`, not `comment` itself. to skip the
-        // last comment, call lex_comment one more time.
+        // the skip_lines only matches with lines that includes newline.
+        // to skip the last line that includes comment and/or whitespace
+        // but no newline, call them one more time.
+        lex_ws::invoke(loc);
         lex_comment::invoke(loc);
     }
     return ok(tab);
@@ -1487,10 +1497,10 @@ inline table parse(std::istream& is, std::string fname = "unknown file")
     // be compared to char. However, since we are always out of luck, we need to
     // check our chars are equivalent to BOM. To do this, first we need to
     // convert char to unsigned char to guarantee the comparability.
-    if(letters.size() >= 3)
+    if(loc.source()->size() >= 3)
     {
         std::array<unsigned char, 3> BOM;
-        std::memcpy(BOM.data(), letters.data(), 3);
+        std::memcpy(BOM.data(), loc.source()->data(), 3);
         if(BOM[0] == 0xEF && BOM[1] == 0xBB && BOM[2] == 0xBF)
         {
             loc.iter() += 3; // BOM found. skip.
