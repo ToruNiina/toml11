@@ -1472,10 +1472,10 @@ inline table parse(std::istream& is, std::string fname = "unknown file")
     // be compared to char. However, since we are always out of luck, we need to
     // check our chars are equivalent to BOM. To do this, first we need to
     // convert char to unsigned char to guarantee the comparability.
-    if(letters.size() >= 3)
+    if(loc.source()->size() >= 3)
     {
         std::array<unsigned char, 3> BOM;
-        std::memcpy(BOM.data(), letters.data(), 3);
+        std::memcpy(BOM.data(), loc.source()->data(), 3);
         if(BOM[0] == 0xEF && BOM[1] == 0xBB && BOM[2] == 0xBF)
         {
             loc.iter() += 3; // BOM found. skip.
