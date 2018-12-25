@@ -14,6 +14,49 @@
 namespace toml
 {
 
+// To avoid non-threadsafe std::localtime. In C11 (not C++11!), localtime_s is
+// provided in the absolutely same purpose, but C++11 is actually not compatible
+// with C11. We need to dispatch the function depending on the OS.
+namespace detail
+{
+#if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _BSD_SOURCE || _SVID_SOURCE || _POSIX_SOURCE
+// use posix.
+inline std::tm localtime_s(const std::time_t* src)
+{
+    std::tm dst;
+    const auto result = ::localtime_r(src, &dst);
+    if(!result)
+    {
+        throw std::runtime_error("localtime_r failed.");
+    }
+    return dst;
+}
+#elif defined(_MSC_VER) || defined(_WIN32)
+// use windows
+inline std::tm localtime_s(const std::time_t* src)
+{
+    std::tm dst;
+    const auto result = ::localtime_s(&dst, src);
+    if(result != 0)
+    {
+        throw std::runtime_error("localtime_s failed.");
+    }
+    return dst;
+}
+#else
+//XXX it is **NOT** threadsafe! there seems to be no thread-safe localtime impl.
+inline std::tm localtime_s(const std::time_t* src)
+{
+    const auto result = std::localtime(src); //XXX not threadsafe!!!
+    if(!result)
+    {
+        throw std::runtime_error("std::localtime failed.");
+    }
+    return *result;
+}
+#endif
+} // detail
+
 enum class month_t : std::int8_t
 {
     Jan =  0,
@@ -50,10 +93,8 @@ struct local_date
 
     explicit local_date(const std::chrono::system_clock::time_point& tp)
     {
-        const auto t = std::chrono::system_clock::to_time_t(tp);
-        const auto tmp = std::localtime(&t); //XXX: not threadsafe!
-        assert(tmp); // if std::localtime fails, tmp is nullptr
-        const std::tm time = *tmp;
+        const auto t    = std::chrono::system_clock::to_time_t(tp);
+        const auto time = detail::localtime_s(&t);
         *this = local_date(time);
     }
 
@@ -330,10 +371,8 @@ struct local_datetime
     explicit local_datetime(const std::chrono::system_clock::time_point& tp)
     {
         const auto t = std::chrono::system_clock::to_time_t(tp);
-        const auto tmp = std::localtime(&t); //XXX: not threadsafe!
-        assert(tmp); // if std::localtime fails, tmp is nullptr
+        std::tm time = detail::localtime_s(&t);
 
-        std::tm time = *tmp;
         this->date = local_date(time);
         this->time = local_time(time);
 
@@ -482,10 +521,8 @@ struct offset_datetime
     static time_offset get_local_offset()
     {
          // get current timezone
-        const auto  tmp1 = std::time(nullptr);
-        const auto  tmp2 = std::localtime(&tmp1); // XXX not threadsafe!
-        assert(tmp2);
-        std::tm t = *tmp2;
+        const auto tmp1 = std::time(nullptr);
+        const auto t    = detail::localtime_s(&tmp1);
 
         std::array<char, 6> buf;
         const auto result = std::strftime(buf.data(), 6, "%z", &t); // +hhmm\0
