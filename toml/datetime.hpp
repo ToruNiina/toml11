@@ -19,8 +19,8 @@ namespace toml
 // with C11. We need to dispatch the function depending on the OS.
 namespace detail
 {
+// TODO: find more sophisticated way to handle this
 #if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _BSD_SOURCE || _SVID_SOURCE || _POSIX_SOURCE
-// use posix.
 inline std::tm localtime_s(const std::time_t* src)
 {
     std::tm dst;
@@ -31,27 +31,14 @@ inline std::tm localtime_s(const std::time_t* src)
     }
     return dst;
 }
-#elif defined(_MSC_VER) || defined(_WIN32)
-// use windows
-inline std::tm localtime_s(const std::time_t* src)
-{
-    std::tm dst;
-    const auto result = ::localtime_s(&dst, src);
-    if(result != 0)
-    {
-        throw std::runtime_error("localtime_s failed.");
-    }
-    return dst;
-}
 #else
-//XXX it is **NOT** threadsafe! there seems to be no thread-safe localtime impl.
+// XXX: On Windows, std::localtime is thread-safe because they uses thread-local
+// storage to store the instance of std::tm. On the other platforms, it may not
+// be thread-safe.
 inline std::tm localtime_s(const std::time_t* src)
 {
-    const auto result = std::localtime(src); //XXX not threadsafe!!!
-    if(!result)
-    {
-        throw std::runtime_error("std::localtime failed.");
-    }
+    const auto result = std::localtime(src);
+    if(!result) {throw std::runtime_error("localtime failed.");}
     return *result;
 }
 #endif
