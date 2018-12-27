@@ -804,7 +804,8 @@ inline std::string format_error(const std::string& err_msg,
         const toml::value& v, const std::string& comment,
         std::vector<std::string> hints = {})
 {
-    return detail::format_underline(err_msg, detail::get_region(v), comment, hints);
+    return detail::format_underline(err_msg, detail::get_region(v), comment,
+                                    std::move(hints));
 }
 
 inline std::string format_error(const std::string& err_msg,
@@ -814,7 +815,7 @@ inline std::string format_error(const std::string& err_msg,
 {
     return detail::format_underline(err_msg, detail::get_region(v1), comment1,
                                              detail::get_region(v2), comment2,
-                                             hints);
+                                             std::move(hints));
 }
 
 }// toml
