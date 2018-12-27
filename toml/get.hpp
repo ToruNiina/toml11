@@ -295,7 +295,7 @@ T get(const toml::value& v)
 // ============================================================================
 // find and get
 
-template<typename T>
+template<typename T = ::toml::value>
 decltype(::toml::get<T>(std::declval<const ::toml::value&>()))
 find(const toml::table& tab, const toml::key& ky,
      std::string tablename = "unknown table")
@@ -307,7 +307,7 @@ find(const toml::table& tab, const toml::key& ky,
     }
     return ::toml::get<T>(tab.at(ky));
 }
-template<typename T>
+template<typename T = ::toml::value>
 decltype(::toml::get<T>(std::declval<::toml::value&>()))
 find(toml::table& tab, const toml::key& ky,
      std::string tablename = "unknown table")
@@ -319,7 +319,7 @@ find(toml::table& tab, const toml::key& ky,
     }
     return ::toml::get<T>(tab[ky]);
 }
-template<typename T>
+template<typename T = ::toml::value>
 decltype(::toml::get<T>(std::declval<::toml::value&&>()))
 find(toml::table&& tab, const toml::key& ky,
      std::string tablename = "unknown table")
@@ -332,7 +332,7 @@ find(toml::table&& tab, const toml::key& ky,
     return ::toml::get<T>(std::move(tab[ky]));
 }
 
-template<typename T>
+template<typename T = ::toml::value>
 decltype(::toml::get<T>(std::declval<const ::toml::value&>()))
 find(const toml::value& v, const toml::key& ky)
 {
@@ -345,7 +345,7 @@ find(const toml::value& v, const toml::key& ky)
     }
     return ::toml::get<T>(tab.at(ky));
 }
-template<typename T>
+template<typename T = ::toml::value>
 decltype(::toml::get<T>(std::declval<::toml::value&>()))
 find(toml::value& v, const toml::key& ky)
 {
@@ -358,7 +358,7 @@ find(toml::value& v, const toml::key& ky)
     }
     return ::toml::get<T>(tab.at(ky));
 }
-template<typename T>
+template<typename T = ::toml::value>
 decltype(::toml::get<T>(std::declval<::toml::value&&>()))
 find(toml::value&& v, const toml::key& ky)
 {
