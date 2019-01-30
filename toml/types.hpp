@@ -137,17 +137,6 @@ template<> struct toml_value_t<LocalDate     >{static constexpr value_t value = 
 template<> struct toml_value_t<LocalTime     >{static constexpr value_t value = value_t::LocalTime     ;};
 template<> struct toml_value_t<Array         >{static constexpr value_t value = value_t::Array         ;};
 template<> struct toml_value_t<Table         >{static constexpr value_t value = value_t::Table         ;};
-template<typename T> constexpr value_t toml_value_t<T>::value;
-constexpr value_t toml_value_t<Boolean       >::value;
-constexpr value_t toml_value_t<Integer       >::value;
-constexpr value_t toml_value_t<Float         >::value;
-constexpr value_t toml_value_t<String        >::value;
-constexpr value_t toml_value_t<OffsetDatetime>::value;
-constexpr value_t toml_value_t<LocalDatetime >::value;
-constexpr value_t toml_value_t<LocalDate     >::value;
-constexpr value_t toml_value_t<LocalTime     >::value;
-constexpr value_t toml_value_t<Array         >::value;
-constexpr value_t toml_value_t<Table         >::value;
 
 template<typename T>
 struct is_exact_toml_type : disjunction<
