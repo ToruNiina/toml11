@@ -485,6 +485,8 @@ I thank the contributor for providing great feature to this repository.
 - Guillaume Fraux (@Luthaf)
   - Windows support and CI on Appvayor
   - Intel Compiler support
+- Quentin Khan (@xaxousis)
+  - Found & Fixed a bug around ODR
 
 ## Licensing terms
 
