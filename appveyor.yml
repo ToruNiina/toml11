@@ -24,3 +24,6 @@ build_script:
 
 test_script:
   - ctest --build-config "%configuration%" --timeout 300 --output-on-failure
+  - type tmp1.toml
+  - type tmp2.toml
+  - type tmp3.toml
