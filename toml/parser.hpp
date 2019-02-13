@@ -1479,20 +1479,9 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
 
 inline table parse(std::istream& is, std::string fname = "unknown file")
 {
-    const auto beg = is.tellg();
-    is.seekg(0, std::ios::end);
-    const auto end = is.tellg();
-    const auto fsize = end - beg;
-    is.seekg(beg);
-
     // read whole file as a sequence of char
-    std::vector<char> letters(fsize);
-    is.read(letters.data(), fsize);
-
-    if(is.fail())
-    {
-        throw std::runtime_error("file input failed");
-    }
+    std::vector<char> letters(std::istream_iterator<char>(is),
+                              std::istream_iterator<char>(is));
 
     detail::location<std::vector<char>>
         loc(std::move(fname), std::move(letters));
