@@ -32,6 +32,27 @@ BOOST_AUTO_TEST_CASE(test_fruit)
     }
     std::cout << "==========================\n";
     std::cout << data << std::endl;
+
+    {
+        std::ifstream ifs("tmp2.toml");
+
+        const auto beg = ifs.tellg();
+        ifs.seekg(0, std::ios::end);
+        const auto end = ifs.tellg();
+        const auto fsize = end - beg;
+        ifs.seekg(beg);
+
+        // read whole file as a sequence of char
+        std::vector<char> letters(fsize);
+        ifs.read(letters.data(), fsize);
+
+        for(const char c : letters)
+        {
+            if(c == '\n'){std::cout << std::endl;}
+            else {std::cout << toml::detail::show_char(c);}
+        }
+    }
+
     const auto serialized = toml::parse("tmp2.toml");
     BOOST_CHECK(data == serialized);
 }
