@@ -18,26 +18,18 @@ BOOST_AUTO_TEST_CASE(test_example)
         ofs << data << std::endl;
     }
 
-    toml::table owner = toml::get<toml::table>(data.at("owner"));
-    BOOST_CHECK_EQUAL(toml::get<std::string>(owner.at("bio")),
-                      "GitHub Cofounder & CEO\nLikes tater tots and beer.");
+    auto serialized = toml::parse("tmp1.toml");
 
-    for(const char c: toml::get<std::string>(owner.at("bio")))
+    // the newline character might be mutated depending on the environment.
     {
-        std::cout << toml::detail::show_char(c);
+        auto& owner = toml::get<toml::table >(serialized.at("owner"));
+        auto& bio   = toml::get<toml::string>(owner_.at("bio"));
+        const auto CR = std::find(bio.begin(), bio.end(), '\r');
+        if(CR != bio.end())
+        {
+            bio.erase(CR);
+        }
     }
-
-    const auto serialized = toml::parse("tmp1.toml");
-
-    toml::table owner_ = toml::get<toml::table>(serialized.at("owner"));
-    BOOST_CHECK_EQUAL(toml::get<std::string>(owner_.at("bio")),
-                      "GitHub Cofounder & CEO\nLikes tater tots and beer.");
-
-    for(const char c: toml::get<std::string>(owner_.at("bio")))
-    {
-        std::cout << toml::detail::show_char(c);
-    }
-
     BOOST_CHECK(data == serialized);
 }
 
