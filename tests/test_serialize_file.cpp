@@ -17,6 +17,8 @@ BOOST_AUTO_TEST_CASE(test_example)
         std::ofstream ofs("tmp1.toml");
         ofs << data;
     }
+    std::cout << "==========================\n";
+    std::cout << data << std::endl;
     const auto serialized = toml::parse("tmp1.toml");
     BOOST_CHECK(data == serialized);
 }
@@ -28,6 +30,8 @@ BOOST_AUTO_TEST_CASE(test_fruit)
         std::ofstream ofs("tmp2.toml");
         ofs << data;
     }
+    std::cout << "==========================\n";
+    std::cout << data << std::endl;
     const auto serialized = toml::parse("tmp2.toml");
     BOOST_CHECK(data == serialized);
 }
@@ -39,6 +43,8 @@ BOOST_AUTO_TEST_CASE(test_hard_example)
         std::ofstream ofs("tmp3.toml");
         ofs << data;
     }
+    std::cout << "==========================\n";
+    std::cout << data << std::endl;
     const auto serialized = toml::parse("tmp3.toml");
     BOOST_CHECK(data == serialized);
 }
