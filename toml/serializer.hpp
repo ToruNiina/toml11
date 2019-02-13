@@ -258,9 +258,10 @@ struct serializer
     std::string serialize_key(const toml::key& key) const
     {
         detail::location<toml::key> loc(key, key);
-        if(const auto unquoted = detail::lex_unquoted_key::invoke(loc))
+        detail::lex_unquoted_key::invoke(loc);
+        if(loc.iter() == loc.end())
         {
-            return key; // the key is unquoted-key
+            return key; // all the tokens are consumed. the key is unquoted-key.
         }
         std::string token("\"");
         token += this->escape_basic_string(key);
@@ -382,7 +383,7 @@ struct serializer
                 continue;
             }
 
-            const auto key_and_sep = serialize_key(kv.first) + " = ";
+            const auto key_and_sep    = this->serialize_key(kv.first) + " = ";
             const auto residual_width = this->width_ - key_and_sep.size();
 
             token += key_and_sep;
