@@ -220,8 +220,10 @@ BOOST_AUTO_TEST_CASE(test_file_with_BOM)
             "[table]\n"
             "key = \"value\"\n"
             );
-        std::ofstream ofs("tmp.toml");
-        ofs << table;
+        {
+            std::ofstream ofs("tmp.toml");
+            ofs << table;
+        }
         const auto data = toml::parse("tmp.toml");
 
         BOOST_CHECK_EQUAL(toml::get <std::string>(data.at("key")), "value");
@@ -247,8 +249,10 @@ BOOST_AUTO_TEST_CASE(test_file_with_BOM)
             "[table]\r\n"
             "key = \"value\"\r\n"
             );
-        std::ofstream ofs("tmp.toml");
-        ofs << table;
+        {
+            std::ofstream ofs("tmp.toml");
+            ofs << table;
+        }
         const auto data = toml::parse("tmp.toml");
 
         BOOST_CHECK_EQUAL(toml::get <std::string>(data.at("key")), "value");
