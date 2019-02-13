@@ -1489,6 +1489,11 @@ inline table parse(std::istream& is, std::string fname = "unknown file")
     std::vector<char> letters(fsize);
     is.read(letters.data(), fsize);
 
+    if(is.fail())
+    {
+        throw std::runtime_error("file input failed");
+    }
+
     detail::location<std::vector<char>>
         loc(std::move(fname), std::move(letters));
 
