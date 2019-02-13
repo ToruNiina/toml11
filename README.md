@@ -42,8 +42,14 @@ In the case of file open error, it will throw `std::runtime_error`.
 
 You can also pass a `stream` to the  `toml::parse` function after checking the status.
 
+Note that on __Windows OS__, stream that is opened as text-mode automatically converts
+CRLF ("\r\n") into LF ("\n") and this leads inconsistency between file size and
+the contents that would be read. This causes weird error. To use a file stream
+with `toml::parse`, don't forget to pass binary mode flag when you open the
+stream.
+
 ```cpp
-std::ifstream ifs("sample.toml");
+std::ifstream ifs("sample.toml", std::ios_base::binary);
 assert(ifs.good());
 const auto data = toml::parse(ifs /*, "filename" (optional)*/);
 ```
