@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_CASE(test_example)
     const auto data = toml::parse("toml/tests/example.toml");
     {
         std::ofstream ofs("tmp1.toml");
-        ofs << data;
+        ofs << data << std::endl;
     }
     std::cout << "==========================\n";
     std::cout << data << std::endl;
@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(test_fruit)
     const auto data = toml::parse("toml/tests/fruit.toml");
     {
         std::ofstream ofs("tmp2.toml");
-        ofs << data;
+        ofs << data << std::endl;
     }
     std::cout << "==========================\n";
     std::cout << data << std::endl;
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example)
     const auto data = toml::parse("toml/tests/hard_example.toml");
     {
         std::ofstream ofs("tmp3.toml");
-        ofs << data;
+        ofs << data << std::endl;
     }
     std::cout << "==========================\n";
     std::cout << data << std::endl;
