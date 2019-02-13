@@ -836,6 +836,9 @@ visit(Visitor&& visitor, const toml::value& v)
         case value_t::LocalTime     : {return visitor(v.cast<value_t::LocalTime     >());}
         case value_t::Array         : {return visitor(v.cast<value_t::Array         >());}
         case value_t::Table         : {return visitor(v.cast<value_t::Table         >());}
+        case value_t::Empty         : break;
+        case value_t::Unknown       : break;
+        default: break;
     }
     throw std::runtime_error(format_error("[error] toml::visit: toml::value "
             "does not have any valid value.", v, "here"));
@@ -857,6 +860,9 @@ visit(Visitor&& visitor, toml::value& v)
         case value_t::LocalTime     : {return visitor(v.cast<value_t::LocalTime     >());}
         case value_t::Array         : {return visitor(v.cast<value_t::Array         >());}
         case value_t::Table         : {return visitor(v.cast<value_t::Table         >());}
+        case value_t::Empty         : break;
+        case value_t::Unknown       : break;
+        default: break;
     }
     throw std::runtime_error(format_error("[error] toml::visit: toml::value "
             "does not have any valid value.", v, "here"));
@@ -878,6 +884,9 @@ visit(Visitor&& visitor, toml::value&& v)
         case value_t::LocalTime     : {return visitor(std::move(v.cast<value_t::LocalTime     >()));}
         case value_t::Array         : {return visitor(std::move(v.cast<value_t::Array         >()));}
         case value_t::Table         : {return visitor(std::move(v.cast<value_t::Table         >()));}
+        case value_t::Empty         : break;
+        case value_t::Unknown       : break;
+        default: break;
     }
     throw std::runtime_error(format_error("[error] toml::visit: toml::value "
             "does not have any valid value.", v, "here"));
