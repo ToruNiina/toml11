@@ -22,8 +22,8 @@ BOOST_AUTO_TEST_CASE(test_example)
 
     // the newline character might be mutated depending on the environment.
     {
-        auto& owner = toml::get<toml::table >(serialized.at("owner"));
-        auto& bio   = toml::get<toml::string>(owner_.at("bio"));
+        auto& owner = toml::get<toml::table>(serialized.at("owner"));
+        auto& bio   = toml::get<std::string>(owner.at("bio"));
         const auto CR = std::find(bio.begin(), bio.end(), '\r');
         if(CR != bio.end())
         {
