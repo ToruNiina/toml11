@@ -250,8 +250,11 @@ BOOST_AUTO_TEST_CASE(test_file_with_BOM)
             "key = \"value\"\r\n"
             );
         {
-            std::ofstream ofs("tmp.toml");
-            ofs << table;
+            // with text-mode, "\n" is converted to "\r\n" and the resulting
+            // value will be "\r\r\n". To avoid the additional "\r", use binary
+            // mode.
+            std::ofstream ofs("tmp.toml", std::ios_base::binary);
+            ofs.write(table.data(), table.size());
         }
         const auto data = toml::parse("tmp.toml");
 
