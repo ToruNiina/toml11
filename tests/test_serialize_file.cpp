@@ -17,29 +17,27 @@ BOOST_AUTO_TEST_CASE(test_example)
         std::ofstream ofs("tmp1.toml");
         ofs << data << std::endl;
     }
-    std::cout << "\n==========================\n";
-    std::cout << data << std::endl;
-    std::cout << "\n--------------------------\n";
+
+    toml::table owner = toml::get<toml::table>(data.at("owner"));
+    BOOST_CHECK_EQUAL(toml::get<std::string>(owner.at("bio")),
+                      "GitHub Cofounder & CEO\nLikes tater tots and beer.");
+
+    for(const char c: toml::get<std::string>(owner.at("bio")))
     {
-        std::ifstream ifs("tmp1.toml", std::ios_base::binary);
-
-        const auto beg = ifs.tellg();
-        ifs.seekg(0, std::ios::end);
-        const auto end = ifs.tellg();
-        const auto fsize = end - beg;
-        ifs.seekg(beg);
-
-        // read whole file as a sequence of char
-        std::vector<char> letters(fsize);
-        ifs.read(letters.data(), fsize);
-
-        for(const char c : letters)
-        {
-            if(c == '\n'){std::cout << std::endl;}
-            else {std::cout << toml::detail::show_char(c);}
-        }
+        std::cout << toml::detail::show_char(c);
     }
+
     const auto serialized = toml::parse("tmp1.toml");
+
+    toml::table owner_ = toml::get<toml::table>(serialized.at("owner"));
+    BOOST_CHECK_EQUAL(toml::get<std::string>(owner_.at("bio")),
+                      "GitHub Cofounder & CEO\nLikes tater tots and beer.");
+
+    for(const char c: toml::get<std::string>(owner_.at("bio")))
+    {
+        std::cout << toml::detail::show_char(c);
+    }
+
     BOOST_CHECK(data == serialized);
 }
 
@@ -49,28 +47,6 @@ BOOST_AUTO_TEST_CASE(test_fruit)
     {
         std::ofstream ofs("tmp2.toml");
         ofs << data << std::endl;
-    }
-    std::cout << "\n==========================\n";
-    std::cout << data << std::endl;
-    std::cout << "\n--------------------------\n";
-    {
-        std::ifstream ifs("tmp2.toml", std::ios_base::binary);
-
-        const auto beg = ifs.tellg();
-        ifs.seekg(0, std::ios::end);
-        const auto end = ifs.tellg();
-        const auto fsize = end - beg;
-        ifs.seekg(beg);
-
-        // read whole file as a sequence of char
-        std::vector<char> letters(fsize);
-        ifs.read(letters.data(), fsize);
-
-        for(const char c : letters)
-        {
-            if(c == '\n'){std::cout << std::endl;}
-            else {std::cout << toml::detail::show_char(c);}
-        }
     }
 
     const auto serialized = toml::parse("tmp2.toml");
@@ -84,28 +60,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example)
         std::ofstream ofs("tmp3.toml");
         ofs << data << std::endl;
     }
-    std::cout << "\n==========================\n";
-    std::cout << data << std::endl;
-    std::cout << "\n--------------------------\n";
-    {
-        std::ifstream ifs("tmp3.toml", std::ios_base::binary);
 
-        const auto beg = ifs.tellg();
-        ifs.seekg(0, std::ios::end);
-        const auto end = ifs.tellg();
-        const auto fsize = end - beg;
-        ifs.seekg(beg);
-
-        // read whole file as a sequence of char
-        std::vector<char> letters(fsize);
-        ifs.read(letters.data(), fsize);
-
-        for(const char c : letters)
-        {
-            if(c == '\n'){std::cout << std::endl;}
-            else {std::cout << toml::detail::show_char(c);}
-        }
-    }
     const auto serialized = toml::parse("tmp3.toml");
     BOOST_CHECK(data == serialized);
 }
