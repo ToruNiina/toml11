@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(test_example)
     std::cout << data << std::endl;
     std::cout << "\n--------------------------\n";
     {
-        std::ifstream ifs("tmp1.toml");
+        std::ifstream ifs("tmp1.toml", std::ios_base::binary);
 
         const auto beg = ifs.tellg();
         ifs.seekg(0, std::ios::end);
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(test_fruit)
     std::cout << data << std::endl;
     std::cout << "\n--------------------------\n";
     {
-        std::ifstream ifs("tmp2.toml");
+        std::ifstream ifs("tmp2.toml", std::ios_base::binary);
 
         const auto beg = ifs.tellg();
         ifs.seekg(0, std::ios::end);
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example)
     std::cout << data << std::endl;
     std::cout << "\n--------------------------\n";
     {
-        std::ifstream ifs("tmp3.toml");
+        std::ifstream ifs("tmp3.toml", std::ios_base::binary);
 
         const auto beg = ifs.tellg();
         ifs.seekg(0, std::ios::end);
