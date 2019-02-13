@@ -767,6 +767,8 @@ inline bool operator<(const toml::value& lhs, const toml::value& rhs)
             return lhs.cast<value_t::Float   >() < rhs.cast<value_t::Float   >();
         case value_t::String  :
             return lhs.cast<value_t::String  >() < rhs.cast<value_t::String  >();
+        case value_t::OffsetDatetime:
+            return lhs.cast<value_t::OffsetDatetime>() < rhs.cast<value_t::OffsetDatetime>();
         case value_t::LocalDatetime:
             return lhs.cast<value_t::LocalDatetime>() < rhs.cast<value_t::LocalDatetime>();
         case value_t::LocalDate:
