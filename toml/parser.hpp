@@ -822,8 +822,9 @@ result<std::vector<key>, std::string> parse_key(location<Container>& loc)
     {
         return ok(std::vector<key>(1, smpl.unwrap()));
     }
-    return err(std::string("[error] toml::parse_key: "
-                           "the next token is not a key"));
+    return err(std::string(
+            "[error] toml::parse_key: the next token is not a key => ") +
+            std::string(loc.iter(), std::find(loc.iter(), loc.end(), '\n')));
 }
 
 // forward-decl to implement parse_array and parse_table
