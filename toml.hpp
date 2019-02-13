@@ -34,6 +34,7 @@
 #endif
 
 #include "toml/parser.hpp"
+#include "toml/serializer.hpp"
 #include "toml/to_toml.hpp"
 #include "toml/from_toml.hpp"
 #include "toml/get.hpp"
