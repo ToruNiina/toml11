@@ -15,6 +15,9 @@ namespace detail
 template<typename T>
 using unwrap_t = typename std::decay<T>::type;
 
+// ---------------------------------------------------------------------------
+// check whether type T is a kind of container/map class
+
 struct has_iterator_impl
 {
     template<typename T> static std::true_type  check(typename T::iterator*);
@@ -63,6 +66,9 @@ struct has_resize_method : decltype(has_resize_method_impl::check<T>(nullptr)){}
 #undef decltype(...)
 #endif
 
+// ---------------------------------------------------------------------------
+// C++17 and/or/not
+
 template<typename ...> struct conjunction : std::true_type{};
 template<typename T>   struct conjunction<T> : T{};
 template<typename T, typename ... Ts>
@@ -80,6 +86,9 @@ struct disjunction<T, Ts...> :
 template<typename T>
 struct negation : std::integral_constant<bool, !static_cast<bool>(T::value)>{};
 
+// ---------------------------------------------------------------------------
+// normal type checker
+
 template<typename T> struct is_std_pair : std::false_type{};
 template<typename T1, typename T2>
 struct is_std_pair<std::pair<T1, T2>> : std::true_type{};
@@ -92,7 +101,9 @@ template<typename T> struct is_chrono_duration: std::false_type{};
 template<typename Rep, typename Period>
 struct is_chrono_duration<std::chrono::duration<Rep, Period>>: std::true_type{};
 
-// to use toml::get<std::tuple<T1, T2, ...>> in C++11
+// ---------------------------------------------------------------------------
+// C++14 index_sequence
+
 template<std::size_t ... Ns> struct index_sequence{};
 
 template<typename IS, std::size_t N> struct push_back_index_sequence{};
@@ -115,6 +126,21 @@ struct index_sequence_maker<0>
 };
 template<std::size_t N>
 using make_index_sequence = typename index_sequence_maker<N-1>::type;
+
+// ---------------------------------------------------------------------------
+// return_type_of_t
+
+#if __cplusplus >= 201703L
+
+template<typename F, typename ... Args>
+using return_type_of_t = std::invoke_result_t<F, Args...>;
+
+#else
+// result_of is deprecated after C++17
+template<typename F, typename ... Args>
+using return_type_of_t = typename std::result_of<F(Args...)>::type;
+
+#endif
 
 }// detail
 }//toml

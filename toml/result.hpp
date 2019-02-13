@@ -2,6 +2,7 @@
 // Distributed under the MIT License.
 #ifndef TOML11_RESULT_H
 #define TOML11_RESULT_H
+#include "traits.hpp"
 #include <type_traits>
 #include <stdexcept>
 #include <utility>
@@ -12,19 +13,6 @@
 
 namespace toml
 {
-
-#if __cplusplus >= 201703L
-
-template<typename F, typename ... Args>
-using return_type_of_t = std::invoke_result_t<F, Args...>;
-
-#else
-// result_of is deprecated after C++17
-template<typename F, typename ... Args>
-using return_type_of_t = typename std::result_of<F(Args...)>::type;
-
-#endif
-
 
 template<typename T>
 struct success
@@ -441,21 +429,21 @@ struct result
     // F: T -> U
     // retval: result<U, E>
     template<typename F>
-    result<return_type_of_t<F, value_type&>, error_type>
+    result<detail::return_type_of_t<F, value_type&>, error_type>
     map(F&& f) &
     {
         if(this->is_ok()){return ok(f(this->as_ok()));}
         return err(this->as_err());
     }
     template<typename F>
-    result<return_type_of_t<F, value_type const&>, error_type>
+    result<detail::return_type_of_t<F, value_type const&>, error_type>
     map(F&& f) const&
     {
         if(this->is_ok()){return ok(f(this->as_ok()));}
         return err(this->as_err());
     }
     template<typename F>
-    result<return_type_of_t<F, value_type &&>, error_type>
+    result<detail::return_type_of_t<F, value_type &&>, error_type>
     map(F&& f) &&
     {
         if(this->is_ok()){return ok(f(std::move(this->as_ok())));}
@@ -466,21 +454,21 @@ struct result
     // F: E -> F
     // retval: result<T, F>
     template<typename F>
-    result<value_type, return_type_of_t<F, error_type&>>
+    result<value_type, detail::return_type_of_t<F, error_type&>>
     map_err(F&& f) &
     {
         if(this->is_err()){return err(f(this->as_err()));}
         return ok(this->as_ok());
     }
     template<typename F>
-    result<value_type, return_type_of_t<F, error_type const&>>
+    result<value_type, detail::return_type_of_t<F, error_type const&>>
     map_err(F&& f) const&
     {
         if(this->is_err()){return err(f(this->as_err()));}
         return ok(this->as_ok());
     }
     template<typename F>
-    result<value_type, return_type_of_t<F, error_type&&>>
+    result<value_type, detail::return_type_of_t<F, error_type&&>>
     map_err(F&& f) &&
     {
         if(this->is_err()){return err(f(std::move(this->as_err())));}
@@ -491,21 +479,21 @@ struct result
     // F: T -> U
     // retval: U
     template<typename F, typename U>
-    return_type_of_t<F, value_type&>
+    detail::return_type_of_t<F, value_type&>
     map_or_else(F&& f, U&& opt) &
     {
         if(this->is_err()){return std::forward<U>(opt);}
         return f(this->as_ok());
     }
     template<typename F, typename U>
-    return_type_of_t<F, value_type const&>
+    detail::return_type_of_t<F, value_type const&>
     map_or_else(F&& f, U&& opt) const&
     {
         if(this->is_err()){return std::forward<U>(opt);}
         return f(this->as_ok());
     }
     template<typename F, typename U>
-    return_type_of_t<F, value_type&&>
+    detail::return_type_of_t<F, value_type&&>
     map_or_else(F&& f, U&& opt) &&
     {
         if(this->is_err()){return std::forward<U>(opt);}
@@ -516,21 +504,21 @@ struct result
     // F: E -> U
     // retval: U
     template<typename F, typename U>
-    return_type_of_t<F, error_type&>
+    detail::return_type_of_t<F, error_type&>
     map_err_or_else(F&& f, U&& opt) &
     {
         if(this->is_ok()){return std::forward<U>(opt);}
         return f(this->as_err());
     }
     template<typename F, typename U>
-    return_type_of_t<F, error_type const&>
+    detail::return_type_of_t<F, error_type const&>
     map_err_or_else(F&& f, U&& opt) const&
     {
         if(this->is_ok()){return std::forward<U>(opt);}
         return f(this->as_err());
     }
     template<typename F, typename U>
-    return_type_of_t<F, error_type&&>
+    detail::return_type_of_t<F, error_type&&>
     map_err_or_else(F&& f, U&& opt) &&
     {
         if(this->is_ok()){return std::forward<U>(opt);}
@@ -542,21 +530,21 @@ struct result
     // toml::err(error_type) should be convertible to U.
     // normally, type U is another result<S, F> and E is convertible to F
     template<typename F>
-    return_type_of_t<F, value_type&>
+    detail::return_type_of_t<F, value_type&>
     and_then(F&& f) &
     {
         if(this->is_ok()){return f(this->as_ok());}
         return err(this->as_err());
     }
     template<typename F>
-    return_type_of_t<F, value_type const&>
+    detail::return_type_of_t<F, value_type const&>
     and_then(F&& f) const&
     {
         if(this->is_ok()){return f(this->as_ok());}
         return err(this->as_err());
     }
     template<typename F>
-    return_type_of_t<F, value_type&&>
+    detail::return_type_of_t<F, value_type&&>
     and_then(F&& f) &&
     {
         if(this->is_ok()){return f(std::move(this->as_ok()));}
@@ -568,21 +556,21 @@ struct result
     // toml::ok(value_type) should be convertible to U.
     // normally, type U is another result<S, F> and T is convertible to S
     template<typename F>
-    return_type_of_t<F, error_type&>
+    detail::return_type_of_t<F, error_type&>
     or_else(F&& f) &
     {
         if(this->is_err()){return f(this->as_err());}
         return ok(this->as_ok());
     }
     template<typename F>
-    return_type_of_t<F, error_type const&>
+    detail::return_type_of_t<F, error_type const&>
     or_else(F&& f) const&
     {
         if(this->is_err()){return f(this->as_err());}
         return ok(this->as_ok());
     }
     template<typename F>
-    return_type_of_t<F, error_type&&>
+    detail::return_type_of_t<F, error_type&&>
     or_else(F&& f) &&
     {
         if(this->is_err()){return f(std::move(this->as_err()));}
