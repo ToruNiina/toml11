@@ -1481,7 +1481,7 @@ inline table parse(std::istream& is, std::string fname = "unknown file")
 {
     // read whole file as a sequence of char
     std::vector<char> letters(std::istream_iterator<char>(is),
-                              std::istream_iterator<char>(is));
+                              std::istream_iterator<char>());
 
     detail::location<std::vector<char>>
         loc(std::move(fname), std::move(letters));
