@@ -484,10 +484,12 @@ template<typename charT, typename traits>
 std::basic_ostream<charT, traits>&
 operator<<(std::basic_ostream<charT, traits>& os, const value& v)
 {
-    // get status of std::setw(). if the width is narrower than 5 chars, ignore.
-    const auto w     = os.width();
-    const auto fprec = os.precision();
-    os << visit(serializer((w > 5 ? w : 80), fprec, false), v);
+    // get status of std::setw().
+    const std::size_t w     = os.width();
+    const int         fprec = os.precision();
+
+    // the root object can't be an inline table. so pass `false`.
+    os << visit(serializer(w, fprec, false), v);
     return os;
 }
 
