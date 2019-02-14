@@ -15,7 +15,8 @@ struct serializer
                const int         float_prec     = std::numeric_limits<toml::floating>::max_digits10,
                const bool        can_be_inlined = false,
                std::vector<toml::key> ks        = {})
-        : can_be_inlined_(can_be_inlined), width_(w), keys_(std::move(ks))
+        : can_be_inlined_(can_be_inlined), float_prec_(float_prec), width_(w),
+          keys_(std::move(ks))
     {}
     ~serializer() = default;
 
@@ -440,8 +441,8 @@ struct serializer
   private:
 
     bool        can_be_inlined_;
-    std::size_t width_;
     int         float_prec_;
+    std::size_t width_;
     std::vector<toml::key> keys_;
 };
 
