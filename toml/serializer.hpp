@@ -406,8 +406,8 @@ struct serializer
             }
 
             const auto key_and_sep    = this->serialize_key(kv.first) + " = ";
-            const auto residual_width = this->width_ - key_and_sep.size();
-
+            const auto residual_width = (this->width_ > key_and_sep.size()) ?
+                                        this->width_ - key_and_sep.size() : 0;
             token += key_and_sep;
             token += visit(serializer(residual_width, this->float_prec_, true),
                            kv.second);
