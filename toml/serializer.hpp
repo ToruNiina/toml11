@@ -411,7 +411,10 @@ struct serializer
             token += key_and_sep;
             token += visit(serializer(residual_width, this->float_prec_, true),
                            kv.second);
-            token += '\n';
+            if(token.back() != '\n')
+            {
+                token += '\n';
+            }
         }
 
         // normal tables / array of tables
