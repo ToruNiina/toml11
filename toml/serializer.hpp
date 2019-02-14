@@ -224,7 +224,10 @@ struct serializer
         token += "[\n";
         for(const auto& item : v)
         {
-            const auto next_elem = toml::visit(*this, item);
+            auto next_elem = toml::visit(*this, item);
+            // newline between array-value and comma is not allowed
+            if(next_elem.back() == '\n'){next_elem.pop_back();}
+
             if(current_line.size() + next_elem.size() + 1 < this->width_)
             {
                 current_line += next_elem;
@@ -235,13 +238,21 @@ struct serializer
                 // the next elem cannot be within the width.
                 token += next_elem;
                 token += ",\n";
+                // keep current line empty
             }
-            else
+            else // current_line has some tokens and it exceeds width
             {
+                assert(current_line.back() == ',');
                 token += current_line;
-                token += ",\n";
+                token += '\n';
                 current_line = next_elem;
+                current_line += ',';
             }
+        }
+        if(!current_line.empty())
+        {
+            if(current_line.back() != '\n') {current_line += '\n';}
+            token += current_line;
         }
         token += "]\n";
         return token;
