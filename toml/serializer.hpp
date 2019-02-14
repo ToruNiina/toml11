@@ -203,6 +203,10 @@ struct serializer
             }
             return token;
         }
+        if(v.empty())
+        {
+            return std::string("[]");
+        }
 
         // not an array of tables. normal array. first, try to make it inline.
         {
@@ -216,11 +220,28 @@ struct serializer
 
         // if the length exceeds this->width_, print multiline array
         std::string token;
+        std::string current_line;
         token += "[\n";
         for(const auto& item : v)
         {
-            token += toml::visit(*this, item);
-            token += ",\n";
+            const auto next_elem = toml::visit(*this, item);
+            if(current_line.size() + next_elem.size() + 1 < this->width_)
+            {
+                current_line += next_elem;
+                current_line += ',';
+            }
+            else if(current_line.empty())
+            {
+                // the next elem cannot be within the width.
+                token += next_elem;
+                token += ",\n";
+            }
+            else
+            {
+                token += current_line;
+                token += ",\n";
+                current_line = next_elem;
+            }
         }
         token += "]\n";
         return token;
