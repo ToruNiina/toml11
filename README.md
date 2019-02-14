@@ -423,6 +423,22 @@ int i = 0;
 toml::from_toml(i, data.at("something"));
 ```
 
+### visiting toml::value
+
+TOML v2.1.0+ provides `toml::visit` to apply a function to `toml::value` in the
+same way as `std::variant`.
+
+```cpp
+const toml::value v(3.14);
+toml::visit([](const auto& val) -> void {
+        std::cout << val << std::endl;
+    }, v);
+```
+
+The function object that would be passed to `toml::visit` must be able to
+recieve all the possible TOML types. Also, the result types should be the same
+each other.
+
 ### Sanitizing UTF-8 codepoints
 
 toml11 shows warning if a value of an escape sequence used
@@ -496,6 +512,97 @@ you will get an error message like this.
  ...
  4 | max = 42
    |       ~~ maximum number here
+```
+
+### Serializing TOML data
+
+toml11 v2.1.0 enables you to serialize data into toml format.
+
+```cpp
+const auto data = toml::table{{"foo", 42}, {"bar", "baz"}};
+
+const std::string serial = toml::format(data);
+assert(serial == "bar = \"baz\"\nfoo = 42");
+
+std::cout << data << std::endl;
+// bar = "baz"
+// foo = 42
+```
+
+toml11 automatically makes a tiny table and array inline.
+You can specify the width to make them inline by `std::setw` for streams.
+
+```cpp
+const auto data = toml::table{
+    {"qux",    toml::table{{"foo", 42}, {"bar", "baz"}}},
+    {"quux",   toml::array{"small", "array", "of", "strings"}},
+    {"foobar", toml::array{"this", "array", "of", "strings", "is", "too", "long",
+                           "to", "print", "into", "single", "line", "isn't", "it?"}},
+};
+
+// the threshold becomes 80.
+std::cout << std::setw(80) << data << std::endl;
+// foobar = [
+// "this","array","of","strings","is","too","long","to","print","into",
+// "single","line","isn't","it?",
+// ]
+// quux = ["small","array","of","strings"]
+// qux = {bar="baz",foo=42}
+
+
+// the width is 0. nothing become inline.
+std::cout << std::setw(0) << data << std::endl;
+// foobar = [
+// "this",
+// ... (snip)
+// "it?",
+// ]
+// quux = [
+// "small",
+// "array",
+// "of",
+// "strings",
+// ]
+// [qux]
+// bar = "baz"
+// foo = 42
+```
+
+It is recommended to set width before printing data. Some I/O functions changes
+width to 0, and it makes all the stuff (including `toml::array`) multiline.
+The resulting files becomes too long.
+
+`toml::format` receives optional second argument to set the width.
+By default, it is 80.
+
+```cpp
+const auto data = toml::table{
+    {"qux", toml::table{{"foo", 42}, {"bar", "baz"}}}
+};
+
+const std::string serial = toml::format(data, /*width = */ 0);
+// [qux]
+// bar = "baz"
+// foo = 42
+```
+
+To control the precision of floating point numbers, you need to pass
+`std::setprecision` to stream or pass `int` to the optional third argument of
+`toml::format` (by default, it is `std::numeric_limits<double>::max_digit10`).
+
+```cpp
+const auto data = toml::table{
+    {"pi", 3.141592653589793},
+    {"e",  2.718281828459045}
+};
+std::cout << std::setprecision(17) << data << std::endl;
+// e = 2.7182818284590451
+// pi = 3.1415926535897931
+std::cout << std::setprecision( 7) << data << std::endl;
+// e = 2.718282
+// pi = 3.141593
+
+const std::string serial = toml::format(data, /*width = */ 0, /*prec = */ 17);
 ```
 
 ## Underlying types
