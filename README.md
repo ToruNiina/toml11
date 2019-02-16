@@ -522,7 +522,7 @@ toml11 v2.1.0 enables you to serialize data into toml format.
 const auto data = toml::table{{"foo", 42}, {"bar", "baz"}};
 
 const std::string serial = toml::format(data);
-assert(serial == "bar = \"baz\"\nfoo = 42");
+// serial == "{bar=\"baz\",foo=42}"
 
 std::cout << data << std::endl;
 // bar = "baz"
@@ -620,7 +620,7 @@ The toml types (can be used as `toml::*` in this library) and corresponding `enu
 | LocalDatetime  | `toml::local_datetime`                       | `toml::value_t::LocalDatetime`  |
 | OffsetDatetime | `toml::offset_datetime`                      | `toml::value_t::offsetDatetime` |
 | Array          | `std::vector<toml::value>`                   | `toml::value_t::Array`          |
-| Table          | `std::unordered_map<std::string, toml::key>` | `toml::value_t::Table`          |
+| Table          | `std::unordered_map<toml::key, toml::value>` | `toml::value_t::Table`          |
 
 `toml::string` is effectively the same as `std::string` but has an additional
 flag that represents a kind of a string, `string_t::basic` and `string_t::literal`.
