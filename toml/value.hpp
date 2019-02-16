@@ -820,5 +820,77 @@ inline std::string format_error(const std::string& err_msg,
                                              std::move(hints));
 }
 
+template<typename Visitor>
+detail::return_type_of_t<Visitor, const toml::boolean&>
+visit(Visitor&& visitor, const toml::value& v)
+{
+    switch(v.type())
+    {
+        case value_t::Boolean       : {return visitor(v.cast<value_t::Boolean       >());}
+        case value_t::Integer       : {return visitor(v.cast<value_t::Integer       >());}
+        case value_t::Float         : {return visitor(v.cast<value_t::Float         >());}
+        case value_t::String        : {return visitor(v.cast<value_t::String        >());}
+        case value_t::OffsetDatetime: {return visitor(v.cast<value_t::OffsetDatetime>());}
+        case value_t::LocalDatetime : {return visitor(v.cast<value_t::LocalDatetime >());}
+        case value_t::LocalDate     : {return visitor(v.cast<value_t::LocalDate     >());}
+        case value_t::LocalTime     : {return visitor(v.cast<value_t::LocalTime     >());}
+        case value_t::Array         : {return visitor(v.cast<value_t::Array         >());}
+        case value_t::Table         : {return visitor(v.cast<value_t::Table         >());}
+        case value_t::Empty         : break;
+        case value_t::Unknown       : break;
+        default: break;
+    }
+    throw std::runtime_error(format_error("[error] toml::visit: toml::value "
+            "does not have any valid value.", v, "here"));
+}
+
+template<typename Visitor>
+detail::return_type_of_t<Visitor, toml::boolean&>
+visit(Visitor&& visitor, toml::value& v)
+{
+    switch(v.type())
+    {
+        case value_t::Boolean       : {return visitor(v.cast<value_t::Boolean       >());}
+        case value_t::Integer       : {return visitor(v.cast<value_t::Integer       >());}
+        case value_t::Float         : {return visitor(v.cast<value_t::Float         >());}
+        case value_t::String        : {return visitor(v.cast<value_t::String        >());}
+        case value_t::OffsetDatetime: {return visitor(v.cast<value_t::OffsetDatetime>());}
+        case value_t::LocalDatetime : {return visitor(v.cast<value_t::LocalDatetime >());}
+        case value_t::LocalDate     : {return visitor(v.cast<value_t::LocalDate     >());}
+        case value_t::LocalTime     : {return visitor(v.cast<value_t::LocalTime     >());}
+        case value_t::Array         : {return visitor(v.cast<value_t::Array         >());}
+        case value_t::Table         : {return visitor(v.cast<value_t::Table         >());}
+        case value_t::Empty         : break;
+        case value_t::Unknown       : break;
+        default: break;
+    }
+    throw std::runtime_error(format_error("[error] toml::visit: toml::value "
+            "does not have any valid value.", v, "here"));
+}
+
+template<typename Visitor>
+detail::return_type_of_t<Visitor, toml::boolean&>
+visit(Visitor&& visitor, toml::value&& v)
+{
+    switch(v.type())
+    {
+        case value_t::Boolean       : {return visitor(std::move(v.cast<value_t::Boolean       >()));}
+        case value_t::Integer       : {return visitor(std::move(v.cast<value_t::Integer       >()));}
+        case value_t::Float         : {return visitor(std::move(v.cast<value_t::Float         >()));}
+        case value_t::String        : {return visitor(std::move(v.cast<value_t::String        >()));}
+        case value_t::OffsetDatetime: {return visitor(std::move(v.cast<value_t::OffsetDatetime>()));}
+        case value_t::LocalDatetime : {return visitor(std::move(v.cast<value_t::LocalDatetime >()));}
+        case value_t::LocalDate     : {return visitor(std::move(v.cast<value_t::LocalDate     >()));}
+        case value_t::LocalTime     : {return visitor(std::move(v.cast<value_t::LocalTime     >()));}
+        case value_t::Array         : {return visitor(std::move(v.cast<value_t::Array         >()));}
+        case value_t::Table         : {return visitor(std::move(v.cast<value_t::Table         >()));}
+        case value_t::Empty         : break;
+        case value_t::Unknown       : break;
+        default: break;
+    }
+    throw std::runtime_error(format_error("[error] toml::visit: toml::value "
+            "does not have any valid value.", v, "here"));
+}
+
 }// toml
 #endif// TOML11_VALUE

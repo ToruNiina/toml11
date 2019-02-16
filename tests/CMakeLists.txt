@@ -25,6 +25,7 @@ set(TEST_NAMES
     test_to_toml
     test_from_toml
     test_parse_file
+    test_serialize_file
     test_parse_unicode
     test_error_detection
 )
