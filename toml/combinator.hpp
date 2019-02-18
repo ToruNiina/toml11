@@ -39,7 +39,7 @@ inline std::string show_char(const char c)
     else
     {
         std::ostringstream oss;
-        oss << std::hex << std::setfill('0') << std::setw(2) << "0x"
+        oss << "0x" << std::hex << std::setfill('0') << std::setw(2)
             << static_cast<int>(c);
         return oss.str();
     }
