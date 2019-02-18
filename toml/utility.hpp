@@ -29,8 +29,9 @@ inline void resize_impl(T& container, std::size_t N, std::true_type)
 template<typename T>
 inline void resize_impl(T& container, std::size_t N, std::false_type)
 {
-    if(container.size() >= N) return;
-    else throw std::invalid_argument("not resizable type");
+    if(container.size() >= N) {return;}
+
+    throw std::invalid_argument("not resizable type");
 }
 
 } // detail
@@ -38,8 +39,9 @@ inline void resize_impl(T& container, std::size_t N, std::false_type)
 template<typename T>
 inline void resize(T& container, std::size_t N)
 {
-    if(container.size() == N) return;
-    else return detail::resize_impl(container, N, detail::has_resize_method<T>());
+    if(container.size() == N) {return;}
+
+    return detail::resize_impl(container, N, detail::has_resize_method<T>());
 }
 
 namespace detail
@@ -72,8 +74,6 @@ T from_string(const std::string& str, U&& opt)
     iss >> v;
     return v;
 }
-
-
 
 }// toml
 #endif // TOML11_UTILITY
