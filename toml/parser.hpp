@@ -754,19 +754,21 @@ parse_offset_datetime(location<Container>& loc)
 }
 
 template<typename Container>
-result<key, std::string> parse_simple_key(location<Container>& loc)
+result<std::pair<key, region<Container>>, std::string>
+parse_simple_key(location<Container>& loc)
 {
     if(const auto bstr = parse_basic_string(loc))
     {
-        return ok(bstr.unwrap().first.str);
+        return ok(std::make_pair(bstr.unwrap().first.str, bstr.unwrap().second));
     }
     if(const auto lstr = parse_literal_string(loc))
     {
-        return ok(lstr.unwrap().first.str);
+        return ok(std::make_pair(lstr.unwrap().first.str, lstr.unwrap().second));
     }
     if(const auto bare = lex_unquoted_key::invoke(loc))
     {
-        return ok(bare.unwrap().str());
+        const auto reg = bare.unwrap();
+        return ok(std::make_pair(reg.str(), reg));
     }
     return err(std::string("[error] toml::parse_simple_key: "
         "the next token is not a simple key"));
@@ -774,13 +776,15 @@ result<key, std::string> parse_simple_key(location<Container>& loc)
 
 // dotted key become vector of keys
 template<typename Container>
-result<std::vector<key>, std::string> parse_key(location<Container>& loc)
+result<std::pair<std::vector<key>, region<Container>>, std::string>
+parse_key(location<Container>& loc)
 {
     const auto first = loc.iter();
     // dotted key -> foo.bar.baz whitespaces are allowed
     if(const auto token = lex_dotted_key::invoke(loc))
     {
-        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+        const auto reg = token.unwrap();
+        location<std::string> inner_loc(loc.name(), reg.str());
         std::vector<key> keys;
 
         while(inner_loc.iter() != inner_loc.end())
@@ -788,7 +792,7 @@ result<std::vector<key>, std::string> parse_key(location<Container>& loc)
             lex_ws::invoke(inner_loc);
             if(const auto k = parse_simple_key(inner_loc))
             {
-                keys.push_back(k.unwrap());
+                keys.push_back(k.unwrap().first);
             }
             else
             {
@@ -813,14 +817,15 @@ result<std::vector<key>, std::string> parse_key(location<Container>& loc)
                     "should be `.`"));
             }
         }
-        return ok(keys);
+        return ok(std::make_pair(keys, reg));
     }
     loc.iter() = first;
 
     // simple key -> foo
     if(const auto smpl = parse_simple_key(loc))
     {
-        return ok(std::vector<key>(1, smpl.unwrap()));
+        return ok(std::make_pair(std::vector<key>(1, smpl.unwrap().first),
+                                 smpl.unwrap().second));
     }
     return err(std::string("[error] toml::parse_key: "
                            "the next token is not a key"));
@@ -904,10 +909,10 @@ result<std::pair<std::vector<key>, value>, std::string>
 parse_key_value_pair(location<Container>& loc)
 {
     const auto first = loc.iter();
-    auto key = parse_key(loc);
-    if(!key)
+    auto key_reg = parse_key(loc);
+    if(!key_reg)
     {
-        std::string msg = std::move(key.unwrap_err());
+        std::string msg = std::move(key_reg.unwrap_err());
         // if the next token is keyvalue-separator, it means that there are no
         // key. then we need to show error as "empty key is not allowed".
         if(const auto keyval_sep = lex_keyval_sep::invoke(loc))
@@ -963,7 +968,8 @@ parse_key_value_pair(location<Container>& loc)
         loc.iter() = first;
         return err(msg);
     }
-    return ok(std::make_pair(std::move(key.unwrap()), std::move(val.unwrap())));
+    return ok(std::make_pair(std::move(key_reg.unwrap().first),
+                             std::move(val.unwrap())));
 }
 
 // for error messages.
@@ -1289,7 +1295,7 @@ parse_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]`", inner_loc, "should be `]`"));
         }
-        return ok(std::make_pair(keys.unwrap(), token.unwrap()));
+        return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
     }
     else
     {
@@ -1327,7 +1333,7 @@ parse_array_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]]`", inner_loc, "should be `]]`"));
         }
-        return ok(std::make_pair(keys.unwrap(), token.unwrap()));
+        return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
     }
     else
     {
