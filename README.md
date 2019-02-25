@@ -2,7 +2,7 @@ toml11
 ======
 
 [![Build Status](https://travis-ci.org/ToruNiina/toml11.svg?branch=master)](https://travis-ci.org/ToruNiina/toml11)
-[![Build status](https://ci.appveyor.com/api/projects/status/m2n08a926asvg5mg?svg=true)](https://ci.appveyor.com/project/ToruNiina/toml11)
+[![Build status](https://ci.appveyor.com/api/projects/status/m2n08a926asvg5mg/branch/master?svg=true)](https://ci.appveyor.com/project/ToruNiina/toml11/branch/master)
 [![Version](https://img.shields.io/github/release/ToruNiina/toml11.svg?style=flat)](https://github.com/ToruNiina/toml11/releases)
 [![License](https://img.shields.io/github/license/ToruNiina/toml11.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1209136.svg)](https://doi.org/10.5281/zenodo.1209136)
