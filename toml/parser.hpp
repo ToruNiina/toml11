@@ -905,7 +905,7 @@ parse_array(location<Container>& loc)
 }
 
 template<typename Container>
-result<std::pair<std::vector<key>, value>, std::string>
+result<std::pair<std::pair<std::vector<key>, region<Container>>, value>, std::string>
 parse_key_value_pair(location<Container>& loc)
 {
     const auto first = loc.iter();
@@ -968,7 +968,7 @@ parse_key_value_pair(location<Container>& loc)
         loc.iter() = first;
         return err(msg);
     }
-    return ok(std::make_pair(std::move(key_reg.unwrap().first),
+    return ok(std::make_pair(std::move(key_reg.unwrap()),
                              std::move(val.unwrap())));
 }
 
@@ -1193,8 +1193,9 @@ parse_inline_table(location<Container>& loc)
         {
             return err(kv_r.unwrap_err());
         }
-        const std::vector<key>& keys = kv_r.unwrap().first;
-        const value&            val  = kv_r.unwrap().second;
+        const std::vector<key>&  keys    = kv_r.unwrap().first.first;
+//      const region<Container>& key_reg = kv_r.unwrap().first.second;
+        const value&             val     = kv_r.unwrap().second;
 
         const auto inserted =
             insert_nested_key(retval, val, keys.begin(), keys.end());
@@ -1374,8 +1375,9 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
 
         if(const auto kv = parse_key_value_pair(loc))
         {
-            const std::vector<key>& keys = kv.unwrap().first;
-            const value&            val  = kv.unwrap().second;
+            const std::vector<key>& keys     = kv.unwrap().first.first;
+//          const region<Container>& key_reg = kv_r.unwrap().first.second;
+            const value&            val      = kv.unwrap().second;
             const auto inserted =
                 insert_nested_key(tab, val, keys.begin(), keys.end());
             if(!inserted)
