@@ -34,7 +34,7 @@ parse_boolean(location<Container>& loc)
         }
     }
     loc.iter() = first; //rollback
-    return err(std::string("[error] toml::parse_boolean: "
+    return err(format_underline("[error] toml::parse_boolean: ", loc,
                            "the next token is not a boolean"));
 }
 
@@ -63,7 +63,7 @@ parse_binary_integer(location<Container>& loc)
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
-    return err(std::string("[error] toml::parse_binary_integer:"
+    return err(format_underline("[error] toml::parse_binary_integer:", loc,
                            "the next token is not an integer"));
 }
 
@@ -84,7 +84,7 @@ parse_octal_integer(location<Container>& loc)
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
-    return err(std::string("[error] toml::parse_octal_integer:"
+    return err(format_underline("[error] toml::parse_octal_integer:", loc,
                            "the next token is not an integer"));
 }
 
@@ -105,7 +105,7 @@ parse_hexadecimal_integer(location<Container>& loc)
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
-    return err(std::string("[error] toml::parse_hexadecimal_integer"
+    return err(format_underline("[error] toml::parse_hexadecimal_integer", loc,
                            "the next token is not an integer"));
 }
 
@@ -133,7 +133,7 @@ parse_integer(location<Container>& loc)
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.iter() = first;
-    return err(std::string("[error] toml::parse_integer: "
+    return err(format_underline("[error] toml::parse_integer: ", loc,
                            "the next token is not an integer"));
 }
 
@@ -222,7 +222,7 @@ parse_floating(location<Container>& loc)
         return ok(std::make_pair(v, token.unwrap()));
     }
     loc.iter() = first;
-    return err(std::string("[error] toml::parse_floating: "
+    return err(format_underline("[error] toml::parse_floating: ", loc,
                            "the next token is not a float"));
 }
 
@@ -283,7 +283,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end() || *first != '\\')
     {
-        return err(std::string("[error]: toml::parse_escape_sequence: "
+        return err(format_underline("[error]: toml::parse_escape_sequence: ", loc,
                     "the next token is not an escape sequence \"\\\""));
     }
     ++loc.iter();
@@ -523,7 +523,7 @@ parse_string(location<Container>& loc)
     if(const auto rslt = parse_ml_literal_string(loc)) {return rslt;}
     if(const auto rslt = parse_basic_string(loc))      {return rslt;}
     if(const auto rslt = parse_literal_string(loc))    {return rslt;}
-    return err(std::string("[error] toml::parse_string: "
+    return err(format_underline("[error] toml::parse_string: ", loc,
                 "the next token is not a string"));
 }
 
@@ -573,7 +573,7 @@ parse_local_date(location<Container>& loc)
     else
     {
         loc.iter() = first;
-        return err(std::string("[error]: toml::parse_local_date: "
+        return err(format_underline("[error]: toml::parse_local_date: ", loc,
                     "the next token is not a local_date"));
     }
 }
@@ -656,7 +656,7 @@ parse_local_time(location<Container>& loc)
     else
     {
         loc.iter() = first;
-        return err(std::string("[error]: toml::parse_local_time: "
+        return err(format_underline("[error]: toml::parse_local_time: ", loc,
                     "the next token is not a local_time"));
     }
 }
@@ -699,7 +699,7 @@ parse_local_datetime(location<Container>& loc)
     else
     {
         loc.iter() = first;
-        return err(std::string("[error]: toml::parse_local_datetime: "
+        return err(format_underline("[error]: toml::parse_local_datetime: ", loc,
                     "the next token is not a local_datetime"));
     }
 }
@@ -748,7 +748,7 @@ parse_offset_datetime(location<Container>& loc)
     else
     {
         loc.iter() = first;
-        return err(std::string("[error]: toml::parse_offset_datetime: "
+        return err(format_underline("[error]: toml::parse_offset_datetime: ", loc,
                     "the next token is not a local_datetime"));
     }
 }
@@ -770,7 +770,7 @@ parse_simple_key(location<Container>& loc)
         const auto reg = bare.unwrap();
         return ok(std::make_pair(reg.str(), reg));
     }
-    return err(std::string("[error] toml::parse_simple_key: "
+    return err(format_underline("[error] toml::parse_simple_key: ", loc,
         "the next token is not a simple key"));
 }
 
@@ -827,8 +827,7 @@ parse_key(location<Container>& loc)
         return ok(std::make_pair(std::vector<key>(1, smpl.unwrap().first),
                                  smpl.unwrap().second));
     }
-    return err(std::string("[error] toml::parse_key: "
-                           "the next token is not a key"));
+    return err(format_underline("[error] toml::parse_key: ", loc, "is not a valid key"));
 }
 
 // forward-decl to implement parse_array and parse_table
@@ -1167,7 +1166,7 @@ parse_inline_table(location<Container>& loc)
     table retval;
     if(!(loc.iter() != loc.end() && *loc.iter() == '{'))
     {
-        return err(std::string("[error] toml::parse_inline_table: "
+        return err(format_underline("[error] toml::parse_inline_table: ", loc,
                                "the next token is not an inline table"));
     }
     ++loc.iter();
@@ -1229,7 +1228,7 @@ result<value, std::string> parse_value(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return err(std::string("[error] toml::parse_value: input is empty"));
+        return err(format_underline("[error] toml::parse_value: input is empty", loc, ""));
     }
     if(auto r = parse_string         (loc))
     {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
