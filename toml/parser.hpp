@@ -988,10 +988,11 @@ std::string format_dotted_keys(InputIterator first, const InputIterator last)
     return retval;
 }
 
-template<typename InputIterator>
+template<typename InputIterator, typename Container>
 result<bool, std::string>
 insert_nested_key(table& root, const toml::value& v,
                   InputIterator iter, const InputIterator last,
+                  region<Container> key_reg,
                   const bool is_array_of_table = false)
 {
     static_assert(std::is_same<key,
@@ -1073,11 +1074,7 @@ insert_nested_key(table& root, const toml::value& v,
                 }
                 else // if not, we need to create the array of table
                 {
-                    toml::value aot(v); // copy region info from table to array
-                    // update content by an array with one element
-                    detail::assign_keeping_region(aot,
-                            ::toml::value(toml::array(1, v)));
-
+                    toml::value aot(toml::array(1, v), key_reg);
                     tab->insert(std::make_pair(k, aot));
                     return ok(true);
                 }
@@ -1126,10 +1123,7 @@ insert_nested_key(table& root, const toml::value& v,
             // [x.y.z]
             if(tab->count(k) == 0)
             {
-                // the region of [x.y] is the same as [x.y.z].
-                (*tab)[k] = v; // copy region_info_
-                detail::assign_keeping_region((*tab)[k],
-                        ::toml::value(::toml::table{}));
+                (*tab)[k] = toml::value(toml::table{}, key_reg);
             }
 
             // type checking...
@@ -1194,11 +1188,11 @@ parse_inline_table(location<Container>& loc)
             return err(kv_r.unwrap_err());
         }
         const std::vector<key>&  keys    = kv_r.unwrap().first.first;
-//      const region<Container>& key_reg = kv_r.unwrap().first.second;
+        const region<Container>& key_reg = kv_r.unwrap().first.second;
         const value&             val     = kv_r.unwrap().second;
 
         const auto inserted =
-            insert_nested_key(retval, val, keys.begin(), keys.end());
+            insert_nested_key(retval, val, keys.begin(), keys.end(), key_reg);
         if(!inserted)
         {
             throw internal_error("[error] toml::parse_inline_table: "
@@ -1376,10 +1370,10 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
         if(const auto kv = parse_key_value_pair(loc))
         {
             const std::vector<key>& keys     = kv.unwrap().first.first;
-//          const region<Container>& key_reg = kv_r.unwrap().first.second;
+            const region<Container>& key_reg = kv.unwrap().first.second;
             const value&            val      = kv.unwrap().second;
             const auto inserted =
-                insert_nested_key(tab, val, keys.begin(), keys.end());
+                insert_nested_key(tab, val, keys.begin(), keys.end(), key_reg);
             if(!inserted)
             {
                 return err(inserted.unwrap_err());
@@ -1457,7 +1451,8 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
 
             const auto inserted = insert_nested_key(data,
                     toml::value(tab.unwrap(), reg),
-                    keys.begin(), keys.end(), /*is_array_of_table=*/ true);
+                    keys.begin(), keys.end(), reg,
+                    /*is_array_of_table=*/ true);
             if(!inserted) {return err(inserted.unwrap_err());}
 
             continue;
@@ -1471,7 +1466,7 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
             const auto& reg  = tabkey.unwrap().second;
 
             const auto inserted = insert_nested_key(data,
-                    toml::value(tab.unwrap(), reg), keys.begin(), keys.end());
+                toml::value(tab.unwrap(), reg), keys.begin(), keys.end(), reg);
             if(!inserted) {return err(inserted.unwrap_err());}
 
             continue;
