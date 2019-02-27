@@ -1421,7 +1421,7 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return err(std::string("toml::detail::parse_toml_file: input is empty"));
+        return ok(toml::table{});
     }
 
     table data;
