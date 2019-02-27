@@ -754,19 +754,21 @@ parse_offset_datetime(location<Container>& loc)
 }
 
 template<typename Container>
-result<key, std::string> parse_simple_key(location<Container>& loc)
+result<std::pair<key, region<Container>>, std::string>
+parse_simple_key(location<Container>& loc)
 {
     if(const auto bstr = parse_basic_string(loc))
     {
-        return ok(bstr.unwrap().first.str);
+        return ok(std::make_pair(bstr.unwrap().first.str, bstr.unwrap().second));
     }
     if(const auto lstr = parse_literal_string(loc))
     {
-        return ok(lstr.unwrap().first.str);
+        return ok(std::make_pair(lstr.unwrap().first.str, lstr.unwrap().second));
     }
     if(const auto bare = lex_unquoted_key::invoke(loc))
     {
-        return ok(bare.unwrap().str());
+        const auto reg = bare.unwrap();
+        return ok(std::make_pair(reg.str(), reg));
     }
     return err(format_underline("[error] toml::parse_simple_key: ", loc,
         "the next token is not a simple key"));
@@ -774,13 +776,15 @@ result<key, std::string> parse_simple_key(location<Container>& loc)
 
 // dotted key become vector of keys
 template<typename Container>
-result<std::vector<key>, std::string> parse_key(location<Container>& loc)
+result<std::pair<std::vector<key>, region<Container>>, std::string>
+parse_key(location<Container>& loc)
 {
     const auto first = loc.iter();
     // dotted key -> foo.bar.baz whitespaces are allowed
     if(const auto token = lex_dotted_key::invoke(loc))
     {
-        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+        const auto reg = token.unwrap();
+        location<std::string> inner_loc(loc.name(), reg.str());
         std::vector<key> keys;
 
         while(inner_loc.iter() != inner_loc.end())
@@ -788,7 +792,7 @@ result<std::vector<key>, std::string> parse_key(location<Container>& loc)
             lex_ws::invoke(inner_loc);
             if(const auto k = parse_simple_key(inner_loc))
             {
-                keys.push_back(k.unwrap());
+                keys.push_back(k.unwrap().first);
             }
             else
             {
@@ -813,14 +817,15 @@ result<std::vector<key>, std::string> parse_key(location<Container>& loc)
                     "should be `.`"));
             }
         }
-        return ok(keys);
+        return ok(std::make_pair(keys, reg));
     }
     loc.iter() = first;
 
     // simple key -> foo
     if(const auto smpl = parse_simple_key(loc))
     {
-        return ok(std::vector<key>(1, smpl.unwrap()));
+        return ok(std::make_pair(std::vector<key>(1, smpl.unwrap().first),
+                                 smpl.unwrap().second));
     }
     return err(format_underline("[error] toml::parse_key: ", loc, "is not a valid key"));
 }
@@ -899,14 +904,14 @@ parse_array(location<Container>& loc)
 }
 
 template<typename Container>
-result<std::pair<std::vector<key>, value>, std::string>
+result<std::pair<std::pair<std::vector<key>, region<Container>>, value>, std::string>
 parse_key_value_pair(location<Container>& loc)
 {
     const auto first = loc.iter();
-    auto key = parse_key(loc);
-    if(!key)
+    auto key_reg = parse_key(loc);
+    if(!key_reg)
     {
-        std::string msg = std::move(key.unwrap_err());
+        std::string msg = std::move(key_reg.unwrap_err());
         // if the next token is keyvalue-separator, it means that there are no
         // key. then we need to show error as "empty key is not allowed".
         if(const auto keyval_sep = lex_keyval_sep::invoke(loc))
@@ -962,7 +967,8 @@ parse_key_value_pair(location<Container>& loc)
         loc.iter() = first;
         return err(msg);
     }
-    return ok(std::make_pair(std::move(key.unwrap()), std::move(val.unwrap())));
+    return ok(std::make_pair(std::move(key_reg.unwrap()),
+                             std::move(val.unwrap())));
 }
 
 // for error messages.
@@ -981,10 +987,11 @@ std::string format_dotted_keys(InputIterator first, const InputIterator last)
     return retval;
 }
 
-template<typename InputIterator>
+template<typename InputIterator, typename Container>
 result<bool, std::string>
 insert_nested_key(table& root, const toml::value& v,
                   InputIterator iter, const InputIterator last,
+                  region<Container> key_reg,
                   const bool is_array_of_table = false)
 {
     static_assert(std::is_same<key,
@@ -1066,11 +1073,7 @@ insert_nested_key(table& root, const toml::value& v,
                 }
                 else // if not, we need to create the array of table
                 {
-                    toml::value aot(v); // copy region info from table to array
-                    // update content by an array with one element
-                    detail::assign_keeping_region(aot,
-                            ::toml::value(toml::array(1, v)));
-
+                    toml::value aot(toml::array(1, v), key_reg);
                     tab->insert(std::make_pair(k, aot));
                     return ok(true);
                 }
@@ -1119,10 +1122,7 @@ insert_nested_key(table& root, const toml::value& v,
             // [x.y.z]
             if(tab->count(k) == 0)
             {
-                // the region of [x.y] is the same as [x.y.z].
-                (*tab)[k] = v; // copy region_info_
-                detail::assign_keeping_region((*tab)[k],
-                        ::toml::value(::toml::table{}));
+                (*tab)[k] = toml::value(toml::table{}, key_reg);
             }
 
             // type checking...
@@ -1186,11 +1186,12 @@ parse_inline_table(location<Container>& loc)
         {
             return err(kv_r.unwrap_err());
         }
-        const std::vector<key>& keys = kv_r.unwrap().first;
-        const value&            val  = kv_r.unwrap().second;
+        const std::vector<key>&  keys    = kv_r.unwrap().first.first;
+        const region<Container>& key_reg = kv_r.unwrap().first.second;
+        const value&             val     = kv_r.unwrap().second;
 
         const auto inserted =
-            insert_nested_key(retval, val, keys.begin(), keys.end());
+            insert_nested_key(retval, val, keys.begin(), keys.end(), key_reg);
         if(!inserted)
         {
             throw internal_error("[error] toml::parse_inline_table: "
@@ -1288,7 +1289,7 @@ parse_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]`", inner_loc, "should be `]`"));
         }
-        return ok(std::make_pair(keys.unwrap(), token.unwrap()));
+        return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
     }
     else
     {
@@ -1326,7 +1327,7 @@ parse_array_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]]`", inner_loc, "should be `]]`"));
         }
-        return ok(std::make_pair(keys.unwrap(), token.unwrap()));
+        return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
     }
     else
     {
@@ -1367,10 +1368,11 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
 
         if(const auto kv = parse_key_value_pair(loc))
         {
-            const std::vector<key>& keys = kv.unwrap().first;
-            const value&            val  = kv.unwrap().second;
+            const std::vector<key>& keys     = kv.unwrap().first.first;
+            const region<Container>& key_reg = kv.unwrap().first.second;
+            const value&            val      = kv.unwrap().second;
             const auto inserted =
-                insert_nested_key(tab, val, keys.begin(), keys.end());
+                insert_nested_key(tab, val, keys.begin(), keys.end(), key_reg);
             if(!inserted)
             {
                 return err(inserted.unwrap_err());
@@ -1448,7 +1450,8 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
 
             const auto inserted = insert_nested_key(data,
                     toml::value(tab.unwrap(), reg),
-                    keys.begin(), keys.end(), /*is_array_of_table=*/ true);
+                    keys.begin(), keys.end(), reg,
+                    /*is_array_of_table=*/ true);
             if(!inserted) {return err(inserted.unwrap_err());}
 
             continue;
@@ -1462,7 +1465,7 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
             const auto& reg  = tabkey.unwrap().second;
 
             const auto inserted = insert_nested_key(data,
-                    toml::value(tab.unwrap(), reg), keys.begin(), keys.end());
+                toml::value(tab.unwrap(), reg), keys.begin(), keys.end(), reg);
             if(!inserted) {return err(inserted.unwrap_err());}
 
             continue;
