@@ -1370,7 +1370,7 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return err(std::string("toml::parse_ml_table: input is empty"));
+        return ok(toml::table{});
     }
 
     // XXX at lest one newline is needed.
@@ -1453,7 +1453,7 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
     }
 
     table data;
-    /* root object is also table, but without [tablename] */
+    // root object is also a table, but without [tablename]
     if(auto tab = parse_ml_table(loc))
     {
         data = std::move(tab.unwrap());
