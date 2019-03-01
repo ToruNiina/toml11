@@ -1289,6 +1289,20 @@ parse_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]`", inner_loc, "should be `]`"));
         }
+
+        // after [table.key], newline or EOF(empty table) requried.
+        if(loc.iter() != loc.end())
+        {
+            using lex_newline_after_table_key =
+                sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>;
+            const auto nl = lex_newline_after_table_key::invoke(loc);
+            if(!nl)
+            {
+                throw syntax_error(format_underline("[error] "
+                    "toml::parse_table_key: newline required after [table.key]",
+                    loc, "expected newline"));
+            }
+        }
         return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
     }
     else
@@ -1326,6 +1340,20 @@ parse_array_table_key(location<Container>& loc)
         {
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]]`", inner_loc, "should be `]]`"));
+        }
+
+        // after [[table.key]], newline or EOF(empty table) requried.
+        if(loc.iter() != loc.end())
+        {
+            using lex_newline_after_table_key =
+                sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>;
+            const auto nl = lex_newline_after_table_key::invoke(loc);
+            if(!nl)
+            {
+                throw syntax_error(format_underline("[error] "
+                    "toml::parse_array_table_key: newline required after "
+                    "[[table.key]]", loc, "expected newline"));
+            }
         }
         return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
     }
