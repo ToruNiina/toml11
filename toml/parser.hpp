@@ -226,8 +226,9 @@ parse_floating(location<Container>& loc)
                            "the next token is not a float"));
 }
 
-template<typename Container>
-std::string read_utf8_codepoint(const region<Container>& reg)
+template<typename Container, typename Container2>
+std::string read_utf8_codepoint(const region<Container>& reg,
+              /* for err msg */ const location<Container2>& loc)
 {
     const auto str = reg.str().substr(1);
     std::uint_least32_t codepoint;
@@ -247,20 +248,27 @@ std::string read_utf8_codepoint(const region<Container>& reg)
     }
     else if(codepoint < 0x10000) // U+0800...U+FFFF
     {
+        if(0xD800 <= codepoint && codepoint <= 0xDFFF)
+        {
+            throw syntax_error(format_underline("[error] "
+                "toml::read_utf8_codepoint: codepoints in the range "
+                "[0xD800, 0xDFFF] are not valid UTF-8.",
+                loc, "not a valid UTF-8 codepoint"));
+        }
+        assert(codepoint < 0xD800 || 0xDFFF < codepoint);
         // 1110yyyy 10yxxxxx 10xxxxxx
         character += static_cast<unsigned char>(0xE0| codepoint >> 12);
         character += static_cast<unsigned char>(0x80|(codepoint >> 6 & 0x3F));
         character += static_cast<unsigned char>(0x80|(codepoint      & 0x3F));
     }
-    else if(codepoint < 0x200000) // U+10000 ... U+1FFFFF
+    else if(codepoint < 0x200000) // U+010000 ... U+1FFFFF
     {
         if(0x10FFFF < codepoint) // out of Unicode region
         {
-            std::cerr << format_underline(concat_to_string("[warning] "
-                    "input codepoint (", str, ") is too large to decode as "
-                    "a unicode character. The result may not be able to render "
-                    "to your screen."), reg, "should be in [0x00..0x10FFFF]")
-                      << std::endl;
+            throw syntax_error(format_underline("[error] "
+                "toml::read_utf8_codepoint: input codepoint is too large to "
+                "decode as a unicode character.", loc,
+                "should be in [0x00..0x10FFFF]"));
         }
         // 11110yyy 10yyxxxx 10xxxxxx 10xxxxxx
         character += static_cast<unsigned char>(0xF0| codepoint >> 18);
@@ -300,7 +308,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
         {
             if(const auto token = lex_escape_unicode_short::invoke(loc))
             {
-                return ok(read_utf8_codepoint(token.unwrap()));
+                return ok(read_utf8_codepoint(token.unwrap(), loc));
             }
             else
             {
@@ -313,7 +321,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
         {
             if(const auto token = lex_escape_unicode_long::invoke(loc))
             {
-                return ok(read_utf8_codepoint(token.unwrap()));
+                return ok(read_utf8_codepoint(token.unwrap(), loc));
             }
             else
             {
@@ -1289,6 +1297,20 @@ parse_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]`", inner_loc, "should be `]`"));
         }
+
+        // after [table.key], newline or EOF(empty table) requried.
+        if(loc.iter() != loc.end())
+        {
+            using lex_newline_after_table_key =
+                sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>;
+            const auto nl = lex_newline_after_table_key::invoke(loc);
+            if(!nl)
+            {
+                throw syntax_error(format_underline("[error] "
+                    "toml::parse_table_key: newline required after [table.key]",
+                    loc, "expected newline"));
+            }
+        }
         return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
     }
     else
@@ -1327,6 +1349,20 @@ parse_array_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]]`", inner_loc, "should be `]]`"));
         }
+
+        // after [[table.key]], newline or EOF(empty table) requried.
+        if(loc.iter() != loc.end())
+        {
+            using lex_newline_after_table_key =
+                sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>;
+            const auto nl = lex_newline_after_table_key::invoke(loc);
+            if(!nl)
+            {
+                throw syntax_error(format_underline("[error] "
+                    "toml::parse_array_table_key: newline required after "
+                    "[[table.key]]", loc, "expected newline"));
+            }
+        }
         return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
     }
     else
@@ -1342,7 +1378,7 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return err(std::string("toml::parse_ml_table: input is empty"));
+        return ok(toml::table{});
     }
 
     // XXX at lest one newline is needed.
@@ -1421,11 +1457,11 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return err(std::string("toml::detail::parse_toml_file: input is empty"));
+        return ok(toml::table{});
     }
 
     table data;
-    /* root object is also table, but without [tablename] */
+    // root object is also a table, but without [tablename]
     if(auto tab = parse_ml_table(loc))
     {
         data = std::move(tab.unwrap());
