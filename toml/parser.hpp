@@ -876,16 +876,39 @@ parse_array(location<Container>& loc)
         {
             if(!retval.empty() && retval.front().type() != val.as_ok().type())
             {
-                throw syntax_error(format_underline(
-                    "[error] toml::parse_array: type of elements should be the "
-                    "same each other.", region<Container>(loc, first, loc.iter()),
-                    "inhomogeneous types"));
+                auto array_start_loc = loc;
+                array_start_loc.iter() = first;
+
+                throw syntax_error(format_underline("[error] toml::parse_array: "
+                    "type of elements should be the same each other.",
+                    std::vector<std::pair<region_base const*, std::string>>{
+                        std::make_pair(
+                            std::addressof(array_start_loc),
+                            std::string("array starts here")
+                        ),
+                        std::make_pair(
+                            std::addressof(get_region(retval.front())),
+                            std::string("value has type ") +
+                                stringize(retval.front().type())
+                        ),
+                        std::make_pair(
+                            std::addressof(get_region(val.unwrap())),
+                            std::string("value has different type, ") +
+                                stringize(val.unwrap().type())
+                        )
+                    }));
             }
             retval.push_back(std::move(val.unwrap()));
         }
         else
         {
-            return err(val.unwrap_err());
+            auto array_start_loc = loc;
+            array_start_loc.iter() = first;
+
+            throw syntax_error(format_underline("[error] toml::parse_array: "
+                "value having invalid format appeared in an array",
+                array_start_loc, "array starts here",
+                loc, "it is not a valid value."));
         }
 
         using lex_array_separator = sequence<maybe<lex_ws>, character<','>>;
@@ -901,8 +924,12 @@ parse_array(location<Container>& loc)
             }
             else
             {
+                auto array_start_loc = loc;
+                array_start_loc.iter() = first;
+
                 throw syntax_error(format_underline("[error] toml::parse_array:"
-                    " missing array separator `,`", loc, "should be `,`"));
+                    " missing array separator `,` after a value",
+                    array_start_loc, "array starts here", loc, "should be `,`"));
             }
         }
     }
@@ -960,6 +987,7 @@ parse_key_value_pair(location<Container>& loc)
     {
         std::string msg;
         loc.iter() = after_kvsp;
+        // check there is something not a comment/whitespace after `=`
         if(sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>::invoke(loc))
         {
             loc.iter() = after_kvsp;
@@ -967,10 +995,9 @@ parse_key_value_pair(location<Container>& loc)
                     "missing value after key-value separator '='", loc,
                     "expected value, but got nothing");
         }
-        else
+        else // there is something not a comment/whitespace, so invalid format.
         {
-            msg = format_underline("[error] toml::parse_key_value_pair: "
-                    "invalid value format", loc, val.unwrap_err());
+            msg = std::move(val.unwrap_err());
         }
         loc.iter() = first;
         return err(msg);
@@ -1114,7 +1141,7 @@ insert_nested_key(table& root, const toml::value& v,
                         "[error] toml::insert_value: value (\"",
                         format_dotted_keys(first, last), "\") already exists."),
                         get_region(tab->at(k)), "value already exists here",
-                        get_region(v), "value inserted twice"));
+                        get_region(v), "value defined twice"));
                 }
             }
             tab->insert(std::make_pair(k, v));
