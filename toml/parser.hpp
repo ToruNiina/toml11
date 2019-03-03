@@ -250,10 +250,10 @@ std::string read_utf8_codepoint(const region<Container>& reg,
     {
         if(0xD800 <= codepoint && codepoint <= 0xDFFF)
         {
-            throw syntax_error(format_underline("[error] "
+            std::cerr << format_underline("[warning] "
                 "toml::read_utf8_codepoint: codepoints in the range "
                 "[0xD800, 0xDFFF] are not valid UTF-8.",
-                loc, "not a valid UTF-8 codepoint"));
+                loc, "not a valid UTF-8 codepoint") << std::endl;
         }
         assert(codepoint < 0xD800 || 0xDFFF < codepoint);
         // 1110yyyy 10yxxxxx 10xxxxxx
@@ -265,10 +265,10 @@ std::string read_utf8_codepoint(const region<Container>& reg,
     {
         if(0x10FFFF < codepoint) // out of Unicode region
         {
-            throw syntax_error(format_underline("[error] "
+            std::cerr << format_underline("[error] "
                 "toml::read_utf8_codepoint: input codepoint is too large to "
                 "decode as a unicode character.", loc,
-                "should be in [0x00..0x10FFFF]"));
+                "should be in [0x00..0x10FFFF]") << std::endl;
         }
         // 11110yyy 10yyxxxx 10xxxxxx 10xxxxxx
         character += static_cast<unsigned char>(0xF0| codepoint >> 18);
