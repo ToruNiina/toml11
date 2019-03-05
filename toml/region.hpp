@@ -28,44 +28,6 @@ inline std::string make_string(std::size_t len, char c)
     return std::string(len, c);
 }
 
-// location in a container, normally in a file content.
-// shared_ptr points the resource that the iter points.
-// it can be used not only for resource handling, but also error message.
-template<typename Container>
-struct location
-{
-    static_assert(std::is_same<char, typename Container::value_type>::value,"");
-    using const_iterator = typename Container::const_iterator;
-    using source_ptr     = std::shared_ptr<const Container>;
-
-    location(std::string name, Container cont)
-      : source_(std::make_shared<Container>(std::move(cont))),
-        source_name_(std::move(name)), iter_(source_->cbegin())
-    {}
-    location(const location&) = default;
-    location(location&&)      = default;
-    location& operator=(const location&) = default;
-    location& operator=(location&&)      = default;
-    ~location() = default;
-
-    const_iterator& iter()       noexcept {return iter_;}
-    const_iterator  iter() const noexcept {return iter_;}
-
-    const_iterator  begin() const noexcept {return source_->cbegin();}
-    const_iterator  end()   const noexcept {return source_->cend();}
-
-    source_ptr const& source() const& noexcept {return source_;}
-    source_ptr&&      source() &&     noexcept {return std::move(source_);}
-
-    std::string const& name() const noexcept {return source_name_;}
-
-  private:
-
-    source_ptr     source_;
-    std::string    source_name_;
-    const_iterator iter_;
-};
-
 // region in a container, normally in a file content.
 // shared_ptr points the resource that the iter points.
 // combinators returns this.
@@ -86,10 +48,87 @@ struct region_base
     virtual std::string line()     const {return std::string("unknown line");}
     virtual std::string line_num() const {return std::string("?");}
 
-
     virtual std::size_t before()   const noexcept {return 0;}
     virtual std::size_t size()     const noexcept {return 0;}
     virtual std::size_t after()    const noexcept {return 0;}
+};
+
+// location in a container, normally in a file content.
+// shared_ptr points the resource that the iter points.
+// it can be used not only for resource handling, but also error message.
+//
+// it can be considered as a region that contains only one character.
+template<typename Container>
+struct location final : public region_base
+{
+    static_assert(std::is_same<char, typename Container::value_type>::value,"");
+    using const_iterator = typename Container::const_iterator;
+    using source_ptr     = std::shared_ptr<const Container>;
+
+    location(std::string name, Container cont)
+      : source_(std::make_shared<Container>(std::move(cont))),
+        source_name_(std::move(name)), iter_(source_->cbegin())
+    {}
+    location(const location&) = default;
+    location(location&&)      = default;
+    location& operator=(const location&) = default;
+    location& operator=(location&&)      = default;
+    ~location() = default;
+
+    bool is_ok() const noexcept override {return static_cast<bool>(source_);}
+
+    const_iterator& iter()       noexcept {return iter_;}
+    const_iterator  iter() const noexcept {return iter_;}
+
+    const_iterator  begin() const noexcept {return source_->cbegin();}
+    const_iterator  end()   const noexcept {return source_->cend();}
+
+    std::string str()  const override {return make_string(1, *this->iter());}
+    std::string name() const override {return source_name_;}
+
+    std::string line_num() const override
+    {
+        return std::to_string(1+std::count(this->begin(), this->iter(), '\n'));
+    }
+
+    std::string line() const override
+    {
+        return make_string(this->line_begin(), this->line_end());
+    }
+
+    const_iterator line_begin() const noexcept
+    {
+        using reverse_iterator = std::reverse_iterator<const_iterator>;
+        return std::find(reverse_iterator(this->iter()),
+                         reverse_iterator(this->begin()), '\n').base();
+    }
+    const_iterator line_end() const noexcept
+    {
+        return std::find(this->iter(), this->end(), '\n');
+    }
+
+    // location is always points a character. so the size is 1.
+    std::size_t size() const noexcept override
+    {
+        return 1u;
+    }
+    std::size_t before() const noexcept override
+    {
+        return std::distance(this->line_begin(), this->iter());
+    }
+    std::size_t after() const noexcept override
+    {
+        return std::distance(this->iter(), this->line_end());
+    }
+
+    source_ptr const& source() const& noexcept {return source_;}
+    source_ptr&&      source() &&     noexcept {return std::move(source_);}
+
+  private:
+
+    source_ptr     source_;
+    std::string    source_name_;
+    const_iterator iter_;
 };
 
 template<typename Container>
@@ -225,7 +264,19 @@ inline std::string format_underline(const std::string& message,
     retval += make_string(line_number.size() + 1, ' ');
     retval += " | ";
     retval += make_string(reg.before(), ' ');
-    retval += make_string(reg.size(),   '~');
+    if(reg.size() == 1)
+    {
+        // invalid
+        // ^------
+        retval += '^';
+        retval += make_string(reg.after(), '-');
+    }
+    else
+    {
+        // invalid
+        // ~~~~~~~
+        retval += make_string(reg.size(), '~');
+    }
     retval += ' ';
     retval += comment_for_underline;
     if(helps.size() != 0)
@@ -270,7 +321,19 @@ inline std::string format_underline(const std::string& message,
     retval << make_string(line_num_width + 1, ' ');
     retval << " | ";
     retval << make_string(reg1.before(), ' ');
-    retval << make_string(reg1.size(),   '~');
+    if(reg1.size() == 1)
+    {
+        // invalid
+        // ^------
+        retval << '^';
+        retval << make_string(reg1.after(), '-');
+    }
+    else
+    {
+        // invalid
+        // ~~~~~~~
+        retval << make_string(reg1.size(), '~');
+    }
     retval << ' ';
     retval << comment_for_underline1 << newline;
 //  ---------------------------------------
@@ -287,7 +350,19 @@ inline std::string format_underline(const std::string& message,
     retval << make_string(line_num_width + 1, ' ');
     retval << " | ";
     retval << make_string(reg2.before(), ' ');
-    retval << make_string(reg2.size(),   '~');
+    if(reg2.size() == 1)
+    {
+        // invalid
+        // ^------
+        retval << '^';
+        retval << make_string(reg2.after(), '-');
+    }
+    else
+    {
+        // invalid
+        // ~~~~~~~
+        retval << make_string(reg2.size(), '~');
+    }
     retval << ' ';
     retval << comment_for_underline2;
     if(helps.size() != 0)
@@ -305,61 +380,83 @@ inline std::string format_underline(const std::string& message,
     return retval.str();
 }
 
-
 // to show a better error message.
-template<typename Container>
-std::string
-format_underline(const std::string& message, const location<Container>& loc,
-                 const std::string& comment_for_underline,
-                 std::vector<std::string> helps = {})
+inline std::string format_underline(const std::string& message,
+        std::vector<std::pair<region_base const*, std::string>> reg_com,
+        std::vector<std::string> helps = {})
 {
+    assert(!reg_com.empty());
+
 #ifdef _WIN32
     const auto newline = "\r\n";
 #else
     const char newline = '\n';
 #endif
-    using const_iterator   = typename location<Container>::const_iterator;
-    using reverse_iterator = std::reverse_iterator<const_iterator>;
-    const auto line_begin  = std::find(reverse_iterator(loc.iter()),
-                                       reverse_iterator(loc.begin()),
-                                       '\n').base();
-    const auto line_end    = std::find(loc.iter(), loc.end(), '\n');
 
-    const auto line_number = std::to_string(
-            1 + std::count(loc.begin(), loc.iter(), '\n'));
+    const auto line_num_width = std::max_element(reg_com.begin(), reg_com.end(),
+        [](std::pair<region_base const*, std::string> const& lhs,
+           std::pair<region_base const*, std::string> const& rhs)
+        {
+            return lhs.first->line_num().size() < rhs.first->line_num().size();
+        }
+    )->first->line_num().size();
 
-    std::string retval;
-    retval += message;
-    retval += newline;
-    retval += " --> ";
-    retval += loc.name();
-    retval += newline;
-    retval += ' ';
-    retval += line_number;
-    retval += " | ";
-    retval += make_string(line_begin, line_end);
-    retval += newline;
-    retval += make_string(line_number.size() + 1, ' ');
-    retval += " | ";
-    retval += make_string(std::distance(line_begin, loc.iter()),' ');
-    retval += '^';
-    retval += make_string(std::distance(loc.iter(), line_end), '-');
-    retval += ' ';
-    retval += comment_for_underline;
+    std::ostringstream retval;
+    retval << message << newline;
+
+    for(std::size_t i=0; i<reg_com.size(); ++i)
+    {
+        if(i!=0 && reg_com.at(i-1).first->name() == reg_com.at(i).first->name())
+        {
+            retval << " ..." << newline;
+        }
+        else
+        {
+            retval << " --> " << reg_com.at(i).first->name() << newline;
+        }
+
+        const region_base* const reg = reg_com.at(i).first;
+        const std::string&   comment = reg_com.at(i).second;
+
+
+        retval << ' ' << std::setw(line_num_width) << reg->line_num();
+        retval << " | " << reg->line() << newline;
+        retval << make_string(line_num_width + 1, ' ');
+        retval << " | " << make_string(reg->before(), ' ');
+
+        if(reg->size() == 1)
+        {
+            // invalid
+            // ^------
+            retval << '^';
+            retval << make_string(reg->after(), '-');
+        }
+        else
+        {
+            // invalid
+            // ~~~~~~~
+            retval << make_string(reg->size(), '~');
+        }
+
+        retval << ' ';
+        retval << comment << newline;
+    }
+
     if(helps.size() != 0)
     {
-        retval += newline;
-        retval += make_string(line_number.size() + 1, ' ');
-        retval += " | ";
+        retval << newline;
+        retval << make_string(line_num_width + 1, ' ');
+        retval << " | ";
         for(const auto help : helps)
         {
-            retval += newline;
-            retval += "Hint: ";
-            retval += help;
+            retval << newline;
+            retval << "Hint: ";
+            retval << help;
         }
     }
-    return retval;
+    return retval.str();
 }
+
 
 } // detail
 } // toml

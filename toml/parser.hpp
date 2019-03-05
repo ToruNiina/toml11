@@ -226,8 +226,9 @@ parse_floating(location<Container>& loc)
                            "the next token is not a float"));
 }
 
-template<typename Container>
-std::string read_utf8_codepoint(const region<Container>& reg)
+template<typename Container, typename Container2>
+std::string read_utf8_codepoint(const region<Container>& reg,
+              /* for err msg */ const location<Container2>& loc)
 {
     const auto str = reg.str().substr(1);
     std::uint_least32_t codepoint;
@@ -247,20 +248,27 @@ std::string read_utf8_codepoint(const region<Container>& reg)
     }
     else if(codepoint < 0x10000) // U+0800...U+FFFF
     {
+        if(0xD800 <= codepoint && codepoint <= 0xDFFF)
+        {
+            std::cerr << format_underline("[warning] "
+                "toml::read_utf8_codepoint: codepoints in the range "
+                "[0xD800, 0xDFFF] are not valid UTF-8.",
+                loc, "not a valid UTF-8 codepoint") << std::endl;
+        }
+        assert(codepoint < 0xD800 || 0xDFFF < codepoint);
         // 1110yyyy 10yxxxxx 10xxxxxx
         character += static_cast<unsigned char>(0xE0| codepoint >> 12);
         character += static_cast<unsigned char>(0x80|(codepoint >> 6 & 0x3F));
         character += static_cast<unsigned char>(0x80|(codepoint      & 0x3F));
     }
-    else if(codepoint < 0x200000) // U+10000 ... U+1FFFFF
+    else if(codepoint < 0x200000) // U+010000 ... U+1FFFFF
     {
         if(0x10FFFF < codepoint) // out of Unicode region
         {
-            std::cerr << format_underline(concat_to_string("[warning] "
-                    "input codepoint (", str, ") is too large to decode as "
-                    "a unicode character. The result may not be able to render "
-                    "to your screen."), reg, "should be in [0x00..0x10FFFF]")
-                      << std::endl;
+            std::cerr << format_underline("[error] "
+                "toml::read_utf8_codepoint: input codepoint is too large to "
+                "decode as a unicode character.", loc,
+                "should be in [0x00..0x10FFFF]") << std::endl;
         }
         // 11110yyy 10yyxxxx 10xxxxxx 10xxxxxx
         character += static_cast<unsigned char>(0xF0| codepoint >> 18);
@@ -300,7 +308,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
         {
             if(const auto token = lex_escape_unicode_short::invoke(loc))
             {
-                return ok(read_utf8_codepoint(token.unwrap()));
+                return ok(read_utf8_codepoint(token.unwrap(), loc));
             }
             else
             {
@@ -313,7 +321,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
         {
             if(const auto token = lex_escape_unicode_long::invoke(loc))
             {
-                return ok(read_utf8_codepoint(token.unwrap()));
+                return ok(read_utf8_codepoint(token.unwrap(), loc));
             }
             else
             {
@@ -868,16 +876,39 @@ parse_array(location<Container>& loc)
         {
             if(!retval.empty() && retval.front().type() != val.as_ok().type())
             {
-                throw syntax_error(format_underline(
-                    "[error] toml::parse_array: type of elements should be the "
-                    "same each other.", region<Container>(loc, first, loc.iter()),
-                    "inhomogeneous types"));
+                auto array_start_loc = loc;
+                array_start_loc.iter() = first;
+
+                throw syntax_error(format_underline("[error] toml::parse_array: "
+                    "type of elements should be the same each other.",
+                    std::vector<std::pair<region_base const*, std::string>>{
+                        std::make_pair(
+                            std::addressof(array_start_loc),
+                            std::string("array starts here")
+                        ),
+                        std::make_pair(
+                            std::addressof(get_region(retval.front())),
+                            std::string("value has type ") +
+                                stringize(retval.front().type())
+                        ),
+                        std::make_pair(
+                            std::addressof(get_region(val.unwrap())),
+                            std::string("value has different type, ") +
+                                stringize(val.unwrap().type())
+                        )
+                    }));
             }
             retval.push_back(std::move(val.unwrap()));
         }
         else
         {
-            return err(val.unwrap_err());
+            auto array_start_loc = loc;
+            array_start_loc.iter() = first;
+
+            throw syntax_error(format_underline("[error] toml::parse_array: "
+                "value having invalid format appeared in an array",
+                array_start_loc, "array starts here",
+                loc, "it is not a valid value."));
         }
 
         using lex_array_separator = sequence<maybe<lex_ws>, character<','>>;
@@ -893,8 +924,12 @@ parse_array(location<Container>& loc)
             }
             else
             {
+                auto array_start_loc = loc;
+                array_start_loc.iter() = first;
+
                 throw syntax_error(format_underline("[error] toml::parse_array:"
-                    " missing array separator `,`", loc, "should be `,`"));
+                    " missing array separator `,` after a value",
+                    array_start_loc, "array starts here", loc, "should be `,`"));
             }
         }
     }
@@ -952,6 +987,7 @@ parse_key_value_pair(location<Container>& loc)
     {
         std::string msg;
         loc.iter() = after_kvsp;
+        // check there is something not a comment/whitespace after `=`
         if(sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>::invoke(loc))
         {
             loc.iter() = after_kvsp;
@@ -959,10 +995,9 @@ parse_key_value_pair(location<Container>& loc)
                     "missing value after key-value separator '='", loc,
                     "expected value, but got nothing");
         }
-        else
+        else // there is something not a comment/whitespace, so invalid format.
         {
-            msg = format_underline("[error] toml::parse_key_value_pair: "
-                    "invalid value format", loc, val.unwrap_err());
+            msg = std::move(val.unwrap_err());
         }
         loc.iter() = first;
         return err(msg);
@@ -1193,7 +1228,7 @@ insert_nested_key(table& root, const toml::value& v,
                         "[error] toml::insert_value: value (\"",
                         format_dotted_keys(first, last), "\") already exists."),
                         get_region(tab->at(k)), "value already exists here",
-                        get_region(v), "value inserted twice"));
+                        get_region(v), "value defined twice"));
                 }
             }
             tab->insert(std::make_pair(k, v));
@@ -1376,6 +1411,20 @@ parse_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]`", inner_loc, "should be `]`"));
         }
+
+        // after [table.key], newline or EOF(empty table) requried.
+        if(loc.iter() != loc.end())
+        {
+            using lex_newline_after_table_key =
+                sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>;
+            const auto nl = lex_newline_after_table_key::invoke(loc);
+            if(!nl)
+            {
+                throw syntax_error(format_underline("[error] "
+                    "toml::parse_table_key: newline required after [table.key]",
+                    loc, "expected newline"));
+            }
+        }
         return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
     }
     else
@@ -1414,6 +1463,20 @@ parse_array_table_key(location<Container>& loc)
             throw internal_error(format_underline("[error] "
                 "toml::parse_table_key: no `]]`", inner_loc, "should be `]]`"));
         }
+
+        // after [[table.key]], newline or EOF(empty table) requried.
+        if(loc.iter() != loc.end())
+        {
+            using lex_newline_after_table_key =
+                sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>;
+            const auto nl = lex_newline_after_table_key::invoke(loc);
+            if(!nl)
+            {
+                throw syntax_error(format_underline("[error] "
+                    "toml::parse_array_table_key: newline required after "
+                    "[[table.key]]", loc, "expected newline"));
+            }
+        }
         return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
     }
     else
@@ -1429,7 +1492,7 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return err(std::string("toml::parse_ml_table: input is empty"));
+        return ok(toml::table{});
     }
 
     // XXX at lest one newline is needed.
@@ -1508,11 +1571,11 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return err(std::string("toml::detail::parse_toml_file: input is empty"));
+        return ok(toml::table{});
     }
 
     table data;
-    /* root object is also table, but without [tablename] */
+    // root object is also a table, but without [tablename]
     if(auto tab = parse_ml_table(loc))
     {
         data = std::move(tab.unwrap());

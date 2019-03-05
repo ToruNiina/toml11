@@ -124,9 +124,9 @@ using lex_escape_unicode_short = sequence<character<'u'>,
 using lex_escape_unicode_long  = sequence<character<'U'>,
                                           repeat<lex_hex_dig, exactly<8>>>;
 using lex_escape_seq_char = either<character<'"'>, character<'\\'>,
-                                   character<'/'>, character<'b'>,
-                                   character<'f'>, character<'n'>,
-                                   character<'r'>, character<'t'>,
+                                   character<'b'>, character<'f'>,
+                                   character<'n'>, character<'r'>,
+                                   character<'t'>,
                                    lex_escape_unicode_short,
                                    lex_escape_unicode_long
                                    >;
