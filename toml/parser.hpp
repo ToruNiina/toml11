@@ -987,6 +987,75 @@ std::string format_dotted_keys(InputIterator first, const InputIterator last)
     return retval;
 }
 
+// forward decl for is_valid_forward_table_definition
+template<typename Container>
+result<std::pair<std::vector<key>, region<Container>>, std::string>
+parse_table_key(location<Container>& loc);
+// The following toml file is allowed.
+// ```toml
+// [a.b.c]     # here, table `a` has element `b`.
+// foo = "bar"
+// [a]         # merge a = {baz = "qux"} to a = {b = {...}}
+// baz = "qux"
+// ```
+// But the following is not allowed.
+// ```toml
+// [a]
+// b.c.foo = "bar"
+// [a]             # error! the same table [a] defined!
+// baz = "qux"
+// ```
+// The following is neither allowed.
+// ```toml
+// a = { b.c.foo = "bar"}
+// [a]             # error! the same table [a] defined!
+// baz = "qux"
+// ```
+// Here, it parses region of `tab->at(k)` as a table key and check the depth
+// of the key. If the key region points deeper node, it would be allowed.
+// Otherwise, the key points the same node. It would be rejected.
+template<typename Iterator>
+bool is_valid_forward_table_definition(const value& fwd,
+        Iterator key_first, Iterator key_curr, Iterator key_last)
+{
+    location<std::string> def("internal", detail::get_region(fwd).str());
+    if(const auto tabkeys = parse_table_key(def))
+    {
+        // table keys always contains all the nodes from the root.
+        const auto& tks = tabkeys.unwrap().first;
+        if(std::distance(key_first, key_last) == tks.size() &&
+           std::equal(tks.begin(), tks.end(), key_first))
+        {
+            // the keys are equivalent. it is not allowed.
+            return false;
+        }
+        // the keys are not equivalent. it is allowed.
+        return true;
+    }
+    if(const auto dotkeys = parse_key(def))
+    {
+        // consider the following case.
+        // [a]
+        // b.c = {d = 42}
+        // [a.b.c]
+        // e = 2.71
+        // this defines the table [a.b.c] twice. no?
+
+        // a dotted key starts from the node representing a table in which the
+        // dotted key belongs to.
+        const auto& dks = dotkeys.unwrap().first;
+        if(std::distance(key_curr, key_last) == dks.size() &&
+           std::equal(dks.begin(), dks.end(), key_curr))
+        {
+            // the keys are equivalent. it is not allowed.
+            return false;
+        }
+        // the keys are not equivalent. it is allowed.
+        return true;
+    }
+    return false;
+}
+
 template<typename InputIterator, typename Container>
 result<bool, std::string>
 insert_nested_key(table& root, const toml::value& v,
@@ -1077,16 +1146,34 @@ insert_nested_key(table& root, const toml::value& v,
                     tab->insert(std::make_pair(k, aot));
                     return ok(true);
                 }
-            }
+            } // end if(array of table)
+
             if(tab->count(k) == 1)
             {
                 if(tab->at(k).is(value_t::Table) && v.is(value_t::Table))
                 {
-                    throw syntax_error(format_underline(concat_to_string(
-                        "[error] toml::insert_value: table (\"",
-                        format_dotted_keys(first, last), "\") already exists."),
-                        get_region(tab->at(k)), "table already exists here",
-                        get_region(v), "table defined twice"));
+                    if(!is_valid_forward_table_definition(
+                                tab->at(k), first, iter, last))
+                    {
+                        throw syntax_error(format_underline(concat_to_string(
+                                "[error] toml::insert_value: table (\"",
+                                format_dotted_keys(first, last),
+                                "\") already exists."),
+                            get_region(tab->at(k)), "table already exists here",
+                            get_region(v), "table defined twice"));
+                    }
+                    // to allow the following toml file.
+                    // [a.b.c]
+                    // d = 42
+                    // [a]
+                    // e = 2.71
+                    auto& t = tab->at(k).cast<value_t::Table>();
+                    for(const auto& kv : v.cast<value_t::Table>())
+                    {
+                        t[kv.first] = kv.second;
+                    }
+                    detail::change_region(tab->at(k), key_reg);
+                    return ok(true);
                 }
                 else if(v.is(value_t::Table)                          &&
                         tab->at(k).is(value_t::Array)                 &&
