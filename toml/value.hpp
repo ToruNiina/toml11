@@ -21,6 +21,8 @@ namespace detail
 {
 // to show error messages. not recommended for users.
 region_base const& get_region(const value&);
+template<typename Region>
+void change_region(value&, Region&&);
 }// detail
 
 template<typename T>
@@ -560,6 +562,9 @@ class value
     // for error messages
     friend region_base const& detail::get_region(const value&);
 
+    template<typename Region>
+    friend void detail::change_region(value&, Region&&);
+
     template<value_t T>
     struct switch_cast;
 
@@ -594,6 +599,20 @@ inline region_base const& get_region(const value& v)
 {
     return *(v.region_info_);
 }
+
+template<typename Region>
+void change_region(value& v, Region&& reg)
+{
+    using region_type = typename std::remove_reference<
+        typename std::remove_cv<Region>::type
+        >::type;
+
+    std::shared_ptr<region_base> new_reg =
+        std::make_shared<region_type>(std::forward<region_type>(reg));
+    v.region_info_ = new_reg;
+    return;
+}
+
 }// detail
 
 template<> struct value::switch_cast<value_t::Boolean>
