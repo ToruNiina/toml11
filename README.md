@@ -7,7 +7,7 @@ toml11
 [![License](https://img.shields.io/github/license/ToruNiina/toml11.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1209136.svg)](https://doi.org/10.5281/zenodo.1209136)
 
-C++11 header-only toml parser depending only on C++ standard library.
+C++11 header-only toml parser/encoder depending only on C++ standard library.
 
 compatible to the latest version of
 [TOML v0.5.0](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v0.5.0.md)
@@ -642,6 +642,7 @@ I thank the contributor for providing great feature to this repository.
   - Intel Compiler support
 - Quentin Khan (@xaxousis)
   - Found & Fixed a bug around ODR
+  - Improved error message to show the location where the parser fails
 
 ## Licensing terms
 
