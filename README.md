@@ -387,7 +387,31 @@ If it's not a `toml::table`, the same error as "invalid type" would be thrown.
 
 ### Checking value type
 
-When you don't know the exact type of toml-value, you can get `enum` type from `toml::value`.
+You can check what type of value does `toml::value` contains by `is_*` function.
+
+```cpp
+toml::value v = /* ... */;
+if(v.is_integer() && toml::get<int>(v) == 42)
+{
+    std::cout << "value is 42" << std::endl;
+}
+```
+
+The complete list of the functions is below.
+
+- `bool toml::value::is_boolean()         const noexcept;`
+- `bool toml::value::is_integer()         const noexcept;`
+- `bool toml::value::is_float()           const noexcept;`
+- `bool toml::value::is_string()          const noexcept;`
+- `bool toml::value::is_offset_datetime() const noexcept;`
+- `bool toml::value::is_local_datetime()  const noexcept;`
+- `bool toml::value::is_local_date()      const noexcept;`
+- `bool toml::value::is_local_time()      const noexcept;`
+- `bool toml::value::is_array()           const noexcept;`
+- `bool toml::value::is_table()           const noexcept;`
+- `bool toml::value::is_uninitialized()   const noexcept;`
+
+Also, you can get `enum class` value from `toml::value`.
 
 ```cpp
 switch(data.at("something").type())
@@ -398,6 +422,16 @@ switch(data.at("something").type())
     default : throw std::runtime_error(
         "unexpected type : " + toml::stringize(data.at("something").type()));
 }
+```
+
+The complete list of the `enum`s can be found in the section
+[underlying types](#underlying-types).
+
+The `enum`s can be used as a parameter of `toml::value::is` function like the following.
+
+```cpp
+toml::value v = /* ... */;
+if(v.is(toml::value_t::Boolean)) // ...
 ```
 
 ### Fill only the matched value
