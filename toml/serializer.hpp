@@ -32,9 +32,9 @@ struct serializer
     std::string operator()(const toml::floating f) const
     {
         const auto fmt = "%.*g";
-        const auto bsz = std::snprintf(nullptr, 0, fmt, int(this->float_prec_), f);
+        const auto bsz = std::snprintf(nullptr, 0, fmt, this->float_prec_, f);
         std::vector<char> buf(bsz + 1, '\0'); // +1 for null character(\0)
-        std::snprintf(buf.data(), buf.size(), fmt, int(this->float_prec_), f);
+        std::snprintf(buf.data(), buf.size(), fmt, this->float_prec_, f);
 
         std::string token(buf.begin(), buf.end());
         if(token.back() == '.') // 1. => 1.0
