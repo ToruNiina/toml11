@@ -681,9 +681,11 @@ typename detail::toml_default_type<T>::type& value::cast() &
 {
     if(T != this->type_)
     {
-        throw type_error(format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), *region_info_,
-            concat_to_string("the actual type is ", this->type_)));
+        throw type_error(detail::format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), {
+                {this->region_info_.get(),
+                 concat_to_string("the actual type is ", this->type_)}
+            }));
     }
     return switch_cast<T>::invoke(*this);
 }
@@ -692,9 +694,11 @@ typename detail::toml_default_type<T>::type const& value::cast() const&
 {
     if(T != this->type_)
     {
-        throw type_error(format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), *region_info_,
-            concat_to_string("the actual type is ", this->type_)));
+        throw type_error(detail::format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), {
+                {this->region_info_.get(),
+                 concat_to_string("the actual type is ", this->type_)}
+            }));
     }
     return switch_cast<T>::invoke(*this);
 }
@@ -703,9 +707,11 @@ typename detail::toml_default_type<T>::type&&      value::cast() &&
 {
     if(T != this->type_)
     {
-        throw type_error(format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), *region_info_,
-            concat_to_string("the actual type is ", this->type_)));
+        throw type_error(detail::format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), {
+                {this->region_info_.get(),
+                 concat_to_string("the actual type is ", this->type_)}
+             }));
     }
     return switch_cast<T>::invoke(std::move(*this));
 }
@@ -792,8 +798,9 @@ inline std::string format_error(const std::string& err_msg,
         const toml::value& v, const std::string& comment,
         std::vector<std::string> hints = {})
 {
-    return detail::format_underline(err_msg, detail::get_region(v), comment,
-                                    std::move(hints));
+    return detail::format_underline(err_msg, {
+            {std::addressof(detail::get_region(v)), comment}
+        }, std::move(hints));
 }
 
 inline std::string format_error(const std::string& err_msg,
@@ -801,9 +808,10 @@ inline std::string format_error(const std::string& err_msg,
         const toml::value& v2, const std::string& comment2,
         std::vector<std::string> hints = {})
 {
-    return detail::format_underline(err_msg, detail::get_region(v1), comment1,
-                                             detail::get_region(v2), comment2,
-                                             std::move(hints));
+    return detail::format_underline(err_msg, {
+            {std::addressof(detail::get_region(v1)), comment1},
+            {std::addressof(detail::get_region(v2)), comment2}
+        }, std::move(hints));
 }
 
 template<typename Visitor>
