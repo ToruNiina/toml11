@@ -1058,7 +1058,7 @@ bool is_valid_forward_table_definition(const value& fwd,
     {
         // table keys always contains all the nodes from the root.
         const auto& tks = tabkeys.unwrap().first;
-        if(std::distance(key_first, key_last) == tks.size() &&
+        if(std::size_t(std::distance(key_first, key_last)) == tks.size() &&
            std::equal(tks.begin(), tks.end(), key_first))
         {
             // the keys are equivalent. it is not allowed.
@@ -1079,7 +1079,7 @@ bool is_valid_forward_table_definition(const value& fwd,
         // a dotted key starts from the node representing a table in which the
         // dotted key belongs to.
         const auto& dks = dotkeys.unwrap().first;
-        if(std::distance(key_curr, key_last) == dks.size() &&
+        if(std::size_t(std::distance(key_curr, key_last)) == dks.size() &&
            std::equal(dks.begin(), dks.end(), key_curr))
         {
             // the keys are equivalent. it is not allowed.
