@@ -28,6 +28,7 @@ set(TEST_NAMES
     test_serialize_file
     test_parse_unicode
     test_error_detection
+    test_format_error
 )
 
 CHECK_CXX_COMPILER_FLAG("-Wall" COMPILER_SUPPORTS_WALL)
