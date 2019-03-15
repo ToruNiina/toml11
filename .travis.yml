@@ -12,8 +12,39 @@ matrix:
         - ubuntu-toolchain-r-test
         packages:
         - g++-5
-        - build-essential
-        - cmake
+        - libboost-all-dev
+  - os: linux
+    language: cpp
+    compiler: gcc
+    env: COMPILER="g++-6"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-6
+        - libboost-all-dev
+  - os: linux
+    language: cpp
+    compiler: gcc
+    env: COMPILER="g++-7"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-7
+        - libboost-all-dev
+  - os: linux
+    language: cpp
+    compiler: gcc
+    env: COMPILER="g++-8"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-8
         - libboost-all-dev
   - os: linux
     language: cpp
@@ -26,8 +57,66 @@ matrix:
         - llvm-toolchain-precise-3.7
         packages:
         - clang-3.7
-        - build-essential
-        - cmake
+        - libboost-all-dev
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-4.0"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-4.0
+        packages:
+        - clang-4.0
+        - libboost-all-dev
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-5.0"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-5.0
+        packages:
+        - clang-5.0
+        - libboost-all-dev
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-6.0"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-6.0
+        packages:
+        - clang-6.0
+        - libboost-all-dev
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-7"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-7
+        packages:
+        - clang-7
+        - libboost-all-dev
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-8"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-8
+        packages:
+        - clang-8
         - libboost-all-dev
   - os: osx
     language: cpp
