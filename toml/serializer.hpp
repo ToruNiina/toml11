@@ -36,7 +36,7 @@ struct serializer
         std::vector<char> buf(bsz + 1, '\0'); // +1 for null character(\0)
         std::snprintf(buf.data(), buf.size(), fmt, this->float_prec_, f);
 
-        std::string token(buf.begin(), buf.end());
+        std::string token(buf.begin(), std::prev(buf.end()));
         if(token.back() == '.') // 1. => 1.0
         {
             token += '0';
