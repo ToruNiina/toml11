@@ -7,6 +7,16 @@
 #include <memory>
 #include <sstream>
 
+#if __cplusplus >= 201402L
+#  define TOML11_MARK_AS_DEPRECATED [[deprecated]]
+#elif defined(__GNUC__)
+#  define TOML11_MARK_AS_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#  define TOML11_MARK_AS_DEPRECATED __declspec(deprecated)
+#else
+#  define TOML11_MARK_AS_DEPRECATED
+#endif
+
 namespace toml
 {
 
