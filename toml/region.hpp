@@ -239,149 +239,6 @@ struct region final : public region_base
 
 // to show a better error message.
 inline std::string format_underline(const std::string& message,
-        const region_base& reg, const std::string& comment_for_underline,
-        std::vector<std::string> helps = {})
-{
-#ifdef _WIN32
-    const auto newline = "\r\n";
-#else
-    const char newline = '\n';
-#endif
-    const auto line        = reg.line();
-    const auto line_number = reg.line_num();
-
-    std::string retval;
-    retval += message;
-    retval += newline;
-    retval += " --> ";
-    retval += reg.name();
-    retval += newline;
-    retval += ' ';
-    retval += line_number;
-    retval += " | ";
-    retval += line;
-    retval += newline;
-    retval += make_string(line_number.size() + 1, ' ');
-    retval += " | ";
-    retval += make_string(reg.before(), ' ');
-    if(reg.size() == 1)
-    {
-        // invalid
-        // ^------
-        retval += '^';
-        retval += make_string(reg.after(), '-');
-    }
-    else
-    {
-        // invalid
-        // ~~~~~~~
-        retval += make_string(reg.size(), '~');
-    }
-    retval += ' ';
-    retval += comment_for_underline;
-    if(helps.size() != 0)
-    {
-        retval += newline;
-        retval += make_string(line_number.size() + 1, ' ');
-        retval += " | ";
-        for(const auto help : helps)
-        {
-            retval += newline;
-            retval += "Hint: ";
-            retval += help;
-        }
-    }
-    return retval;
-}
-
-// to show a better error message.
-inline std::string format_underline(const std::string& message,
-        const region_base& reg1, const std::string& comment_for_underline1,
-        const region_base& reg2, const std::string& comment_for_underline2,
-        std::vector<std::string> helps = {})
-{
-#ifdef _WIN32
-    const auto newline = "\r\n";
-#else
-    const char newline = '\n';
-#endif
-    const auto line1        = reg1.line();
-    const auto line_number1 = reg1.line_num();
-    const auto line2        = reg2.line();
-    const auto line_number2 = reg2.line_num();
-    const auto line_num_width =
-        std::max(line_number1.size(), line_number2.size());
-
-    std::ostringstream retval;
-    retval << message << newline;
-    retval << " --> " << reg1.name() << newline;
-//  ---------------------------------------
-    retval << ' ' << std::setw(line_num_width) << line_number1;
-    retval << " | " << line1 << newline;
-    retval << make_string(line_num_width + 1, ' ');
-    retval << " | ";
-    retval << make_string(reg1.before(), ' ');
-    if(reg1.size() == 1)
-    {
-        // invalid
-        // ^------
-        retval << '^';
-        retval << make_string(reg1.after(), '-');
-    }
-    else
-    {
-        // invalid
-        // ~~~~~~~
-        retval << make_string(reg1.size(), '~');
-    }
-    retval << ' ';
-    retval << comment_for_underline1 << newline;
-//  ---------------------------------------
-    if(reg2.name() != reg1.name())
-    {
-        retval << " --> " << reg2.name() << newline;
-    }
-    else
-    {
-        retval << " ..." << newline;
-    }
-    retval << ' ' << std::setw(line_num_width) << line_number2;
-    retval << " | " << line2 << newline;
-    retval << make_string(line_num_width + 1, ' ');
-    retval << " | ";
-    retval << make_string(reg2.before(), ' ');
-    if(reg2.size() == 1)
-    {
-        // invalid
-        // ^------
-        retval << '^';
-        retval << make_string(reg2.after(), '-');
-    }
-    else
-    {
-        // invalid
-        // ~~~~~~~
-        retval << make_string(reg2.size(), '~');
-    }
-    retval << ' ';
-    retval << comment_for_underline2;
-    if(helps.size() != 0)
-    {
-        retval << newline;
-        retval << make_string(line_num_width + 1, ' ');
-        retval << " | ";
-        for(const auto help : helps)
-        {
-            retval << newline;
-            retval << "Hint: ";
-            retval << help;
-        }
-    }
-    return retval.str();
-}
-
-// to show a better error message.
-inline std::string format_underline(const std::string& message,
         std::vector<std::pair<region_base const*, std::string>> reg_com,
         std::vector<std::string> helps = {})
 {
@@ -408,10 +265,11 @@ inline std::string format_underline(const std::string& message,
     {
         if(i!=0 && reg_com.at(i-1).first->name() == reg_com.at(i).first->name())
         {
-            retval << " ..." << newline;
+            retval << newline << " ..." << newline;
         }
         else
         {
+            if(i != 0) {retval << newline;}
             retval << " --> " << reg_com.at(i).first->name() << newline;
         }
 
@@ -439,7 +297,7 @@ inline std::string format_underline(const std::string& message,
         }
 
         retval << ' ';
-        retval << comment << newline;
+        retval << comment;
     }
 
     if(helps.size() != 0)
@@ -456,7 +314,6 @@ inline std::string format_underline(const std::string& message,
     }
     return retval.str();
 }
-
 
 } // detail
 } // toml

@@ -681,9 +681,11 @@ typename detail::toml_default_type<T>::type& value::cast() &
 {
     if(T != this->type_)
     {
-        throw type_error(format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), *region_info_,
-            concat_to_string("the actual type is ", this->type_)));
+        throw type_error(detail::format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), {
+                {this->region_info_.get(),
+                 concat_to_string("the actual type is ", this->type_)}
+            }));
     }
     return switch_cast<T>::invoke(*this);
 }
@@ -692,9 +694,11 @@ typename detail::toml_default_type<T>::type const& value::cast() const&
 {
     if(T != this->type_)
     {
-        throw type_error(format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), *region_info_,
-            concat_to_string("the actual type is ", this->type_)));
+        throw type_error(detail::format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), {
+                {this->region_info_.get(),
+                 concat_to_string("the actual type is ", this->type_)}
+            }));
     }
     return switch_cast<T>::invoke(*this);
 }
@@ -703,9 +707,11 @@ typename detail::toml_default_type<T>::type&&      value::cast() &&
 {
     if(T != this->type_)
     {
-        throw type_error(format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), *region_info_,
-            concat_to_string("the actual type is ", this->type_)));
+        throw type_error(detail::format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), {
+                {this->region_info_.get(),
+                 concat_to_string("the actual type is ", this->type_)}
+             }));
     }
     return switch_cast<T>::invoke(std::move(*this));
 }
@@ -788,22 +794,38 @@ inline bool operator>=(const toml::value& lhs, const toml::value& rhs)
     return !(lhs < rhs);
 }
 
-inline std::string format_error(const std::string& err_msg,
-        const toml::value& v, const std::string& comment,
-        std::vector<std::string> hints = {})
+namespace detail
 {
-    return detail::format_underline(err_msg, detail::get_region(v), comment,
-                                    std::move(hints));
+inline std::string format_error_impl(const std::string& err_msg,
+        std::vector<std::pair<region_base const*, std::string>> val,
+        std::vector<std::string> hints)
+{
+    return format_underline(err_msg, std::move(val), std::move(hints));
+}
+inline std::string format_error_impl(const std::string& err_msg,
+        std::vector<std::pair<region_base const*, std::string>> val)
+{
+    return format_underline(err_msg, std::move(val));
 }
 
-inline std::string format_error(const std::string& err_msg,
-        const toml::value& v1, const std::string& comment1,
-        const toml::value& v2, const std::string& comment2,
-        std::vector<std::string> hints = {})
+template<typename ... Ts>
+std::string format_error_impl(const std::string& err_msg,
+        std::vector<std::pair<region_base const*, std::string>> val,
+        const toml::value& v, const std::string& comment,
+        Ts&& ... args)
 {
-    return detail::format_underline(err_msg, detail::get_region(v1), comment1,
-                                             detail::get_region(v2), comment2,
-                                             std::move(hints));
+    val.push_back(std::make_pair(std::addressof(get_region(v)), comment));
+    return format_error_impl(err_msg, std::move(val), std::forward<Ts>(args)...);
+}
+} // detail
+
+template<typename ... Ts>
+std::string format_error(const std::string& err_msg, Ts&& ... args)
+{
+    std::vector<std::pair<detail::region_base const*, std::string>> val;
+    val.reserve(sizeof...(args) / 2);
+    return detail::format_error_impl(err_msg, std::move(val),
+                                     std::forward<Ts>(args)...);
 }
 
 template<typename Visitor>
