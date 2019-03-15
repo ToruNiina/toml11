@@ -262,15 +262,8 @@ std::string read_utf8_codepoint(const region<Container>& reg,
         character += static_cast<unsigned char>(0x80|(codepoint >> 6 & 0x3F));
         character += static_cast<unsigned char>(0x80|(codepoint      & 0x3F));
     }
-    else if(codepoint < 0x200000) // U+010000 ... U+1FFFFF
+    else if(codepoint < 0x110000) // U+010000 ... U+10FFFF
     {
-        if(0x10FFFF < codepoint) // out of Unicode region
-        {
-            throw syntax_error(format_underline("[error] "
-                "toml::read_utf8_codepoint: input codepoint is too large to "
-                "decode as a unicode character.", {{std::addressof(loc),
-                "should be in [0x00..0x10FFFF]"}}));
-        }
         // 11110yyy 10yyxxxx 10xxxxxx 10xxxxxx
         character += static_cast<unsigned char>(0xF0| codepoint >> 18);
         character += static_cast<unsigned char>(0x80|(codepoint >> 12 & 0x3F));
@@ -279,9 +272,9 @@ std::string read_utf8_codepoint(const region<Container>& reg,
     }
     else // out of UTF-8 region
     {
-        throw std::range_error(format_underline(concat_to_string("[error] "
-                "input codepoint (", str, ") is too large to encode as utf-8."),
-                {{std::addressof(reg), "should be in [0x00..0x10FFFF]"}}));
+        throw syntax_error(format_underline("[error] toml::read_utf8_codepoint:"
+            " input codepoint is too large.",
+            {{std::addressof(loc), "should be in [0x00..0x10FFFF]"}}));
     }
     return character;
 }
