@@ -60,12 +60,12 @@ BOOST_AUTO_TEST_CASE(test_conversion_by_member_methods)
     const toml::value v{{"a", 42}, {"b", "baz"}};
 
     const auto foo = toml::get<extlib::foo>(v);
-    BOOST_TEST(foo.a == 42);
-    BOOST_TEST(foo.b == "baz");
+    BOOST_CHECK_EQUAL(foo.a, 42);
+    BOOST_CHECK_EQUAL(foo.b, "baz");
 
     const toml::value v2(foo);
 
-    BOOST_TEST(v == v2);
+    BOOST_CHECK_EQUAL(v, v2);
 }
 
 BOOST_AUTO_TEST_CASE(test_conversion_by_specialization)
@@ -73,12 +73,12 @@ BOOST_AUTO_TEST_CASE(test_conversion_by_specialization)
     const toml::value v{{"a", 42}, {"b", "baz"}};
 
     const auto bar = toml::get<extlib::bar>(v);
-    BOOST_TEST(bar.a == 42);
-    BOOST_TEST(bar.b == "baz");
+    BOOST_CHECK_EQUAL(bar.a, 42);
+    BOOST_CHECK_EQUAL(bar.b, "baz");
 
     const toml::value v2(bar);
 
-    BOOST_TEST(v == v2);
+    BOOST_CHECK_EQUAL(v, v2);
 }
 
 BOOST_AUTO_TEST_CASE(test_recursive_conversion)
@@ -91,26 +91,26 @@ BOOST_AUTO_TEST_CASE(test_recursive_conversion)
     };
 
     const auto foos = toml::get<std::vector<extlib::foo>>(v);
-    BOOST_TEST(foos.size() == 4ul);
-    BOOST_TEST(foos.at(0).a == 42);
-    BOOST_TEST(foos.at(1).a == 43);
-    BOOST_TEST(foos.at(2).a == 44);
-    BOOST_TEST(foos.at(3).a == 45);
+    BOOST_CHECK_EQUAL(foos.size()  , 4ul);
+    BOOST_CHECK_EQUAL(foos.at(0).a , 42);
+    BOOST_CHECK_EQUAL(foos.at(1).a , 43);
+    BOOST_CHECK_EQUAL(foos.at(2).a , 44);
+    BOOST_CHECK_EQUAL(foos.at(3).a , 45);
 
-    BOOST_TEST(foos.at(0).b == "baz");
-    BOOST_TEST(foos.at(1).b == "qux");
-    BOOST_TEST(foos.at(2).b == "quux");
-    BOOST_TEST(foos.at(3).b == "foobar");
+    BOOST_CHECK_EQUAL(foos.at(0).b , "baz");
+    BOOST_CHECK_EQUAL(foos.at(1).b , "qux");
+    BOOST_CHECK_EQUAL(foos.at(2).b , "quux");
+    BOOST_CHECK_EQUAL(foos.at(3).b , "foobar");
 
     const auto bars = toml::get<std::vector<extlib::bar>>(v);
-    BOOST_TEST(bars.size() == 4ul);
-    BOOST_TEST(bars.at(0).a == 42);
-    BOOST_TEST(bars.at(1).a == 43);
-    BOOST_TEST(bars.at(2).a == 44);
-    BOOST_TEST(bars.at(3).a == 45);
+    BOOST_CHECK_EQUAL(bars.size()  , 4ul);
+    BOOST_CHECK_EQUAL(bars.at(0).a , 42);
+    BOOST_CHECK_EQUAL(bars.at(1).a , 43);
+    BOOST_CHECK_EQUAL(bars.at(2).a , 44);
+    BOOST_CHECK_EQUAL(bars.at(3).a , 45);
 
-    BOOST_TEST(bars.at(0).b == "baz");
-    BOOST_TEST(bars.at(1).b == "qux");
-    BOOST_TEST(bars.at(2).b == "quux");
-    BOOST_TEST(bars.at(3).b == "foobar");
+    BOOST_CHECK_EQUAL(bars.at(0).b , "baz");
+    BOOST_CHECK_EQUAL(bars.at(1).b , "qux");
+    BOOST_CHECK_EQUAL(bars.at(2).b , "quux");
+    BOOST_CHECK_EQUAL(bars.at(3).b , "foobar");
 }
