@@ -329,9 +329,7 @@ T get(const toml::value& v)
 }
 template<typename T, typename std::enable_if<detail::conjunction<
     detail::negation<detail::is_exact_toml_type<T>> // not a toml::value
-    >::value, std::nullptr_t>::type,
-    std::size_t = sizeof(::toml::from<T>) // and has from<T> specialization
-    >
+    >::value, std::nullptr_t>::type, std::size_t>   // and has from<T>
 T get(const toml::value& v)
 {
     return ::toml::from<T>::from_toml(v);
