@@ -1,7 +1,7 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_STRING_H
-#define TOML11_STRING_H
+#ifndef TOML11_STRING_HPP
+#define TOML11_STRING_HPP
 #include <string>
 #include <cstdint>
 

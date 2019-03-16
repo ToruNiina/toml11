@@ -1,7 +1,7 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_EXCEPTION
-#define TOML11_EXCEPTION
+#ifndef TOML11_EXCEPTION_HPP
+#define TOML11_EXCEPTION_HPP
 #include <stdexcept>
 #include <string>
 

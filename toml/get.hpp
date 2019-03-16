@@ -1,7 +1,7 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_GET
-#define TOML11_GET
+#ifndef TOML11_GET_HPP
+#define TOML11_GET_HPP
 #include "result.hpp"
 #include "value.hpp"
 #include <algorithm>

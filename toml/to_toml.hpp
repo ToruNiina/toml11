@@ -1,7 +1,7 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_TO_TOML
-#define TOML11_TO_TOML
+#ifndef TOML11_TO_TOML_HPP
+#define TOML11_TO_TOML_HPP
 #include "value.hpp"
 
 namespace toml
