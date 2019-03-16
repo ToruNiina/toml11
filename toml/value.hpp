@@ -537,6 +537,18 @@ class value
     bool is() const noexcept {return value_traits<T>::type_index == this->type_;}
     bool is(value_t t) const noexcept {return t == this->type_;}
 
+    bool is_uninitialized()   const noexcept {return this->is(value_t::Empty         );}
+    bool is_boolean()         const noexcept {return this->is(value_t::Boolean       );}
+    bool is_integer()         const noexcept {return this->is(value_t::Integer       );}
+    bool is_float()           const noexcept {return this->is(value_t::Float         );}
+    bool is_string()          const noexcept {return this->is(value_t::String        );}
+    bool is_offset_datetime() const noexcept {return this->is(value_t::OffsetDatetime);}
+    bool is_local_datetime()  const noexcept {return this->is(value_t::LocalDatetime );}
+    bool is_local_date()      const noexcept {return this->is(value_t::LocalDate     );}
+    bool is_local_time()      const noexcept {return this->is(value_t::LocalTime     );}
+    bool is_array()           const noexcept {return this->is(value_t::Array         );}
+    bool is_table()           const noexcept {return this->is(value_t::Table         );}
+
     value_t type() const {return type_;}
 
     template<value_t T>
