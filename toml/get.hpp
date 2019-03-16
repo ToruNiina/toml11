@@ -2,6 +2,7 @@
 // Distributed under the MIT License.
 #ifndef TOML11_GET
 #define TOML11_GET
+#include "from.hpp"
 #include "result.hpp"
 #include "value.hpp"
 #include <algorithm>
@@ -295,6 +296,31 @@ T get(const toml::value& v)
         map[key_type(kv.first)] = ::toml::get<mapped_type>(kv.second);
     }
     return map;
+}
+
+
+// ============================================================================
+// user-defined, but compatible types.
+
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
+    detail::has_from_toml_method<T>, // but has from_toml(toml::value) memfn
+    std::is_default_constructible<T> // and default constructible
+    >::value, std::nullptr_t>::type = nullptr>
+T get(const toml::value& v)
+{
+    T ud;
+    ud.from_toml(v);
+    return ud;
+}
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>> // not a toml::value
+    >::value, std::nullptr_t>::type = nullptr,
+    std::size_t = sizeof(::toml::from<T>) // and has from<T> specialization
+    >
+T get(const toml::value& v)
+{
+    return ::toml::from<T>::from_toml(v);
 }
 
 // ============================================================================
