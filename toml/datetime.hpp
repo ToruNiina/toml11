@@ -1,7 +1,7 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_DATETIME
-#define TOML11_DATETIME
+#ifndef TOML11_DATETIME_HPP
+#define TOML11_DATETIME_HPP
 #include <chrono>
 #include <tuple>
 #include <array>

@@ -1,7 +1,7 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_RESULT_H
-#define TOML11_RESULT_H
+#ifndef TOML11_RESULT_HPP
+#define TOML11_RESULT_HPP
 #include "traits.hpp"
 #include <type_traits>
 #include <stdexcept>

@@ -1,7 +1,7 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_UTILITY
-#define TOML11_UTILITY
+#ifndef TOML11_UTILITY_HPP
+#define TOML11_UTILITY_HPP
 #include "traits.hpp"
 #include <utility>
 #include <memory>

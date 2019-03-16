@@ -1,7 +1,7 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_TRAITS
-#define TOML11_TRAITS
+#ifndef TOML11_TRAITS_HPP
+#define TOML11_TRAITS_HPP
 #include <type_traits>
 #include <utility>
 #include <chrono>
