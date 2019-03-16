@@ -423,6 +423,148 @@ int i = 0;
 toml::from_toml(i, data.at("something"));
 ```
 
+### Conversion between toml value and your class
+
+You can also use `toml::get` and other related functions with the types you defined
+after you implement some stuff.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    int         a;
+    double      b;
+    std::string c;
+};
+} // ext
+
+const auto data = toml::parse("example.toml");
+
+const foo f = toml::get<ext::foo>(data.at("foo"));
+```
+
+There are 2 ways to use `toml::get` with the types that you defined.
+
+The first one is to implement `from_toml(const toml::value&)` member function.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    int         a;
+    double      b;
+    std::string c;
+
+    void from_toml(const toml::value& v)
+    {
+        this->a = toml::find<int        >(v, "a");
+        this->b = toml::find<double     >(v, "b");
+        this->c = toml::find<std::string>(v, "c");
+        return;
+    }
+};
+} // ext
+```
+
+In this way, because `toml::get` first constructs `foo` without arguments,
+the type should be default-constructible.
+
+The second is to implement specialization of `toml::from` for your type.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    int         a;
+    double      b;
+    std::string c;
+};
+} // ext
+
+namespace toml
+{
+template<>
+struct from<ext::foo>
+{
+    ext::foo from_toml(const toml::value& v)
+    {
+        ext::foo f;
+        f.a = toml::find<int        >(v, "a");
+        f.b = toml::find<double     >(v, "b");
+        f.c = toml::find<std::string>(v, "c");
+        return f;
+    }
+};
+} // toml
+```
+
+In this way, since the conversion function is introduced from out of the class,
+you can add conversion between `toml::value` and classes defined in another library.
+
+Note that you cannot implement both of the functions because the overload
+resolution of `toml::get` become ambiguous.
+
+----
+
+The opposite direction is also supported in a similar way. You can directly
+pass your type to `toml::value`'s constructor by introducing `into_iter` or
+`toml::into<T>`.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    int         a;
+    double      b;
+    std::string c;
+
+    toml::table into_toml() const // you need to mark it const.
+    {
+        return toml::table{{"a", this->a}, {"b", this->b}, {"c", this->c}};
+    }
+};
+} // ext
+
+ext::foo    f{42, 3.14, "foobar"};
+toml::value v(f);
+```
+
+The definition of `toml::into<ext::foo>` is similar to `from_toml()`.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    int         a;
+    double      b;
+    std::string c;
+};
+} // ext
+
+namespace toml
+{
+template<>
+struct into<ext::foo>
+{
+    toml::table into_toml(const ext::foo& v)
+    {
+        return toml::table{{"a", this->a}, {"b", this->b}, {"c", this->c}};
+    }
+};
+} // toml
+
+ext::foo    f{42, 3.14, "foobar"};
+toml::value v(f);
+```
+
+Any type that can be converted to `toml::value`, e.g. `toml::table`, `toml::array`,
+is okay to return from `into_toml`.
+
 ### visiting toml::value
 
 TOML v2.1.0+ provides `toml::visit` to apply a function to `toml::value` in the
