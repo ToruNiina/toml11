@@ -174,6 +174,20 @@ template<typename T, typename std::enable_if<detail::conjunction<
     >::value, std::nullptr_t>::type = nullptr>
 T get(const toml::value& v);
 
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
+    detail::has_from_toml_method<T>, // but has from_toml(toml::value) memfn
+    std::is_default_constructible<T> // and default constructible
+    >::value, std::nullptr_t>::type = nullptr>
+T get(const toml::value& v);
+
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>> // not a toml::value
+    >::value, std::nullptr_t>::type = nullptr,
+    std::size_t = sizeof(::toml::from<T>) // and has from<T> specialization
+    >
+T get(const toml::value& v);
+
 // ============================================================================
 // array-like types; most likely STL container, like std::vector, etc.
 
@@ -306,7 +320,7 @@ template<typename T, typename std::enable_if<detail::conjunction<
     detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
     detail::has_from_toml_method<T>, // but has from_toml(toml::value) memfn
     std::is_default_constructible<T> // and default constructible
-    >::value, std::nullptr_t>::type = nullptr>
+    >::value, std::nullptr_t>::type>
 T get(const toml::value& v)
 {
     T ud;
@@ -315,7 +329,7 @@ T get(const toml::value& v)
 }
 template<typename T, typename std::enable_if<detail::conjunction<
     detail::negation<detail::is_exact_toml_type<T>> // not a toml::value
-    >::value, std::nullptr_t>::type = nullptr,
+    >::value, std::nullptr_t>::type,
     std::size_t = sizeof(::toml::from<T>) // and has from<T> specialization
     >
 T get(const toml::value& v)

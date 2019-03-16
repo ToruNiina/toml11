@@ -80,3 +80,37 @@ BOOST_AUTO_TEST_CASE(test_conversion_by_specialization)
 
     BOOST_TEST(v == v2);
 }
+
+BOOST_AUTO_TEST_CASE(test_recursive_conversion)
+{
+    const toml::value v{
+        toml::table{{"a", 42}, {"b", "baz"}},
+        toml::table{{"a", 43}, {"b", "qux"}},
+        toml::table{{"a", 44}, {"b", "quux"}},
+        toml::table{{"a", 45}, {"b", "foobar"}},
+    };
+
+    const auto foos = toml::get<std::vector<extlib::foo>>(v);
+    BOOST_TEST(foos.size() == 4ul);
+    BOOST_TEST(foos.at(0).a == 42);
+    BOOST_TEST(foos.at(1).a == 43);
+    BOOST_TEST(foos.at(2).a == 44);
+    BOOST_TEST(foos.at(3).a == 45);
+
+    BOOST_TEST(foos.at(0).b == "baz");
+    BOOST_TEST(foos.at(1).b == "qux");
+    BOOST_TEST(foos.at(2).b == "quux");
+    BOOST_TEST(foos.at(3).b == "foobar");
+
+    const auto bars = toml::get<std::vector<extlib::bar>>(v);
+    BOOST_TEST(bars.size() == 4ul);
+    BOOST_TEST(bars.at(0).a == 42);
+    BOOST_TEST(bars.at(1).a == 43);
+    BOOST_TEST(bars.at(2).a == 44);
+    BOOST_TEST(bars.at(3).a == 45);
+
+    BOOST_TEST(bars.at(0).b == "baz");
+    BOOST_TEST(bars.at(1).b == "qux");
+    BOOST_TEST(bars.at(2).b == "quux");
+    BOOST_TEST(bars.at(3).b == "foobar");
+}
