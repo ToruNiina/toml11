@@ -3,6 +3,7 @@
 #ifndef TOML11_VALUE_HPP
 #define TOML11_VALUE_HPP
 #include "traits.hpp"
+#include "into.hpp"
 #include "utility.hpp"
 #include "exception.hpp"
 #include "storage.hpp"
@@ -532,6 +533,46 @@ class value
         assigner(this->table_, std::move(tab));
         return *this;
     }
+
+    // user-defined =========================================================
+
+    // convert using into_toml() method -------------------------------------
+
+    template<typename T, typename std::enable_if<detail::conjunction<
+        detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
+        detail::has_into_toml_method<T> // but has `into_toml` method
+        >::value, std::nullptr_t>::type = nullptr>
+    value(const T& ud): value(ud.into_toml()) {}
+
+    template<typename T, typename std::enable_if<detail::conjunction<
+        detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
+        detail::has_into_toml_method<T> // but has `into_toml` method
+        >::value, std::nullptr_t>::type = nullptr>
+    value& operator=(const T& ud)
+    {
+        *this = ud.into_toml();
+        return *this;
+    }
+
+    // convert using into<T> struct -----------------------------------------
+
+    template<typename T, typename std::enable_if<
+        detail::negation<detail::is_exact_toml_type<T>>::value,
+        std::nullptr_t>::type = nullptr,
+        std::size_t S = sizeof(::toml::into<T>)>
+    value(const T& ud): value(::toml::into<T>::into_toml(ud)) {}
+
+    template<typename T, typename std::enable_if<
+        detail::negation<detail::is_exact_toml_type<T>>::value,
+        std::nullptr_t>::type = nullptr,
+        std::size_t S = sizeof(::toml::into<T>)>
+    value& operator=(const T& ud)
+    {
+        *this = ::toml::into<T>::into_toml(ud);
+        return *this;
+    }
+
+    // type checking and casting ============================================
 
     template<typename T>
     bool is() const noexcept {return value_traits<T>::type_index == this->type_;}
