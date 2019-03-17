@@ -1,8 +1,9 @@
 toml11
 ======
 
-[![Build Status](https://travis-ci.org/ToruNiina/toml11.svg?branch=master)](https://travis-ci.org/ToruNiina/toml11)
-[![Build status](https://ci.appveyor.com/api/projects/status/m2n08a926asvg5mg/branch/master?svg=true)](https://ci.appveyor.com/project/ToruNiina/toml11/branch/master)
+[![Build Status on TravisCI](https://travis-ci.org/ToruNiina/toml11.svg?branch=master)](https://travis-ci.org/ToruNiina/toml11)
+[![Build status on Appveyor](https://ci.appveyor.com/api/projects/status/m2n08a926asvg5mg/branch/master?svg=true)](https://ci.appveyor.com/project/ToruNiina/toml11/branch/master)
+[![Build status on CircleCI](https://circleci.com/gh/ToruNiina/toml11/tree/master.svg?style=svg)](https://circleci.com/gh/ToruNiina/toml11/tree/master)
 [![Version](https://img.shields.io/github/release/ToruNiina/toml11.svg?style=flat)](https://github.com/ToruNiina/toml11/releases)
 [![License](https://img.shields.io/github/license/ToruNiina/toml11.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1209136.svg)](https://doi.org/10.5281/zenodo.1209136)
@@ -13,9 +14,14 @@ compatible to the latest version of
 [TOML v0.5.0](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v0.5.0.md)
 after version 2.0.0.
 
+It passes [the language agnostic test suite for TOML parsers by BurntSushi](https://github.com/BurntSushi/toml-test).
+Not only the test suite itself, tiny TOML reader/encoder also runs on [CircleCI](https://circleci.com/gh/ToruNiina/toml11).
+You can see the error messages about invalid files and serialization results of valid files at
+[CircleCI](https://circleci.com/gh/ToruNiina/toml11).
+
 Are you looking for pre-C++11 compatible toml parser?
 Try [Boost.toml](https://github.com/ToruNiina/Boost.toml)!
-It has almost the same functionality as this library and works with C++98 & Boost.
+It has a bit less functionality than this library but works with C++98 + Boost.
 
 ## How to use
 
