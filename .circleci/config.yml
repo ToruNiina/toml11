@@ -1,0 +1,45 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: circleci/buildpack-deps:bionic
+    steps:
+      - checkout
+      - run:
+          command: |
+              g++ --version
+              cd tests/
+              ls
+              g++ -std=c++11 -O2 -Wall -Wextra -Werror -I../ check.cpp -o check
+              git clone https://github.com/BurntSushi/toml-test.git
+              cp check toml-test/tests/invalid
+              cp check toml-test/tests/valid
+              cd toml-test/tests/invalid
+              for f in $(ls ./*.toml);
+                do echo "==> ${f}";
+                cat ${f};
+                echo "---------------------------------------";
+                ./check ${f} invalid;
+                if [ $? -ne 0 ] ; then
+                  exit 1
+                fi
+                echo "=======================================";
+              done
+              cd ../valid
+              for f in $(ls ./*.toml);
+                do echo "==> ${f}";
+                cat ${f};
+                echo "---------------------------------------";
+                ./check ${f} valid;
+                if [ $? -ne 0 ] ; then
+                  exit 1
+                fi
+                echo "=======================================";
+              done
+
+workflows:
+  version: 2.1
+  test:
+    jobs:
+      - test

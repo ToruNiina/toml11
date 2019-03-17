@@ -1,7 +1,8 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_GET
-#define TOML11_GET
+#ifndef TOML11_GET_HPP
+#define TOML11_GET_HPP
+#include "from.hpp"
 #include "result.hpp"
 #include "value.hpp"
 #include <algorithm>
@@ -173,6 +174,20 @@ template<typename T, typename std::enable_if<detail::conjunction<
     >::value, std::nullptr_t>::type = nullptr>
 T get(const toml::value& v);
 
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
+    detail::has_from_toml_method<T>, // but has from_toml(toml::value) memfn
+    std::is_default_constructible<T> // and default constructible
+    >::value, std::nullptr_t>::type = nullptr>
+T get(const toml::value& v);
+
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>> // not a toml::value
+    >::value, std::nullptr_t>::type = nullptr,
+    std::size_t = sizeof(::toml::from<T>) // and has from<T> specialization
+    >
+T get(const toml::value& v);
+
 // ============================================================================
 // array-like types; most likely STL container, like std::vector, etc.
 
@@ -210,8 +225,9 @@ T get(const value& v)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "[erorr] toml::get specified container size is ", container.size(),
-            " but there are ", ar.size(), " elements in toml array."),
-            detail::get_region(v), "here"));
+            " but there are ", ar.size(), " elements in toml array."), {
+                {std::addressof(detail::get_region(v)), "here"}
+            }));
     }
     std::transform(ar.cbegin(), ar.cend(), container.begin(),
                    [](const value& x){return ::toml::get<value_type>(x);});
@@ -233,7 +249,9 @@ T get(const value& v)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "[erorr] toml::get specified std::pair but there are ", ar.size(),
-            " elements in toml array."), detail::get_region(v), "here"));
+            " elements in toml array."), {
+                {std::addressof(detail::get_region(v)), "here"}
+            }));
     }
     return std::make_pair(::toml::get<first_type >(ar.at(0)),
                           ::toml::get<second_type>(ar.at(1)));
@@ -264,7 +282,9 @@ T get(const value& v)
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "[erorr] toml::get specified std::tuple with ",
             std::tuple_size<T>::value, "elements, but there are ", ar.size(),
-            " elements in toml array."), detail::get_region(v), "here"));
+            " elements in toml array."), {
+                {std::addressof(detail::get_region(v)), "here"}
+            }));
     }
     return detail::get_tuple_impl<T>(ar,
             detail::make_index_sequence<std::tuple_size<T>::value>{});
@@ -290,6 +310,29 @@ T get(const toml::value& v)
         map[key_type(kv.first)] = ::toml::get<mapped_type>(kv.second);
     }
     return map;
+}
+
+
+// ============================================================================
+// user-defined, but compatible types.
+
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
+    detail::has_from_toml_method<T>, // but has from_toml(toml::value) memfn
+    std::is_default_constructible<T> // and default constructible
+    >::value, std::nullptr_t>::type>
+T get(const toml::value& v)
+{
+    T ud;
+    ud.from_toml(v);
+    return ud;
+}
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>> // not a toml::value
+    >::value, std::nullptr_t>::type, std::size_t>   // and has from<T>
+T get(const toml::value& v)
+{
+    return ::toml::from<T>::from_toml(v);
 }
 
 // ============================================================================
@@ -340,8 +383,9 @@ find(const toml::value& v, const toml::key& ky)
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] key \"", ky, "\" not found"), detail::get_region(v),
-            "in this table"));
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
     }
     return ::toml::get<T>(tab.at(ky));
 }
@@ -353,8 +397,9 @@ find(toml::value& v, const toml::key& ky)
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] key \"", ky, "\" not found"), detail::get_region(v),
-            "in this table"));
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
     }
     return ::toml::get<T>(tab.at(ky));
 }
@@ -366,8 +411,9 @@ find(toml::value&& v, const toml::key& ky)
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] key \"", ky, "\" not found"), detail::get_region(v),
-            "in this table"));
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
     }
     return ::toml::get<T>(std::move(tab[ky]));
 }

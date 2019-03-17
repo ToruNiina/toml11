@@ -7,7 +7,7 @@ toml11
 [![License](https://img.shields.io/github/license/ToruNiina/toml11.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1209136.svg)](https://doi.org/10.5281/zenodo.1209136)
 
-C++11 header-only toml parser depending only on C++ standard library.
+C++11 header-only toml parser/encoder depending only on C++ standard library.
 
 compatible to the latest version of
 [TOML v0.5.0](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v0.5.0.md)
@@ -387,7 +387,31 @@ If it's not a `toml::table`, the same error as "invalid type" would be thrown.
 
 ### Checking value type
 
-When you don't know the exact type of toml-value, you can get `enum` type from `toml::value`.
+You can check what type of value does `toml::value` contains by `is_*` function.
+
+```cpp
+toml::value v = /* ... */;
+if(v.is_integer() && toml::get<int>(v) == 42)
+{
+    std::cout << "value is 42" << std::endl;
+}
+```
+
+The complete list of the functions is below.
+
+- `bool toml::value::is_boolean()         const noexcept;`
+- `bool toml::value::is_integer()         const noexcept;`
+- `bool toml::value::is_float()           const noexcept;`
+- `bool toml::value::is_string()          const noexcept;`
+- `bool toml::value::is_offset_datetime() const noexcept;`
+- `bool toml::value::is_local_datetime()  const noexcept;`
+- `bool toml::value::is_local_date()      const noexcept;`
+- `bool toml::value::is_local_time()      const noexcept;`
+- `bool toml::value::is_array()           const noexcept;`
+- `bool toml::value::is_table()           const noexcept;`
+- `bool toml::value::is_uninitialized()   const noexcept;`
+
+Also, you can get `enum class` value from `toml::value`.
 
 ```cpp
 switch(data.at("something").type())
@@ -398,6 +422,16 @@ switch(data.at("something").type())
     default : throw std::runtime_error(
         "unexpected type : " + toml::stringize(data.at("something").type()));
 }
+```
+
+The complete list of the `enum`s can be found in the section
+[underlying types](#underlying-types).
+
+The `enum`s can be used as a parameter of `toml::value::is` function like the following.
+
+```cpp
+toml::value v = /* ... */;
+if(v.is(toml::value_t::Boolean)) // ...
 ```
 
 ### Fill only the matched value
@@ -422,6 +456,148 @@ It should be noted that `toml::from_toml` returns as usual even if there are no 
 int i = 0;
 toml::from_toml(i, data.at("something"));
 ```
+
+### Conversion between toml value and your class
+
+You can also use `toml::get` and other related functions with the types you defined
+after you implement some stuff.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    int         a;
+    double      b;
+    std::string c;
+};
+} // ext
+
+const auto data = toml::parse("example.toml");
+
+const foo f = toml::get<ext::foo>(data.at("foo"));
+```
+
+There are 2 ways to use `toml::get` with the types that you defined.
+
+The first one is to implement `from_toml(const toml::value&)` member function.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    int         a;
+    double      b;
+    std::string c;
+
+    void from_toml(const toml::value& v)
+    {
+        this->a = toml::find<int        >(v, "a");
+        this->b = toml::find<double     >(v, "b");
+        this->c = toml::find<std::string>(v, "c");
+        return;
+    }
+};
+} // ext
+```
+
+In this way, because `toml::get` first constructs `foo` without arguments,
+the type should be default-constructible.
+
+The second is to implement specialization of `toml::from` for your type.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    int         a;
+    double      b;
+    std::string c;
+};
+} // ext
+
+namespace toml
+{
+template<>
+struct from<ext::foo>
+{
+    ext::foo from_toml(const toml::value& v)
+    {
+        ext::foo f;
+        f.a = toml::find<int        >(v, "a");
+        f.b = toml::find<double     >(v, "b");
+        f.c = toml::find<std::string>(v, "c");
+        return f;
+    }
+};
+} // toml
+```
+
+In this way, since the conversion function is introduced from out of the class,
+you can add conversion between `toml::value` and classes defined in another library.
+
+Note that you cannot implement both of the functions because the overload
+resolution of `toml::get` become ambiguous.
+
+----
+
+The opposite direction is also supported in a similar way. You can directly
+pass your type to `toml::value`'s constructor by introducing `into_iter` or
+`toml::into<T>`.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    int         a;
+    double      b;
+    std::string c;
+
+    toml::table into_toml() const // you need to mark it const.
+    {
+        return toml::table{{"a", this->a}, {"b", this->b}, {"c", this->c}};
+    }
+};
+} // ext
+
+ext::foo    f{42, 3.14, "foobar"};
+toml::value v(f);
+```
+
+The definition of `toml::into<ext::foo>` is similar to `from_toml()`.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    int         a;
+    double      b;
+    std::string c;
+};
+} // ext
+
+namespace toml
+{
+template<>
+struct into<ext::foo>
+{
+    toml::table into_toml(const ext::foo& v)
+    {
+        return toml::table{{"a", this->a}, {"b", this->b}, {"c", this->c}};
+    }
+};
+} // toml
+
+ext::foo    f{42, 3.14, "foobar"};
+toml::value v(f);
+```
+
+Any type that can be converted to `toml::value`, e.g. `toml::table`, `toml::array`,
+is okay to return from `into_toml`.
 
 ### visiting toml::value
 
@@ -642,6 +818,7 @@ I thank the contributor for providing great feature to this repository.
   - Intel Compiler support
 - Quentin Khan (@xaxousis)
   - Found & Fixed a bug around ODR
+  - Improved error message to show the location where the parser fails
 
 ## Licensing terms
 

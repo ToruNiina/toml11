@@ -1,7 +1,7 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_TRAITS
-#define TOML11_TRAITS
+#ifndef TOML11_TRAITS_HPP
+#define TOML11_TRAITS_HPP
 #include <type_traits>
 #include <utility>
 #include <chrono>
@@ -9,6 +9,9 @@
 
 namespace toml
 {
+
+class value; // forward decl
+
 namespace detail
 {
 
@@ -45,6 +48,22 @@ struct has_resize_method_impl
     template<typename T> static std::false_type check(...);
 };
 
+struct has_from_toml_method_impl
+{
+    template<typename T>
+    static std::true_type  check(
+        decltype(std::declval<T>().from_toml(std::declval<::toml::value>()))*);
+    template<typename T>
+    static std::false_type check(...);
+};
+struct has_into_toml_method_impl
+{
+    template<typename T>
+    static std::true_type  check(decltype(std::declval<T>().into_toml())*);
+    template<typename T>
+    static std::false_type check(...);
+};
+
 /// Intel C++ compiler can not use decltype in parent class declaration, here
 /// is a hack to work around it. https://stackoverflow.com/a/23953090/4692076
 #ifdef __INTEL_COMPILER
@@ -61,6 +80,14 @@ template<typename T>
 struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
 template<typename T>
 struct has_resize_method : decltype(has_resize_method_impl::check<T>(nullptr)){};
+
+
+template<typename T>
+struct has_from_toml_method
+: decltype(has_from_toml_method_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_into_toml_method
+: decltype(has_into_toml_method_impl::check<T>(nullptr)){};
 
 #ifdef __INTEL_COMPILER
 #undef decltype(...)

@@ -5,6 +5,7 @@
 #include "value.hpp"
 #include "lexer.hpp"
 #include <limits>
+#include <cstdio>
 
 namespace toml
 {
@@ -30,13 +31,12 @@ struct serializer
     }
     std::string operator()(const toml::floating f) const
     {
-        std::string token = [=] {
-            // every float value needs decimal point (or exponent).
-            std::ostringstream oss;
-            oss << std::setprecision(float_prec_) << std::showpoint << f;
-            return oss.str();
-        }();
+        const auto fmt = "%.*g";
+        const auto bsz = std::snprintf(nullptr, 0, fmt, this->float_prec_, f);
+        std::vector<char> buf(bsz + 1, '\0'); // +1 for null character(\0)
+        std::snprintf(buf.data(), buf.size(), fmt, this->float_prec_, f);
 
+        std::string token(buf.begin(), std::prev(buf.end()));
         if(token.back() == '.') // 1. => 1.0
         {
             token += '0';

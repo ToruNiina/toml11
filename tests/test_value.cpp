@@ -20,6 +20,8 @@ BOOST_AUTO_TEST_CASE(test_value_boolean)
     BOOST_CHECK(v2.is(toml::value_t::Boolean));
     BOOST_CHECK(v1.is<toml::Boolean>());
     BOOST_CHECK(v2.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
+    BOOST_CHECK(v2.is_boolean());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Boolean>(), false);
@@ -33,6 +35,8 @@ BOOST_AUTO_TEST_CASE(test_value_boolean)
     BOOST_CHECK(v2.is(toml::value_t::Boolean));
     BOOST_CHECK(v1.is<toml::Boolean>());
     BOOST_CHECK(v2.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
+    BOOST_CHECK(v2.is_boolean());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), false);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Boolean>(), true);
@@ -48,6 +52,8 @@ BOOST_AUTO_TEST_CASE(test_value_boolean)
     BOOST_CHECK(v4.is(toml::value_t::Boolean));
     BOOST_CHECK(v3.is<toml::Boolean>());
     BOOST_CHECK(v4.is<toml::Boolean>());
+    BOOST_CHECK(v3.is_boolean());
+    BOOST_CHECK(v4.is_boolean());
 
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::Boolean>(), false);
     BOOST_CHECK_EQUAL(v4.cast<toml::value_t::Boolean>(), true);
@@ -61,6 +67,8 @@ BOOST_AUTO_TEST_CASE(test_value_boolean)
     BOOST_CHECK(v6.is(toml::value_t::Boolean));
     BOOST_CHECK(v5.is<toml::Boolean>());
     BOOST_CHECK(v6.is<toml::Boolean>());
+    BOOST_CHECK(v3.is_boolean());
+    BOOST_CHECK(v4.is_boolean());
 
     BOOST_CHECK_EQUAL(v5.cast<toml::value_t::Boolean>(), false);
     BOOST_CHECK_EQUAL(v6.cast<toml::value_t::Boolean>(), true);
@@ -74,6 +82,8 @@ BOOST_AUTO_TEST_CASE(test_value_boolean)
     BOOST_CHECK(v2.is(toml::value_t::Float));
     BOOST_CHECK(v1.is<toml::Integer>());
     BOOST_CHECK(v2.is<toml::Float>());
+    BOOST_CHECK(v1.is_integer());
+    BOOST_CHECK(v2.is_float());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Integer>(), 42);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Float>(),   3.14);
@@ -90,6 +100,8 @@ BOOST_AUTO_TEST_CASE(test_value_integer)
     BOOST_CHECK(v2.is(toml::value_t::Integer));
     BOOST_CHECK(v1.is<toml::Integer>());
     BOOST_CHECK(v2.is<toml::Integer>());
+    BOOST_CHECK(v1.is_integer());
+    BOOST_CHECK(v2.is_integer());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Integer>(), -42);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Integer>(),  42u);
@@ -103,6 +115,8 @@ BOOST_AUTO_TEST_CASE(test_value_integer)
     BOOST_CHECK(v2.is(toml::value_t::Integer));
     BOOST_CHECK(v1.is<toml::Integer>());
     BOOST_CHECK(v2.is<toml::Integer>());
+    BOOST_CHECK(v1.is_integer());
+    BOOST_CHECK(v2.is_integer());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Integer>(),  54);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Integer>(), -54);
@@ -118,6 +132,8 @@ BOOST_AUTO_TEST_CASE(test_value_integer)
     BOOST_CHECK(v4.is(toml::value_t::Integer));
     BOOST_CHECK(v3.is<toml::Integer>());
     BOOST_CHECK(v4.is<toml::Integer>());
+    BOOST_CHECK(v3.is_integer());
+    BOOST_CHECK(v4.is_integer());
 
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::Integer>(),  54);
     BOOST_CHECK_EQUAL(v4.cast<toml::value_t::Integer>(), -54);
@@ -131,6 +147,8 @@ BOOST_AUTO_TEST_CASE(test_value_integer)
     BOOST_CHECK(v6.is(toml::value_t::Integer));
     BOOST_CHECK(v5.is<toml::Integer>());
     BOOST_CHECK(v6.is<toml::Integer>());
+    BOOST_CHECK(v5.is_integer());
+    BOOST_CHECK(v6.is_integer());
 
     BOOST_CHECK_EQUAL(v5.cast<toml::value_t::Integer>(),  54);
     BOOST_CHECK_EQUAL(v6.cast<toml::value_t::Integer>(), -54);
@@ -144,6 +162,8 @@ BOOST_AUTO_TEST_CASE(test_value_integer)
     BOOST_CHECK(v2.is(toml::value_t::Boolean));
     BOOST_CHECK(v1.is<toml::Boolean>());
     BOOST_CHECK(v2.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
+    BOOST_CHECK(v2.is_boolean());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Boolean>(), false);
@@ -160,6 +180,8 @@ BOOST_AUTO_TEST_CASE(test_value_float)
     BOOST_CHECK(v2.is(toml::value_t::Float));
     BOOST_CHECK(v1.is<toml::Float>());
     BOOST_CHECK(v2.is<toml::Float>());
+    BOOST_CHECK(v1.is_float());
+    BOOST_CHECK(v2.is_float());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Float>(), 3.14);
     BOOST_CHECK_CLOSE_FRACTION(v2.cast<toml::value_t::Float>(), 3.14, 1e-2);
@@ -173,6 +195,8 @@ BOOST_AUTO_TEST_CASE(test_value_float)
     BOOST_CHECK(v2.is(toml::value_t::Float));
     BOOST_CHECK(v1.is<toml::Float>());
     BOOST_CHECK(v2.is<toml::Float>());
+    BOOST_CHECK(v1.is_float());
+    BOOST_CHECK(v2.is_float());
 
     BOOST_CHECK_CLOSE_FRACTION(v1.cast<toml::value_t::Float>(), 2.718, 1e-3);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Float>(), 2.718);
@@ -188,6 +212,8 @@ BOOST_AUTO_TEST_CASE(test_value_float)
     BOOST_CHECK(v4.is(toml::value_t::Float));
     BOOST_CHECK(v3.is<toml::Float>());
     BOOST_CHECK(v4.is<toml::Float>());
+    BOOST_CHECK(v3.is_float());
+    BOOST_CHECK(v4.is_float());
 
     BOOST_CHECK_CLOSE_FRACTION(v3.cast<toml::value_t::Float>(), 2.718, 1e-3);
     BOOST_CHECK_EQUAL(v4.cast<toml::value_t::Float>(), 2.718);
@@ -201,6 +227,8 @@ BOOST_AUTO_TEST_CASE(test_value_float)
     BOOST_CHECK(v6.is(toml::value_t::Float));
     BOOST_CHECK(v5.is<toml::Float>());
     BOOST_CHECK(v6.is<toml::Float>());
+    BOOST_CHECK(v5.is_float());
+    BOOST_CHECK(v6.is_float());
 
     BOOST_CHECK_CLOSE_FRACTION(v5.cast<toml::value_t::Float>(), 2.718, 1e-3);
     BOOST_CHECK_EQUAL(v6.cast<toml::value_t::Float>(), 2.718);
@@ -214,6 +242,8 @@ BOOST_AUTO_TEST_CASE(test_value_float)
     BOOST_CHECK(v2.is(toml::value_t::Boolean));
     BOOST_CHECK(v1.is<toml::Boolean>());
     BOOST_CHECK(v2.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
+    BOOST_CHECK(v2.is_boolean());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Boolean>(), false);
@@ -234,6 +264,9 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     BOOST_CHECK(v1.is<toml::String>());
     BOOST_CHECK(v2.is<toml::String>());
     BOOST_CHECK(v3.is<toml::String>());
+    BOOST_CHECK(v1.is_string());
+    BOOST_CHECK(v2.is_string());
+    BOOST_CHECK(v3.is_string());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::String>(), "foo");
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::String>(), "foo");
@@ -249,9 +282,9 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     BOOST_CHECK(v1.is(toml::value_t::String));
     BOOST_CHECK(v2.is(toml::value_t::String));
     BOOST_CHECK(v3.is(toml::value_t::String));
-    BOOST_CHECK(v1.is<toml::String>());
-    BOOST_CHECK(v2.is<toml::String>());
-    BOOST_CHECK(v3.is<toml::String>());
+    BOOST_CHECK(v1.is_string());
+    BOOST_CHECK(v2.is_string());
+    BOOST_CHECK(v3.is_string());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::String>(), "bar");
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::String>(), "bar");
@@ -273,6 +306,9 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     BOOST_CHECK(v4.is<toml::String>());
     BOOST_CHECK(v5.is<toml::String>());
     BOOST_CHECK(v6.is<toml::String>());
+    BOOST_CHECK(v4.is_string());
+    BOOST_CHECK(v5.is_string());
+    BOOST_CHECK(v6.is_string());
 
     BOOST_CHECK_EQUAL(v4.cast<toml::value_t::String>(), "bar");
     BOOST_CHECK_EQUAL(v5.cast<toml::value_t::String>(), "bar");
@@ -291,6 +327,9 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     BOOST_CHECK(v4.is<toml::String>());
     BOOST_CHECK(v5.is<toml::String>());
     BOOST_CHECK(v6.is<toml::String>());
+    BOOST_CHECK(v4.is_string());
+    BOOST_CHECK(v5.is_string());
+    BOOST_CHECK(v6.is_string());
 
     BOOST_CHECK_EQUAL(v4.cast<toml::value_t::String>(), "baz");
     BOOST_CHECK_EQUAL(v5.cast<toml::value_t::String>(), "baz");
@@ -309,6 +348,9 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     BOOST_CHECK(v1.is<toml::Boolean>());
     BOOST_CHECK(v2.is<toml::Boolean>());
     BOOST_CHECK(v3.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
+    BOOST_CHECK(v2.is_boolean());
+    BOOST_CHECK(v3.is_boolean());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Boolean>(), true);
@@ -322,6 +364,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_date)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::LocalDate);
     BOOST_CHECK(v1.is(toml::value_t::LocalDate));
     BOOST_CHECK(v1.is<toml::LocalDate>());
+    BOOST_CHECK(v1.is_local_date());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::LocalDate>(),
                       toml::local_date(2018, toml::month_t::Jan, 31));
@@ -331,6 +374,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_date)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::LocalDate);
     BOOST_CHECK(v1.is(toml::value_t::LocalDate));
     BOOST_CHECK(v1.is<toml::LocalDate>());
+    BOOST_CHECK(v1.is_local_date());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::LocalDate>(),
                       toml::local_date(2018, toml::month_t::Apr, 1));
@@ -341,6 +385,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_date)
     BOOST_CHECK_EQUAL(v2.type(), toml::value_t::LocalDate);
     BOOST_CHECK(v2.is(toml::value_t::LocalDate));
     BOOST_CHECK(v2.is<toml::LocalDate>());
+    BOOST_CHECK(v2.is_local_date());
 
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::LocalDate>(),
                       toml::local_date(2018, toml::month_t::Apr, 1));
@@ -349,6 +394,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_date)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Boolean);
     BOOST_CHECK(v1.is(toml::value_t::Boolean));
     BOOST_CHECK(v1.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
 }
 
@@ -364,6 +410,8 @@ BOOST_AUTO_TEST_CASE(test_value_local_time)
     BOOST_CHECK(v2.is(toml::value_t::LocalTime));
     BOOST_CHECK(v1.is<toml::LocalTime>());
     BOOST_CHECK(v2.is<toml::LocalTime>());
+    BOOST_CHECK(v1.is_local_time());
+    BOOST_CHECK(v2.is_local_time());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::LocalTime>(),
                       toml::local_time(12, 30, 45));
@@ -377,6 +425,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_time)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::LocalTime);
     BOOST_CHECK(v1.is(toml::value_t::LocalTime));
     BOOST_CHECK(v1.is<toml::LocalTime>());
+    BOOST_CHECK(v1.is_local_time());
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::LocalTime>(),
                       toml::local_time(1, 30, 0, 100, 0));
 
@@ -386,6 +435,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_time)
     BOOST_CHECK_EQUAL(v3.type(), toml::value_t::LocalTime);
     BOOST_CHECK(v3.is(toml::value_t::LocalTime));
     BOOST_CHECK(v3.is<toml::LocalTime>());
+    BOOST_CHECK(v3.is_local_time());
 
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::LocalTime>(),
                       toml::local_time(1, 30, 0, 100, 0));
@@ -394,6 +444,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_time)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Boolean);
     BOOST_CHECK(v1.is(toml::value_t::Boolean));
     BOOST_CHECK(v1.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
 }
 
@@ -407,6 +458,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_datetime)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::LocalDatetime);
     BOOST_CHECK(v1.is(toml::value_t::LocalDatetime));
     BOOST_CHECK(v1.is<toml::LocalDatetime>());
+    BOOST_CHECK(v1.is_local_datetime());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::LocalDatetime>(),
                       toml::local_datetime(
@@ -420,6 +472,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_datetime)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::LocalDatetime);
     BOOST_CHECK(v1.is(toml::value_t::LocalDatetime));
     BOOST_CHECK(v1.is<toml::LocalDatetime>());
+    BOOST_CHECK(v1.is_local_datetime());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::LocalDatetime>(),
                       toml::local_datetime(
@@ -432,6 +485,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_datetime)
     BOOST_CHECK_EQUAL(v2.type(), toml::value_t::LocalDatetime);
     BOOST_CHECK(v2.is(toml::value_t::LocalDatetime));
     BOOST_CHECK(v2.is<toml::LocalDatetime>());
+    BOOST_CHECK(v2.is_local_datetime());
 
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::LocalDatetime>(),
                       toml::local_datetime(
@@ -442,6 +496,7 @@ BOOST_AUTO_TEST_CASE(test_value_local_datetime)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Boolean);
     BOOST_CHECK(v1.is(toml::value_t::Boolean));
     BOOST_CHECK(v1.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
 }
 
@@ -456,6 +511,7 @@ BOOST_AUTO_TEST_CASE(test_value_offset_datetime)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::OffsetDatetime);
     BOOST_CHECK(v1.is(toml::value_t::OffsetDatetime));
     BOOST_CHECK(v1.is<toml::OffsetDatetime>());
+    BOOST_CHECK(v1.is_offset_datetime());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::OffsetDatetime>(),
             toml::offset_datetime(
@@ -472,6 +528,7 @@ BOOST_AUTO_TEST_CASE(test_value_offset_datetime)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::OffsetDatetime);
     BOOST_CHECK(v1.is(toml::value_t::OffsetDatetime));
     BOOST_CHECK(v1.is<toml::OffsetDatetime>());
+    BOOST_CHECK(v1.is_offset_datetime());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::OffsetDatetime>(),
             toml::offset_datetime(
@@ -485,6 +542,7 @@ BOOST_AUTO_TEST_CASE(test_value_offset_datetime)
     BOOST_CHECK_EQUAL(v2.type(), toml::value_t::OffsetDatetime);
     BOOST_CHECK(v2.is(toml::value_t::OffsetDatetime));
     BOOST_CHECK(v2.is<toml::OffsetDatetime>());
+    BOOST_CHECK(v2.is_offset_datetime());
 
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::OffsetDatetime>(),
             toml::offset_datetime(
@@ -495,6 +553,7 @@ BOOST_AUTO_TEST_CASE(test_value_offset_datetime)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Boolean);
     BOOST_CHECK(v1.is(toml::value_t::Boolean));
     BOOST_CHECK(v1.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
 }
 
@@ -507,10 +566,12 @@ BOOST_AUTO_TEST_CASE(test_value_array)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Array);
     BOOST_CHECK(v1.is(toml::value_t::Array));
     BOOST_CHECK(v1.is<toml::Array>());
+    BOOST_CHECK(v1.is_array());
 
     BOOST_CHECK_EQUAL(v2.type(), toml::value_t::Array);
     BOOST_CHECK(v2.is(toml::value_t::Array));
     BOOST_CHECK(v2.is<toml::Array>());
+    BOOST_CHECK(v2.is_array());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Array>().at(0).cast<toml::value_t::Integer>(), 1);
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Array>().at(1).cast<toml::value_t::Integer>(), 2);
@@ -530,10 +591,12 @@ BOOST_AUTO_TEST_CASE(test_value_array)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Array);
     BOOST_CHECK(v1.is(toml::value_t::Array));
     BOOST_CHECK(v1.is<toml::Array>());
+    BOOST_CHECK(v1.is_array());
 
     BOOST_CHECK_EQUAL(v2.type(), toml::value_t::Array);
     BOOST_CHECK(v2.is(toml::value_t::Array));
     BOOST_CHECK(v2.is<toml::Array>());
+    BOOST_CHECK(v2.is_array());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Array>().at(0).cast<toml::value_t::Integer>(), 6);
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Array>().at(1).cast<toml::value_t::Integer>(), 7);
@@ -553,6 +616,7 @@ BOOST_AUTO_TEST_CASE(test_value_array)
     BOOST_CHECK_EQUAL(v3.type(), toml::value_t::Array);
     BOOST_CHECK(v3.is(toml::value_t::Array));
     BOOST_CHECK(v3.is<toml::Array>());
+    BOOST_CHECK(v3.is_array());
 
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::Array>().at(0).cast<toml::value_t::Integer>(), 6);
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::Array>().at(1).cast<toml::value_t::Integer>(), 7);
@@ -564,6 +628,7 @@ BOOST_AUTO_TEST_CASE(test_value_array)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Boolean);
     BOOST_CHECK(v1.is(toml::value_t::Boolean));
     BOOST_CHECK(v1.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
 }
 
@@ -574,6 +639,7 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Table);
     BOOST_CHECK(v1.is(toml::value_t::Table));
     BOOST_CHECK(v1.is<toml::Table>());
+    BOOST_CHECK(v1.is_table());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Table>().at("foo").cast<toml::value_t::Integer>(),    42);
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Table>().at("bar").cast<toml::value_t::Float>(),      3.14);
@@ -584,6 +650,7 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Table);
     BOOST_CHECK(v1.is(toml::value_t::Table));
     BOOST_CHECK(v1.is<toml::Table>());
+    BOOST_CHECK(v1.is_table());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Table>().at("foo").cast<toml::value_t::Float>(),      2.71);
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Table>().at("bar").cast<toml::value_t::Integer>(),    54);
@@ -595,6 +662,7 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v3.type(), toml::value_t::Table);
     BOOST_CHECK(v3.is(toml::value_t::Table));
     BOOST_CHECK(v3.is<toml::Table>());
+    BOOST_CHECK(v3.is_table());
 
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::Table>().at("foo").cast<toml::value_t::Float>(),      2.71);
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::Table>().at("bar").cast<toml::value_t::Integer>(),    54);
@@ -604,5 +672,13 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v1.type(), toml::value_t::Boolean);
     BOOST_CHECK(v1.is(toml::value_t::Boolean));
     BOOST_CHECK(v1.is<toml::Boolean>());
+    BOOST_CHECK(v1.is_boolean());
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
+}
+
+BOOST_AUTO_TEST_CASE(test_value_empty)
+{
+    toml::value v1;
+    BOOST_CHECK(v1.is_uninitialized());
+    BOOST_CHECK(v1.is(toml::value_t::Empty));
 }

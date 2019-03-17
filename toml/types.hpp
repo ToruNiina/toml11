@@ -1,7 +1,7 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_TYPES_H
-#define TOML11_TYPES_H
+#ifndef TOML11_TYPES_HPP
+#define TOML11_TYPES_HPP
 #include "datetime.hpp"
 #include "string.hpp"
 #include "traits.hpp"

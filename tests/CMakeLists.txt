@@ -22,12 +22,13 @@ set(TEST_NAMES
     test_parse_table_key
     test_get
     test_get_related_func
-    test_to_toml
     test_from_toml
     test_parse_file
     test_serialize_file
     test_parse_unicode
     test_error_detection
+    test_format_error
+    test_extended_conversions
 )
 
 CHECK_CXX_COMPILER_FLAG("-Wall" COMPILER_SUPPORTS_WALL)

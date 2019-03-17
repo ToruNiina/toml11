@@ -1,8 +1,9 @@
 //     Copyright Toru Niina 2017.
 // Distributed under the MIT License.
-#ifndef TOML11_VALUE
-#define TOML11_VALUE
+#ifndef TOML11_VALUE_HPP
+#define TOML11_VALUE_HPP
 #include "traits.hpp"
+#include "into.hpp"
 #include "utility.hpp"
 #include "exception.hpp"
 #include "storage.hpp"
@@ -21,6 +22,8 @@ namespace detail
 {
 // to show error messages. not recommended for users.
 region_base const& get_region(const value&);
+template<typename Region>
+void change_region(value&, Region&&);
 }// detail
 
 template<typename T>
@@ -531,9 +534,61 @@ class value
         return *this;
     }
 
+    // user-defined =========================================================
+
+    // convert using into_toml() method -------------------------------------
+
+    template<typename T, typename std::enable_if<detail::conjunction<
+        detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
+        detail::has_into_toml_method<T> // but has `into_toml` method
+        >::value, std::nullptr_t>::type = nullptr>
+    value(const T& ud): value(ud.into_toml()) {}
+
+    template<typename T, typename std::enable_if<detail::conjunction<
+        detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
+        detail::has_into_toml_method<T> // but has `into_toml` method
+        >::value, std::nullptr_t>::type = nullptr>
+    value& operator=(const T& ud)
+    {
+        *this = ud.into_toml();
+        return *this;
+    }
+
+    // convert using into<T> struct -----------------------------------------
+
+    template<typename T, typename std::enable_if<
+        detail::negation<detail::is_exact_toml_type<T>>::value,
+        std::nullptr_t>::type = nullptr,
+        std::size_t S = sizeof(::toml::into<T>)>
+    value(const T& ud): value(::toml::into<T>::into_toml(ud)) {}
+
+    template<typename T, typename std::enable_if<
+        detail::negation<detail::is_exact_toml_type<T>>::value,
+        std::nullptr_t>::type = nullptr,
+        std::size_t S = sizeof(::toml::into<T>)>
+    value& operator=(const T& ud)
+    {
+        *this = ::toml::into<T>::into_toml(ud);
+        return *this;
+    }
+
+    // type checking and casting ============================================
+
     template<typename T>
     bool is() const noexcept {return value_traits<T>::type_index == this->type_;}
     bool is(value_t t) const noexcept {return t == this->type_;}
+
+    bool is_uninitialized()   const noexcept {return this->is(value_t::Empty         );}
+    bool is_boolean()         const noexcept {return this->is(value_t::Boolean       );}
+    bool is_integer()         const noexcept {return this->is(value_t::Integer       );}
+    bool is_float()           const noexcept {return this->is(value_t::Float         );}
+    bool is_string()          const noexcept {return this->is(value_t::String        );}
+    bool is_offset_datetime() const noexcept {return this->is(value_t::OffsetDatetime);}
+    bool is_local_datetime()  const noexcept {return this->is(value_t::LocalDatetime );}
+    bool is_local_date()      const noexcept {return this->is(value_t::LocalDate     );}
+    bool is_local_time()      const noexcept {return this->is(value_t::LocalTime     );}
+    bool is_array()           const noexcept {return this->is(value_t::Array         );}
+    bool is_table()           const noexcept {return this->is(value_t::Table         );}
 
     value_t type() const {return type_;}
 
@@ -559,6 +614,9 @@ class value
 
     // for error messages
     friend region_base const& detail::get_region(const value&);
+
+    template<typename Region>
+    friend void detail::change_region(value&, Region&&);
 
     template<value_t T>
     struct switch_cast;
@@ -594,6 +652,20 @@ inline region_base const& get_region(const value& v)
 {
     return *(v.region_info_);
 }
+
+template<typename Region>
+void change_region(value& v, Region&& reg)
+{
+    using region_type = typename std::remove_reference<
+        typename std::remove_cv<Region>::type
+        >::type;
+
+    std::shared_ptr<region_base> new_reg =
+        std::make_shared<region_type>(std::forward<region_type>(reg));
+    v.region_info_ = new_reg;
+    return;
+}
+
 }// detail
 
 template<> struct value::switch_cast<value_t::Boolean>
@@ -662,9 +734,11 @@ typename detail::toml_default_type<T>::type& value::cast() &
 {
     if(T != this->type_)
     {
-        throw type_error(format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), *region_info_,
-            concat_to_string("the actual type is ", this->type_)));
+        throw type_error(detail::format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), {
+                {this->region_info_.get(),
+                 concat_to_string("the actual type is ", this->type_)}
+            }));
     }
     return switch_cast<T>::invoke(*this);
 }
@@ -673,9 +747,11 @@ typename detail::toml_default_type<T>::type const& value::cast() const&
 {
     if(T != this->type_)
     {
-        throw type_error(format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), *region_info_,
-            concat_to_string("the actual type is ", this->type_)));
+        throw type_error(detail::format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), {
+                {this->region_info_.get(),
+                 concat_to_string("the actual type is ", this->type_)}
+            }));
     }
     return switch_cast<T>::invoke(*this);
 }
@@ -684,9 +760,11 @@ typename detail::toml_default_type<T>::type&&      value::cast() &&
 {
     if(T != this->type_)
     {
-        throw type_error(format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), *region_info_,
-            concat_to_string("the actual type is ", this->type_)));
+        throw type_error(detail::format_underline(concat_to_string(
+            "[error] toml::value bad_cast to ", T), {
+                {this->region_info_.get(),
+                 concat_to_string("the actual type is ", this->type_)}
+             }));
     }
     return switch_cast<T>::invoke(std::move(*this));
 }
@@ -769,22 +847,38 @@ inline bool operator>=(const toml::value& lhs, const toml::value& rhs)
     return !(lhs < rhs);
 }
 
-inline std::string format_error(const std::string& err_msg,
-        const toml::value& v, const std::string& comment,
-        std::vector<std::string> hints = {})
+namespace detail
 {
-    return detail::format_underline(err_msg, detail::get_region(v), comment,
-                                    std::move(hints));
+inline std::string format_error_impl(const std::string& err_msg,
+        std::vector<std::pair<region_base const*, std::string>> val,
+        std::vector<std::string> hints)
+{
+    return format_underline(err_msg, std::move(val), std::move(hints));
+}
+inline std::string format_error_impl(const std::string& err_msg,
+        std::vector<std::pair<region_base const*, std::string>> val)
+{
+    return format_underline(err_msg, std::move(val));
 }
 
-inline std::string format_error(const std::string& err_msg,
-        const toml::value& v1, const std::string& comment1,
-        const toml::value& v2, const std::string& comment2,
-        std::vector<std::string> hints = {})
+template<typename ... Ts>
+std::string format_error_impl(const std::string& err_msg,
+        std::vector<std::pair<region_base const*, std::string>> val,
+        const toml::value& v, const std::string& comment,
+        Ts&& ... args)
 {
-    return detail::format_underline(err_msg, detail::get_region(v1), comment1,
-                                             detail::get_region(v2), comment2,
-                                             std::move(hints));
+    val.push_back(std::make_pair(std::addressof(get_region(v)), comment));
+    return format_error_impl(err_msg, std::move(val), std::forward<Ts>(args)...);
+}
+} // detail
+
+template<typename ... Ts>
+std::string format_error(const std::string& err_msg, Ts&& ... args)
+{
+    std::vector<std::pair<detail::region_base const*, std::string>> val;
+    val.reserve(sizeof...(args) / 2);
+    return detail::format_error_impl(err_msg, std::move(val),
+                                     std::forward<Ts>(args)...);
 }
 
 template<typename Visitor>
