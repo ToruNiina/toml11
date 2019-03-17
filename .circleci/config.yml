@@ -6,17 +6,19 @@ jobs:
       - image: circleci/buildpack-deps:bionic
     steps:
       - checkout
-      - run: g++ --version
-      - run: cd tests/
-      - run: ls
-      - run: g++ -std=c++11 -O2 -Wall -Wextra -Werror check.cpp -o check
-      - run: git clone https://github.com/BurntSushi/toml-test.git
-      - run: cp check toml-test/tests/invalid
-      - run: cp check toml-test/tests/valid
-      - run: cd toml-test/tests/invalid
-      - run: for f in $(ls ./*.toml); do echo "==> ${f}"; cat ${f}; ./check ${f} invalid; done
-      - run: cd ../valid
-      - run: for f in $(ls ./*.toml); do echo "==> ${f}"; cat ${f}; ./check ${f} valid; done
+      - run:
+          command: |
+              g++ --version
+              cd tests/
+              ls
+              g++ -std=c++11 -O2 -Wall -Wextra -Werror check.cpp -o check
+              git clone https://github.com/BurntSushi/toml-test.git
+              cp check toml-test/tests/invalid
+              cp check toml-test/tests/valid
+              cd toml-test/tests/invalid
+              for f in $(ls ./*.toml); do echo "==> ${f}"; cat ${f}; ./check ${f} invalid; done
+              cd ../valid
+              for f in $(ls ./*.toml); do echo "==> ${f}"; cat ${f}; ./check ${f} valid; done
 
 workflows:
   version: 2.1
