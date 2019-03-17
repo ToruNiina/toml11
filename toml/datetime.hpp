@@ -332,17 +332,10 @@ operator<<(std::basic_ostream<charT, traits>& os, const time_offset& offset)
         os << 'Z';
         return os;
     }
-    if(static_cast<int>(offset.hour) * static_cast<int>(offset.minute) < 0)
-    {
-        const int min = static_cast<int>(offset.hour) * 60 + offset.minute;
-        if(min < 0){os << '-';} else {os << '+';}
-        os << std::setfill('0') << std::setw(2) << min / 60 << ':';
-        os << std::setfill('0') << std::setw(2) << min % 60;
-        return os;
-    }
-    if(offset.hour < 0){os << '-';} else {os << '+';}
-    os << std::setfill('0') << std::setw(2) << static_cast<int>(offset.hour) << ':';
-    os << std::setfill('0') << std::setw(2) << static_cast<int>(offset.minute);
+    int minute = static_cast<int>(offset.hour) * 60 + offset.minute;
+    if(minute < 0){os << '-'; minute = std::abs(minute);} else {os << '+';}
+    os << std::setfill('0') << std::setw(2) << minute / 60 << ':';
+    os << std::setfill('0') << std::setw(2) << minute % 60;
     return os;
 }
 
