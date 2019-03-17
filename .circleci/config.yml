@@ -16,9 +16,27 @@ jobs:
               cp check toml-test/tests/invalid
               cp check toml-test/tests/valid
               cd toml-test/tests/invalid
-              for f in $(ls ./*.toml); do echo "==> ${f}"; cat ${f}; ./check ${f} invalid; done
+              for f in $(ls ./*.toml);
+                do echo "==> ${f}";
+                cat ${f};
+                echo "---------------------------------------";
+                ./check ${f} invalid;
+                if [ $? -ne 0 ] ; then
+                  exit 1
+                fi
+                echo "=======================================";
+              done
               cd ../valid
-              for f in $(ls ./*.toml); do echo "==> ${f}"; cat ${f}; ./check ${f} valid; done
+              for f in $(ls ./*.toml);
+                do echo "==> ${f}";
+                cat ${f};
+                echo "---------------------------------------";
+                ./check ${f} valid;
+                if [ $? -ne 0 ] ; then
+                  exit 1
+                fi
+                echo "=======================================";
+              done
 
 workflows:
   version: 2.1
