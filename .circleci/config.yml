@@ -8,6 +8,7 @@ jobs:
       - checkout
       - run: g++ --version
       - run: cd tests/
+      - run: ls
       - run: g++ -std=c++11 -O2 -Wall -Wextra -Werror check.cpp -o check
       - run: git clone https://github.com/BurntSushi/toml-test.git
       - run: cp check toml-test/tests/invalid
