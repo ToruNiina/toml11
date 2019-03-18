@@ -420,13 +420,14 @@ find(toml::value&& v, const toml::key& ky)
 
 
 // ============================================================================
-// get_or
+// get_or(value, fallback)
 
-template<typename T>
-decltype(::toml::get<typename std::remove_cv<
-            typename std::remove_reference<T>::type>::type>(
-        std::declval<const toml::value&>()))
-get_or(const toml::value& v, T&& opt)
+// ----------------------------------------------------------------------------
+// specialization for the exact toml types (return type becomes lvalue ref)
+
+template<typename T, typename std::enable_if<
+    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
+T const& get_or(const toml::value& v, const T& opt)
 {
     try
     {
@@ -435,14 +436,12 @@ get_or(const toml::value& v, T&& opt)
     }
     catch(...)
     {
-        return std::forward<T>(opt);
+        return opt;
     }
 }
-template<typename T>
-decltype(::toml::get<typename std::remove_cv<
-            typename std::remove_reference<T>::type>::type>(
-        std::declval<toml::value&>()))
-get_or(toml::value& v, T&& opt)
+template<typename T, typename std::enable_if<
+    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
+T& get_or(toml::value& v, T& opt)
 {
     try
     {
@@ -451,26 +450,135 @@ get_or(toml::value& v, T&& opt)
     }
     catch(...)
     {
-        return std::forward<T>(opt);
+        return opt;
     }
 }
-template<typename T>
-decltype(::toml::get<typename std::remove_cv<
-            typename std::remove_reference<T>::type>::type>(
-        std::declval<toml::value&&>()))
-get_or(toml::value&& v, T&& opt)
+template<typename T, typename std::enable_if<
+    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
+T&& get_or(toml::value&& v, T&& opt)
 {
     try
     {
         return get<typename std::remove_cv<
-            typename std::remove_reference<T>::type>::type>(std::move(v));
+            typename std::remove_reference<T>::type>::type>(v);
     }
     catch(...)
     {
-        return std::forward<T>(opt);
+        return opt;
     }
 }
 
+// ----------------------------------------------------------------------------
+// specialization for std::string (return type becomes lvalue ref)
+
+template<typename T, typename std::enable_if<
+    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
+std::string const& get_or(const toml::value& v, const T& opt)
+{
+    try
+    {
+        return get<std::string>(v);
+    }
+    catch(...)
+    {
+        return opt;
+    }
+}
+template<typename T, typename std::enable_if<
+    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
+std::string& get_or(toml::value& v, T& opt)
+{
+    try
+    {
+        return get<std::string>(v);
+    }
+    catch(...)
+    {
+        return opt;
+    }
+}
+template<typename T, typename std::enable_if<
+    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
+std::string get_or(toml::value&& v, T&& opt)
+{
+    try
+    {
+        return get<std::string>(v);
+    }
+    catch(...)
+    {
+        return opt;
+    }
+}
+template<typename T, typename std::enable_if<
+    detail::is_string_literal<typename std::remove_reference<T>::type>::value,
+    std::nullptr_t>::type = nullptr>
+std::string get_or(const toml::value& v, T&& opt)
+{
+    try
+    {
+        return get<std::string>(v);
+    }
+    catch(...)
+    {
+        return std::string(opt);
+    }
+}
+
+// ----------------------------------------------------------------------------
+// others (require type conversion and return type cannot be lvalue reference)
+
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>>,
+    detail::negation<std::is_same<T, std::string>>,
+    detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
+    >::value, std::nullptr_t>::type = nullptr>
+T get_or(const toml::value& v, T&& opt)
+{
+    try
+    {
+        return get<typename std::remove_cv<
+            typename std::remove_reference<T>::type>::type>(v);
+    }
+    catch(...)
+    {
+        return opt;
+    }
+}
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>>,
+    detail::negation<std::is_same<T, std::string>>,
+    detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
+    >::value, std::nullptr_t>::type = nullptr>
+T get_or(toml::value& v, T&& opt)
+{
+    try
+    {
+        return get<typename std::remove_cv<
+            typename std::remove_reference<T>::type>::type>(v);
+    }
+    catch(...)
+    {
+        return opt;
+    }
+}
+template<typename T, typename std::enable_if<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T>>,
+    detail::negation<std::is_same<T, std::string>>,
+    detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
+    >::value, std::nullptr_t>::type = nullptr>
+T get_or(toml::value&& v, T&& opt)
+{
+    try
+    {
+        return get<typename std::remove_cv<
+            typename std::remove_reference<T>::type>::type>(v);
+    }
+    catch(...)
+    {
+        return opt;
+    }
+}
 
 template<typename T>
 auto get_or(const toml::table& tab, const toml::key& ky, T&& opt)
