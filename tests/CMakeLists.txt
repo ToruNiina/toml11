@@ -98,3 +98,8 @@ foreach(TEST_NAME ${TEST_NAMES})
         )
     endif()
 endforeach(TEST_NAME)
+
+# this test is to check it compiles. it will not run
+add_executable(test_multiple_translation_unit
+               test_multiple_translation_unit_1.cpp
+               test_multiple_translation_unit_2.cpp)
