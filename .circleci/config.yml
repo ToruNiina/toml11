@@ -1,7 +1,22 @@
 version: 2.1
 
 jobs:
-  test:
+  test_suite:
+    environment:
+      - GOPATH: /home/circleci/go
+    docker:
+      - image: circleci/golang:1.9
+    steps:
+      - checkout
+      - run:
+          command: |
+              g++ --version
+              cd tests/
+              ls
+              g++ -std=c++11 -O2 -Wall -Wextra -Werror -I../ check_toml_test.cpp -o check_toml_test
+              go get github.com/BurntSushi/toml-test
+              $GOPATH/bin/toml-test ./check_toml_test
+  output_result:
     docker:
       - image: circleci/buildpack-deps:bionic
     steps:
@@ -42,4 +57,5 @@ workflows:
   version: 2.1
   test:
     jobs:
-      - test
+      - test_suite
+      - output_result
