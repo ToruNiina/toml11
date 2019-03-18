@@ -15,7 +15,7 @@ namespace toml
 namespace detail
 {
 
-// helper function to avoid std::string(0, 'c')
+// helper function to avoid std::string(0, 'c') or std::string(iter, iter)
 template<typename Iterator>
 std::string make_string(Iterator first, Iterator last)
 {
@@ -28,9 +28,7 @@ inline std::string make_string(std::size_t len, char c)
     return std::string(len, c);
 }
 
-// region in a container, normally in a file content.
-// shared_ptr points the resource that the iter points.
-// combinators returns this.
+// region_base is a base class of location and region that are defined below.
 // it will be used to generate better error messages.
 struct region_base
 {
@@ -48,16 +46,19 @@ struct region_base
     virtual std::string line()     const {return std::string("unknown line");}
     virtual std::string line_num() const {return std::string("?");}
 
-    virtual std::size_t before()   const noexcept {return 0;}
+    // length of the region
     virtual std::size_t size()     const noexcept {return 0;}
+    // number of characters in the line before the region
+    virtual std::size_t before()   const noexcept {return 0;}
+    // number of characters in the line after the region
     virtual std::size_t after()    const noexcept {return 0;}
 };
 
-// location in a container, normally in a file content.
-// shared_ptr points the resource that the iter points.
-// it can be used not only for resource handling, but also error message.
-//
+// location represents a position in a container, which contains a file content.
 // it can be considered as a region that contains only one character.
+//
+// it contains pointer to the file content and iterator that points the current
+// location.
 template<typename Container>
 struct location final : public region_base
 {
@@ -131,6 +132,10 @@ struct location final : public region_base
     const_iterator iter_;
 };
 
+// region represents a range in a container, which contains a file content.
+//
+// it contains pointer to the file content and iterator that points the first
+// and last location.
 template<typename Container>
 struct region final : public region_base
 {

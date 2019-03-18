@@ -474,7 +474,7 @@ class value
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         array ary; ary.reserve(list.size());
-        for(auto& elem : list) {ary.emplace_back(std::move(elem));}
+        for(const auto& elem : list) {ary.emplace_back(elem);}
         assigner(this->array_, std::move(ary));
     }
     template<typename T, typename std::enable_if<detail::is_container<T>::value,
@@ -486,7 +486,7 @@ class value
         this->region_info_ = std::make_shared<region_base>(region_base{});
 
         array ary; ary.reserve(list.size());
-        for(auto& elem : list) {ary.emplace_back(std::move(elem));}
+        for(const auto& elem : list) {ary.emplace_back(elem);}
         assigner(this->array_, std::move(ary));
         return *this;
     }
@@ -930,7 +930,7 @@ visit(Visitor&& visitor, toml::value& v)
 }
 
 template<typename Visitor>
-detail::return_type_of_t<Visitor, toml::boolean&>
+detail::return_type_of_t<Visitor, toml::boolean&&>
 visit(Visitor&& visitor, toml::value&& v)
 {
     switch(v.type())
