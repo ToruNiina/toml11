@@ -8,11 +8,11 @@
 #include <sstream>
 
 #if __cplusplus >= 201402L
-#  define TOML11_MARK_AS_DEPRECATED [[deprecated]]
+#  define TOML11_MARK_AS_DEPRECATED(msg) [[deprecated(msg)]]
 #elif defined(__GNUC__)
-#  define TOML11_MARK_AS_DEPRECATED __attribute__((deprecated))
+#  define TOML11_MARK_AS_DEPRECATED(msg) __attribute__((deprecated(msg)))
 #elif defined(_MSC_VER)
-#  define TOML11_MARK_AS_DEPRECATED __declspec(deprecated)
+#  define TOML11_MARK_AS_DEPRECATED(msg) __declspec(deprecated(msg))
 #else
 #  define TOML11_MARK_AS_DEPRECATED
 #endif
