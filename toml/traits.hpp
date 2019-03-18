@@ -169,6 +169,21 @@ using return_type_of_t = typename std::result_of<F(Args...)>::type;
 
 #endif
 
+// ---------------------------------------------------------------------------
+// is_string_literal
+//
+// to use this, pass `typename remove_reference<T>::type` to T.
+
+template<typename T>
+struct is_string_literal:
+disjunction<
+    std::is_same<const char*, T>,
+    conjunction<
+        std::is_array<T>,
+        std::is_same<const char, typename std::remove_extent<T>::type>
+        >
+    >{};
+
 }// detail
 }//toml
 #endif // TOML_TRAITS
