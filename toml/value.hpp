@@ -930,7 +930,7 @@ visit(Visitor&& visitor, toml::value& v)
 }
 
 template<typename Visitor>
-detail::return_type_of_t<Visitor, toml::boolean&>
+detail::return_type_of_t<Visitor, toml::boolean&&>
 visit(Visitor&& visitor, toml::value&& v)
 {
     switch(v.type())
