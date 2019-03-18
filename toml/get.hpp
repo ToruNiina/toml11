@@ -545,40 +545,6 @@ T get_or(const toml::value& v, T&& opt)
         return opt;
     }
 }
-template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>,
-    detail::negation<std::is_same<T, std::string>>,
-    detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
-    >::value, std::nullptr_t>::type = nullptr>
-T get_or(toml::value& v, T&& opt)
-{
-    try
-    {
-        return get<typename std::remove_cv<
-            typename std::remove_reference<T>::type>::type>(v);
-    }
-    catch(...)
-    {
-        return opt;
-    }
-}
-template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>,
-    detail::negation<std::is_same<T, std::string>>,
-    detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
-    >::value, std::nullptr_t>::type = nullptr>
-T get_or(toml::value&& v, T&& opt)
-{
-    try
-    {
-        return get<typename std::remove_cv<
-            typename std::remove_reference<T>::type>::type>(v);
-    }
-    catch(...)
-    {
-        return opt;
-    }
-}
 
 template<typename T>
 auto get_or(const toml::table& tab, const toml::key& ky, T&& opt)
