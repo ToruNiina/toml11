@@ -483,15 +483,19 @@ struct serializer
 
 inline std::string
 format(const value& v, std::size_t w = 80,
-       int fprec = std::numeric_limits<toml::floating>::max_digits10)
+       int fprec = std::numeric_limits<toml::floating>::max_digits10,
+       bool force_inline = false)
 {
-    return visit(serializer(w, fprec, true), v);
+    // if value is a table, it is considered to be a root object.
+    // the root object can't be an inline table. so pass false. otherwise, true.
+    return visit(serializer(w, fprec, (!v.is_table()) || force_inline), v);
 }
 inline std::string
 format(const table& t, std::size_t w = 80,
-       int fprec = std::numeric_limits<toml::floating>::max_digits10)
+       int fprec = std::numeric_limits<toml::floating>::max_digits10,
+       bool force_inline = false)
 {
-    return serializer(w, fprec, true)(t);
+    return serializer(w, fprec, force_inline)(t);
 }
 
 template<typename charT, typename traits>
