@@ -859,7 +859,7 @@ std::cout << std::setprecision( 7) << data << std::endl;
 There is another way to format toml values, `toml::format()`.
 It returns `std::string` that represents a value.
 
-```toml
+```cpp
 const toml::value v{{"a", 42}};
 const std::string fmt = toml::format(v);
 // a = 42
@@ -868,7 +868,7 @@ const std::string fmt = toml::format(v);
 Note that since `toml::format` formats a value, the resulting string may lack
 the key value.
 
-```toml
+```cpp
 const toml::value v{3.14};
 const std::string fmt = toml::format(v);
 // 3.14
