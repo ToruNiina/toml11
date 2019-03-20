@@ -510,6 +510,18 @@ operator<<(std::basic_ostream<charT, traits>& os, const value& v)
     os << visit(serializer(w, fprec, false), v);
     return os;
 }
+template<typename charT, typename traits>
+std::basic_ostream<charT, traits>&
+operator<<(std::basic_ostream<charT, traits>& os, const table& v)
+{
+    // get status of std::setw().
+    const std::size_t w     = os.width();
+    const int         fprec = os.precision();
+    os.width(0);
+    // the root object can't be an inline table. so pass `false`.
+    os << serializer(w, fprec, false)(v);
+    return os;
+}
 
 } // toml
 #endif// TOML11_SERIALIZER_HPP
