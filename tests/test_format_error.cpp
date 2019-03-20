@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(test_1_value)
     {
         const std::string pretty_error =
             toml::format_error("[error] test error", val, "this is a value",
-                               std::vector<std::string>{"this is a hint"});
+                               {"this is a hint"});
         std::cout << pretty_error << std::endl;
     }
 }
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(test_2_values)
             toml::format_error("[error] test error with two values",
                                v1, "this is the answer",
                                v2, "this is the pi",
-                               std::vector<std::string>{"hint"});
+                               {"hint"});
         std::cout << pretty_error << std::endl;
     }
 }
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(test_3_values)
                                v1, "this is the answer",
                                v2, "this is the pi",
                                v3, "this is a meta-syntactic variable",
-                               std::vector<std::string>{"hint 1", "hint 2"});
+                               {"hint 1", "hint 2"});
         std::cout << pretty_error << std::endl;
     }
 }

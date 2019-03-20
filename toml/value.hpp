@@ -847,38 +847,40 @@ inline bool operator>=(const toml::value& lhs, const toml::value& rhs)
     return !(lhs < rhs);
 }
 
-namespace detail
-{
-inline std::string format_error_impl(const std::string& err_msg,
-        std::vector<std::pair<region_base const*, std::string>> val,
-        std::vector<std::string> hints)
-{
-    return format_underline(err_msg, std::move(val), std::move(hints));
-}
-inline std::string format_error_impl(const std::string& err_msg,
-        std::vector<std::pair<region_base const*, std::string>> val)
-{
-    return format_underline(err_msg, std::move(val));
-}
-
-template<typename ... Ts>
-std::string format_error_impl(const std::string& err_msg,
-        std::vector<std::pair<region_base const*, std::string>> val,
+inline std::string format_error(const std::string& err_msg,
         const toml::value& v, const std::string& comment,
-        Ts&& ... args)
+        std::vector<std::string> hints = {})
 {
-    val.push_back(std::make_pair(std::addressof(get_region(v)), comment));
-    return format_error_impl(err_msg, std::move(val), std::forward<Ts>(args)...);
+    return detail::format_underline(err_msg,
+        std::vector<std::pair<detail::region_base const*, std::string>>{
+            {std::addressof(detail::get_region(v)), comment}
+        }, std::move(hints));
 }
-} // detail
 
-template<typename ... Ts>
-std::string format_error(const std::string& err_msg, Ts&& ... args)
+inline std::string format_error(const std::string& err_msg,
+        const toml::value& v1, const std::string& comment1,
+        const toml::value& v2, const std::string& comment2,
+        std::vector<std::string> hints = {})
 {
-    std::vector<std::pair<detail::region_base const*, std::string>> val;
-    val.reserve(sizeof...(args) / 2);
-    return detail::format_error_impl(err_msg, std::move(val),
-                                     std::forward<Ts>(args)...);
+    return detail::format_underline(err_msg,
+        std::vector<std::pair<detail::region_base const*, std::string>>{
+            {std::addressof(detail::get_region(v1)), comment1},
+            {std::addressof(detail::get_region(v2)), comment2}
+        }, std::move(hints));
+}
+
+inline std::string format_error(const std::string& err_msg,
+        const toml::value& v1, const std::string& comment1,
+        const toml::value& v2, const std::string& comment2,
+        const toml::value& v3, const std::string& comment3,
+        std::vector<std::string> hints = {})
+{
+    return detail::format_underline(err_msg,
+        std::vector<std::pair<detail::region_base const*, std::string>>{
+            {std::addressof(detail::get_region(v1)), comment1},
+            {std::addressof(detail::get_region(v2)), comment2},
+            {std::addressof(detail::get_region(v3)), comment3}
+        }, std::move(hints));
 }
 
 template<typename Visitor>
