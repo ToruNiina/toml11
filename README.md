@@ -22,14 +22,14 @@ You can see the error messages about invalid files and serialization results of 
 ## Table of Contents
 
 - [Integration](#integration)
-- [Decoding toml file](#decoding-toml-file)
+- [Decoding a toml file](#decoding-a-toml-file)
   - [In the case of syntax error](#in-the-case-of-syntax-error)
 - [Getting a toml value](#getting-a-toml-value)
   - [In the case of type error](#in-the-case-of-type-error)
 - [Getting an array](#getting-an-array)
 - [Getting a table](#getting-a-table)
   - [Dotted keys](#dotted-keys)
-- [Getting an array of tables](#passing-invalid-type-to-tomlget)
+- [Getting an array of tables](#getting-an-array-of-tables)
 - [Cost of conversion](#cost-of-conversion)
 - [Getting datetime and its variants](#getting-datetime-and-its-variants)
 - [Getting with a fallback](#getting-with-a-fallback)
@@ -62,7 +62,7 @@ int main()
 }
 ```
 
-## Decoding toml file
+## Decoding a toml file
 
 To parse a toml file, the only thing you have to do is
 to pass a filename to the `toml::parse` function.
@@ -522,7 +522,7 @@ toml::value v = /* ... */;
 if(v.is(toml::value_t::Boolean)) // ...
 ```
 
-## visiting toml::value
+## Visiting a toml::value
 
 toml11 provides `toml::visit` to apply a function to `toml::value` in the
 same way as `std::variant`.
