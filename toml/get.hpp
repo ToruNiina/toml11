@@ -113,7 +113,7 @@ inline std::string get(value&& v)
 
 template<typename T, typename std::enable_if<
     detail::is_chrono_duration<T>::value, std::nullptr_t>::type = nullptr>
-inline T get(value& v)
+inline T get(const value& v)
 {
     return std::chrono::duration_cast<T>(
             std::chrono::nanoseconds(v.cast<value_t::LocalTime>()));
@@ -125,7 +125,7 @@ inline T get(value& v)
 template<typename T, typename std::enable_if<
     std::is_same<std::chrono::system_clock::time_point, T>::value,
     std::nullptr_t>::type = nullptr>
-inline T get(value& v)
+inline T get(const value& v)
 {
     switch(v.type())
     {
