@@ -727,10 +727,10 @@ toml11 throws `syntax_error` if a value of an escape sequence
 representing unicode character is not a valid UTF-8 codepoint.
 
 ```console
-[error] input codepoint (0011FFFF) is too large to decode as a unicode character. The result may not be able to render to your screen.
- --> example.toml
- 3 | exceeds_unicode = "\U0011FFFF example"
-   |                     ~~~~~~~~~ should be in [0x00..0x10FFFF]
+  what():  [error] toml::read_utf8_codepoint: input codepoint is too large.
+ --> utf8.toml
+ 1 | exceeds_unicode = "\U0011FFFF example"
+   |                              ^--------- should be in [0x00..0x10FFFF]
 ```
 
 ## Formatting user-defined error messages
