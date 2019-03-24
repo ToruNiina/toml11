@@ -19,6 +19,28 @@ Not only the test suite itself, a TOML reader/encoder also runs on [CircleCI](ht
 You can see the error messages about invalid files and serialization results of valid files at
 [CircleCI](https://circleci.com/gh/ToruNiina/toml11).
 
+## Example
+
+```cpp
+#include <toml11/toml.hpp>
+#include <iostream>
+
+int main()
+{
+    const auto data  = toml::parse("example.toml");
+
+    // title = "an example toml file"
+    std::string title = toml::get<std::string>(data.at("title"));
+    std::cout << "the title is " << title << std::endl;
+
+    // nums = [1, 2, 3, 4, 5]
+    std::vector<int> nums  = toml::get<std::vector<int>>(data.at("nums"));
+    std::cout << "the length of `nums` is" << nums.size() << std::endl;
+
+    return 0;
+}
+```
+
 ## Table of Contents
 
 - [Integration](#integration)
@@ -53,12 +75,14 @@ Just include the file after adding it to the include path.
 
 ```cpp
 #include <toml11/toml.hpp> // that's all! now you can use it.
+#include <iostream>
 
 int main()
 {
     const auto data  = toml::parse("example.toml");
     const auto title = toml::get<std::string>(data.at("title"));
     std::cout << "the title is " << title << std::endl;
+    return 0;
 }
 ```
 
