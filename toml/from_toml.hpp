@@ -51,7 +51,7 @@ struct from_toml_tie_impl
 template<typename ... Ts>
 struct from_toml_tie_impl<0, Ts...>
 {
-    static void invoke(std::tuple<Ts& ...> tie, const toml::value& v)
+    static void invoke(std::tuple<Ts& ...>, const toml::value&)
     {
         return;
     }
