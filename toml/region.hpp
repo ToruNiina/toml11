@@ -62,9 +62,13 @@ struct region_base
 template<typename Container>
 struct location final : public region_base
 {
-    static_assert(std::is_same<char, typename Container::value_type>::value,"");
     using const_iterator = typename Container::const_iterator;
     using source_ptr     = std::shared_ptr<const Container>;
+
+    static_assert(std::is_same<char, typename Container::value_type>::value,"");
+    static_assert(std::is_same<std::random_access_iterator_tag,
+        typename std::iterator_traits<const_iterator>::iterator_category>::value,
+        "container should be randomly accessible");
 
     location(std::string name, Container cont)
       : source_(std::make_shared<Container>(std::move(cont))),
@@ -139,9 +143,13 @@ struct location final : public region_base
 template<typename Container>
 struct region final : public region_base
 {
-    static_assert(std::is_same<char, typename Container::value_type>::value,"");
     using const_iterator = typename Container::const_iterator;
     using source_ptr     = std::shared_ptr<const Container>;
+
+    static_assert(std::is_same<char, typename Container::value_type>::value,"");
+    static_assert(std::is_same<std::random_access_iterator_tag,
+        typename std::iterator_traits<const_iterator>::iterator_category>::value,
+        "container should be randomly accessible");
 
     // delete default constructor. source_ never be null.
     region() = delete;
