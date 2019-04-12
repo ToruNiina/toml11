@@ -39,7 +39,7 @@ inline ::toml::value operator""_toml(const char* str, std::size_t len)
     // literal is a TOML file (i.e. multiline table).
     if(auto data = ::toml::detail::parse_toml_file(loc))
     {
-        loc.iter() = loc.begin(); // rollback to the top of the literal
+        loc.reset(loc.begin()); // rollback to the top of the literal
         return ::toml::value(std::move(data.unwrap()),
                 ::toml::detail::region<std::vector<char>>(std::move(loc)));
     }

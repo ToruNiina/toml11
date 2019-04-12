@@ -71,7 +71,7 @@ struct location final : public region_base
         "container should be randomly accessible");
 
     location(std::string name, Container cont)
-      : source_(std::make_shared<Container>(std::move(cont))),
+      : source_(std::make_shared<Container>(std::move(cont))), line_number_(0),
         source_name_(std::move(name)), iter_(source_->cbegin())
     {}
     location(const location&) = default;
@@ -82,18 +82,54 @@ struct location final : public region_base
 
     bool is_ok() const noexcept override {return static_cast<bool>(source_);}
 
-    const_iterator& iter()       noexcept {return iter_;}
-    const_iterator  iter() const noexcept {return iter_;}
+    // this const prohibits codes like `++(loc.iter())`.
+    const const_iterator iter()  const noexcept {return iter_;}
 
-    const_iterator  begin() const noexcept {return source_->cbegin();}
-    const_iterator  end()   const noexcept {return source_->cend();}
+    const_iterator begin() const noexcept {return source_->cbegin();}
+    const_iterator end()   const noexcept {return source_->cend();}
+
+    // XXX At first, `location::line_num()` is implemented using `std::count` to
+    // count a number of '\n'. But with a long toml file (typically, 10k lines),
+    // it becomes intolerably slow because each time it generates error messages,
+    // it counts '\n' from thousands of characters. To workaround it, I decided
+    // to introduce `location::line_number_` member variable and synchronize it
+    // to the location changes the point to look. So an overload of `iter()`
+    // which returns mutable reference is removed and `advance()`, `retrace()`
+    // and `reset()` is added.
+    void advance(std::size_t n = 1) noexcept
+    {
+        this->line_number_ += std::count(this->iter_, this->iter_ + n, '\n');
+        this->iter_ += n;
+        return;
+    }
+    void retrace(std::size_t n = 1) noexcept
+    {
+        this->line_number_ -= std::count(this->iter_ - n, this->iter_, '\n');
+        this->iter_ -= n;
+        return;
+    }
+    void reset(const_iterator rollback) noexcept
+    {
+        // since c++11, std::distance works in both ways and returns a negative
+        // value if `first` is ahead from `last`.
+        if(0 <= std::distance(rollback, this->iter_)) // rollback < iter
+        {
+            this->line_number_ -= std::count(rollback, this->iter_, '\n');
+        }
+        else // iter < rollback [[unlikely]]
+        {
+            this->line_number_ += std::count(this->iter_, rollback, '\n');
+        }
+        this->iter_ = rollback;
+        return;
+    }
 
     std::string str()  const override {return make_string(1, *this->iter());}
     std::string name() const override {return source_name_;}
 
     std::string line_num() const override
     {
-        return std::to_string(1+std::count(this->begin(), this->iter(), '\n'));
+        return std::to_string(this->line_number_);
     }
 
     std::string line() const override
@@ -132,6 +168,7 @@ struct location final : public region_base
   private:
 
     source_ptr     source_;
+    std::size_t    line_number_;
     std::string    source_name_;
     const_iterator iter_;
 };

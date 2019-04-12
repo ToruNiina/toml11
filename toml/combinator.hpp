@@ -65,7 +65,7 @@ struct character
             return err(concat_to_string("expected '", show_char(target),
                                         "' but got '", show_char(c), "'."));
         }
-        ++(loc.iter()); // update location
+        loc.advance(); // update location
 
         return ok(region<Cont>(loc, first, loc.iter()));
     }
@@ -102,7 +102,7 @@ struct in_range
                 "'", show_char(c), "'."));
         }
 
-        ++(loc.iter());
+        loc.advance();
         return ok(region<Cont>(loc, first, loc.iter()));
     }
 
@@ -131,12 +131,12 @@ struct exclude
         auto rslt = Combinator::invoke(loc);
         if(rslt.is_ok())
         {
-            loc.iter() = first; // rollback
+            loc.reset(first);
             return err(concat_to_string(
                 "invalid pattern (", Combinator::pattern(), ") appeared ",
                 rslt.unwrap().str()));
         }
-        loc.iter() = std::next(first);
+        loc.reset(std::next(first)); // XXX maybe loc.advance() is okay but...
         return ok(region<Cont>(loc, first, loc.iter()));
     }
 
@@ -186,7 +186,7 @@ struct sequence<Head, Tail...>
         const auto rslt = Head::invoke(loc);
         if(rslt.is_err())
         {
-            loc.iter() = first;
+            loc.reset(first);
             return err(rslt.unwrap_err());
         }
         return sequence<Tail...>::invoke(loc, std::move(rslt.unwrap()), first);
@@ -200,7 +200,7 @@ struct sequence<Head, Tail...>
         const auto rslt = Head::invoke(loc);
         if(rslt.is_err())
         {
-            loc.iter() = first;
+            loc.reset(first);
             return err(rslt.unwrap_err());
         }
         reg += rslt.unwrap(); // concat regions
@@ -224,7 +224,7 @@ struct sequence<Head>
         const auto rslt = Head::invoke(loc);
         if(rslt.is_err())
         {
-            loc.iter() = first;
+            loc.reset(first);
             return err(rslt.unwrap_err());
         }
         reg += rslt.unwrap(); // concat regions
@@ -291,7 +291,7 @@ struct repeat<T, exactly<N>>
             auto rslt = T::invoke(loc);
             if(rslt.is_err())
             {
-                loc.iter() = first;
+                loc.reset(first);
                 return err(rslt.unwrap_err());
             }
             retval += rslt.unwrap();
@@ -318,7 +318,7 @@ struct repeat<T, at_least<N>>
             auto rslt = T::invoke(loc);
             if(rslt.is_err())
             {
-                loc.iter() = first;
+                loc.reset(first);
                 return err(rslt.unwrap_err());
             }
             retval += rslt.unwrap();

@@ -33,7 +33,7 @@ parse_boolean(location<Container>& loc)
                 {{std::addressof(reg), "invalid token"}}));
         }
     }
-    loc.iter() = first; //rollback
+    loc.reset(first); //rollback
     return err(format_underline("[error] toml::parse_boolean: ",
                {{std::addressof(loc), "the next token is not a boolean"}}));
 }
@@ -62,7 +62,7 @@ parse_binary_integer(location<Container>& loc)
         }
         return ok(std::make_pair(retval, token.unwrap()));
     }
-    loc.iter() = first;
+    loc.reset(first);
     return err(format_underline("[error] toml::parse_binary_integer:",
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
@@ -83,7 +83,7 @@ parse_octal_integer(location<Container>& loc)
         iss >> std::oct >> retval;
         return ok(std::make_pair(retval, token.unwrap()));
     }
-    loc.iter() = first;
+    loc.reset(first);
     return err(format_underline("[error] toml::parse_octal_integer:",
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
@@ -104,7 +104,7 @@ parse_hexadecimal_integer(location<Container>& loc)
         iss >> std::hex >> retval;
         return ok(std::make_pair(retval, token.unwrap()));
     }
-    loc.iter() = first;
+    loc.reset(first);
     return err(format_underline("[error] toml::parse_hexadecimal_integer",
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
@@ -132,7 +132,7 @@ parse_integer(location<Container>& loc)
         iss >> retval;
         return ok(std::make_pair(retval, token.unwrap()));
     }
-    loc.iter() = first;
+    loc.reset(first);
     return err(format_underline("[error] toml::parse_integer: ",
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
@@ -221,7 +221,7 @@ parse_floating(location<Container>& loc)
         iss >> v;
         return ok(std::make_pair(v, token.unwrap()));
     }
-    loc.iter() = first;
+    loc.reset(first);
     return err(format_underline("[error] toml::parse_floating: ",
                {{std::addressof(loc), "the next token is not a float"}}));
 }
@@ -288,16 +288,16 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
         return err(format_underline("[error]: toml::parse_escape_sequence: ", {{
             std::addressof(loc), "the next token is not a backslash \"\\\""}}));
     }
-    ++loc.iter();
+    loc.advance();
     switch(*loc.iter())
     {
-        case '\\':{++loc.iter(); return ok(std::string("\\"));}
-        case '"' :{++loc.iter(); return ok(std::string("\""));}
-        case 'b' :{++loc.iter(); return ok(std::string("\b"));}
-        case 't' :{++loc.iter(); return ok(std::string("\t"));}
-        case 'n' :{++loc.iter(); return ok(std::string("\n"));}
-        case 'f' :{++loc.iter(); return ok(std::string("\f"));}
-        case 'r' :{++loc.iter(); return ok(std::string("\r"));}
+        case '\\':{loc.advance(); return ok(std::string("\\"));}
+        case '"' :{loc.advance(); return ok(std::string("\""));}
+        case 'b' :{loc.advance(); return ok(std::string("\b"));}
+        case 't' :{loc.advance(); return ok(std::string("\t"));}
+        case 'n' :{loc.advance(); return ok(std::string("\n"));}
+        case 'f' :{loc.advance(); return ok(std::string("\f"));}
+        case 'r' :{loc.advance(); return ok(std::string("\r"));}
         case 'u' :
         {
             if(const auto token = lex_escape_unicode_short::invoke(loc))
@@ -331,7 +331,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
            "escape sequence is one of \\, \", b, t, n, f, r, uxxxx, Uxxxxxxxx"}},
            /* Hints = */{"if you want to write backslash as just one backslash, "
            "use literal string like: regex    = '<\\i\\c*\\s*>'"});
-    loc.iter() = first;
+    loc.reset(first);
     return err(msg);
 }
 
@@ -343,7 +343,7 @@ parse_ml_basic_string(location<Container>& loc)
     if(const auto token = lex_ml_basic_string::invoke(loc))
     {
         auto inner_loc = loc;
-        inner_loc.iter() = first;
+        inner_loc.reset(first);
 
         std::string retval;
         retval.reserve(token.unwrap().size());
@@ -387,7 +387,7 @@ parse_ml_basic_string(location<Container>& loc)
     }
     else
     {
-        loc.iter() = first;
+        loc.reset(first);
         return err(token.unwrap_err());
     }
 }
@@ -400,7 +400,7 @@ parse_basic_string(location<Container>& loc)
     if(const auto token = lex_basic_string::invoke(loc))
     {
         auto inner_loc = loc;
-        inner_loc.iter() = first;
+        inner_loc.reset(first);
 
         auto quot = lex_quotation_mark::invoke(inner_loc);
         if(!quot)
@@ -436,7 +436,7 @@ parse_basic_string(location<Container>& loc)
     }
     else
     {
-        loc.iter() = first; // rollback
+        loc.reset(first); // rollback
         return err(token.unwrap_err());
     }
 }
@@ -475,7 +475,7 @@ parse_ml_literal_string(location<Container>& loc)
     }
     else
     {
-        loc.iter() = first; // rollback
+        loc.reset(first); // rollback
         return err(token.unwrap_err());
     }
 }
@@ -512,7 +512,7 @@ parse_literal_string(location<Container>& loc)
     }
     else
     {
-        loc.iter() = first; // rollback
+        loc.reset(first); // rollback
         return err(token.unwrap_err());
     }
 }
@@ -548,7 +548,7 @@ parse_local_date(location<Container>& loc)
                 "toml::parse_inner_local_date: invalid year format",
                 {{std::addressof(inner_loc), msg}}));
         }
-        ++inner_loc.iter();
+        inner_loc.advance();
         const auto m = lex_date_month::invoke(inner_loc);
         if(!m || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != '-')
         {
@@ -559,7 +559,7 @@ parse_local_date(location<Container>& loc)
                 "toml::parse_local_date: invalid month format",
                 {{std::addressof(inner_loc), msg}}));
         }
-        ++inner_loc.iter();
+        inner_loc.advance();
         const auto d = lex_date_mday::invoke(inner_loc);
         if(!d)
         {
@@ -576,7 +576,7 @@ parse_local_date(location<Container>& loc)
     }
     else
     {
-        loc.iter() = first;
+        loc.reset(first);
         return err(format_underline("[error]: toml::parse_local_date: ",
             {{std::addressof(loc), "the next token is not a local_date"}}));
     }
@@ -601,7 +601,7 @@ parse_local_time(location<Container>& loc)
                 "toml::parse_local_time: invalid year format",
                 {{std::addressof(inner_loc), msg}}));
         }
-        ++inner_loc.iter();
+        inner_loc.advance();
         const auto m = lex_time_minute::invoke(inner_loc);
         if(!m || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != ':')
         {
@@ -612,7 +612,7 @@ parse_local_time(location<Container>& loc)
                 "toml::parse_local_time: invalid month format",
                 {{std::addressof(inner_loc), msg}}));
         }
-        ++inner_loc.iter();
+        inner_loc.advance();
         const auto s = lex_time_second::invoke(inner_loc);
         if(!s)
         {
@@ -661,7 +661,7 @@ parse_local_time(location<Container>& loc)
     }
     else
     {
-        loc.iter() = first;
+        loc.reset(first);
         return err(format_underline("[error]: toml::parse_local_time: ",
             {{std::addressof(loc), "the next token is not a local_time"}}));
     }
@@ -685,13 +685,14 @@ parse_local_datetime(location<Container>& loc)
                 "toml::parse_local_datetime: invalid datetime format",
                 {{std::addressof(inner_loc), msg}}));
         }
-        const char delim = *(inner_loc.iter()++);
+        const char delim = *(inner_loc.iter());
         if(delim != 'T' && delim != 't' && delim != ' ')
         {
             throw internal_error(format_underline("[error]: "
                 "toml::parse_local_datetime: invalid datetime format",
                 {{std::addressof(inner_loc), "should be `T` or ` ` (space)"}}));
         }
+        inner_loc.advance();
         const auto time = parse_local_time(inner_loc);
         if(!time)
         {
@@ -705,7 +706,7 @@ parse_local_datetime(location<Container>& loc)
     }
     else
     {
-        loc.iter() = first;
+        loc.reset(first);
         return err(format_underline("[error]: toml::parse_local_datetime: ",
             {{std::addressof(loc), "the next token is not a local_datetime"}}));
     }
@@ -755,7 +756,7 @@ parse_offset_datetime(location<Container>& loc)
     }
     else
     {
-        loc.iter() = first;
+        loc.reset(first);
         return err(format_underline("[error]: toml::parse_offset_datetime: ",
             {{std::addressof(loc), "the next token is not a local_datetime"}}));
     }
@@ -816,7 +817,7 @@ parse_key(location<Container>& loc)
             }
             else if(*inner_loc.iter() == '.')
             {
-                ++inner_loc.iter(); // to skip `.`
+                inner_loc.advance(); // to skip `.`
             }
             else
             {
@@ -827,7 +828,7 @@ parse_key(location<Container>& loc)
         }
         return ok(std::make_pair(keys, reg));
     }
-    loc.iter() = first;
+    loc.reset(first);
 
     // simple key -> foo
     if(const auto smpl = parse_simple_key(loc))
@@ -856,7 +857,7 @@ parse_array(location<Container>& loc)
     {
         return err("[error] toml::parse_array: token is not an array");
     }
-    ++loc.iter();
+    loc.advance();
 
     using lex_ws_comment_newline = repeat<
         either<lex_wschar, lex_newline, lex_comment>, unlimited>;
@@ -868,7 +869,7 @@ parse_array(location<Container>& loc)
 
         if(loc.iter() != loc.end() && *loc.iter() == ']')
         {
-            ++loc.iter(); // skip ']'
+            loc.advance(); // skip ']'
             return ok(std::make_pair(retval,
                       region<Container>(loc, first, loc.iter())));
         }
@@ -878,7 +879,7 @@ parse_array(location<Container>& loc)
             if(!retval.empty() && retval.front().type() != val.as_ok().type())
             {
                 auto array_start_loc = loc;
-                array_start_loc.iter() = first;
+                array_start_loc.reset(first);
 
                 throw syntax_error(format_underline("[error] toml::parse_array: "
                     "type of elements should be the same each other.", {
@@ -898,7 +899,7 @@ parse_array(location<Container>& loc)
         else
         {
             auto array_start_loc = loc;
-            array_start_loc.iter() = first;
+            array_start_loc.reset(first);
 
             throw syntax_error(format_underline("[error] toml::parse_array: "
                 "value having invalid format appeared in an array", {
@@ -914,14 +915,14 @@ parse_array(location<Container>& loc)
             lex_ws_comment_newline::invoke(loc);
             if(loc.iter() != loc.end() && *loc.iter() == ']')
             {
-                ++loc.iter(); // skip ']'
+                loc.advance(); // skip ']'
                 return ok(std::make_pair(retval,
                           region<Container>(loc, first, loc.iter())));
             }
             else
             {
                 auto array_start_loc = loc;
-                array_start_loc.iter() = first;
+                array_start_loc.reset(first);
 
                 throw syntax_error(format_underline("[error] toml::parse_array:"
                     " missing array separator `,` after a value", {
@@ -931,7 +932,7 @@ parse_array(location<Container>& loc)
             }
         }
     }
-    loc.iter() = first;
+    loc.reset(first);
     throw syntax_error(format_underline("[error] toml::parse_array: "
             "array did not closed by `]`",
             {{std::addressof(loc), "should be closed"}}));
@@ -950,7 +951,7 @@ parse_key_value_pair(location<Container>& loc)
         // key. then we need to show error as "empty key is not allowed".
         if(const auto keyval_sep = lex_keyval_sep::invoke(loc))
         {
-            loc.iter() = first;
+            loc.reset(first);
             msg = format_underline("[error] toml::parse_key_value_pair: "
                 "empty key is not allowed.",
                 {{std::addressof(loc), "key expected before '='"}});
@@ -979,7 +980,7 @@ parse_key_value_pair(location<Container>& loc)
                 "missing key-value separator `=`",
                 {{std::addressof(loc), "should be `=`"}});
         }
-        loc.iter() = first;
+        loc.reset(first);
         return err(std::move(msg));
     }
 
@@ -988,11 +989,11 @@ parse_key_value_pair(location<Container>& loc)
     if(!val)
     {
         std::string msg;
-        loc.iter() = after_kvsp;
+        loc.reset(after_kvsp);
         // check there is something not a comment/whitespace after `=`
         if(sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>::invoke(loc))
         {
-            loc.iter() = after_kvsp;
+            loc.reset(after_kvsp);
             msg = format_underline("[error] toml::parse_key_value_pair: "
                     "missing value after key-value separator '='",
                     {{std::addressof(loc), "expected value, but got nothing"}});
@@ -1001,7 +1002,7 @@ parse_key_value_pair(location<Container>& loc)
         {
             msg = std::move(val.unwrap_err());
         }
-        loc.iter() = first;
+        loc.reset(first);
         return err(msg);
     }
     return ok(std::make_pair(std::move(key_reg.unwrap()),
@@ -1028,6 +1029,7 @@ std::string format_dotted_keys(InputIterator first, const InputIterator last)
 template<typename Container>
 result<std::pair<std::vector<key>, region<Container>>, std::string>
 parse_table_key(location<Container>& loc);
+
 // The following toml file is allowed.
 // ```toml
 // [a.b.c]     # here, table `a` has element `b`.
@@ -1318,14 +1320,14 @@ parse_inline_table(location<Container>& loc)
         return err(format_underline("[error] toml::parse_inline_table: ", 
             {{std::addressof(loc), "the next token is not an inline table"}}));
     }
-    ++loc.iter();
+    loc.advance();
     // it starts from "{". it should be formatted as inline-table
     while(loc.iter() != loc.end())
     {
         maybe<lex_ws>::invoke(loc);
         if(loc.iter() != loc.end() && *loc.iter() == '}')
         {
-            ++loc.iter(); // skip `}`
+            loc.advance(); // skip `}`
             return ok(std::make_pair(
                         retval, region<Container>(loc, first, loc.iter())));
         }
@@ -1354,7 +1356,7 @@ parse_inline_table(location<Container>& loc)
             maybe<lex_ws>::invoke(loc);
             if(loc.iter() != loc.end() && *loc.iter() == '}')
             {
-                ++loc.iter(); // skip `}`
+                loc.advance(); // skip `}`
                 return ok(std::make_pair(
                             retval, region<Container>(loc, first, loc.iter())));
             }
@@ -1366,7 +1368,7 @@ parse_inline_table(location<Container>& loc)
             }
         }
     }
-    loc.iter() = first;
+    loc.reset(first);
     throw syntax_error(format_underline("[error] toml::parse_inline_table: "
             "inline table did not closed by `}`",
             {{std::addressof(loc), "should be closed"}}));
@@ -1404,7 +1406,7 @@ result<value, std::string> parse_value(location<Container>& loc)
 
     const auto msg = format_underline("[error] toml::parse_value: "
             "unknown token appeared", {{std::addressof(loc), "unknown"}});
-    loc.iter() = first;
+    loc.reset(first);
     return err(msg);
 }
 
@@ -1540,12 +1542,12 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
         const auto before = loc.iter();
         if(const auto tmp = parse_array_table_key(loc)) // next table found
         {
-            loc.iter() = before;
+            loc.reset(before);
             return ok(tab);
         }
         if(const auto tmp = parse_table_key(loc)) // next table found
         {
-            loc.iter() = before;
+            loc.reset(before);
             return ok(tab);
         }
 
@@ -1585,7 +1587,7 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
             const auto msg = format_underline("[error] toml::parse_table: "
                 "invalid line format", {{std::addressof(loc), concat_to_string(
                 "expected newline, but got '", show_char(*loc.iter()), "'.")}});
-            loc.iter() = before;
+            loc.reset(before);
             return err(msg);
         }
 
@@ -1688,7 +1690,7 @@ inline table parse(std::istream& is, std::string fname = "unknown file")
         std::memcpy(BOM.data(), loc.source()->data(), 3);
         if(BOM[0] == 0xEF && BOM[1] == 0xBB && BOM[2] == 0xBF)
         {
-            loc.iter() += 3; // BOM found. skip.
+            loc.advance(3); // BOM found. skip.
         }
     }
 
