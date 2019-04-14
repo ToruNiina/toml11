@@ -35,6 +35,18 @@ BOOST_AUTO_TEST_CASE(test_file_as_literal)
 
         BOOST_CHECK_EQUAL(r, v);
     }
+    {
+        const toml::value r{
+            {"table", toml::table{{"a", 42}, {"b", "baz"}}}
+        };
+        const toml::value v = u8R"(
+            [table]
+            a = 42
+            b = "baz"
+        )"_toml;
+
+        BOOST_CHECK_EQUAL(r, v);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(test_value_as_literal)
@@ -91,6 +103,19 @@ BOOST_AUTO_TEST_CASE(test_value_as_literal)
 
         BOOST_CHECK(v1.is_array());
         BOOST_CHECK((toml::get<std::vector<int>>(v1) == std::vector<int>{1,2,3}));
+
+        const toml::value v2 = u8R"([1,])"_toml;
+
+        BOOST_CHECK(v2.is_array());
+        BOOST_CHECK((toml::get<std::vector<int>>(v2) == std::vector<int>{1}));
+
+        const toml::value v3 = u8R"([[1,]])"_toml;
+        BOOST_CHECK(v3.is_array());
+        BOOST_CHECK((toml::get<std::vector<int>>(toml::get<toml::array>(v3).front()) == std::vector<int>{1}));
+
+        const toml::value v4 = u8R"([[1],])"_toml;
+        BOOST_CHECK(v4.is_array());
+        BOOST_CHECK((toml::get<std::vector<int>>(toml::get<toml::array>(v4).front()) == std::vector<int>{1}));
     }
     {
         const toml::value v1 = u8R"({a = 42})"_toml;
