@@ -603,6 +603,25 @@ toml::value operator""_toml(const char* str, std::size_t len);
 Access to the operator can be gained with `using namespace toml::literals;`,
 `using namespace toml::toml_literals`, and `using namespace toml::literals::toml_literals`.
 
+Note that since it allows a bare value without a key, it is difficult to distinguish
+arrays and table definitions.
+Currently, it parses `[1]` as a table definition if there are no commas.
+To ensure a literal to be considered as an array with one element, you need to
+add a comma after the first element (like `[1,]`).
+
+```cpp
+"[1,2,3]"_toml;   // This is an array
+"[table]"_toml;   // This is a table that has an empty table named "table" inside.
+"[[1,2,3]]"_toml; // This is an array of arrays
+"[[table]]"_toml; // This is a table that has an array of tables inside.
+
+"[[1]]"_toml;     // This is ambiguous.
+                  // Currently, it becomes a table taht has array of table "1".
+"1 = [{}]"_toml;  // This is a table that has an array of table named 1.
+"[[1,]]"_toml;    // This is an array of arrays.
+"[[1],]"_toml;    // ditto.
+```
+
 ## Conversion between toml value and arbitrary types
 
 You can also use `toml::get` and other related functions with the types you defined
