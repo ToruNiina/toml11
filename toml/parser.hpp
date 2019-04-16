@@ -539,10 +539,30 @@ template<typename Container>
 result<std::pair<toml::string, region<Container>>, std::string>
 parse_string(location<Container>& loc)
 {
-    if(const auto rslt = parse_ml_basic_string(loc))   {return rslt;}
-    if(const auto rslt = parse_ml_literal_string(loc)) {return rslt;}
-    if(const auto rslt = parse_basic_string(loc))      {return rslt;}
-    if(const auto rslt = parse_literal_string(loc))    {return rslt;}
+    if(loc.iter() != loc.end() && *(loc.iter()) == '"')
+    {
+        if(loc.iter() + 1 != loc.end() && *(loc.iter() + 1) == '"' &&
+           loc.iter() + 2 != loc.end() && *(loc.iter() + 2) == '"')
+        {
+            return parse_ml_basic_string(loc);
+        }
+        else
+        {
+            return parse_basic_string(loc);
+        }
+    }
+    else if(loc.iter() != loc.end() && *(loc.iter()) == '\'')
+    {
+        if(loc.iter() + 1 != loc.end() && *(loc.iter() + 1) == '\'' &&
+           loc.iter() + 2 != loc.end() && *(loc.iter() + 2) == '\'')
+        {
+            return parse_ml_literal_string(loc);
+        }
+        else
+        {
+            return parse_literal_string(loc);
+        }
+    }
     return err(format_underline("[error] toml::parse_string: ",
                 {{std::addressof(loc), "the next token is not a string"}}));
 }
