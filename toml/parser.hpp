@@ -116,10 +116,28 @@ parse_integer(location<Container>& loc)
     const auto first = loc.iter();
     if(first != loc.end() && *first == '0')
     {
-        if(const auto bin = parse_binary_integer     (loc)) {return bin;}
-        if(const auto oct = parse_octal_integer      (loc)) {return oct;}
-        if(const auto hex = parse_hexadecimal_integer(loc)) {return hex;}
-        // else, maybe just zero.
+        const auto second = std::next(first);
+        if(second == loc.end()) // the token is just zero.
+        {
+            return ok(std::make_pair(0, region<Container>(loc, first, second)));
+        }
+
+        if(*second == 'b') {return parse_binary_integer     (loc);} // 0b1100
+        if(*second == 'o') {return parse_octal_integer      (loc);} // 0o775
+        if(*second == 'x') {return parse_hexadecimal_integer(loc);} // 0xC0FFEE
+
+        if(std::isdigit(*second))
+        {
+            return err(format_underline("[error] toml::parse_integer: "
+                "leading zero in an Integer is not allowed.",
+                {{std::addressof(loc), "leading zero"}}));
+        }
+        else if(std::isalpha(*second))
+        {
+             return err(format_underline("[error] toml::parse_integer: "
+                "unknown integer prefix appeared.",
+                {{std::addressof(loc), "none of 0x, 0o, 0b"}}));
+        }
     }
 
     if(const auto token = lex_dec_int::invoke(loc))
