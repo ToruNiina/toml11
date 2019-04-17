@@ -25,20 +25,22 @@ inline std::tm localtime_s(const std::time_t* src)
 {
     std::tm dst;
     const auto result = ::localtime_r(src, &dst);
-    if(!result)
-    {
-        throw std::runtime_error("localtime_r failed.");
-    }
+    if (!result) { throw std::runtime_error("localtime_r failed."); }
+    return dst;
+}
+#elif _MSC_VER
+inline std::tm localtime_s(const std::time_t* src)
+{
+    std::tm dst;
+    const auto result = ::localtime_s(&dst, src);
+    if (result) { throw std::runtime_error("localtime_s failed."); }
     return dst;
 }
 #else
-// XXX: On Windows, std::localtime is thread-safe because they uses thread-local
-// storage to store the instance of std::tm. On the other platforms, it may not
-// be thread-safe.
 inline std::tm localtime_s(const std::time_t* src)
 {
     const auto result = std::localtime(src);
-    if(!result) {throw std::runtime_error("localtime failed.");}
+    if (!result) { throw std::runtime_error("localtime failed."); }
     return *result;
 }
 #endif
@@ -360,12 +362,12 @@ struct local_datetime
         // can be used to get millisecond & microsecond information.
         const auto t_diff = tp -
             std::chrono::system_clock::from_time_t(std::mktime(&time));
-        this->time.millisecond = std::chrono::duration_cast<
-            std::chrono::milliseconds>(t_diff).count();
-        this->time.microsecond = std::chrono::duration_cast<
-            std::chrono::microseconds>(t_diff).count();
-        this->time.nanosecond = std::chrono::duration_cast<
-            std::chrono::nanoseconds >(t_diff).count();
+        this->time.millisecond = static_cast<std::uint16_t>(
+          std::chrono::duration_cast<std::chrono::milliseconds>(t_diff).count());
+        this->time.microsecond = static_cast<std::uint16_t>(
+          std::chrono::duration_cast<std::chrono::microseconds>(t_diff).count());
+        this->time.nanosecond = static_cast<std::uint16_t>(
+          std::chrono::duration_cast<std::chrono::nanoseconds >(t_diff).count());
     }
 
     explicit local_datetime(const std::time_t t)
