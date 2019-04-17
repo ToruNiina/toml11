@@ -572,6 +572,14 @@ class value
         return *this;
     }
 
+    // for internal use ------------------------------------------------------
+
+    template<typename T, typename Container, typename std::enable_if<
+        detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
+    value(std::pair<T, detail::region<Container>> parse_result)
+        : value(std::move(parse_result.first), std::move(parse_result.second))
+    {}
+
     // type checking and casting ============================================
 
     template<typename T>
