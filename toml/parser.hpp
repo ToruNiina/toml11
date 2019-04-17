@@ -758,7 +758,7 @@ parse_offset_datetime(location<Container>& loc)
     {
         loc.reset(first);
         return err(format_underline("[error]: toml::parse_offset_datetime: ",
-            {{std::addressof(loc), "the next token is not a local_datetime"}}));
+            {{std::addressof(loc), "the next token is not a offset_datetime"}}));
     }
 }
 
