@@ -116,10 +116,28 @@ parse_integer(location<Container>& loc)
     const auto first = loc.iter();
     if(first != loc.end() && *first == '0')
     {
-        if(const auto bin = parse_binary_integer     (loc)) {return bin;}
-        if(const auto oct = parse_octal_integer      (loc)) {return oct;}
-        if(const auto hex = parse_hexadecimal_integer(loc)) {return hex;}
-        // else, maybe just zero.
+        const auto second = std::next(first);
+        if(second == loc.end()) // the token is just zero.
+        {
+            return ok(std::make_pair(0, region<Container>(loc, first, second)));
+        }
+
+        if(*second == 'b') {return parse_binary_integer     (loc);} // 0b1100
+        if(*second == 'o') {return parse_octal_integer      (loc);} // 0o775
+        if(*second == 'x') {return parse_hexadecimal_integer(loc);} // 0xC0FFEE
+
+        if(std::isdigit(*second))
+        {
+            return err(format_underline("[error] toml::parse_integer: "
+                "leading zero in an Integer is not allowed.",
+                {{std::addressof(loc), "leading zero"}}));
+        }
+        else if(std::isalpha(*second))
+        {
+             return err(format_underline("[error] toml::parse_integer: "
+                "unknown integer prefix appeared.",
+                {{std::addressof(loc), "none of 0x, 0o, 0b"}}));
+        }
     }
 
     if(const auto token = lex_dec_int::invoke(loc))
@@ -308,7 +326,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
             {
                 return err(format_underline("[error] parse_escape_sequence: "
                            "invalid token found in UTF-8 codepoint uXXXX.",
-                           {{std::addressof(loc), token.unwrap_err()}}));
+                           {{std::addressof(loc), "here"}}));
             }
         }
         case 'U':
@@ -321,7 +339,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
             {
                 return err(format_underline("[error] parse_escape_sequence: "
                            "invalid token found in UTF-8 codepoint Uxxxxxxxx",
-                           {{std::addressof(loc), token.unwrap_err()}}));
+                           {{std::addressof(loc), "here"}}));
             }
         }
     }
@@ -388,7 +406,9 @@ parse_ml_basic_string(location<Container>& loc)
     else
     {
         loc.reset(first);
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_ml_basic_string: "
+                   "the next token is not a multiline string",
+                   {{std::addressof(loc), "here"}}));
     }
 }
 
@@ -437,7 +457,9 @@ parse_basic_string(location<Container>& loc)
     else
     {
         loc.reset(first); // rollback
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_basic_string: "
+                   "the next token is not a string",
+                   {{std::addressof(loc), "here"}}));
     }
 }
 
@@ -476,7 +498,9 @@ parse_ml_literal_string(location<Container>& loc)
     else
     {
         loc.reset(first); // rollback
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_ml_literal_string: "
+                   "the next token is not a multiline literal string",
+                   {{std::addressof(loc), "here"}}));
     }
 }
 
@@ -513,7 +537,9 @@ parse_literal_string(location<Container>& loc)
     else
     {
         loc.reset(first); // rollback
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_literal_string: "
+                   "the next token is not a literal string",
+                   {{std::addressof(loc), "here"}}));
     }
 }
 
@@ -521,10 +547,30 @@ template<typename Container>
 result<std::pair<toml::string, region<Container>>, std::string>
 parse_string(location<Container>& loc)
 {
-    if(const auto rslt = parse_ml_basic_string(loc))   {return rslt;}
-    if(const auto rslt = parse_ml_literal_string(loc)) {return rslt;}
-    if(const auto rslt = parse_basic_string(loc))      {return rslt;}
-    if(const auto rslt = parse_literal_string(loc))    {return rslt;}
+    if(loc.iter() != loc.end() && *(loc.iter()) == '"')
+    {
+        if(loc.iter() + 1 != loc.end() && *(loc.iter() + 1) == '"' &&
+           loc.iter() + 2 != loc.end() && *(loc.iter() + 2) == '"')
+        {
+            return parse_ml_basic_string(loc);
+        }
+        else
+        {
+            return parse_basic_string(loc);
+        }
+    }
+    else if(loc.iter() != loc.end() && *(loc.iter()) == '\'')
+    {
+        if(loc.iter() + 1 != loc.end() && *(loc.iter() + 1) == '\'' &&
+           loc.iter() + 2 != loc.end() && *(loc.iter() + 2) == '\'')
+        {
+            return parse_ml_literal_string(loc);
+        }
+        else
+        {
+            return parse_literal_string(loc);
+        }
+    }
     return err(format_underline("[error] toml::parse_string: ",
                 {{std::addressof(loc), "the next token is not a string"}}));
 }
@@ -1375,6 +1421,46 @@ parse_inline_table(location<Container>& loc)
 }
 
 template<typename Container>
+value_t guess_number_type(const location<Container>& l)
+{
+    location<Container> loc = l;
+
+    if(lex_offset_date_time::invoke(loc)) {return value_t::OffsetDatetime;}
+    loc.reset(l.iter());
+
+    if(lex_local_date_time::invoke(loc)) {return value_t::LocalDatetime;}
+    loc.reset(l.iter());
+
+    if(lex_local_date::invoke(loc)) {return value_t::LocalDate;}
+    loc.reset(l.iter());
+
+    if(lex_local_time::invoke(loc)) {return value_t::LocalTime;}
+    loc.reset(l.iter());
+
+    if(lex_float::invoke(loc)) {return value_t::Float;}
+    loc.reset(l.iter());
+
+    return value_t::Integer;
+}
+
+template<typename Container>
+value_t guess_value_type(const location<Container>& loc)
+{
+    switch(*loc.iter())
+    {
+        case '"' : {return value_t::String; }
+        case '\'': {return value_t::String; }
+        case 't' : {return value_t::Boolean;}
+        case 'f' : {return value_t::Boolean;}
+        case '[' : {return value_t::Array;  }
+        case '{' : {return value_t::Table;  }
+        case 'i' : {return value_t::Float;  } // inf.
+        case 'n' : {return value_t::Float;  } // nan.
+        default  : {return guess_number_type(loc);}
+    }
+}
+
+template<typename Container>
 result<value, std::string> parse_value(location<Container>& loc)
 {
     const auto first = loc.iter();
@@ -1383,31 +1469,27 @@ result<value, std::string> parse_value(location<Container>& loc)
         return err(format_underline("[error] toml::parse_value: input is empty",
                    {{std::addressof(loc), ""}}));
     }
-    if(auto r = parse_string         (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_array          (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_inline_table   (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_boolean        (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_offset_datetime(loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_local_datetime (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_local_date     (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_local_time     (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_floating       (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_integer        (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
 
-    const auto msg = format_underline("[error] toml::parse_value: "
-            "unknown token appeared", {{std::addressof(loc), "unknown"}});
-    loc.reset(first);
-    return err(msg);
+    switch(guess_value_type(loc))
+    {
+        case value_t::Boolean        : {return parse_boolean(loc);        }
+        case value_t::Integer        : {return parse_integer(loc);        }
+        case value_t::Float          : {return parse_floating(loc);       }
+        case value_t::String         : {return parse_string(loc);         }
+        case value_t::OffsetDatetime : {return parse_offset_datetime(loc);}
+        case value_t::LocalDatetime  : {return parse_local_datetime(loc); }
+        case value_t::LocalDate      : {return parse_local_date(loc);     }
+        case value_t::LocalTime      : {return parse_local_time(loc);     }
+        case value_t::Array          : {return parse_array(loc);          }
+        case value_t::Table          : {return parse_inline_table(loc);   }
+        default:
+        {
+            const auto msg = format_underline("[error] toml::parse_value: "
+                    "unknown token appeared", {{std::addressof(loc), "unknown"}});
+            loc.reset(first);
+            return err(msg);
+        }
+    }
 }
 
 template<typename Container>
@@ -1463,7 +1545,8 @@ parse_table_key(location<Container>& loc)
     }
     else
     {
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_table_key: "
+            "not a valid table key", {{std::addressof(loc), "here"}}));
     }
 }
 
@@ -1471,7 +1554,7 @@ template<typename Container>
 result<std::pair<std::vector<key>, region<Container>>, std::string>
 parse_array_table_key(location<Container>& loc)
 {
-    if(auto token = lex_array_table::invoke(loc))
+    if(auto token = lex_array_table::invoke(loc, true))
     {
         location<std::string> inner_loc(loc.name(), token.unwrap().str());
 
@@ -1516,7 +1599,8 @@ parse_array_table_key(location<Container>& loc)
     }
     else
     {
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_array_table_key: "
+            "not a valid table key", {{std::addressof(loc), "here"}}));
     }
 }
 

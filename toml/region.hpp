@@ -71,7 +71,7 @@ struct location final : public region_base
         "container should be randomly accessible");
 
     location(std::string name, Container cont)
-      : source_(std::make_shared<Container>(std::move(cont))), line_number_(0),
+      : source_(std::make_shared<Container>(std::move(cont))), line_number_(1),
         source_name_(std::move(name)), iter_(source_->cbegin())
     {}
     location(const location&) = default;
@@ -88,7 +88,7 @@ struct location final : public region_base
     const_iterator begin() const noexcept {return source_->cbegin();}
     const_iterator end()   const noexcept {return source_->cend();}
 
-    // XXX At first, `location::line_num()` is implemented using `std::count` to
+    // XXX `location::line_num()` used to be implemented using `std::count` to
     // count a number of '\n'. But with a long toml file (typically, 10k lines),
     // it becomes intolerably slow because each time it generates error messages,
     // it counts '\n' from thousands of characters. To workaround it, I decided
@@ -110,8 +110,8 @@ struct location final : public region_base
     }
     void reset(const_iterator rollback) noexcept
     {
-        // since c++11, std::distance works in both ways and returns a negative
-        // value if `first` is ahead from `last`.
+        // since c++11, std::distance works in both ways for random-access
+        // iterators and returns a negative value if `first > last`.
         if(0 <= std::distance(rollback, this->iter_)) // rollback < iter
         {
             this->line_number_ -= std::count(rollback, this->iter_, '\n');
