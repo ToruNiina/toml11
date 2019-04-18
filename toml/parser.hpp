@@ -1413,6 +1413,46 @@ parse_inline_table(location<Container>& loc)
 }
 
 template<typename Container>
+value_t guess_number_type(const location<Container>& l)
+{
+    location<Container> loc = l;
+
+    if(lex_offset_date_time::invoke(loc)) {return value_t::OffsetDatetime;}
+    loc.reset(l.iter());
+
+    if(lex_local_date_time::invoke(loc)) {return value_t::LocalDatetime;}
+    loc.reset(l.iter());
+
+    if(lex_local_date::invoke(loc)) {return value_t::LocalDate;}
+    loc.reset(l.iter());
+
+    if(lex_local_time::invoke(loc)) {return value_t::LocalTime;}
+    loc.reset(l.iter());
+
+    if(lex_float::invoke(loc)) {return value_t::Float;}
+    loc.reset(l.iter());
+
+    return value_t::Integer;
+}
+
+template<typename Container>
+value_t guess_value_type(const location<Container>& loc)
+{
+    switch(*loc.iter())
+    {
+        case '"' : {return value_t::String; }
+        case '\'': {return value_t::String; }
+        case 't' : {return value_t::Boolean;}
+        case 'f' : {return value_t::Boolean;}
+        case '[' : {return value_t::Array;  }
+        case '{' : {return value_t::Table;  }
+        case 'i' : {return value_t::Float;  } // inf.
+        case 'n' : {return value_t::Float;  } // nan.
+        default  : {return guess_number_type(loc);}
+    }
+}
+
+template<typename Container>
 result<value, std::string> parse_value(location<Container>& loc)
 {
     const auto first = loc.iter();
@@ -1421,31 +1461,27 @@ result<value, std::string> parse_value(location<Container>& loc)
         return err(format_underline("[error] toml::parse_value: input is empty",
                    {{std::addressof(loc), ""}}));
     }
-    if(auto r = parse_string         (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_array          (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_inline_table   (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_boolean        (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_offset_datetime(loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_local_datetime (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_local_date     (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_local_time     (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_floating       (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
-    if(auto r = parse_integer        (loc))
-    {return ok(value(std::move(r.unwrap().first), std::move(r.unwrap().second)));}
 
-    const auto msg = format_underline("[error] toml::parse_value: "
-            "unknown token appeared", {{std::addressof(loc), "unknown"}});
-    loc.reset(first);
-    return err(msg);
+    switch(guess_value_type(loc))
+    {
+        case value_t::Boolean        : {return parse_boolean(loc);        }
+        case value_t::Integer        : {return parse_integer(loc);        }
+        case value_t::Float          : {return parse_floating(loc);       }
+        case value_t::String         : {return parse_string(loc);         }
+        case value_t::OffsetDatetime : {return parse_offset_datetime(loc);}
+        case value_t::LocalDatetime  : {return parse_local_datetime(loc); }
+        case value_t::LocalDate      : {return parse_local_date(loc);     }
+        case value_t::LocalTime      : {return parse_local_time(loc);     }
+        case value_t::Array          : {return parse_array(loc);          }
+        case value_t::Table          : {return parse_inline_table(loc);   }
+        default:
+        {
+            const auto msg = format_underline("[error] toml::parse_value: "
+                    "unknown token appeared", {{std::addressof(loc), "unknown"}});
+            loc.reset(first);
+            return err(msg);
+        }
+    }
 }
 
 template<typename Container>
