@@ -326,7 +326,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
             {
                 return err(format_underline("[error] parse_escape_sequence: "
                            "invalid token found in UTF-8 codepoint uXXXX.",
-                           {{std::addressof(loc), token.unwrap_err()}}));
+                           {{std::addressof(loc), "here"}}));
             }
         }
         case 'U':
@@ -339,7 +339,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
             {
                 return err(format_underline("[error] parse_escape_sequence: "
                            "invalid token found in UTF-8 codepoint Uxxxxxxxx",
-                           {{std::addressof(loc), token.unwrap_err()}}));
+                           {{std::addressof(loc), "here"}}));
             }
         }
     }
@@ -406,7 +406,9 @@ parse_ml_basic_string(location<Container>& loc)
     else
     {
         loc.reset(first);
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_ml_basic_string: "
+                   "the next token is not a multiline string",
+                   {{std::addressof(loc), "here"}}));
     }
 }
 
@@ -455,7 +457,9 @@ parse_basic_string(location<Container>& loc)
     else
     {
         loc.reset(first); // rollback
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_basic_string: "
+                   "the next token is not a string",
+                   {{std::addressof(loc), "here"}}));
     }
 }
 
@@ -494,7 +498,9 @@ parse_ml_literal_string(location<Container>& loc)
     else
     {
         loc.reset(first); // rollback
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_ml_literal_string: "
+                   "the next token is not a multiline literal string",
+                   {{std::addressof(loc), "here"}}));
     }
 }
 
@@ -531,7 +537,9 @@ parse_literal_string(location<Container>& loc)
     else
     {
         loc.reset(first); // rollback
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_literal_string: "
+                   "the next token is not a literal string",
+                   {{std::addressof(loc), "here"}}));
     }
 }
 
@@ -1537,7 +1545,8 @@ parse_table_key(location<Container>& loc)
     }
     else
     {
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_table_key: "
+            "not a valid table key", {{std::addressof(loc), "here"}}));
     }
 }
 
@@ -1545,7 +1554,7 @@ template<typename Container>
 result<std::pair<std::vector<key>, region<Container>>, std::string>
 parse_array_table_key(location<Container>& loc)
 {
-    if(auto token = lex_array_table::invoke(loc))
+    if(auto token = lex_array_table::invoke(loc, true))
     {
         location<std::string> inner_loc(loc.name(), token.unwrap().str());
 
@@ -1590,7 +1599,8 @@ parse_array_table_key(location<Container>& loc)
     }
     else
     {
-        return err(token.unwrap_err());
+        return err(format_underline("[error] toml::parse_array_table_key: "
+            "not a valid table key", {{std::addressof(loc), "here"}}));
     }
 }
 
