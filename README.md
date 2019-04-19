@@ -980,11 +980,13 @@ I appreciate the help of the contributors who introduced the great feature to th
 - Quentin Khan (@xaxousis)
   - Found & Fixed a bug around ODR
   - Improved error messages for invaild keys to show the location where the parser fails
+- Petr Beneš (@wbenny)
+  - Fixed warnings on MSVC
 
 ## Licensing terms
 
 This product is licensed under the terms of the [MIT License](LICENSE).
 
-- Copyright (c) 2017 Toru Niina
+- Copyright (c) 2017-2019 Toru Niina
 
 All rights reserved.
