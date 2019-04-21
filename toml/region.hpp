@@ -343,7 +343,8 @@ inline std::string format_underline(const std::string& message,
         {
             // invalid
             // ~~~~~~~
-            retval << make_string(reg->size(), '~');
+            const auto underline_len = std::min(reg->size(), reg->line().size());
+            retval << make_string(underline_len, '~');
         }
 
         retval << ' ';
