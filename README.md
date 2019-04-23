@@ -618,7 +618,7 @@ add a comma after the first element (like `[1,]`).
 "[[table]]"_toml; // This is a table that has an array of tables inside.
 
 "[[1]]"_toml;     // This literal is ambiguous.
-                  // Currently, it becomes a table taht has array of table "1".
+                  // Currently, it becomes a table that has array of table "1".
 "1 = [{}]"_toml;  // This is a table that has an array of table named 1.
 "[[1,]]"_toml;    // This is an array of arrays.
 "[[1],]"_toml;    // ditto.
