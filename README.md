@@ -187,6 +187,12 @@ See also [underlying types](#underlying-types).
 
 NOTE: To enable to get a reference, conversions between Float and Integer are not supported.
 
+After C++17, you can use `std::string_view` to get a string from a `toml::value`.
+
+```cpp
+const auto sv = toml::get<std::string_view>(tab.at("key"));
+```
+
 ### In the case of type error
 
 If you pass an invalid type to `toml::get`, `toml::type_error` will be thrown.
