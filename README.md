@@ -609,9 +609,11 @@ toml::value operator""_toml(const char* str, std::size_t len);
 Access to the operator can be gained with `using namespace toml::literals;`,
 `using namespace toml::toml_literals`, and `using namespace toml::literals::toml_literals`.
 
-Note that since it allows a bare value without a key, it is difficult to distinguish
-arrays and table definitions.
-Currently, it parses `[1]` as a table definition if there are no commas.
+Note that a key that is composed only of digits is allowed in TOML.
+And, unlike the file parser, toml-literal allows a bare value without a key.
+Thus it is difficult to distinguish arrays having integers and definitions of
+tables that are named as digits.
+Currently, literal `[1]` becomes a table named "1".
 To ensure a literal to be considered as an array with one element, you need to
 add a comma after the first element (like `[1,]`).
 
@@ -621,8 +623,8 @@ add a comma after the first element (like `[1,]`).
 "[[1,2,3]]"_toml; // This is an array of arrays
 "[[table]]"_toml; // This is a table that has an array of tables inside.
 
-"[[1]]"_toml;     // This is ambiguous.
-                  // Currently, it becomes a table taht has array of table "1".
+"[[1]]"_toml;     // This literal is ambiguous.
+                  // Currently, it becomes a table that has array of table "1".
 "1 = [{}]"_toml;  // This is a table that has an array of table named 1.
 "[[1,]]"_toml;    // This is an array of arrays.
 "[[1],]"_toml;    // ditto.

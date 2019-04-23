@@ -1406,10 +1406,16 @@ parse_inline_table(location<Container>& loc)
                 return ok(std::make_pair(
                             retval, region<Container>(loc, first, loc.iter())));
             }
+            else if(*loc.iter() == '#' || *loc.iter() == '\r' || *loc.iter() == '\n')
+            {
+                throw syntax_error(format_underline("[error] "
+                    "toml::parse_inline_table: missing curly brace `}`",
+                    {{std::addressof(loc), "should be `}`"}}));
+            }
             else
             {
                 throw syntax_error(format_underline("[error] "
-                    "toml:::parse_inline_table: missing table separator `,` ",
+                    "toml::parse_inline_table: missing table separator `,` ",
                     {{std::addressof(loc), "should be `,`"}}));
             }
         }

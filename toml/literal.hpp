@@ -73,6 +73,9 @@ inline ::toml::value operator""_toml(const char* str, std::size_t len)
     if(auto data = ::toml::detail::parse_toml_file(loc))
     {
         loc.reset(loc.begin()); // rollback to the top of the literal
+        // skip needless characters for error message
+        skip_line::invoke(loc); // skip the first several needless lines
+        skip_ws::invoke(loc);   // skip the first several needless whitespaces
         return ::toml::value(std::move(data.unwrap()),
                 ::toml::detail::region<std::vector<char>>(std::move(loc)));
     }
