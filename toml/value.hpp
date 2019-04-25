@@ -607,6 +607,19 @@ class value
     template<value_t T>
     typename detail::toml_default_type<T>::type&&      cast() &&;
 
+    std::string comment() const
+    {
+        return this->region_info_->comment();
+    }
+    std::string comment_before() const
+    {
+        return this->region_info_->comment_before();
+    }
+    std::string comment_inline() const
+    {
+        return this->region_info_->comment_inline();
+    }
+
   private:
 
     void cleanup() noexcept
