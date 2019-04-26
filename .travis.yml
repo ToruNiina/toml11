@@ -5,7 +5,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-5"
+    env: COMPILER="g++-5" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -16,7 +16,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-6"
+    env: COMPILER="g++-6" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -27,7 +27,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-7"
+    env: COMPILER="g++-7" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -38,7 +38,18 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-8"
+    env: COMPILER="g++-8" CXX_STANDARD=11
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-8
+        - libboost-all-dev
+  - os: linux
+    language: cpp
+    compiler: gcc
+    env: COMPILER="g++-8" CXX_STANDARD=17
     addons:
       apt:
         sources:
@@ -49,7 +60,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-3.7"
+    env: COMPILER="clang++-3.7" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -61,7 +72,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-4.0"
+    env: COMPILER="clang++-4.0" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -73,7 +84,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-5.0"
+    env: COMPILER="clang++-5.0" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -85,7 +96,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-6.0"
+    env: COMPILER="clang++-6.0" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -97,7 +108,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-7"
+    env: COMPILER="clang++-7" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -109,7 +120,19 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-8"
+    env: COMPILER="clang++-8" CXX_STANDARD=11
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-8
+        packages:
+        - clang-8
+        - libboost-all-dev
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-8" CXX_STANDARD=17
     addons:
       apt:
         sources:
@@ -123,9 +146,19 @@ matrix:
     compiler: clang
 
 script:
+- |
+  if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+    mkdir -p cmake
+    travis_retry wget "https://cmake.org/files/v3.11/cmake-3.11.2-Linux-x86_64.tar.gz"
+    tar xf cmake-3.11.2-Linux-x86_64.tar.gz -C cmake --strip-components=1
+    export PATH=${TRAVIS_BUILD_DIR}/cmake/bin:${PATH}
+  else
+    brew upgrade cmake
+  fi
+- cmake --version
 - mkdir build
 - cd build
 - git clone https://github.com/toml-lang/toml.git
-- cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
+- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD ..
 - make
 - ctest --output-on-failure
