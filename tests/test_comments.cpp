@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(test_comment_inline)
                 "bar",
             ]
             c = [
-                3.14,
+                3.14, # this is not a comment for c, but 3.14.
             ] # comment for c.
         )"_toml;
 
@@ -95,8 +95,10 @@ BOOST_AUTO_TEST_CASE(test_comment_inline)
 # this also.)");
         BOOST_CHECK_EQUAL(toml::find(v, "b").comment(), u8"# comment for b.");
         BOOST_CHECK_EQUAL(toml::find(v, "c").comment(), u8"# comment for c.");
-    }
 
+        const auto& c0 = toml::find<toml::array>(v, "c").at(0);
+        BOOST_CHECK_EQUAL(c0.comment(), u8"# this is not a comment for c, but 3.14.");
+    }
 }
 
 BOOST_AUTO_TEST_CASE(test_comment_both)
