@@ -362,7 +362,7 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::Boolean>(), true);
 
 #if __cplusplus >= 201703L
-    std::string_view sv = "foo"
+    std::string_view sv = "foo";
 
     toml::value v7(sv);
     toml::value v8(sv, toml::string_t::literal);
@@ -376,8 +376,8 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     BOOST_CHECK(v7.is_string());
     BOOST_CHECK(v8.is_string());
 
-    BOOST_CHECK_EQUAL(v7.cast<toml::value_t::String>(), sv);
-    BOOST_CHECK_EQUAL(v8.cast<toml::value_t::String>(), sv);
+    BOOST_CHECK_EQUAL(v7.cast<toml::value_t::String>(), "foo");
+    BOOST_CHECK_EQUAL(v8.cast<toml::value_t::String>(), "foo");
 #endif
 }
 
