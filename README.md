@@ -500,9 +500,9 @@ You can check what type of value does `toml::value` contains by `is_*` function.
 
 ```cpp
 toml::value v = /* ... */;
-if(v.is_integer() && toml::get<int>(v) == 42)
+if(v.is_integer())
 {
-    std::cout << "value is 42" << std::endl;
+    std::cout << "value is an integer" << std::endl;
 }
 ```
 
@@ -544,6 +544,36 @@ The `enum`s can be used as a parameter of `toml::value::is` function like the fo
 ```cpp
 toml::value v = /* ... */;
 if(v.is(toml::value_t::Boolean)) // ...
+```
+
+## Casting value
+
+So far, `toml::get` is introduced, but if you don't need any type conversion,
+`as_*` is simpler to use.
+
+```cpp
+toml::value v = /* ... */;
+if(v.is_integer() && v.as_integer() == 42)
+{
+    std::cout << "value is 42" << std::endl;
+}
+```
+
+The complete list of the functions is below.
+
+```cpp
+const toml::value v(/*...*/);
+v.as_boolean();
+v.as_integer();
+v.as_float();
+v.as_string();
+v.as_offset_datetime();
+v.as_local_datetime();
+v.as_local_date();
+v.as_local_time();
+v.as_array();
+v.as_table();
+v.as_uninitialized();
 ```
 
 ## Visiting a toml::value
