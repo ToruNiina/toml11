@@ -4,6 +4,11 @@
 #define TOML11_STRING_HPP
 #include <string>
 #include <cstdint>
+#if __cplusplus >= 201703L
+#if __has_include(<string_view>)
+#include <string_view>
+#endif
+#endif
 
 namespace toml
 {
@@ -39,6 +44,17 @@ struct string
     operator std::string&       () &      noexcept {return str;}
     operator std::string const& () const& noexcept {return str;}
     operator std::string&&      () &&     noexcept {return std::move(str);}
+
+#if __cplusplus >= 201703L
+    explicit string(std::string_view s): kind(string_t::basic), str(s){}
+    string(std::string_view s, string_t k): kind(k), str(s){}
+
+    string& operator=(std::string_view s)
+    {kind = string_t::basic; str = s; return *this;}
+
+    explicit operator std::string_view() const noexcept
+    {return std::string_view(str);}
+#endif
 
     string_t    kind;
     std::string str;

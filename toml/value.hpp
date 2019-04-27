@@ -14,6 +14,9 @@
 #include <unordered_map>
 #include <cassert>
 #include <cstdint>
+#if __cplusplus >= 201703L
+#include <string_view>
+#endif
 
 namespace toml
 {
@@ -292,6 +295,29 @@ class value
     {
         assigner(this->string_, toml::string(std::string(s), kind));
     }
+
+#if __cplusplus >= 201703L
+    value(std::string_view s)
+        : type_(value_t::String),
+          region_info_(std::make_shared<region_base>(region_base{}))
+    {
+        assigner(this->string_, toml::string(s));
+    }
+    value& operator=(std::string_view s)
+    {
+        this->cleanup();
+        this->type_ = value_t::String;
+        this->region_info_ = std::make_shared<region_base>(region_base{});
+        assigner(this->string_, toml::string(s));
+        return *this;
+    }
+    value(std::string_view s, string_t kind)
+        : type_(value_t::String),
+          region_info_(std::make_shared<region_base>(region_base{}))
+    {
+        assigner(this->string_, toml::string(s, kind));
+    }
+#endif
 
     // local date ===========================================================
 

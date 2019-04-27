@@ -7,6 +7,11 @@
 #include "traits.hpp"
 #include <vector>
 #include <unordered_map>
+#if __cplusplus >= 201703L
+#if __has_include(<string_view>)
+#include <string_view>
+#endif
+#endif
 
 namespace toml
 {
@@ -172,6 +177,9 @@ template<typename T>
 struct is_container : conjunction<
     negation<is_map<T>>,
     negation<std::is_same<T, std::string>>,
+#if __cplusplus >= 201703L
+    negation<std::is_same<T, std::string_view>>,
+#endif
     has_iterator<T>,
     has_value_type<T>
     >{};

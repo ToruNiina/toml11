@@ -9,6 +9,11 @@
 #include <map>
 #include <list>
 
+#if __cplusplus >= 201703L
+#include <string_view>
+#endif
+
+
 BOOST_AUTO_TEST_CASE(test_value_boolean)
 {
     toml::value v1(true);
@@ -355,6 +360,25 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::Boolean>(), true);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::Boolean>(), true);
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::Boolean>(), true);
+
+#if __cplusplus >= 201703L
+    std::string_view sv = "foo";
+
+    toml::value v7(sv);
+    toml::value v8(sv, toml::string_t::literal);
+
+    BOOST_CHECK_EQUAL(v7.type(), toml::value_t::String);
+    BOOST_CHECK_EQUAL(v8.type(), toml::value_t::String);
+    BOOST_CHECK(v7.is(toml::value_t::String));
+    BOOST_CHECK(v8.is(toml::value_t::String));
+    BOOST_CHECK(v7.is<toml::String>());
+    BOOST_CHECK(v8.is<toml::String>());
+    BOOST_CHECK(v7.is_string());
+    BOOST_CHECK(v8.is_string());
+
+    BOOST_CHECK_EQUAL(v7.cast<toml::value_t::String>(), "foo");
+    BOOST_CHECK_EQUAL(v8.cast<toml::value_t::String>(), "foo");
+#endif
 }
 
 BOOST_AUTO_TEST_CASE(test_value_local_date)
