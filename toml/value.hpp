@@ -607,6 +607,28 @@ class value
     template<value_t T>
     typename detail::toml_default_type<T>::type&&      cast() &&;
 
+    boolean         const& as_boolean()         const {return this->cast<value_t::Boolean       >();}
+    integer         const& as_integer()         const {return this->cast<value_t::Integer       >();}
+    floating        const& as_floating()        const {return this->cast<value_t::Float         >();}
+    string          const& as_string()          const {return this->cast<value_t::String        >();}
+    offset_datetime const& as_offset_datetime() const {return this->cast<value_t::OffsetDatetime>();}
+    local_datetime  const& as_local_datetime()  const {return this->cast<value_t::LocalDatetime >();}
+    local_date      const& as_local_date()      const {return this->cast<value_t::LocalDate     >();}
+    local_time      const& as_local_time()      const {return this->cast<value_t::LocalTime     >();}
+    array           const& as_array()           const {return this->cast<value_t::Array         >();}
+    table           const& as_table()           const {return this->cast<value_t::Table         >();}
+
+    boolean&          as_boolean()         {return this->cast<value_t::Boolean       >();}
+    integer&          as_integer()         {return this->cast<value_t::Integer       >();}
+    floating&         as_floating()        {return this->cast<value_t::Float         >();}
+    string&           as_string()          {return this->cast<value_t::String        >();}
+    offset_datetime&  as_offset_datetime() {return this->cast<value_t::OffsetDatetime>();}
+    local_datetime&   as_local_datetime()  {return this->cast<value_t::LocalDatetime >();}
+    local_date&       as_local_date()      {return this->cast<value_t::LocalDate     >();}
+    local_time&       as_local_time()      {return this->cast<value_t::LocalTime     >();}
+    array&            as_array()           {return this->cast<value_t::Array         >();}
+    table&            as_table()           {return this->cast<value_t::Table         >();}
+
   private:
 
     void cleanup() noexcept
