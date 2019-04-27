@@ -140,6 +140,7 @@ matrix:
         - llvm-toolchain-trusty-8
         packages:
         - clang-8
+        - g++-8
         - libboost-all-dev
   - os: osx
     language: cpp
