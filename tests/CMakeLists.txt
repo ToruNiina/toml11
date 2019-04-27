@@ -21,6 +21,7 @@ set(TEST_NAMES
     test_parse_key
     test_parse_table_key
     test_literals
+    test_comments
     test_get
     test_get_related_func
     test_from_toml

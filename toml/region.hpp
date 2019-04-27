@@ -52,6 +52,14 @@ struct region_base
     virtual std::size_t before()   const noexcept {return 0;}
     // number of characters in the line after the region
     virtual std::size_t after()    const noexcept {return 0;}
+
+    virtual std::string comment_before() const {return "";} // just before
+    virtual std::string comment_inline() const {return "";} // in the same line
+    virtual std::string comment()        const {return "";} // concatenate
+    // ```toml
+    // # comment_before
+    // key = "value" # comment_inline
+    // ```
 };
 
 // location represents a position in a container, which contains a file content.
@@ -279,6 +287,92 @@ struct region final : public region_base
     source_ptr&&      source() &&     noexcept {return std::move(source_);}
 
     std::string name() const override {return source_name_;}
+
+    std::string comment_before() const override
+    {
+        auto iter = this->line_begin(); // points the first element
+        std::vector<std::pair<decltype(iter), decltype(iter)>> comments;
+        while(iter != this->begin())
+        {
+            iter = std::prev(iter);
+            using rev_iter = std::reverse_iterator<decltype(iter)>;
+            auto line_before = std::find(rev_iter(iter), rev_iter(this->begin()),
+                                         '\n').base();
+            // range [line_before, iter) represents the previous line
+
+            auto comment_found = std::find(line_before, iter, '#');
+            if(iter != comment_found && std::all_of(line_before, comment_found,
+                    [](const char c) noexcept -> bool {
+                        return c == ' ' || c == '\t';
+                    }))
+            {
+                // the line before this range contains only a comment.
+                comments.push_back(std::make_pair(comment_found, iter));
+            }
+            else
+            {
+                break;
+            }
+            iter = line_before;
+        }
+
+        std::string com;
+        for(auto i = comments.crbegin(), e = comments.crend(); i!=e; ++i)
+        {
+            if(i != comments.crbegin()) {com += '\n';}
+            com += std::string(i->first, i->second);
+        }
+        return com;
+    }
+
+    std::string comment_inline() const override
+    {
+        if(this->contain_newline())
+        {
+            std::string com;
+            // check both the first and the last line.
+            const auto first_line_end =
+                std::find(this->line_begin(), this->last(), '\n');
+            const auto first_comment_found =
+                std::find(this->line_begin(), first_line_end, '#');
+
+            if(first_comment_found != first_line_end)
+            {
+                com += std::string(first_comment_found, first_line_end);
+            }
+
+            const auto last_comment_found =
+                std::find(this->last(), this->line_end(), '#');
+            if(last_comment_found != this->line_end())
+            {
+                if(!com.empty()){com += '\n';}
+                com += std::string(last_comment_found, this->line_end());
+            }
+            return com;
+        }
+        const auto comment_found =
+            std::find(this->line_begin(), this->line_end(), '#');
+        return std::string(comment_found, this->line_end());
+    }
+
+    std::string comment() const override
+    {
+        std::string com_bef = this->comment_before();
+        std::string com_inl = this->comment_inline();
+        if(!com_bef.empty() && !com_inl.empty())
+        {
+            com_bef += '\n';
+            return com_bef + com_inl;
+        }
+        else if(com_bef.empty())
+        {
+            return com_inl;
+        }
+        else
+        {
+            return com_bef;
+        }
+    }
 
   private:
 

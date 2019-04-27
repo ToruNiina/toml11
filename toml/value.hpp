@@ -629,6 +629,19 @@ class value
     array&            as_array()           {return this->cast<value_t::Array         >();}
     table&            as_table()           {return this->cast<value_t::Table         >();}
 
+    std::string comment() const
+    {
+        return this->region_info_->comment();
+    }
+    std::string comment_before() const
+    {
+        return this->region_info_->comment_before();
+    }
+    std::string comment_inline() const
+    {
+        return this->region_info_->comment_inline();
+    }
+
   private:
 
     void cleanup() noexcept

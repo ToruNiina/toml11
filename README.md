@@ -63,6 +63,7 @@ int main()
 - [Conversion between toml value and arbitrary types](#conversion-between-toml-value-and-arbitrary-types)
 - [Invalid UTF-8 Codepoints](#invalid-utf-8-codepoints)
 - [Formatting user-defined error messages](#formatting-user-defined-error-messages)
+- [Getting comments related to a value](#getting-comments)
 - [Serializing TOML data](#serializing-toml-data)
 - [Underlying types](#underlying-types)
 - [Running Tests](#running-tests)
@@ -860,6 +861,53 @@ you will get an error message like this.
  4 | max = 42
    |       ~~ maximum number here
 ```
+
+## Getting comments
+
+Since toml11 keeps a file data until all the values are destructed, you can
+also extract a comment related to a value by calling `toml::value::comment()`.
+
+If there is a comment just after a value (within the same line), you can get
+the specific comment by `toml::value::comment_inline()`.
+
+If there are comments just before a value (without any newline between them),
+you can get the comments by `toml::value::comment_before()`.
+
+`toml::value::comment()` returns the results of both functions after
+concatenating them.
+
+```toml
+a = 42 # comment for a.
+
+# comment for b.
+# this is also a comment for b.
+b = "foo"
+
+c = [ # comment for c.
+    3.14, # this is not a comment for c, but for 3.14.
+] # this is also a comment for c.
+```
+
+```cpp
+// "# comment for a."
+const std::string com1 = toml::find(data, "a").comment();
+
+// "# comment for b."
+const std::string com2 = toml::find(data, "b").comment();
+
+// "# comment for c.\n# this is also a comment for c."
+const std::string com3 = toml::find(data, "c").comment();
+
+// "# this is not a comment for c, but for 3.14."
+const std::string com3 = toml::find<toml::array>(data, "c").front().comment();
+```
+
+Note that once a data in a value is modified, the related file region
+information would be deleted. Thus after modifying a data, you cannot find any
+comments.
+
+Also note that currently it does not support any way to set a comment to a value.
+And currently, serializer does not take comments into account.
 
 ## Serializing TOML data
 
