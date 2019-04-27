@@ -12,6 +12,9 @@
 #include <list>
 #include <deque>
 #include <array>
+#if __cplusplus >= 201703L
+#include <string_view>
+#endif
 
 
 BOOST_AUTO_TEST_CASE(test_get_exact)
@@ -166,6 +169,17 @@ BOOST_AUTO_TEST_CASE(test_get_string_type)
         toml::get<std::string>(v) += "bar";
         BOOST_CHECK_EQUAL("foobar", toml::get<std::string>(v));
     }
+
+#if __cplusplus >= 201703L
+    {
+        toml::value v("foo", toml::string_t::basic);
+        BOOST_CHECK_EQUAL("foo", toml::get<std::string_view>(v));
+    }
+    {
+        toml::value v("foo", toml::string_t::literal);
+        BOOST_CHECK_EQUAL("foo", toml::get<std::string_view>(v));
+    }
+#endif
 }
 
 BOOST_AUTO_TEST_CASE(test_get_toml_array)

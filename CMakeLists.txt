@@ -4,7 +4,10 @@ project(toml11)
 
 include(CheckCXXCompilerFlag)
 if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
-    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+    if(NOT DEFINED CMAKE_CXX_STANDARD)
+        set(CMAKE_CXX_STANDARD 11)
+    endif()
     set(CXX_STANDARD_REQUIRED ON)
 else()
     # Manually check for C++11 compiler flag.

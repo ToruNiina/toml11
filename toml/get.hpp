@@ -109,6 +109,18 @@ inline std::string get(value&& v)
 }
 
 // ============================================================================
+// std::string_view
+
+#if __cplusplus >= 201703L
+template<typename T, typename std::enable_if<
+    std::is_same<T, std::string_view>::value, std::nullptr_t>::type = nullptr>
+inline std::string_view get(const value& v)
+{
+    return std::string_view(v.cast<value_t::String>().str);
+}
+#endif
+
+// ============================================================================
 // std::chrono::duration from toml::local_time.
 
 template<typename T, typename std::enable_if<
