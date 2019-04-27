@@ -609,7 +609,7 @@ class value
 
     boolean         const& as_boolean()         const {return this->cast<value_t::Boolean       >();}
     integer         const& as_integer()         const {return this->cast<value_t::Integer       >();}
-    floating        const& as_floating()        const {return this->cast<value_t::Float         >();}
+    floating        const& as_float()           const {return this->cast<value_t::Float         >();}
     string          const& as_string()          const {return this->cast<value_t::String        >();}
     offset_datetime const& as_offset_datetime() const {return this->cast<value_t::OffsetDatetime>();}
     local_datetime  const& as_local_datetime()  const {return this->cast<value_t::LocalDatetime >();}
@@ -620,7 +620,7 @@ class value
 
     boolean&          as_boolean()         {return this->cast<value_t::Boolean       >();}
     integer&          as_integer()         {return this->cast<value_t::Integer       >();}
-    floating&         as_floating()        {return this->cast<value_t::Float         >();}
+    floating&         as_float()           {return this->cast<value_t::Float         >();}
     string&           as_string()          {return this->cast<value_t::String        >();}
     offset_datetime&  as_offset_datetime() {return this->cast<value_t::OffsetDatetime>();}
     local_datetime&   as_local_datetime()  {return this->cast<value_t::LocalDatetime >();}
