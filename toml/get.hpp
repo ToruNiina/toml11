@@ -559,67 +559,6 @@ T get_or(const toml::value& v, T&& opt)
 }
 
 // ===========================================================================
-// get_or(table, key, fallback)
-//
-// DEPRECATED: use find_or instead.
-
-template<typename T>
-TOML11_MARK_AS_DEPRECATED("use toml::find_or(table, key, opt) instead.")
-auto get_or(const toml::table& tab, const toml::key& ky, T&& opt)
-    -> decltype(get_or(std::declval<value const&>(), std::forward<T>(opt)))
-{
-    if(tab.count(ky) == 0) {return opt;}
-    return ::toml::get_or(tab.at(ky), std::forward<T>(opt));
-}
-template<typename T>
-TOML11_MARK_AS_DEPRECATED("use toml::find_or(table, key, opt) instead.")
-auto get_or(toml::table& tab, const toml::key& ky, T&& opt)
-    -> decltype(get_or(std::declval<value&>(), std::forward<T>(opt)))
-{
-    if(tab.count(ky) == 0) {return opt;}
-    return ::toml::get_or(tab[ky], std::forward<T>(opt));
-}
-template<typename T>
-TOML11_MARK_AS_DEPRECATED("use toml::find_or(table, key, opt) instead.")
-auto get_or(toml::table&& tab, const toml::key& ky, T&& opt)
-    -> decltype(get_or(std::declval<value&&>(), std::forward<T>(opt)))
-{
-    if(tab.count(ky) == 0) {return opt;}
-    return ::toml::get_or(std::move(tab[ky]), std::forward<T>(opt));
-}
-
-template<typename T>
-TOML11_MARK_AS_DEPRECATED("use toml::find_or(value, key, opt) instead.")
-auto get_or(const toml::value& v, const toml::key& ky, T&& opt)
-    -> decltype(get_or(std::declval<value const&>(), std::forward<T>(opt)))
-{
-    if(!v.is_table()) {return opt;}
-    const auto& tab = toml::get<toml::table>(v);
-    if(tab.count(ky) == 0) {return opt;}
-    return ::toml::get_or(tab.at(ky), std::forward<T>(opt));
-}
-template<typename T>
-TOML11_MARK_AS_DEPRECATED("use toml::find_or(value, key, opt) instead.")
-auto get_or(toml::value& v, const toml::key& ky, T&& opt)
-    -> decltype(get_or(std::declval<value&>(), std::forward<T>(opt)))
-{
-    if(!v.is_table()) {return opt;}
-    auto& tab = toml::get<toml::table>(v);
-    if(tab.count(ky) == 0) {return opt;}
-    return ::toml::get_or(tab[ky], std::forward<T>(opt));
-}
-template<typename T>
-TOML11_MARK_AS_DEPRECATED("use toml::find_or(value, key, opt) instead.")
-auto get_or(toml::value&& v, const toml::key& ky, T&& opt)
-    -> decltype(get_or(std::declval<value&&>(), std::forward<T>(opt)))
-{
-    if(!v.is_table()) {return opt;}
-    auto tab = toml::get<toml::table>(std::move(v));
-    if(tab.count(ky) == 0) {return opt;}
-    return ::toml::get_or(std::move(tab[ky]), std::forward<T>(opt));
-}
-
-// ===========================================================================
 // find_or(value, key, fallback)
 
 // ---------------------------------------------------------------------------
