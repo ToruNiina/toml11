@@ -353,15 +353,15 @@ struct local_datetime
     explicit local_datetime(const std::chrono::system_clock::time_point& tp)
     {
         const auto t = std::chrono::system_clock::to_time_t(tp);
-        std::tm time = detail::localtime_s(&t);
+        std::tm ltime = detail::localtime_s(&t);
 
-        this->date = local_date(time);
-        this->time = local_time(time);
+        this->date = local_date(ltime);
+        this->time = local_time(ltime);
 
         // std::tm lacks subsecond information, so diff between tp and tm
         // can be used to get millisecond & microsecond information.
         const auto t_diff = tp -
-            std::chrono::system_clock::from_time_t(std::mktime(&time));
+            std::chrono::system_clock::from_time_t(std::mktime(&ltime));
         this->time.millisecond = static_cast<std::uint16_t>(
           std::chrono::duration_cast<std::chrono::milliseconds>(t_diff).count());
         this->time.microsecond = static_cast<std::uint16_t>(

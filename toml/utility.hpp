@@ -79,7 +79,7 @@ std::string concat_to_string(Ts&& ... args)
 template<typename T, typename U>
 T from_string(const std::string& str, U&& opt)
 {
-    T v(std::forward<U>(opt));
+    T v(static_cast<T>(std::forward<U>(opt)));
     std::istringstream iss(str);
     iss >> v;
     return v;
