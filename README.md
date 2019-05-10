@@ -1068,6 +1068,8 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Improved error messages for invaild keys to show the location where the parser fails
 - Petr Beneš (@wbenny)
   - Fixed warnings on MSVC
+- Ivan Shynkarenka (@chronoxor)
+  - Fixed Visual Studio 2019 warnings
 
 ## Licensing terms
 
