@@ -48,6 +48,7 @@ class value
     {
         const auto tmp = ::new(std::addressof(dst)) T(std::forward<U>(v));
         assert(tmp == std::addressof(dst));
+        (void)tmp;
     }
 
     using region_base = detail::region_base;

@@ -113,21 +113,25 @@ struct result
     {
         auto tmp = ::new(std::addressof(this->succ)) success_type(s);
         assert(tmp == std::addressof(this->succ));
+        (void)tmp;
     }
     result(const failure_type& f): is_ok_(false)
     {
         auto tmp = ::new(std::addressof(this->fail)) failure_type(f);
         assert(tmp == std::addressof(this->fail));
+        (void)tmp;
     }
     result(success_type&& s): is_ok_(true)
     {
         auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(s));
         assert(tmp == std::addressof(this->succ));
+        (void)tmp;
     }
     result(failure_type&& f): is_ok_(false)
     {
         auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(f));
         assert(tmp == std::addressof(this->fail));
+        (void)tmp;
     }
 
     template<typename U>
@@ -135,24 +139,28 @@ struct result
     {
         auto tmp = ::new(std::addressof(this->succ)) success_type(s.value);
         assert(tmp == std::addressof(this->succ));
+        (void)tmp;
     }
     template<typename U>
     result(const failure<U>& f): is_ok_(false)
     {
         auto tmp = ::new(std::addressof(this->fail)) failure_type(f.value);
         assert(tmp == std::addressof(this->fail));
+        (void)tmp;
     }
     template<typename U>
     result(success<U>&& s): is_ok_(true)
     {
         auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(s.value));
         assert(tmp == std::addressof(this->succ));
+        (void)tmp;
     }
     template<typename U>
     result(failure<U>&& f): is_ok_(false)
     {
         auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(f.value));
         assert(tmp == std::addressof(this->fail));
+        (void)tmp;
     }
 
     result& operator=(const success_type& s)
@@ -161,6 +169,7 @@ struct result
         this->is_ok_ = true;
         auto tmp = ::new(std::addressof(this->succ)) success_type(s);
         assert(tmp == std::addressof(this->succ));
+        (void)tmp;
         return *this;
     }
     result& operator=(const failure_type& f)
@@ -169,6 +178,7 @@ struct result
         this->is_ok_ = false;
         auto tmp = ::new(std::addressof(this->fail)) failure_type(f);
         assert(tmp == std::addressof(this->fail));
+        (void)tmp;
         return *this;
     }
     result& operator=(success_type&& s)
@@ -177,6 +187,7 @@ struct result
         this->is_ok_ = true;
         auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(s));
         assert(tmp == std::addressof(this->succ));
+        (void)tmp;
         return *this;
     }
     result& operator=(failure_type&& f)
@@ -185,6 +196,7 @@ struct result
         this->is_ok_ = false;
         auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(f));
         assert(tmp == std::addressof(this->fail));
+        (void)tmp;
         return *this;
     }
 
@@ -195,6 +207,7 @@ struct result
         this->is_ok_ = true;
         auto tmp = ::new(std::addressof(this->succ)) success_type(s.value);
         assert(tmp == std::addressof(this->succ));
+        (void)tmp;
         return *this;
     }
     template<typename U>
@@ -204,6 +217,7 @@ struct result
         this->is_ok_ = false;
         auto tmp = ::new(std::addressof(this->fail)) failure_type(f.value);
         assert(tmp == std::addressof(this->fail));
+        (void)tmp;
         return *this;
     }
     template<typename U>
@@ -213,6 +227,7 @@ struct result
         this->is_ok_ = true;
         auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(s.value));
         assert(tmp == std::addressof(this->succ));
+        (void)tmp;
         return *this;
     }
     template<typename U>
@@ -222,6 +237,7 @@ struct result
         this->is_ok_ = false;
         auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(f.value));
         assert(tmp == std::addressof(this->fail));
+        (void)tmp;
         return *this;
     }
 
@@ -233,11 +249,13 @@ struct result
         {
             auto tmp = ::new(std::addressof(this->succ)) success_type(other.as_ok());
             assert(tmp == std::addressof(this->succ));
+            (void)tmp;
         }
         else
         {
             auto tmp = ::new(std::addressof(this->fail)) failure_type(other.as_err());
             assert(tmp == std::addressof(this->fail));
+            (void)tmp;
         }
     }
     result(result&& other): is_ok_(other.is_ok())
@@ -246,11 +264,13 @@ struct result
         {
             auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
             assert(tmp == std::addressof(this->succ));
+            (void)tmp;
         }
         else
         {
             auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
             assert(tmp == std::addressof(this->fail));
+            (void)tmp;
         }
     }
 
@@ -261,11 +281,13 @@ struct result
         {
             auto tmp = ::new(std::addressof(this->succ)) success_type(other.as_ok());
             assert(tmp == std::addressof(this->succ));
+            (void)tmp;
         }
         else
         {
             auto tmp = ::new(std::addressof(this->fail)) failure_type(other.as_err());
             assert(tmp == std::addressof(this->fail));
+            (void)tmp;
         }
     }
     template<typename U, typename F>
@@ -275,11 +297,13 @@ struct result
         {
             auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
             assert(tmp == std::addressof(this->succ));
+            (void)tmp;
         }
         else
         {
             auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
             assert(tmp == std::addressof(this->fail));
+            (void)tmp;
         }
     }
 
@@ -290,11 +314,13 @@ struct result
         {
             auto tmp = ::new(std::addressof(this->succ)) success_type(other.as_ok());
             assert(tmp == std::addressof(this->succ));
+            (void)tmp;
         }
         else
         {
             auto tmp = ::new(std::addressof(this->fail)) failure_type(other.as_err());
             assert(tmp == std::addressof(this->fail));
+            (void)tmp;
         }
         is_ok_ = other.is_ok();
         return *this;
@@ -306,11 +332,13 @@ struct result
         {
             auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
             assert(tmp == std::addressof(this->succ));
+            (void)tmp;
         }
         else
         {
             auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
             assert(tmp == std::addressof(this->fail));
+            (void)tmp;
         }
         is_ok_ = other.is_ok();
         return *this;
@@ -324,11 +352,13 @@ struct result
         {
             auto tmp = ::new(std::addressof(this->succ)) success_type(other.as_ok());
             assert(tmp == std::addressof(this->succ));
+            (void)tmp;
         }
         else
         {
             auto tmp = ::new(std::addressof(this->fail)) failure_type(other.as_err());
             assert(tmp == std::addressof(this->fail));
+            (void)tmp;
         }
         is_ok_ = other.is_ok();
         return *this;
@@ -341,11 +371,13 @@ struct result
         {
             auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
             assert(tmp == std::addressof(this->succ));
+            (void)tmp;
         }
         else
         {
             auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
             assert(tmp == std::addressof(this->fail));
+            (void)tmp;
         }
         is_ok_ = other.is_ok();
         return *this;

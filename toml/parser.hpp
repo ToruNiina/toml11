@@ -1363,7 +1363,7 @@ parse_inline_table(location<Container>& loc)
     table retval;
     if(!(loc.iter() != loc.end() && *loc.iter() == '{'))
     {
-        return err(format_underline("[error] toml::parse_inline_table: ", 
+        return err(format_underline("[error] toml::parse_inline_table: ",
             {{std::addressof(loc), "the next token is not an inline table"}}));
     }
     loc.advance();
@@ -1672,12 +1672,12 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
         const auto newline = skip_line::invoke(loc);
         if(!newline && loc.iter() != loc.end())
         {
-            const auto before = loc.iter();
+            const auto before2 = loc.iter();
             lex_ws::invoke(loc); // skip whitespace
             const auto msg = format_underline("[error] toml::parse_table: "
                 "invalid line format", {{std::addressof(loc), concat_to_string(
                 "expected newline, but got '", show_char(*loc.iter()), "'.")}});
-            loc.reset(before);
+            loc.reset(before2);
             return err(msg);
         }
 
