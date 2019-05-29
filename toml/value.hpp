@@ -744,6 +744,16 @@ void change_region(value& v, Region&& reg)
     return;
 }
 
+template<value_t Expected>
+[[noreturn]] inline void throw_bad_cast(value_t actual, const ::toml::value& v)
+{
+    throw type_error(detail::format_underline(concat_to_string(
+        "[error] toml::value bad_cast to ", Expected), {
+            {std::addressof(get_region(v)),
+             concat_to_string("the actual type is ", actual)}
+        }));
+}
+
 template<value_t T>
 struct switch_cast;
 template<>
@@ -823,11 +833,7 @@ typename detail::toml_default_type<T>::type& value::cast() &
 {
     if(T != this->type_)
     {
-        throw type_error(detail::format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), {
-                {this->region_info_.get(),
-                 concat_to_string("the actual type is ", this->type_)}
-            }));
+        detail::throw_bad_cast<T>(this->type_, *this);
     }
     return detail::switch_cast<T>::invoke(*this);
 }
@@ -836,11 +842,7 @@ typename detail::toml_default_type<T>::type const& value::cast() const&
 {
     if(T != this->type_)
     {
-        throw type_error(detail::format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), {
-                {this->region_info_.get(),
-                 concat_to_string("the actual type is ", this->type_)}
-            }));
+        detail::throw_bad_cast<T>(this->type_, *this);
     }
     return detail::switch_cast<T>::invoke(*this);
 }
@@ -849,11 +851,7 @@ typename detail::toml_default_type<T>::type&&      value::cast() &&
 {
     if(T != this->type_)
     {
-        throw type_error(detail::format_underline(concat_to_string(
-            "[error] toml::value bad_cast to ", T), {
-                {this->region_info_.get(),
-                 concat_to_string("the actual type is ", this->type_)}
-             }));
+        detail::throw_bad_cast<T>(this->type_, *this);
     }
     return detail::switch_cast<T>::invoke(std::move(*this));
 }
