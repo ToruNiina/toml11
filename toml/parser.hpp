@@ -1167,7 +1167,7 @@ insert_nested_key(table& root, const toml::value& v,
             {
                 if(tab->count(k) == 1) // there is already an array of table
                 {
-                    if(tab->at(k).is(value_t::Table))
+                    if(tab->at(k).is_table())
                     {
                         // show special err msg for conflicting table
                         throw syntax_error(format_underline(concat_to_string(
@@ -1180,7 +1180,7 @@ insert_nested_key(table& root, const toml::value& v,
                                  "this conflicts with the previous table"}
                             }));
                     }
-                    else if(!(tab->at(k).is(value_t::Array)))
+                    else if(!(tab->at(k).is_array()))
                     {
                         throw syntax_error(format_underline(concat_to_string(
                             "[error] toml::insert_value: array of table (\"",
@@ -1193,8 +1193,9 @@ insert_nested_key(table& root, const toml::value& v,
                                  "while inserting this array-of-tables"}
                             }));
                     }
-                    array& a = tab->at(k).template cast<toml::value_t::Array>();
-                    if(!(a.front().is(value_t::Table)))
+                    // the above if-else-if checks tab->at(k) is an array
+                    array& a = tab->at(k).as_array();
+                    if(!(a.front().is_table()))
                     {
                         throw syntax_error(format_underline(concat_to_string(
                             "[error] toml::insert_value: array of table (\"",
@@ -1248,7 +1249,7 @@ insert_nested_key(table& root, const toml::value& v,
 
             if(tab->count(k) == 1)
             {
-                if(tab->at(k).is(value_t::Table) && v.is(value_t::Table))
+                if(tab->at(k).is_table() && v.is_table())
                 {
                     if(!is_valid_forward_table_definition(
                                 tab->at(k), first, iter, last))
@@ -1268,18 +1269,18 @@ insert_nested_key(table& root, const toml::value& v,
                     // d = 42
                     // [a]
                     // e = 2.71
-                    auto& t = tab->at(k).cast<value_t::Table>();
-                    for(const auto& kv : v.cast<value_t::Table>())
+                    auto& t = tab->at(k).as_table();
+                    for(const auto& kv : v.as_table())
                     {
                         t[kv.first] = kv.second;
                     }
                     detail::change_region(tab->at(k), key_reg);
                     return ok(true);
                 }
-                else if(v.is(value_t::Table)                          &&
-                        tab->at(k).is(value_t::Array)                 &&
-                        tab->at(k).cast<value_t::Array>().size() > 0  &&
-                        tab->at(k).cast<value_t::Array>().front().is(value_t::Table))
+                else if(v.is_table()                     &&
+                        tab->at(k).is_array()            &&
+                        tab->at(k).as_array().size() > 0 &&
+                        tab->at(k).as_array().front().is_table())
                 {
                     throw syntax_error(format_underline(concat_to_string(
                         "[error] toml::insert_value: array of tables (\"",
@@ -1319,14 +1320,14 @@ insert_nested_key(table& root, const toml::value& v,
             }
 
             // type checking...
-            if(tab->at(k).is(value_t::Table))
+            if(tab->at(k).is_table())
             {
-                tab = std::addressof((*tab)[k].template cast<value_t::Table>());
+                tab = std::addressof((*tab)[k].as_table());
             }
-            else if(tab->at(k).is(value_t::Array)) // inserting to array-of-tables?
+            else if(tab->at(k).is_array()) // inserting to array-of-tables?
             {
-                array& a = (*tab)[k].template cast<value_t::Array>();
-                if(!a.back().is(value_t::Table))
+                array& a = (*tab)[k].as_array();
+                if(!a.back().is_table())
                 {
                     throw syntax_error(format_underline(concat_to_string(
                         "[error] toml::insert_value: target (",
@@ -1337,7 +1338,7 @@ insert_nested_key(table& root, const toml::value& v,
                             {std::addressof(get_region(v)), "inserting this"}
                         }));
                 }
-                tab = std::addressof(a.back().template cast<value_t::Table>());
+                tab = std::addressof(a.back().as_table());
             }
             else
             {

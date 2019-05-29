@@ -157,7 +157,7 @@ struct serializer
 
     std::string operator()(const array& v) const
     {
-        if(!v.empty() && v.front().is(value_t::Table))// v is an array of tables
+        if(!v.empty() && v.front().is_table())// v is an array of tables
         {
             // if it's not inlined, we need to add `[[table.key]]`.
             // but if it can be inlined, we need `table.key = [...]`.
@@ -411,7 +411,7 @@ struct serializer
         // remaining non-table values will be assigned into [foo.bar], not [foo]
         for(const auto kv : v)
         {
-            if(kv.second.is(value_t::Table) || is_array_of_tables(kv.second))
+            if(kv.second.is_table() || is_array_of_tables(kv.second))
             {
                 continue;
             }
@@ -438,7 +438,7 @@ struct serializer
         bool multiline_table_printed = false;
         for(const auto& kv : v)
         {
-            if(!kv.second.is(value_t::Table) && !is_array_of_tables(kv.second))
+            if(!kv.second.is_table() && !is_array_of_tables(kv.second))
             {
                 continue; // other stuff are already serialized. skip them.
             }
@@ -467,10 +467,9 @@ struct serializer
 
     bool is_array_of_tables(const value& v) const
     {
-        if(!v.is(value_t::Array)) {return false;}
-
-        const auto& a = v.cast<value_t::Array>();
-        return !a.empty() && a.front().is(value_t::Table);
+        if(!v.is_array()) {return false;}
+        const auto& a = v.as_array();
+        return !a.empty() && a.front().is_table();
     }
 
   private:
