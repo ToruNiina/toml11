@@ -468,8 +468,7 @@ struct serializer
     bool is_array_of_tables(const value& v) const
     {
         if(!v.is_array()) {return false;}
-
-        const auto& a = v.cast<value_t::Array>();
+        const auto& a = v.as_array();
         return !a.empty() && a.front().is_table();
     }
 
