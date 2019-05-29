@@ -634,27 +634,38 @@ class value
     template<value_t T>
     typename detail::toml_default_type<T>::type&&      cast() &&;
 
-    boolean         const& as_boolean()         const {return this->cast<value_t::Boolean       >();}
-    integer         const& as_integer()         const {return this->cast<value_t::Integer       >();}
-    floating        const& as_float()           const {return this->cast<value_t::Float         >();}
-    string          const& as_string()          const {return this->cast<value_t::String        >();}
-    offset_datetime const& as_offset_datetime() const {return this->cast<value_t::OffsetDatetime>();}
-    local_datetime  const& as_local_datetime()  const {return this->cast<value_t::LocalDatetime >();}
-    local_date      const& as_local_date()      const {return this->cast<value_t::LocalDate     >();}
-    local_time      const& as_local_time()      const {return this->cast<value_t::LocalTime     >();}
-    array           const& as_array()           const {return this->cast<value_t::Array         >();}
-    table           const& as_table()           const {return this->cast<value_t::Table         >();}
+    boolean         const& as_boolean()         const& noexcept {return this->boolean_;}
+    integer         const& as_integer()         const& noexcept {return this->integer_;}
+    floating        const& as_float()           const& noexcept {return this->floating_;}
+    string          const& as_string()          const& noexcept {return this->string_;}
+    offset_datetime const& as_offset_datetime() const& noexcept {return this->offset_datetime_;}
+    local_datetime  const& as_local_datetime()  const& noexcept {return this->local_datetime_;}
+    local_date      const& as_local_date()      const& noexcept {return this->local_date_;}
+    local_time      const& as_local_time()      const& noexcept {return this->local_time_;}
+    array           const& as_array()           const& noexcept {return this->array_.value();}
+    table           const& as_table()           const& noexcept {return this->table_.value();}
 
-    boolean&          as_boolean()         {return this->cast<value_t::Boolean       >();}
-    integer&          as_integer()         {return this->cast<value_t::Integer       >();}
-    floating&         as_float()           {return this->cast<value_t::Float         >();}
-    string&           as_string()          {return this->cast<value_t::String        >();}
-    offset_datetime&  as_offset_datetime() {return this->cast<value_t::OffsetDatetime>();}
-    local_datetime&   as_local_datetime()  {return this->cast<value_t::LocalDatetime >();}
-    local_date&       as_local_date()      {return this->cast<value_t::LocalDate     >();}
-    local_time&       as_local_time()      {return this->cast<value_t::LocalTime     >();}
-    array&            as_array()           {return this->cast<value_t::Array         >();}
-    table&            as_table()           {return this->cast<value_t::Table         >();}
+    boolean        & as_boolean()         & noexcept {return this->boolean_;}
+    integer        & as_integer()         & noexcept {return this->integer_;}
+    floating       & as_float()           & noexcept {return this->floating_;}
+    string         & as_string()          & noexcept {return this->string_;}
+    offset_datetime& as_offset_datetime() & noexcept {return this->offset_datetime_;}
+    local_datetime & as_local_datetime()  & noexcept {return this->local_datetime_;}
+    local_date     & as_local_date()      & noexcept {return this->local_date_;}
+    local_time     & as_local_time()      & noexcept {return this->local_time_;}
+    array          & as_array()           & noexcept {return this->array_.value();}
+    table          & as_table()           & noexcept {return this->table_.value();}
+
+    boolean        && as_boolean()         && noexcept {return std::move(this->boolean_);}
+    integer        && as_integer()         && noexcept {return std::move(this->integer_);}
+    floating       && as_float()           && noexcept {return std::move(this->floating_);}
+    string         && as_string()          && noexcept {return std::move(this->string_);}
+    offset_datetime&& as_offset_datetime() && noexcept {return std::move(this->offset_datetime_);}
+    local_datetime && as_local_datetime()  && noexcept {return std::move(this->local_datetime_);}
+    local_date     && as_local_date()      && noexcept {return std::move(this->local_date_);}
+    local_time     && as_local_time()      && noexcept {return std::move(this->local_time_);}
+    array          && as_array()           && noexcept {return std::move(this->array_.value());}
+    table          && as_table()           && noexcept {return std::move(this->table_.value());}
 
     std::string comment() const
     {
@@ -687,9 +698,6 @@ class value
 
     template<typename Region>
     friend void detail::change_region(value&, Region&&);
-
-    template<value_t T>
-    struct switch_cast;
 
   private:
 
@@ -736,68 +744,79 @@ void change_region(value& v, Region&& reg)
     return;
 }
 
+template<value_t T>
+struct switch_cast;
+template<>
+struct switch_cast<value_t::Boolean>
+{
+    static Boolean&       invoke(value&       v) {return v.as_boolean();}
+    static Boolean const& invoke(value const& v) {return v.as_boolean();}
+    static Boolean&&      invoke(value&&      v) {return std::move(v).as_boolean();}
+};
+template<>
+struct switch_cast<value_t::Integer>
+{
+    static Integer&       invoke(value&       v) {return v.as_integer();}
+    static Integer const& invoke(value const& v) {return v.as_integer();}
+    static Integer&&      invoke(value&&      v) {return std::move(v).as_integer();}
+};
+template<>
+struct switch_cast<value_t::Float>
+{
+    static Float&       invoke(value&       v) {return v.as_float();}
+    static Float const& invoke(value const& v) {return v.as_float();}
+    static Float&&      invoke(value&&      v) {return std::move(v).as_float();}
+};
+template<>
+struct switch_cast<value_t::String>
+{
+    static String&       invoke(value&       v) {return v.as_string();}
+    static String const& invoke(value const& v) {return v.as_string();}
+    static String&&      invoke(value&&      v) {return std::move(v).as_string();}
+};
+template<>
+struct switch_cast<value_t::OffsetDatetime>
+{
+    static OffsetDatetime&       invoke(value&       v) {return v.as_offset_datetime();}
+    static OffsetDatetime const& invoke(value const& v) {return v.as_offset_datetime();}
+    static OffsetDatetime&&      invoke(value&&      v) {return std::move(v).as_offset_datetime();}
+};
+template<>
+struct switch_cast<value_t::LocalDatetime>
+{
+    static LocalDatetime&       invoke(value&       v) {return v.as_local_datetime();}
+    static LocalDatetime const& invoke(value const& v) {return v.as_local_datetime();}
+    static LocalDatetime&&      invoke(value&&      v) {return std::move(v).as_local_datetime();}
+};
+template<>
+struct switch_cast<value_t::LocalDate>
+{
+    static LocalDate&       invoke(value&       v) {return v.as_local_date();}
+    static LocalDate const& invoke(value const& v) {return v.as_local_date();}
+    static LocalDate&&      invoke(value&&      v) {return std::move(v).as_local_date();}
+};
+template<>
+struct switch_cast<value_t::LocalTime>
+{
+    static LocalTime&       invoke(value&       v) {return v.as_local_time();}
+    static LocalTime const& invoke(value const& v) {return v.as_local_time();}
+    static LocalTime&&      invoke(value&&      v) {return std::move(v).as_local_time();}
+};
+template<>
+struct switch_cast<value_t::Array>
+{
+    static Array&       invoke(value&       v) {return v.as_array();}
+    static Array const& invoke(value const& v) {return v.as_array();}
+    static Array&&      invoke(value&&      v) {return std::move(v).as_array();}
+};
+template<>
+struct switch_cast<value_t::Table>
+{
+    static Table&       invoke(value&       v) {return v.as_table();}
+    static Table const& invoke(value const& v) {return v.as_table();}
+    static Table&&      invoke(value&&      v) {return std::move(v).as_table();}
+};
 }// detail
-
-template<> struct value::switch_cast<value_t::Boolean>
-{
-    static Boolean&       invoke(value&       v) {return v.boolean_;}
-    static Boolean const& invoke(value const& v) {return v.boolean_;}
-    static Boolean&&      invoke(value&&      v) {return std::move(v.boolean_);}
-};
-template<> struct value::switch_cast<value_t::Integer>
-{
-    static Integer&       invoke(value&       v) {return v.integer_;}
-    static Integer const& invoke(value const& v) {return v.integer_;}
-    static Integer&&      invoke(value&&      v) {return std::move(v.integer_);}
-};
-template<> struct value::switch_cast<value_t::Float>
-{
-    static Float&       invoke(value&       v) {return v.floating_;}
-    static Float const& invoke(value const& v) {return v.floating_;}
-    static Float&&      invoke(value&&      v) {return std::move(v.floating_);}
-};
-template<> struct value::switch_cast<value_t::String>
-{
-    static String&       invoke(value&       v) {return v.string_;}
-    static String const& invoke(value const& v) {return v.string_;}
-    static String&&      invoke(value&&      v) {return std::move(v.string_);}
-};
-template<> struct value::switch_cast<value_t::OffsetDatetime>
-{
-    static OffsetDatetime&       invoke(value&       v) {return v.offset_datetime_;}
-    static OffsetDatetime const& invoke(value const& v) {return v.offset_datetime_;}
-    static OffsetDatetime&&      invoke(value&&      v) {return std::move(v.offset_datetime_);}
-};
-template<> struct value::switch_cast<value_t::LocalDatetime>
-{
-    static LocalDatetime&       invoke(value&       v) {return v.local_datetime_;}
-    static LocalDatetime const& invoke(value const& v) {return v.local_datetime_;}
-    static LocalDatetime&&      invoke(value&&      v) {return std::move(v.local_datetime_);}
-};
-template<> struct value::switch_cast<value_t::LocalDate>
-{
-    static LocalDate&       invoke(value&       v) {return v.local_date_;}
-    static LocalDate const& invoke(value const& v) {return v.local_date_;}
-    static LocalDate&&      invoke(value&&      v) {return std::move(v.local_date_);}
-};
-template<> struct value::switch_cast<value_t::LocalTime>
-{
-    static LocalTime&       invoke(value&       v) {return v.local_time_;}
-    static LocalTime const& invoke(value const& v) {return v.local_time_;}
-    static LocalTime&&      invoke(value&&      v) {return std::move(v.local_time_);}
-};
-template<> struct value::switch_cast<value_t::Array>
-{
-    static Array&       invoke(value&       v) {return v.array_.value();}
-    static Array const& invoke(value const& v) {return v.array_.value();}
-    static Array&&      invoke(value&&      v) {return std::move(v.array_.value());}
-};
-template<> struct value::switch_cast<value_t::Table>
-{
-    static Table&       invoke(value&       v) {return v.table_.value();}
-    static Table const& invoke(value const& v) {return v.table_.value();}
-    static Table&&      invoke(value&&      v) {return std::move(v.table_.value());}
-};
 
 template<value_t T>
 typename detail::toml_default_type<T>::type& value::cast() &
@@ -810,7 +829,7 @@ typename detail::toml_default_type<T>::type& value::cast() &
                  concat_to_string("the actual type is ", this->type_)}
             }));
     }
-    return switch_cast<T>::invoke(*this);
+    return detail::switch_cast<T>::invoke(*this);
 }
 template<value_t T>
 typename detail::toml_default_type<T>::type const& value::cast() const&
@@ -823,7 +842,7 @@ typename detail::toml_default_type<T>::type const& value::cast() const&
                  concat_to_string("the actual type is ", this->type_)}
             }));
     }
-    return switch_cast<T>::invoke(*this);
+    return detail::switch_cast<T>::invoke(*this);
 }
 template<value_t T>
 typename detail::toml_default_type<T>::type&&      value::cast() &&
@@ -836,7 +855,7 @@ typename detail::toml_default_type<T>::type&&      value::cast() &&
                  concat_to_string("the actual type is ", this->type_)}
              }));
     }
-    return switch_cast<T>::invoke(std::move(*this));
+    return detail::switch_cast<T>::invoke(std::move(*this));
 }
 
 inline bool operator==(const toml::value& lhs, const toml::value& rhs)
@@ -845,28 +864,48 @@ inline bool operator==(const toml::value& lhs, const toml::value& rhs)
     switch(lhs.type())
     {
         case value_t::Boolean :
-            return lhs.cast<value_t::Boolean >() == rhs.cast<value_t::Boolean >();
+        {
+            return lhs.as_boolean() == rhs.as_boolean();
+        }
         case value_t::Integer :
-            return lhs.cast<value_t::Integer >() == rhs.cast<value_t::Integer >();
+        {
+            return lhs.as_integer() == rhs.as_integer();
+        }
         case value_t::Float   :
-            return lhs.cast<value_t::Float   >() == rhs.cast<value_t::Float   >();
+        {
+            return lhs.as_float() == rhs.as_float();
+        }
         case value_t::String  :
-            return lhs.cast<value_t::String  >() == rhs.cast<value_t::String  >();
+        {
+            return lhs.as_string() == rhs.as_string();
+        }
         case value_t::OffsetDatetime:
-            return lhs.cast<value_t::OffsetDatetime>() == rhs.cast<value_t::OffsetDatetime>();
+        {
+            return lhs.as_offset_datetime() == rhs.as_offset_datetime();
+        }
         case value_t::LocalDatetime:
-            return lhs.cast<value_t::LocalDatetime>() == rhs.cast<value_t::LocalDatetime>();
+        {
+            return lhs.as_local_datetime() == rhs.as_local_datetime();
+        }
         case value_t::LocalDate:
-            return lhs.cast<value_t::LocalDate>() == rhs.cast<value_t::LocalDate>();
+        {
+            return lhs.as_local_date() == rhs.as_local_date();
+        }
         case value_t::LocalTime:
-            return lhs.cast<value_t::LocalTime>() == rhs.cast<value_t::LocalTime>();
+        {
+            return lhs.as_local_time() == rhs.as_local_time();
+        }
         case value_t::Array   :
-            return lhs.cast<value_t::Array   >() == rhs.cast<value_t::Array   >();
+        {
+            return lhs.as_array() == rhs.as_array();
+        }
         case value_t::Table   :
-            return lhs.cast<value_t::Table   >() == rhs.cast<value_t::Table   >();
-        case value_t::Empty   : return true;
-        case value_t::Unknown : return false;
-        default: return false;
+        {
+            return lhs.as_table() == rhs.as_table();
+        }
+        case value_t::Empty   : {return true; }
+        case value_t::Unknown : {return false;}
+        default:                {return false;}
     }
 }
 inline bool operator<(const toml::value& lhs, const toml::value& rhs)
@@ -875,28 +914,48 @@ inline bool operator<(const toml::value& lhs, const toml::value& rhs)
     switch(lhs.type())
     {
         case value_t::Boolean :
-            return lhs.cast<value_t::Boolean >() < rhs.cast<value_t::Boolean >();
+        {
+            return lhs.as_boolean() < rhs.as_boolean();
+        }
         case value_t::Integer :
-            return lhs.cast<value_t::Integer >() < rhs.cast<value_t::Integer >();
+        {
+            return lhs.as_integer() < rhs.as_integer();
+        }
         case value_t::Float   :
-            return lhs.cast<value_t::Float   >() < rhs.cast<value_t::Float   >();
+        {
+            return lhs.as_float() < rhs.as_float();
+        }
         case value_t::String  :
-            return lhs.cast<value_t::String  >() < rhs.cast<value_t::String  >();
+        {
+            return lhs.as_string() < rhs.as_string();
+        }
         case value_t::OffsetDatetime:
-            return lhs.cast<value_t::OffsetDatetime>() < rhs.cast<value_t::OffsetDatetime>();
+        {
+            return lhs.as_offset_datetime() < rhs.as_offset_datetime();
+        }
         case value_t::LocalDatetime:
-            return lhs.cast<value_t::LocalDatetime>() < rhs.cast<value_t::LocalDatetime>();
+        {
+            return lhs.as_local_datetime() < rhs.as_local_datetime();
+        }
         case value_t::LocalDate:
-            return lhs.cast<value_t::LocalDate>() < rhs.cast<value_t::LocalDate>();
+        {
+            return lhs.as_local_date() < rhs.as_local_date();
+        }
         case value_t::LocalTime:
-            return lhs.cast<value_t::LocalTime>() < rhs.cast<value_t::LocalTime>();
+        {
+            return lhs.as_local_time() < rhs.as_local_time();
+        }
         case value_t::Array   :
-            return lhs.cast<value_t::Array   >() < rhs.cast<value_t::Array   >();
+        {
+            return lhs.as_array() < rhs.as_array();
+        }
         case value_t::Table   :
-            return lhs.cast<value_t::Table   >() < rhs.cast<value_t::Table   >();
-        case value_t::Empty   : return false;
-        case value_t::Unknown : return false;
-        default: return false;
+        {
+            return lhs.as_table() < rhs.as_table();
+        }
+        case value_t::Empty   : {return false;}
+        case value_t::Unknown : {return false;}
+        default:                {return false;}
     }
 }
 
@@ -959,16 +1018,16 @@ visit(Visitor&& visitor, const toml::value& v)
 {
     switch(v.type())
     {
-        case value_t::Boolean       : {return visitor(v.cast<value_t::Boolean       >());}
-        case value_t::Integer       : {return visitor(v.cast<value_t::Integer       >());}
-        case value_t::Float         : {return visitor(v.cast<value_t::Float         >());}
-        case value_t::String        : {return visitor(v.cast<value_t::String        >());}
-        case value_t::OffsetDatetime: {return visitor(v.cast<value_t::OffsetDatetime>());}
-        case value_t::LocalDatetime : {return visitor(v.cast<value_t::LocalDatetime >());}
-        case value_t::LocalDate     : {return visitor(v.cast<value_t::LocalDate     >());}
-        case value_t::LocalTime     : {return visitor(v.cast<value_t::LocalTime     >());}
-        case value_t::Array         : {return visitor(v.cast<value_t::Array         >());}
-        case value_t::Table         : {return visitor(v.cast<value_t::Table         >());}
+        case value_t::Boolean       : {return visitor(v.as_boolean        ());}
+        case value_t::Integer       : {return visitor(v.as_integer        ());}
+        case value_t::Float         : {return visitor(v.as_float          ());}
+        case value_t::String        : {return visitor(v.as_string         ());}
+        case value_t::OffsetDatetime: {return visitor(v.as_offset_datetime());}
+        case value_t::LocalDatetime : {return visitor(v.as_local_datetime ());}
+        case value_t::LocalDate     : {return visitor(v.as_local_date     ());}
+        case value_t::LocalTime     : {return visitor(v.as_local_time     ());}
+        case value_t::Array         : {return visitor(v.as_array          ());}
+        case value_t::Table         : {return visitor(v.as_table          ());}
         case value_t::Empty         : break;
         case value_t::Unknown       : break;
         default: break;
@@ -983,16 +1042,16 @@ visit(Visitor&& visitor, toml::value& v)
 {
     switch(v.type())
     {
-        case value_t::Boolean       : {return visitor(v.cast<value_t::Boolean       >());}
-        case value_t::Integer       : {return visitor(v.cast<value_t::Integer       >());}
-        case value_t::Float         : {return visitor(v.cast<value_t::Float         >());}
-        case value_t::String        : {return visitor(v.cast<value_t::String        >());}
-        case value_t::OffsetDatetime: {return visitor(v.cast<value_t::OffsetDatetime>());}
-        case value_t::LocalDatetime : {return visitor(v.cast<value_t::LocalDatetime >());}
-        case value_t::LocalDate     : {return visitor(v.cast<value_t::LocalDate     >());}
-        case value_t::LocalTime     : {return visitor(v.cast<value_t::LocalTime     >());}
-        case value_t::Array         : {return visitor(v.cast<value_t::Array         >());}
-        case value_t::Table         : {return visitor(v.cast<value_t::Table         >());}
+        case value_t::Boolean       : {return visitor(v.as_boolean        ());}
+        case value_t::Integer       : {return visitor(v.as_integer        ());}
+        case value_t::Float         : {return visitor(v.as_float          ());}
+        case value_t::String        : {return visitor(v.as_string         ());}
+        case value_t::OffsetDatetime: {return visitor(v.as_offset_datetime());}
+        case value_t::LocalDatetime : {return visitor(v.as_local_datetime ());}
+        case value_t::LocalDate     : {return visitor(v.as_local_date     ());}
+        case value_t::LocalTime     : {return visitor(v.as_local_time     ());}
+        case value_t::Array         : {return visitor(v.as_array          ());}
+        case value_t::Table         : {return visitor(v.as_table          ());}
         case value_t::Empty         : break;
         case value_t::Unknown       : break;
         default: break;
@@ -1007,16 +1066,16 @@ visit(Visitor&& visitor, toml::value&& v)
 {
     switch(v.type())
     {
-        case value_t::Boolean       : {return visitor(std::move(v.cast<value_t::Boolean       >()));}
-        case value_t::Integer       : {return visitor(std::move(v.cast<value_t::Integer       >()));}
-        case value_t::Float         : {return visitor(std::move(v.cast<value_t::Float         >()));}
-        case value_t::String        : {return visitor(std::move(v.cast<value_t::String        >()));}
-        case value_t::OffsetDatetime: {return visitor(std::move(v.cast<value_t::OffsetDatetime>()));}
-        case value_t::LocalDatetime : {return visitor(std::move(v.cast<value_t::LocalDatetime >()));}
-        case value_t::LocalDate     : {return visitor(std::move(v.cast<value_t::LocalDate     >()));}
-        case value_t::LocalTime     : {return visitor(std::move(v.cast<value_t::LocalTime     >()));}
-        case value_t::Array         : {return visitor(std::move(v.cast<value_t::Array         >()));}
-        case value_t::Table         : {return visitor(std::move(v.cast<value_t::Table         >()));}
+        case value_t::Boolean       : {return visitor(std::move(v.as_boolean        ()));}
+        case value_t::Integer       : {return visitor(std::move(v.as_integer        ()));}
+        case value_t::Float         : {return visitor(std::move(v.as_float          ()));}
+        case value_t::String        : {return visitor(std::move(v.as_string         ()));}
+        case value_t::OffsetDatetime: {return visitor(std::move(v.as_offset_datetime()));}
+        case value_t::LocalDatetime : {return visitor(std::move(v.as_local_datetime ()));}
+        case value_t::LocalDate     : {return visitor(std::move(v.as_local_date     ()));}
+        case value_t::LocalTime     : {return visitor(std::move(v.as_local_time     ()));}
+        case value_t::Array         : {return visitor(std::move(v.as_array          ()));}
+        case value_t::Table         : {return visitor(std::move(v.as_table          ()));}
         case value_t::Empty         : break;
         case value_t::Unknown       : break;
         default: break;
