@@ -759,72 +759,72 @@ struct switch_cast;
 template<>
 struct switch_cast<value_t::Boolean>
 {
-    static Boolean&       invoke(value&       v) {return v.as_boolean();}
-    static Boolean const& invoke(value const& v) {return v.as_boolean();}
-    static Boolean&&      invoke(value&&      v) {return std::move(v).as_boolean();}
+    static ::toml::boolean&       invoke(value&       v) {return v.as_boolean();}
+    static ::toml::boolean const& invoke(value const& v) {return v.as_boolean();}
+    static ::toml::boolean&&      invoke(value&&      v) {return std::move(v).as_boolean();}
 };
 template<>
 struct switch_cast<value_t::Integer>
 {
-    static Integer&       invoke(value&       v) {return v.as_integer();}
-    static Integer const& invoke(value const& v) {return v.as_integer();}
-    static Integer&&      invoke(value&&      v) {return std::move(v).as_integer();}
+    static ::toml::integer&       invoke(value&       v) {return v.as_integer();}
+    static ::toml::integer const& invoke(value const& v) {return v.as_integer();}
+    static ::toml::integer&&      invoke(value&&      v) {return std::move(v).as_integer();}
 };
 template<>
 struct switch_cast<value_t::Float>
 {
-    static Float&       invoke(value&       v) {return v.as_float();}
-    static Float const& invoke(value const& v) {return v.as_float();}
-    static Float&&      invoke(value&&      v) {return std::move(v).as_float();}
+    static ::toml::floating&       invoke(value&       v) {return v.as_float();}
+    static ::toml::floating const& invoke(value const& v) {return v.as_float();}
+    static ::toml::floating&&      invoke(value&&      v) {return std::move(v).as_float();}
 };
 template<>
 struct switch_cast<value_t::String>
 {
-    static String&       invoke(value&       v) {return v.as_string();}
-    static String const& invoke(value const& v) {return v.as_string();}
-    static String&&      invoke(value&&      v) {return std::move(v).as_string();}
+    static ::toml::string&       invoke(value&       v) {return v.as_string();}
+    static ::toml::string const& invoke(value const& v) {return v.as_string();}
+    static ::toml::string&&      invoke(value&&      v) {return std::move(v).as_string();}
 };
 template<>
 struct switch_cast<value_t::OffsetDatetime>
 {
-    static OffsetDatetime&       invoke(value&       v) {return v.as_offset_datetime();}
-    static OffsetDatetime const& invoke(value const& v) {return v.as_offset_datetime();}
-    static OffsetDatetime&&      invoke(value&&      v) {return std::move(v).as_offset_datetime();}
+    static ::toml::offset_datetime&       invoke(value&       v) {return v.as_offset_datetime();}
+    static ::toml::offset_datetime const& invoke(value const& v) {return v.as_offset_datetime();}
+    static ::toml::offset_datetime&&      invoke(value&&      v) {return std::move(v).as_offset_datetime();}
 };
 template<>
 struct switch_cast<value_t::LocalDatetime>
 {
-    static LocalDatetime&       invoke(value&       v) {return v.as_local_datetime();}
-    static LocalDatetime const& invoke(value const& v) {return v.as_local_datetime();}
-    static LocalDatetime&&      invoke(value&&      v) {return std::move(v).as_local_datetime();}
+    static ::toml::local_datetime&       invoke(value&       v) {return v.as_local_datetime();}
+    static ::toml::local_datetime const& invoke(value const& v) {return v.as_local_datetime();}
+    static ::toml::local_datetime&&      invoke(value&&      v) {return std::move(v).as_local_datetime();}
 };
 template<>
 struct switch_cast<value_t::LocalDate>
 {
-    static LocalDate&       invoke(value&       v) {return v.as_local_date();}
-    static LocalDate const& invoke(value const& v) {return v.as_local_date();}
-    static LocalDate&&      invoke(value&&      v) {return std::move(v).as_local_date();}
+    static ::toml::local_date&       invoke(value&       v) {return v.as_local_date();}
+    static ::toml::local_date const& invoke(value const& v) {return v.as_local_date();}
+    static ::toml::local_date&&      invoke(value&&      v) {return std::move(v).as_local_date();}
 };
 template<>
 struct switch_cast<value_t::LocalTime>
 {
-    static LocalTime&       invoke(value&       v) {return v.as_local_time();}
-    static LocalTime const& invoke(value const& v) {return v.as_local_time();}
-    static LocalTime&&      invoke(value&&      v) {return std::move(v).as_local_time();}
+    static ::toml::local_time&       invoke(value&       v) {return v.as_local_time();}
+    static ::toml::local_time const& invoke(value const& v) {return v.as_local_time();}
+    static ::toml::local_time&&      invoke(value&&      v) {return std::move(v).as_local_time();}
 };
 template<>
 struct switch_cast<value_t::Array>
 {
-    static Array&       invoke(value&       v) {return v.as_array();}
-    static Array const& invoke(value const& v) {return v.as_array();}
-    static Array&&      invoke(value&&      v) {return std::move(v).as_array();}
+    static ::toml::array&       invoke(value&       v) {return v.as_array();}
+    static ::toml::array const& invoke(value const& v) {return v.as_array();}
+    static ::toml::array&&      invoke(value&&      v) {return std::move(v).as_array();}
 };
 template<>
 struct switch_cast<value_t::Table>
 {
-    static Table&       invoke(value&       v) {return v.as_table();}
-    static Table const& invoke(value const& v) {return v.as_table();}
-    static Table&&      invoke(value&&      v) {return std::move(v).as_table();}
+    static ::toml::table&       invoke(value&       v) {return v.as_table();}
+    static ::toml::table const& invoke(value const& v) {return v.as_table();}
+    static ::toml::table&&      invoke(value&&      v) {return std::move(v).as_table();}
 };
 }// detail
 

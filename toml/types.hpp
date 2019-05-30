@@ -131,30 +131,30 @@ template<> struct toml_default_type<value_t::Table   >      {typedef table      
 template<> struct toml_default_type<value_t::Empty   >      {typedef void            type;};
 template<> struct toml_default_type<value_t::Unknown >      {typedef void            type;};
 
-template<typename T> struct toml_value_t      {static constexpr value_t value = value_t::Unknown       ;};
-template<> struct toml_value_t<Boolean       >{static constexpr value_t value = value_t::Boolean       ;};
-template<> struct toml_value_t<Integer       >{static constexpr value_t value = value_t::Integer       ;};
-template<> struct toml_value_t<Float         >{static constexpr value_t value = value_t::Float         ;};
-template<> struct toml_value_t<String        >{static constexpr value_t value = value_t::String        ;};
-template<> struct toml_value_t<OffsetDatetime>{static constexpr value_t value = value_t::OffsetDatetime;};
-template<> struct toml_value_t<LocalDatetime >{static constexpr value_t value = value_t::LocalDatetime ;};
-template<> struct toml_value_t<LocalDate     >{static constexpr value_t value = value_t::LocalDate     ;};
-template<> struct toml_value_t<LocalTime     >{static constexpr value_t value = value_t::LocalTime     ;};
-template<> struct toml_value_t<Array         >{static constexpr value_t value = value_t::Array         ;};
-template<> struct toml_value_t<Table         >{static constexpr value_t value = value_t::Table         ;};
+template<typename T> struct toml_value_t       {static constexpr value_t value = value_t::Unknown       ;};
+template<> struct toml_value_t<boolean        >{static constexpr value_t value = value_t::Boolean       ;};
+template<> struct toml_value_t<integer        >{static constexpr value_t value = value_t::Integer       ;};
+template<> struct toml_value_t<floating       >{static constexpr value_t value = value_t::Float         ;};
+template<> struct toml_value_t<string         >{static constexpr value_t value = value_t::String        ;};
+template<> struct toml_value_t<offset_datetime>{static constexpr value_t value = value_t::OffsetDatetime;};
+template<> struct toml_value_t<local_datetime >{static constexpr value_t value = value_t::LocalDatetime ;};
+template<> struct toml_value_t<local_date     >{static constexpr value_t value = value_t::LocalDate     ;};
+template<> struct toml_value_t<local_time     >{static constexpr value_t value = value_t::LocalTime     ;};
+template<> struct toml_value_t<array          >{static constexpr value_t value = value_t::Array         ;};
+template<> struct toml_value_t<table          >{static constexpr value_t value = value_t::Table         ;};
 
 template<typename T>
 struct is_exact_toml_type : disjunction<
-    std::is_same<T, Boolean >,
-    std::is_same<T, Integer >,
-    std::is_same<T, Float   >,
-    std::is_same<T, String  >,
+    std::is_same<T, boolean        >,
+    std::is_same<T, integer        >,
+    std::is_same<T, floating       >,
+    std::is_same<T, string         >,
     std::is_same<T, offset_datetime>,
-    std::is_same<T, local_datetime>,
-    std::is_same<T, local_date>,
-    std::is_same<T, local_time>,
-    std::is_same<T, Array   >,
-    std::is_same<T, Table   >
+    std::is_same<T, local_datetime >,
+    std::is_same<T, local_date     >,
+    std::is_same<T, local_time     >,
+    std::is_same<T, array          >,
+    std::is_same<T, table          >
     >{};
 template<typename T> struct is_exact_toml_type<T&>               : is_exact_toml_type<T>{};
 template<typename T> struct is_exact_toml_type<T const&>         : is_exact_toml_type<T>{};
