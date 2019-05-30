@@ -18,7 +18,7 @@ do {                                                                           \
     BOOST_CHECK_EQUAL(static_cast<std::size_t>(std::distance(                  \
                     loc.begin(), loc.iter())), region.size());                 \
     } else {                                                                   \
-    std::cerr << "lexer " << lxr::pattern() << " failed with input `";         \
+    std::cerr << "lexer failed with input `";                                  \
     std::cerr << token << "`. expected `" << expected << "`\n";                \
     std::cerr << "reason: " << result.unwrap_err() << '\n';                    \
     }                                                                          \

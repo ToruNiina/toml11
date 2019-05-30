@@ -79,8 +79,6 @@ struct character
 
         return ok(region<Cont>(loc, first, loc.iter()));
     }
-
-    static std::string pattern() {return show_char(target);}
 };
 template<char C>
 constexpr char character<C>::target;
@@ -120,11 +118,6 @@ struct in_range
         loc.advance();
         return ok(region<Cont>(loc, first, loc.iter()));
     }
-
-    static std::string pattern()
-    {
-        return concat_to_string("[",show_char(lower),"-",show_char(upper),"]");
-    }
 };
 template<char L, char U> constexpr char in_range<L, U>::upper;
 template<char L, char U> constexpr char in_range<L, U>::lower;
@@ -150,18 +143,13 @@ struct exclude
             loc.reset(first);
             if(msg)
             {
-                return err(concat_to_string("invalid pattern (",
-                    Combinator::pattern(), ") appeared ", rslt.unwrap().str()));
+                return err(concat_to_string("invalid pattern appeared ",
+                                            rslt.unwrap().str()));
             }
             return err("");
         }
         loc.reset(std::next(first)); // XXX maybe loc.advance() is okay but...
         return ok(region<Cont>(loc, first, loc.iter()));
-    }
-
-    static std::string pattern()
-    {
-        return concat_to_string("^(", Combinator::pattern(), ')');
     }
 };
 
@@ -182,11 +170,6 @@ struct maybe
             return rslt;
         }
         return ok(region<Cont>(loc));
-    }
-
-    static std::string pattern()
-    {
-        return concat_to_string('(', Combinator::pattern(), ")?");
     }
 };
 
@@ -228,11 +211,6 @@ struct sequence<Head, Tail...>
         reg += rslt.unwrap(); // concat regions
         return sequence<Tail...>::invoke(loc, std::move(reg), first, msg);
     }
-
-    static std::string pattern()
-    {
-        return concat_to_string(Head::pattern(), sequence<Tail...>::pattern());
-    }
 };
 
 template<typename Head>
@@ -253,7 +231,6 @@ struct sequence<Head>
         reg += rslt.unwrap(); // concat regions
         return ok(reg);
     }
-    static std::string pattern() {return Head::pattern();}
 };
 
 template<typename ... Ts>
@@ -273,11 +250,6 @@ struct either<Head, Tail...>
         if(rslt.is_ok()) {return rslt;}
         return either<Tail...>::invoke(loc, msg);
     }
-
-    static std::string pattern()
-    {
-        return concat_to_string('(', Head::pattern(), ")|", either<Tail...>::pattern());
-    }
 };
 template<typename Head>
 struct either<Head>
@@ -289,10 +261,6 @@ struct either<Head>
         static_assert(std::is_same<char, typename Cont::value_type>::value,
                       "internal error: container::value_type should be `char`.");
         return Head::invoke(loc, msg);
-    }
-    static std::string pattern()
-    {
-        return concat_to_string('(', Head::pattern(), ')');
     }
 };
 
@@ -323,10 +291,6 @@ struct repeat<T, exactly<N>>
             retval += rslt.unwrap();
         }
         return ok(std::move(retval));
-    }
-    static std::string pattern()
-    {
-        return concat_to_string('(', T::pattern(), "){", N, '}');
     }
 };
 
@@ -360,10 +324,6 @@ struct repeat<T, at_least<N>>
             retval += rslt.unwrap();
         }
     }
-    static std::string pattern()
-    {
-        return concat_to_string('(',T::pattern(), "){", N, ",}");
-    }
 };
 
 template<typename T>
@@ -384,7 +344,6 @@ struct repeat<T, unlimited>
             retval += rslt.unwrap();
         }
     }
-    static std::string pattern() {return concat_to_string('(', T::pattern(), ")*");}
 };
 
 } // detail
