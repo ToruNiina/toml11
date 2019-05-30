@@ -376,7 +376,7 @@ parse_ml_basic_string(location<Container>& loc)
         // immediate newline is ignored (if exists)
         /* discard return value */ lex_newline::invoke(inner_loc);
 
-        delim = err("tmp");
+        delim = err('\0');
         while(!delim)
         {
             using lex_unescaped_seq = repeat<
@@ -432,7 +432,7 @@ parse_basic_string(location<Container>& loc)
         std::string retval;
         retval.reserve(token.unwrap().size());
 
-        quot = err("tmp");
+        quot = err('\0');
         while(!quot)
         {
             using lex_unescaped_seq = repeat<lex_basic_unescaped, unlimited>;
@@ -587,23 +587,17 @@ parse_local_date(location<Container>& loc)
         const auto y = lex_date_fullyear::invoke(inner_loc);
         if(!y || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != '-')
         {
-            const std::string msg = y.map_err_or_else(
-                [](const std::string& msg) {return msg;}, "should be `-`");
-
             throw internal_error(format_underline("[error]: "
                 "toml::parse_inner_local_date: invalid year format",
-                {{std::addressof(inner_loc), msg}}));
+                {{std::addressof(inner_loc), "should be `-`"}}));
         }
         inner_loc.advance();
         const auto m = lex_date_month::invoke(inner_loc);
         if(!m || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != '-')
         {
-            const std::string msg = m.map_err_or_else(
-                [](const std::string& msg) {return msg;}, "should be `-`");
-
             throw internal_error(format_underline("[error]: "
                 "toml::parse_local_date: invalid month format",
-                {{std::addressof(inner_loc), msg}}));
+                {{std::addressof(inner_loc), "should be `-`"}}));
         }
         inner_loc.advance();
         const auto d = lex_date_mday::invoke(inner_loc);
@@ -640,23 +634,17 @@ parse_local_time(location<Container>& loc)
         const auto h = lex_time_hour::invoke(inner_loc);
         if(!h || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != ':')
         {
-            const std::string msg = h.map_err_or_else(
-                [](const std::string& msg) {return msg;}, "should be `:`");
-
             throw internal_error(format_underline("[error]: "
                 "toml::parse_local_time: invalid year format",
-                {{std::addressof(inner_loc), msg}}));
+                {{std::addressof(inner_loc), "should be `:`"}}));
         }
         inner_loc.advance();
         const auto m = lex_time_minute::invoke(inner_loc);
         if(!m || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != ':')
         {
-            const std::string msg = m.map_err_or_else(
-                [](const std::string& msg) {return msg;}, "should be `:`");
-
             throw internal_error(format_underline("[error]: "
                 "toml::parse_local_time: invalid month format",
-                {{std::addressof(inner_loc), msg}}));
+                {{std::addressof(inner_loc), "should be `:`"}}));
         }
         inner_loc.advance();
         const auto s = lex_time_second::invoke(inner_loc);
@@ -724,12 +712,9 @@ parse_local_datetime(location<Container>& loc)
         const auto date = parse_local_date(inner_loc);
         if(!date || inner_loc.iter() == inner_loc.end())
         {
-            const std::string msg = date.map_err_or_else(
-                [](const std::string& msg) {return msg;}, "date, not datetime");
-
             throw internal_error(format_underline("[error]: "
                 "toml::parse_local_datetime: invalid datetime format",
-                {{std::addressof(inner_loc), msg}}));
+                {{std::addressof(inner_loc), "date, not datetime"}}));
         }
         const char delim = *(inner_loc.iter());
         if(delim != 'T' && delim != 't' && delim != ' ')
@@ -769,12 +754,9 @@ parse_offset_datetime(location<Container>& loc)
         const auto datetime = parse_local_datetime(inner_loc);
         if(!datetime || inner_loc.iter() == inner_loc.end())
         {
-            const std::string msg = datetime.map_err_or_else(
-                [](const std::string& msg){return msg;}, "date, not datetime");
-
             throw internal_error(format_underline("[error]: "
                 "toml::parse_offset_datetime: invalid datetime format",
-                {{std::addressof(inner_loc), msg}}));
+                {{std::addressof(inner_loc), "date, not datetime"}}));
         }
         time_offset offset(0, 0);
         if(const auto ofs = lex_time_numoffset::invoke(inner_loc))
