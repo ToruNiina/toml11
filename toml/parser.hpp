@@ -1561,7 +1561,7 @@ template<typename Container>
 result<std::pair<std::vector<key>, region<Container>>, std::string>
 parse_array_table_key(location<Container>& loc)
 {
-    if(auto token = lex_array_table::invoke(loc, true))
+    if(auto token = lex_array_table::invoke(loc))
     {
         location<std::string> inner_loc(loc.name(), token.unwrap().str());
 
