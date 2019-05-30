@@ -276,7 +276,7 @@ namespace detail
 {
 
 template<typename T, std::size_t ...I>
-T get_tuple_impl(const toml::Array& a, index_sequence<I...>)
+T get_tuple_impl(const toml::array& a, index_sequence<I...>)
 {
     return std::make_tuple(
         ::toml::get<typename std::tuple_element<I, T>::type>(a.at(I))...);
