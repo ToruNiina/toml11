@@ -692,5 +692,26 @@ void swap(result<T, E>& lhs, result<T, E>& rhs)
 //     return lhs.is_ok() ? lhs : rhs;
 // }
 
+// ----------------------------------------------------------------------------
+// re-use result<T, E> as a optional<T> with none_t
+
+namespace detail
+{
+struct none_t {};
+inline bool operator==(const none_t&, const none_t&) noexcept {return true;}
+inline bool operator!=(const none_t&, const none_t&) noexcept {return false;}
+inline bool operator< (const none_t&, const none_t&) noexcept {return false;}
+inline bool operator<=(const none_t&, const none_t&) noexcept {return true;}
+inline bool operator> (const none_t&, const none_t&) noexcept {return false;}
+inline bool operator>=(const none_t&, const none_t&) noexcept {return true;}
+template<typename charT, typename traitsT>
+std::basic_ostream<charT, traitsT>&
+operator<<(std::basic_ostream<charT, traitsT>& os, const none_t&)
+{
+    os << "none";
+    return os;
+}
+inline failure<none_t> none() noexcept {return failure<none_t>{none_t{}};}
+} // detail
 } // toml11
 #endif// TOML11_RESULT_H

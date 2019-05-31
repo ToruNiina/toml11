@@ -376,7 +376,7 @@ parse_ml_basic_string(location<Container>& loc)
         // immediate newline is ignored (if exists)
         /* discard return value */ lex_newline::invoke(inner_loc);
 
-        delim = err('\0');
+        delim = none();
         while(!delim)
         {
             using lex_unescaped_seq = repeat<
@@ -432,7 +432,7 @@ parse_basic_string(location<Container>& loc)
         std::string retval;
         retval.reserve(token.unwrap().size());
 
-        quot = err('\0');
+        quot = none();
         while(!quot)
         {
             using lex_unescaped_seq = repeat<lex_basic_unescaped, unlimited>;

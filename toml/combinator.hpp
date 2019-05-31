@@ -56,19 +56,19 @@ struct character
     static constexpr char target = C;
 
     template<typename Cont>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc)
     {
         static_assert(std::is_same<char, typename Cont::value_type>::value,
                       "internal error: container::value_type should be `char`.");
 
-        if(loc.iter() == loc.end()) {return err('\0');}
+        if(loc.iter() == loc.end()) {return none();}
         const auto first = loc.iter();
 
         const char c = *(loc.iter());
         if(c != target)
         {
-            return err(c);
+            return none();
         }
         loc.advance(); // update location
 
@@ -89,19 +89,19 @@ struct in_range
     static constexpr char lower = Low;
 
     template<typename Cont>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc)
     {
         static_assert(std::is_same<char, typename Cont::value_type>::value,
                       "internal error: container::value_type should be `char`.");
 
-        if(loc.iter() == loc.end()) {return err('\0');}
+        if(loc.iter() == loc.end()) {return none();}
         const auto first = loc.iter();
 
         const char c = *(loc.iter());
         if(c < lower || upper < c)
         {
-            return err(c);
+            return none();
         }
 
         loc.advance();
@@ -117,20 +117,20 @@ template<typename Combinator>
 struct exclude
 {
     template<typename Cont>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc)
     {
         static_assert(std::is_same<char, typename Cont::value_type>::value,
                       "internal error: container::value_type should be `char`.");
 
-        if(loc.iter() == loc.end()) {return err('\0');}
+        if(loc.iter() == loc.end()) {return none();}
         auto first = loc.iter();
 
         auto rslt = Combinator::invoke(loc);
         if(rslt.is_ok())
         {
             loc.reset(first);
-            return err(*first);
+            return none();
         }
         loc.reset(std::next(first)); // XXX maybe loc.advance() is okay but...
         return ok(region<Cont>(loc, first, loc.iter()));
@@ -142,7 +142,7 @@ template<typename Combinator>
 struct maybe
 {
     template<typename Cont>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc)
     {
         static_assert(std::is_same<char, typename Cont::value_type>::value,
@@ -164,7 +164,7 @@ template<typename Head, typename ... Tail>
 struct sequence<Head, Tail...>
 {
     template<typename Cont>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc)
     {
         static_assert(std::is_same<char, typename Cont::value_type>::value,
@@ -175,21 +175,21 @@ struct sequence<Head, Tail...>
         if(rslt.is_err())
         {
             loc.reset(first);
-            return err(rslt.unwrap_err());
+            return none();
         }
         return sequence<Tail...>::invoke(loc, std::move(rslt.unwrap()), first);
     }
 
     // called from the above function only, recursively.
     template<typename Cont, typename Iterator>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc, region<Cont> reg, Iterator first)
     {
         const auto rslt = Head::invoke(loc);
         if(rslt.is_err())
         {
             loc.reset(first);
-            return err(rslt.unwrap_err());
+            return none();
         }
         reg += rslt.unwrap(); // concat regions
         return sequence<Tail...>::invoke(loc, std::move(reg), first);
@@ -201,14 +201,14 @@ struct sequence<Head>
 {
     // would be called from sequence<T ...>::invoke only.
     template<typename Cont, typename Iterator>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc, region<Cont> reg, Iterator first)
     {
         const auto rslt = Head::invoke(loc);
         if(rslt.is_err())
         {
             loc.reset(first);
-            return err(rslt.unwrap_err());
+            return none();
         }
         reg += rslt.unwrap(); // concat regions
         return ok(reg);
@@ -222,7 +222,7 @@ template<typename Head, typename ... Tail>
 struct either<Head, Tail...>
 {
     template<typename Cont>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc)
     {
         static_assert(std::is_same<char, typename Cont::value_type>::value,
@@ -237,7 +237,7 @@ template<typename Head>
 struct either<Head>
 {
     template<typename Cont>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc)
     {
         static_assert(std::is_same<char, typename Cont::value_type>::value,
@@ -257,7 +257,7 @@ template<typename T, std::size_t N>
 struct repeat<T, exactly<N>>
 {
     template<typename Cont>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc)
     {
         region<Cont> retval(loc);
@@ -268,7 +268,7 @@ struct repeat<T, exactly<N>>
             if(rslt.is_err())
             {
                 loc.reset(first);
-                return err(rslt.unwrap_err());
+                return none();
             }
             retval += rslt.unwrap();
         }
@@ -280,7 +280,7 @@ template<typename T, std::size_t N>
 struct repeat<T, at_least<N>>
 {
     template<typename Cont>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc)
     {
         region<Cont> retval(loc);
@@ -292,7 +292,7 @@ struct repeat<T, at_least<N>>
             if(rslt.is_err())
             {
                 loc.reset(first);
-                return err(rslt.unwrap_err());
+                return none();
             }
             retval += rslt.unwrap();
         }
@@ -312,7 +312,7 @@ template<typename T>
 struct repeat<T, unlimited>
 {
     template<typename Cont>
-    static result<region<Cont>, char>
+    static result<region<Cont>, none_t>
     invoke(location<Cont>& loc)
     {
         region<Cont> retval(loc);
