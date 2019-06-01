@@ -18,6 +18,7 @@
 // error whenever you access to the element.
 namespace toml
 {
+struct discard_comments; // forward decl
 
 // use it in the following way
 //
@@ -54,6 +55,7 @@ struct preserve_comments
     explicit preserve_comments(std::vector<std::string>&& c)
         : comments(std::move(c))
     {}
+    explicit preserve_comments(const discard_comments&) {}
 
     explicit preserve_comments(size_type n): comments(n) {}
     preserve_comments(size_type n, const std::string& x): comments(n, x) {}
@@ -276,6 +278,7 @@ struct discard_comments
 
     explicit discard_comments(const std::vector<std::string>&) noexcept {}
     explicit discard_comments(std::vector<std::string>&&)      noexcept {}
+    explicit discard_comments(const preserve_comments&)        noexcept {}
 
     explicit discard_comments(size_type) noexcept {}
     discard_comments(size_type, const std::string&) noexcept {}
