@@ -383,16 +383,10 @@ struct region final : public region_base
 
 // to show a better error message.
 inline std::string format_underline(const std::string& message,
-        std::vector<std::pair<region_base const*, std::string>> reg_com,
-        std::vector<std::string> helps = {})
+        const std::vector<std::pair<region_base const*, std::string>>& reg_com,
+        const std::vector<std::string>& helps = {})
 {
     assert(!reg_com.empty());
-
-#ifdef _WIN32
-    const auto newline = "\r\n";
-#else
-    const char newline = '\n';
-#endif
 
     const auto line_num_width = std::max_element(reg_com.begin(), reg_com.end(),
         [](std::pair<region_base const*, std::string> const& lhs,
@@ -403,26 +397,26 @@ inline std::string format_underline(const std::string& message,
     )->first->line_num().size();
 
     std::ostringstream retval;
-    retval << message << newline;
+    retval << message << '\n';
 
-    for(std::size_t i=0; i<reg_com.size(); ++i)
+    for(auto iter = reg_com.begin(); iter != reg_com.end(); ++iter)
     {
-        if(i!=0 && reg_com.at(i-1).first->name() == reg_com.at(i).first->name())
+        // if the filenames are the same, print "..."
+        if(iter != reg_com.begin() &&
+           std::prev(iter)->first->name() == iter->first->name())
         {
-            retval << newline << " ..." << newline;
+            retval << "\n ...\n";
         }
-        else
+        else // if filename differs, print " --> filename.toml"
         {
-            if(i != 0) {retval << newline;}
-            retval << " --> " << reg_com.at(i).first->name() << newline;
+            if(iter != reg_com.begin()) {retval << '\n';}
+            retval << " --> " << iter->first->name() << '\n';
         }
-
-        const region_base* const reg = reg_com.at(i).first;
-        const std::string&   comment = reg_com.at(i).second;
-
+        const region_base* const reg = iter->first;
+        const std::string&   comment = iter->second;
 
         retval << ' ' << std::setw(line_num_width) << reg->line_num();
-        retval << " | " << reg->line() << newline;
+        retval << " | " << reg->line() << '\n';
         retval << make_string(line_num_width + 1, ' ');
         retval << " | " << make_string(reg->before(), ' ');
 
@@ -440,20 +434,18 @@ inline std::string format_underline(const std::string& message,
             const auto underline_len = std::min(reg->size(), reg->line().size());
             retval << make_string(underline_len, '~');
         }
-
         retval << ' ';
         retval << comment;
     }
 
-    if(helps.size() != 0)
+    if(!helps.empty())
     {
-        retval << newline;
+        retval << '\n';
         retval << make_string(line_num_width + 1, ' ');
         retval << " | ";
         for(const auto help : helps)
         {
-            retval << newline;
-            retval << "Hint: ";
+            retval << "\nHint: ";
             retval << help;
         }
     }
