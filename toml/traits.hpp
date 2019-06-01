@@ -60,13 +60,14 @@ struct has_resize_method_impl
 
 struct has_from_toml_method_impl
 {
-    template<typename T>
+    template<typename T, typename C,
+             template<typename ...> class Tb, template<typename ...> class A>
     static std::true_type  check(
-        decltype(std::declval<T>().from_toml(std::declval<::toml::basic_value<
-                ::toml::discard_comments, std::unordered_map, std::vector>>()
-                )
-        )*);
-    template<typename T>
+        decltype(std::declval<T>().from_toml(
+                std::declval<::toml::basic_value<C, Tb, A>>()))*);
+
+    template<typename T, typename C,
+             template<typename ...> class Tb, template<typename ...> class A>
     static std::false_type check(...);
 };
 struct has_into_toml_method_impl
@@ -94,9 +95,11 @@ struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
 template<typename T>
 struct has_resize_method : decltype(has_resize_method_impl::check<T>(nullptr)){};
 
-template<typename T>
+template<typename T, typename C,
+         template<typename ...> class Tb, template<typename ...> class A>
 struct has_from_toml_method
-: decltype(has_from_toml_method_impl::check<T>(nullptr)){};
+: decltype(has_from_toml_method_impl::check<T, C, Tb, A>(nullptr)){};
+
 template<typename T>
 struct has_into_toml_method
 : decltype(has_into_toml_method_impl::check<T>(nullptr)){};
