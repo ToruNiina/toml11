@@ -38,7 +38,7 @@ throw_bad_cast(value_t actual, const ::toml::basic_value<C, T, A>& v)
         }));
 }
 
-// switch by `value_t` and call the corresponding `value::as_xxx()`.
+// switch by `value_t` and call the corresponding `value::as_xxx()`. {{{
 template<value_t T>
 struct switch_cast {};
 template<>
@@ -236,7 +236,8 @@ struct switch_cast<value_t::table>
     {
         return std::move(v).as_table();
     }
-};
+}; // }}}
+
 }// detail
 
 template<typename Comment, // discard/preserve_comment
@@ -279,7 +280,7 @@ class basic_value
     ~basic_value() noexcept {this->cleanup();}
 
     basic_value(const basic_value& v)
-        : type_(v.type()), region_info_(v.region_info_)
+        : type_(v.type()), region_info_(v.region_info_), comments_(v.comments_)
     {
         switch(v.type())
         {
@@ -297,7 +298,8 @@ class basic_value
         }
     }
     basic_value(basic_value&& v)
-        : type_(v.type()), region_info_(std::move(v.region_info_))
+        : type_(v.type()), region_info_(std::move(v.region_info_)),
+          comments_(std::move(comments_))
     {
         switch(this->type_) // here this->type_ is already initialized
         {
@@ -318,6 +320,7 @@ class basic_value
     {
         this->cleanup();
         this->region_info_ = v.region_info_;
+        this->comments_ = v.comments_;
         this->type_ = v.type();
         switch(this->type_)
         {
@@ -339,6 +342,7 @@ class basic_value
     {
         this->cleanup();
         this->region_info_ = std::move(v.region_info_);
+        this->comments_ = std::move(v.comments_);
         this->type_ = v.type();
         switch(this->type_)
         {
@@ -355,6 +359,73 @@ class basic_value
             default: break;
         }
         return *this;
+    }
+
+    // -----------------------------------------------------------------------
+    // conversion between different basic_values.
+    template<typename C,
+             template<typename ...> class T,
+             template<typename ...> class A>
+    basic_value(const basic_value<C, T, A>& v)
+        : type_(v.type()), region_info_(v.region_info_), comments_(v.comments_)
+    {
+        switch(v.type())
+        {
+            case value_t::boolean        : assigner(boolean_        , v.boolean_        ); break;
+            case value_t::integer        : assigner(integer_        , v.integer_        ); break;
+            case value_t::floating       : assigner(floating_       , v.floating_       ); break;
+            case value_t::string         : assigner(string_         , v.string_         ); break;
+            case value_t::offset_datetime: assigner(offset_datetime_, v.offset_datetime_); break;
+            case value_t::local_datetime : assigner(local_datetime_ , v.local_datetime_ ); break;
+            case value_t::local_date     : assigner(local_date_     , v.local_date_     ); break;
+            case value_t::local_time     : assigner(local_time_     , v.local_time_     ); break;
+            case value_t::array          :
+            {
+                array_type tmp(v.array_.begin(), v.array_.end());
+                assigner(array_, std::move(tmp));
+                break;
+            }
+            case value_t::table          :
+            {
+                table_type tmp(v.table_.begin(), v.table_.end());
+                assigner(table_, std::move(tmp));
+                break;
+            }
+            default: break;
+        }
+    }
+    template<typename C,
+             template<typename ...> class T,
+             template<typename ...> class A>
+    basic_value& operator=(const basic_value<C, T, A>& v)
+    {
+        this->region_info_ = v.region_info_;
+        this->comments_    = v.comments_;
+        this->type_        = v.type_;
+        switch(v.type())
+        {
+            case value_t::boolean        : assigner(boolean_        , v.boolean_        ); break;
+            case value_t::integer        : assigner(integer_        , v.integer_        ); break;
+            case value_t::floating       : assigner(floating_       , v.floating_       ); break;
+            case value_t::string         : assigner(string_         , v.string_         ); break;
+            case value_t::offset_datetime: assigner(offset_datetime_, v.offset_datetime_); break;
+            case value_t::local_datetime : assigner(local_datetime_ , v.local_datetime_ ); break;
+            case value_t::local_date     : assigner(local_date_     , v.local_date_     ); break;
+            case value_t::local_time     : assigner(local_time_     , v.local_time_     ); break;
+            case value_t::array          :
+            {
+                array_type tmp(v.array_.begin(), v.array_.end());
+                assigner(array_, std::move(tmp));
+                break;
+            }
+            case value_t::table          :
+            {
+                table_type tmp(v.table_.begin(), v.table_.end());
+                assigner(table_, std::move(tmp));
+                break;
+            }
+            default: break;
+        }
     }
 
     // boolean ==============================================================
@@ -942,9 +1013,7 @@ class basic_value
     using array_storage = detail::storage<array_type>;
     using table_storage = detail::storage<table_type>;
 
-    comment_type                 comments_;
-    std::shared_ptr<region_base> region_info_;
-    value_t                      type_;
+    value_t type_;
     union
     {
         boolean         boolean_;
@@ -958,6 +1027,8 @@ class basic_value
         array_storage   array_;
         table_storage   table_;
     };
+    std::shared_ptr<region_base> region_info_;
+    comment_type                 comments_;
 };
 
 // default toml::value and default array/table.
