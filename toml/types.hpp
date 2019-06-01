@@ -33,6 +33,9 @@ using floating       = double; // "float" is a keyward, cannot use it here.
 
 // default toml::value and default array/table
 using value = basic_value<discard_comments, std::unordered_map, std::vector>;
+// TODO: consider to move these after including `value.hpp`
+using array = std::vector<value>;             // typename value::array_type;
+using table = std::unordered_map<key, value>; // typename value::table_type;
 
 enum class value_t : std::uint8_t
 {
