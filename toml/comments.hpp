@@ -107,8 +107,6 @@ struct preserve_comments
 
     template<typename ... Ts>
     void emplace_back(Ts&& ... args) {comments.emplace_back(std::forward<Ts>(args)...);}
-    template<typename ... Ts>
-    void emplace_back(Ts&& ... args) {comments.emplace_back(std::forward<Ts>(args)...);}
 
     void clear() {comments.clear();}
 
@@ -148,26 +146,26 @@ struct preserve_comments
     const_reverse_iterator crbegin() const noexcept {return comments.crbegin();}
     const_reverse_iterator crend()   const noexcept {return comments.crend();}
 
-    friend bool operator==(const discard_comments& lhs, const discard_comments& rhs);
-    friend bool operator!=(const discard_comments& lhs, const discard_comments& rhs);
-    friend bool operator< (const discard_comments& lhs, const discard_comments& rhs);
-    friend bool operator<=(const discard_comments& lhs, const discard_comments& rhs);
-    friend bool operator> (const discard_comments& lhs, const discard_comments& rhs);
-    friend bool operator>=(const discard_comments& lhs, const discard_comments& rhs);
+    friend bool operator==(const preserve_comments& lhs, const preserve_comments& rhs);
+    friend bool operator!=(const preserve_comments& lhs, const preserve_comments& rhs);
+    friend bool operator< (const preserve_comments& lhs, const preserve_comments& rhs);
+    friend bool operator<=(const preserve_comments& lhs, const preserve_comments& rhs);
+    friend bool operator> (const preserve_comments& lhs, const preserve_comments& rhs);
+    friend bool operator>=(const preserve_comments& lhs, const preserve_comments& rhs);
 
   private:
 
     container_type comments;
 };
 
-inline bool operator==(const discard_comments& lhs, const discard_comments& rhs) {return lhs.comments == rhs.comments;}
-inline bool operator!=(const discard_comments& lhs, const discard_comments& rhs) {return lhs.comments != rhs.comments;}
-inline bool operator< (const discard_comments& lhs, const discard_comments& rhs) {return lhs.comments <  rhs.comments;}
-inline bool operator<=(const discard_comments& lhs, const discard_comments& rhs) {return lhs.comments <= rhs.comments;}
-inline bool operator> (const discard_comments& lhs, const discard_comments& rhs) {return lhs.comments >  rhs.comments;}
-inline bool operator>=(const discard_comments& lhs, const discard_comments& rhs) {return lhs.comments >= rhs.comments;}
+inline bool operator==(const preserve_comments& lhs, const preserve_comments& rhs) {return lhs.comments == rhs.comments;}
+inline bool operator!=(const preserve_comments& lhs, const preserve_comments& rhs) {return lhs.comments != rhs.comments;}
+inline bool operator< (const preserve_comments& lhs, const preserve_comments& rhs) {return lhs.comments <  rhs.comments;}
+inline bool operator<=(const preserve_comments& lhs, const preserve_comments& rhs) {return lhs.comments <= rhs.comments;}
+inline bool operator> (const preserve_comments& lhs, const preserve_comments& rhs) {return lhs.comments >  rhs.comments;}
+inline bool operator>=(const preserve_comments& lhs, const preserve_comments& rhs) {return lhs.comments >= rhs.comments;}
 
-inline void swap(discard_comments& lhs, discard_comments& rhs)
+inline void swap(preserve_comments& lhs, preserve_comments& rhs)
 {
     lhs.swap(rhs);
     return;
@@ -263,7 +261,7 @@ struct discard_comments
     using reference              = std::string&;
     using const_reference        = std::string const&;
     using pointer                = std::string*;
-    using const_pointer          = std::string const&;
+    using const_pointer          = std::string const*;
     using iterator               = detail::empty_iterator<std::string, false>;
     using const_iterator         = detail::empty_iterator<std::string, true>;
     using reverse_iterator       = detail::empty_iterator<std::string, false>;
@@ -298,7 +296,7 @@ struct discard_comments
     iterator insert(const_iterator, std::initializer_list<std::string>) {return iterator{};}
 
     template<typename ... Ts>
-    iterator emplace(const_iterator, Ts&&)         {return iterator{};}
+    iterator emplace(const_iterator, Ts&& ...)     {return iterator{};}
     iterator erase(const_iterator)                 {return iterator{};}
     iterator erase(const_iterator, const_iterator) {return iterator{};}
 
@@ -308,8 +306,6 @@ struct discard_comments
     void push_back(std::string&&     ) {return;}
     void pop_back()                    {return;}
 
-    template<typename ... Ts>
-    void emplace_back(Ts&& ...) {return;}
     template<typename ... Ts>
     void emplace_back(Ts&& ...) {return;}
 
@@ -360,7 +356,7 @@ inline bool operator==(const discard_comments&, const discard_comments&) noexcep
 inline bool operator!=(const discard_comments&, const discard_comments&) noexcept {return false;}
 inline bool operator< (const discard_comments&, const discard_comments&) noexcept {return false;}
 inline bool operator<=(const discard_comments&, const discard_comments&) noexcept {return true;}
-inline bool operator> (const discard_comments&, const discard_comments&) noexcept {return false}
+inline bool operator> (const discard_comments&, const discard_comments&) noexcept {return false;}
 inline bool operator>=(const discard_comments&, const discard_comments&) noexcept {return true;}
 
 inline void swap(const discard_comments&, const discard_comments&) noexcept {return;}
