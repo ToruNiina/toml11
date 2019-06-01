@@ -81,6 +81,10 @@ inline std::basic_string<charT, traits, alloc> stringize(value_t t)
 namespace detail
 {
 
+// helper to define a type that represents a value_t value.
+template<value_t V>
+using value_t_constant = std::integral_constant<value_t, V>;
+
 // meta-function that convertes from value_t to the exact toml type that corresponds to.
 // It takes toml::basic_value type because array and table types depend on it.
 template<value_t t, typename Value> struct enum_to_type                      {using type = void                      ;};
@@ -100,21 +104,21 @@ template<typename Value> struct enum_to_type<value_t::table          , Value>{us
 template<typename T, typename Value>
 struct type_to_enum : typename std::conditional<
     std::is_same<T, typename Value::array_type>::value, // if T == array_type,
-    std::integral_constant<value_t, value_t::array>,    // then value_t::array
+    value_t_constant<value_t::array>,                   // then value_t::array
     typename std::conditional<                          // else...
         std::is_same<T, typename Value::table_type>::value, // if T == table_type
-        std::integral_constant<value_t, value_t::table>,    // then value_t::table
-        std::integral_constant<value_t, value_t::empty>     // else value_t::empty
+        value_t_constant<value_t::table>,               // then value_t::table
+        value_t_constant<value_t::empty>                // else value_t::empty
         >::type
     >::type {}
-template<typename Value> struct type_to_enum<boolean        , Value>: std::integral_constant<value_t, value_t::boolean        > {};
-template<typename Value> struct type_to_enum<integer        , Value>: std::integral_constant<value_t, value_t::integer        > {};
-template<typename Value> struct type_to_enum<floating       , Value>: std::integral_constant<value_t, value_t::floating       > {};
-template<typename Value> struct type_to_enum<string         , Value>: std::integral_constant<value_t, value_t::string         > {};
-template<typename Value> struct type_to_enum<offset_datetime, Value>: std::integral_constant<value_t, value_t::offset_datetime> {};
-template<typename Value> struct type_to_enum<local_datetime , Value>: std::integral_constant<value_t, value_t::local_datetime > {};
-template<typename Value> struct type_to_enum<local_date     , Value>: std::integral_constant<value_t, value_t::local_date     > {};
-template<typename Value> struct type_to_enum<local_time     , Value>: std::integral_constant<value_t, value_t::local_time     > {};
+template<typename Value> struct type_to_enum<boolean        , Value>: value_t_constant<value_t::boolean        > {};
+template<typename Value> struct type_to_enum<integer        , Value>: value_t_constant<value_t::integer        > {};
+template<typename Value> struct type_to_enum<floating       , Value>: value_t_constant<value_t::floating       > {};
+template<typename Value> struct type_to_enum<string         , Value>: value_t_constant<value_t::string         > {};
+template<typename Value> struct type_to_enum<offset_datetime, Value>: value_t_constant<value_t::offset_datetime> {};
+template<typename Value> struct type_to_enum<local_datetime , Value>: value_t_constant<value_t::local_datetime > {};
+template<typename Value> struct type_to_enum<local_date     , Value>: value_t_constant<value_t::local_date     > {};
+template<typename Value> struct type_to_enum<local_time     , Value>: value_t_constant<value_t::local_time     > {};
 
 // meta-function that checks the type T is the same as one of the toml::* types.
 template<typename T, typename Value>
