@@ -4,44 +4,245 @@
 #define TOML11_VALUE_HPP
 #include "traits.hpp"
 #include "into.hpp"
+#include "from.hpp"
 #include "utility.hpp"
 #include "exception.hpp"
 #include "storage.hpp"
 #include "region.hpp"
 #include "types.hpp"
-#include <vector>
-#include <tuple>
-#include <unordered_map>
+#include "source_location.hpp"
 #include <cassert>
-#include <cstdint>
-#if __cplusplus >= 201703L
-#include <string_view>
-#endif
 
 namespace toml
 {
 
 namespace detail
 {
+
 // to show error messages. not recommended for users.
-region_base const& get_region(const value&);
-template<typename Region>
-void change_region(value&, Region&&);
+template<typename C, template<typename ...> class T, template<typename ...> class A>
+region_base const& get_region(const basic_value<C, T, A>&);
+template<typename Region,
+         typename C, template<typename ...> class T, template<typename ...> class A>
+void change_region(basic_value<C, T, A>&, Region&&);
+
+template<value_t Expected,
+         typename C, template<typename ...> class T, template<typename ...> class A>
+[[noreturn]] inline void
+throw_bad_cast(value_t actual, const ::toml::basic_value<C, T, A>& v)
+{
+    throw type_error(detail::format_underline(concat_to_string(
+        "[error] toml::value bad_cast to ", Expected), {
+            {std::addressof(get_region(v)),
+             concat_to_string("the actual type is ", actual)}
+        }));
+}
+
+// switch by `value_t` and call the corresponding `value::as_xxx()`.
+template<value_t T>
+struct switch_cast {};
+template<>
+struct switch_cast<value_t::boolean>
+{
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::boolean& invoke(basic_value<C, T, A>& v) noexcept
+    {
+        return v.as_boolean();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::boolean const& invoke(basic_value<C, T, A> const& v) noexcept
+    {
+        return v.as_boolean();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::boolean&& invoke(basic_value<C, T, A>&& v) noexcept
+    {
+        return std::move(v).as_boolean();
+    }
+};
+template<>
+struct switch_cast<value_t::integer>
+{
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::integer& invoke(basic_value<C, T, A>& v) noexcept
+    {
+        return v.as_integer();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::integer const& invoke(basic_value<C, T, A> const& v) noexcept
+    {
+        return v.as_integer();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::integer&& invoke(basic_value<C, T, A>&& v) noexcept
+    {
+        return std::move(v).as_integer();
+    }
+};
+template<>
+struct switch_cast<value_t::floating>
+{
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::floating& invoke(basic_value<C, T, A>& v) noexcept
+    {
+        return v.as_floating();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::floating const& invoke(basic_value<C, T, A> const& v) noexcept
+    {
+        return v.as_floating();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::floating&& invoke(basic_value<C, T, A>&& v) noexcept
+    {
+        return std::move(v).as_floating();
+    }
+};
+template<>
+struct switch_cast<value_t::string>
+{
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::string& invoke(basic_value<C, T, A>& v) noexcept
+    {
+        return v.as_string();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::string const& invoke(basic_value<C, T, A> const& v) noexcept
+    {
+        return v.as_string();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::string&& invoke(basic_value<C, T, A>&& v) noexcept
+    {
+        return std::move(v).as_string();
+    }
+};
+template<>
+struct switch_cast<value_t::offset_datetime>
+{
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::offset_datetime& invoke(basic_value<C, T, A>& v) noexcept
+    {
+        return v.as_offset_datetime();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::offset_datetime const& invoke(basic_value<C, T, A> const& v) noexcept
+    {
+        return v.as_offset_datetime();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::offset_datetime&& invoke(basic_value<C, T, A>&& v) noexcept
+    {
+        return std::move(v).as_offset_datetime();
+    }
+};
+template<>
+struct switch_cast<value_t::local_datetime>
+{
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::local_datetime& invoke(basic_value<C, T, A>& v) noexcept
+    {
+        return v.as_local_datetime();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::local_datetime const& invoke(basic_value<C, T, A> const& v) noexcept
+    {
+        return v.as_local_datetime();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::local_datetime&& invoke(basic_value<C, T, A>&& v) noexcept
+    {
+        return std::move(v).as_local_datetime();
+    }
+};
+template<>
+struct switch_cast<value_t::local_date>
+{
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::local_date& invoke(basic_value<C, T, A>& v) noexcept
+    {
+        return v.as_local_date();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::local_date const& invoke(basic_value<C, T, A> const& v) noexcept
+    {
+        return v.as_local_date();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::local_date&& invoke(basic_value<C, T, A>&& v) noexcept
+    {
+        return std::move(v).as_local_date();
+    }
+};
+template<>
+struct switch_cast<value_t::local_time>
+{
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::local_time& invoke(basic_value<C, T, A>& v) noexcept
+    {
+        return v.as_local_time();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::local_time const& invoke(basic_value<C, T, A> const& v) noexcept
+    {
+        return v.as_local_time();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static ::toml::local_time&& invoke(basic_value<C, T, A>&& v) noexcept
+    {
+        return std::move(v).as_local_time();
+    }
+};
+template<>
+struct switch_cast<value_t::array>
+{
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static typename basic_value<C, T, A>::array_type&
+    invoke(basic_value<C, T, A>& v) noexcept
+    {
+        return v.as_array();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static typename basic_value<C, T, A>::array_type const&
+    invoke(basic_value<C, T, A> const& v) noexcept
+    {
+        return v.as_array();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static typename basic_value<C, T, A>::array_type &&
+    invoke(basic_value<C, T, A>&& v) noexcept
+    {
+        return std::move(v).as_array();
+    }
+};
+template<>
+struct switch_cast<value_t::table>
+{
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static typename basic_value<C, T, A>::table_type&
+    invoke(basic_value<C, T, A>& v) noexcept
+    {
+        return v.as_table();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static typename basic_value<C, T, A>::table_type const&
+    invoke(basic_value<C, T, A> const& v) noexcept
+    {
+        return v.as_table();
+    }
+    template<typename C, template<typename ...> class T, template<typename ...> class A>
+    static typename basic_value<C, T, A>::table_type &&
+    invoke(basic_value<C, T, A>&& v) noexcept
+    {
+        return std::move(v).as_table();
+    }
+};
 }// detail
 
-template<typename T>
-struct value_traits
-{
-    constexpr static value_t type_index = detail::check_type<T>();
-    constexpr static bool is_toml_type  = detail::is_valid(detail::check_type<T>());
-    typedef typename detail::toml_default_type<type_index>::type type;
-};
-template<typename T>
-constexpr value_t value_traits<T>::type_index;
-template<typename T>
-constexpr bool    value_traits<T>::is_toml_type;
-
-class value
+template<typename Comment, // discard/preserve_comment
+         template<typename ...> class Table, // map-like class
+         template<typename ...> class Array> // vector-like class
+class basic_value
 {
     template<typename T, typename U>
     static void assigner(T& dst, U&& v)
@@ -55,85 +256,102 @@ class value
 
   public:
 
-    value() noexcept
-        : type_(value_t::Empty),
+    using comment_type    = Comment;
+    using key_type        = ::toml::key;
+    using value_type      = basic_value<comment_type, Table, Array>;
+    using boolean_type    = ::toml::boolean;
+    using integer_type    = ::toml::integer;
+    using floating_type   = ::toml::floating;
+    using string_type     = ::toml::string;
+    using local_time      = ::toml::local_time;
+    using local_date      = ::toml::local_date;
+    using local_datetime  = ::toml::local_datetime;
+    using offset_datetime = ::toml::offset_datetime;
+    using array_type      = Array<value_type>;
+    using table_type      = Table<key_type, value_type>;
+
+  public:
+
+    basic_value() noexcept
+        : type_(value_t::empty),
           region_info_(std::make_shared<region_base>(region_base{}))
     {}
+    ~basic_value() noexcept {this->cleanup();}
 
-    ~value() noexcept {this->cleanup();}
-
-    value(const value& v): type_(v.type()), region_info_(v.region_info_)
+    basic_value(const basic_value& v)
+        : type_(v.type()), region_info_(v.region_info_)
     {
         switch(v.type())
         {
-            case value_t::Boolean       : assigner(boolean_        , v.boolean_        ); break;
-            case value_t::Integer       : assigner(integer_        , v.integer_        ); break;
-            case value_t::Float         : assigner(floating_       , v.floating_       ); break;
-            case value_t::String        : assigner(string_         , v.string_         ); break;
-            case value_t::OffsetDatetime: assigner(offset_datetime_, v.offset_datetime_); break;
-            case value_t::LocalDatetime : assigner(local_datetime_ , v.local_datetime_ ); break;
-            case value_t::LocalDate     : assigner(local_date_     , v.local_date_     ); break;
-            case value_t::LocalTime     : assigner(local_time_     , v.local_time_     ); break;
-            case value_t::Array         : assigner(array_          , v.array_          ); break;
-            case value_t::Table         : assigner(table_          , v.table_          ); break;
+            case value_t::boolean        : assigner(boolean_        , v.boolean_        ); break;
+            case value_t::integer        : assigner(integer_        , v.integer_        ); break;
+            case value_t::floating       : assigner(floating_       , v.floating_       ); break;
+            case value_t::string         : assigner(string_         , v.string_         ); break;
+            case value_t::offset_datetime: assigner(offset_datetime_, v.offset_datetime_); break;
+            case value_t::local_datetime : assigner(local_datetime_ , v.local_datetime_ ); break;
+            case value_t::local_date     : assigner(local_date_     , v.local_date_     ); break;
+            case value_t::local_time     : assigner(local_time_     , v.local_time_     ); break;
+            case value_t::array          : assigner(array_          , v.array_          ); break;
+            case value_t::table          : assigner(table_          , v.table_          ); break;
             default: break;
         }
     }
-    value(value&& v): type_(v.type()), region_info_(std::move(v.region_info_))
+    basic_value(basic_value&& v)
+        : type_(v.type()), region_info_(std::move(v.region_info_))
     {
-        switch(this->type_)
+        switch(this->type_) // here this->type_ is already initialized
         {
-            case value_t::Boolean       : assigner(boolean_        , std::move(v.boolean_        )); break;
-            case value_t::Integer       : assigner(integer_        , std::move(v.integer_        )); break;
-            case value_t::Float         : assigner(floating_       , std::move(v.floating_       )); break;
-            case value_t::String        : assigner(string_         , std::move(v.string_         )); break;
-            case value_t::OffsetDatetime: assigner(offset_datetime_, std::move(v.offset_datetime_)); break;
-            case value_t::LocalDatetime : assigner(local_datetime_ , std::move(v.local_datetime_ )); break;
-            case value_t::LocalDate     : assigner(local_date_     , std::move(v.local_date_     )); break;
-            case value_t::LocalTime     : assigner(local_time_     , std::move(v.local_time_     )); break;
-            case value_t::Array         : assigner(array_          , std::move(v.array_          )); break;
-            case value_t::Table         : assigner(table_          , std::move(v.table_          )); break;
+            case value_t::boolean        : assigner(boolean_        , std::move(v.boolean_        )); break;
+            case value_t::integer        : assigner(integer_        , std::move(v.integer_        )); break;
+            case value_t::floating       : assigner(floating_       , std::move(v.floating_       )); break;
+            case value_t::string         : assigner(string_         , std::move(v.string_         )); break;
+            case value_t::offset_datetime: assigner(offset_datetime_, std::move(v.offset_datetime_)); break;
+            case value_t::local_datetime : assigner(local_datetime_ , std::move(v.local_datetime_ )); break;
+            case value_t::local_date     : assigner(local_date_     , std::move(v.local_date_     )); break;
+            case value_t::local_time     : assigner(local_time_     , std::move(v.local_time_     )); break;
+            case value_t::array          : assigner(array_          , std::move(v.array_          )); break;
+            case value_t::table          : assigner(table_          , std::move(v.table_          )); break;
             default: break;
         }
     }
-    value& operator=(const value& v)
+    basic_value& operator=(const basic_value& v)
     {
         this->cleanup();
         this->region_info_ = v.region_info_;
         this->type_ = v.type();
         switch(this->type_)
         {
-            case value_t::Boolean       : assigner(boolean_        , v.boolean_        ); break;
-            case value_t::Integer       : assigner(integer_        , v.integer_        ); break;
-            case value_t::Float         : assigner(floating_       , v.floating_       ); break;
-            case value_t::String        : assigner(string_         , v.string_         ); break;
-            case value_t::OffsetDatetime: assigner(offset_datetime_, v.offset_datetime_); break;
-            case value_t::LocalDatetime : assigner(local_datetime_ , v.local_datetime_ ); break;
-            case value_t::LocalDate     : assigner(local_date_     , v.local_date_     ); break;
-            case value_t::LocalTime     : assigner(local_time_     , v.local_time_     ); break;
-            case value_t::Array         : assigner(array_          , v.array_          ); break;
-            case value_t::Table         : assigner(table_          , v.table_          ); break;
+            case value_t::boolean        : assigner(boolean_        , v.boolean_        ); break;
+            case value_t::integer        : assigner(integer_        , v.integer_        ); break;
+            case value_t::floating       : assigner(floating_       , v.floating_       ); break;
+            case value_t::string         : assigner(string_         , v.string_         ); break;
+            case value_t::offset_datetime: assigner(offset_datetime_, v.offset_datetime_); break;
+            case value_t::local_datetime : assigner(local_datetime_ , v.local_datetime_ ); break;
+            case value_t::local_date     : assigner(local_date_     , v.local_date_     ); break;
+            case value_t::local_time     : assigner(local_time_     , v.local_time_     ); break;
+            case value_t::array          : assigner(array_          , v.array_          ); break;
+            case value_t::table          : assigner(table_          , v.table_          ); break;
             default: break;
         }
         return *this;
     }
-    value& operator=(value&& v)
+    basic_value& operator=(basic_value&& v)
     {
         this->cleanup();
         this->region_info_ = std::move(v.region_info_);
         this->type_ = v.type();
         switch(this->type_)
         {
-            case value_t::Boolean       : assigner(boolean_        , std::move(v.boolean_        )); break;
-            case value_t::Integer       : assigner(integer_        , std::move(v.integer_        )); break;
-            case value_t::Float         : assigner(floating_       , std::move(v.floating_       )); break;
-            case value_t::String        : assigner(string_         , std::move(v.string_         )); break;
-            case value_t::OffsetDatetime: assigner(offset_datetime_, std::move(v.offset_datetime_)); break;
-            case value_t::LocalDatetime : assigner(local_datetime_ , std::move(v.local_datetime_ )); break;
-            case value_t::LocalDate     : assigner(local_date_     , std::move(v.local_date_     )); break;
-            case value_t::LocalTime     : assigner(local_time_     , std::move(v.local_time_     )); break;
-            case value_t::Array         : assigner(array_          , std::move(v.array_          )); break;
-            case value_t::Table         : assigner(table_          , std::move(v.table_          )); break;
+            case value_t::boolean        : assigner(boolean_        , std::move(v.boolean_        )); break;
+            case value_t::integer        : assigner(integer_        , std::move(v.integer_        )); break;
+            case value_t::floating       : assigner(floating_       , std::move(v.floating_       )); break;
+            case value_t::string         : assigner(string_         , std::move(v.string_         )); break;
+            case value_t::offset_datetime: assigner(offset_datetime_, std::move(v.offset_datetime_)); break;
+            case value_t::local_datetime : assigner(local_datetime_ , std::move(v.local_datetime_ )); break;
+            case value_t::local_date     : assigner(local_date_     , std::move(v.local_date_     )); break;
+            case value_t::local_time     : assigner(local_time_     , std::move(v.local_time_     )); break;
+            case value_t::array          : assigner(array_          , std::move(v.array_          )); break;
+            case value_t::table          : assigner(table_          , std::move(v.table_          )); break;
             default: break;
         }
         return *this;
@@ -141,25 +359,25 @@ class value
 
     // boolean ==============================================================
 
-    value(boolean b)
-        : type_(value_t::Boolean),
+    basic_value(boolean b)
+        : type_(value_t::boolean),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->boolean_, b);
     }
 
-    value& operator=(boolean b)
+    basic_value& operator=(boolean b)
     {
         this->cleanup();
-        this->type_ = value_t::Boolean;
+        this->type_ = value_t::boolean;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->boolean_, b);
         return *this;
     }
 
     template<typename Container>
-    value(boolean b, detail::region<Container> reg)
-        : type_(value_t::Boolean),
+    basic_value(boolean b, detail::region<Container> reg)
+        : type_(value_t::boolean),
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg)))
     {
         assigner(this->boolean_, b);
@@ -170,19 +388,20 @@ class value
     template<typename T, typename std::enable_if<detail::conjunction<
         std::is_integral<T>, detail::negation<std::is_same<T, boolean>>>::value,
         std::nullptr_t>::type = nullptr>
-    value(T i)
-        : type_(value_t::Integer),
+    basic_value(T i)
+        : type_(value_t::integer),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->integer_, static_cast<integer>(i));
     }
 
     template<typename T, typename Container, typename std::enable_if<
-        detail::conjunction<std::is_integral<T>,
-        detail::negation<std::is_same<T, boolean>>
+        detail::conjunction<
+            std::is_integral<T>,
+            detail::negation<std::is_same<T, boolean>>
         >::value, std::nullptr_t>::type = nullptr>
-    value(T i, detail::region<Container> reg)
-        : type_(value_t::Integer),
+    basic_value(T i, detail::region<Container> reg)
+        : type_(value_t::integer),
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg)))
     {
         assigner(this->integer_, static_cast<integer>(i));
@@ -191,10 +410,10 @@ class value
     template<typename T, typename std::enable_if<detail::conjunction<
         std::is_integral<T>, detail::negation<std::is_same<T, boolean>>>::value,
         std::nullptr_t>::type = nullptr>
-    value& operator=(T i)
+    basic_value& operator=(T i)
     {
         this->cleanup();
-        this->type_ = value_t::Integer;
+        this->type_ = value_t::integer;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->integer_, static_cast<integer>(i));
         return *this;
@@ -204,8 +423,8 @@ class value
 
     template<typename T, typename std::enable_if<
         std::is_floating_point<T>::value, std::nullptr_t>::type = nullptr>
-    value(T f)
-        : type_(value_t::Float),
+    basic_value(T f)
+        : type_(value_t::floating),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->floating_, f);
@@ -213,8 +432,8 @@ class value
 
     template<typename T, typename Container, typename std::enable_if<
         std::is_floating_point<T>::value, std::nullptr_t>::type = nullptr>
-    value(T f, detail::region<Container> reg)
-        : type_(value_t::Float),
+    basic_value(T f, detail::region<Container> reg)
+        : type_(value_t::floating),
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg)))
     {
         assigner(this->floating_, f);
@@ -222,10 +441,10 @@ class value
 
     template<typename T, typename std::enable_if<
         std::is_floating_point<T>::value, std::nullptr_t>::type = nullptr>
-    value& operator=(T f)
+    basic_value& operator=(T f)
     {
         this->cleanup();
-        this->type_ = value_t::Float;
+        this->type_ = value_t::floating;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->floating_, f);
         return *this;
@@ -233,87 +452,87 @@ class value
 
     // string ===============================================================
 
-    value(toml::string s)
-        : type_(value_t::String),
+    basic_value(toml::string s)
+        : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->string_, std::move(s));
     }
     template<typename Container>
-    value(toml::string s, detail::region<Container> reg)
-        : type_(value_t::String),
+    basic_value(toml::string s, detail::region<Container> reg)
+        : type_(value_t::string),
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg)))
     {
         assigner(this->string_, std::move(s));
     }
-    value& operator=(toml::string s)
+    basic_value& operator=(toml::string s)
     {
         this->cleanup();
-        this->type_ = value_t::String;
+        this->type_ = value_t::string ;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->string_, s);
         return *this;
     }
 
-    value(std::string s)
-        : type_(value_t::String),
+    basic_value(std::string s)
+        : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->string_, toml::string(std::move(s)));
     }
-    value& operator=(std::string s)
+    basic_value& operator=(std::string s)
     {
         this->cleanup();
-        this->type_ = value_t::String;
+        this->type_ = value_t::string ;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->string_, toml::string(std::move(s)));
         return *this;
     }
-    value(std::string s, string_t kind)
-        : type_(value_t::String),
+    basic_value(std::string s, string_t kind)
+        : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->string_, toml::string(std::move(s), kind));
     }
 
-    value(const char* s)
-        : type_(value_t::String),
+    basic_value(const char* s)
+        : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->string_, toml::string(std::string(s)));
     }
-    value& operator=(const char* s)
+    basic_value& operator=(const char* s)
     {
         this->cleanup();
-        this->type_ = value_t::String;
+        this->type_ = value_t::string ;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->string_, toml::string(std::string(s)));
         return *this;
     }
-    value(const char* s, string_t kind)
-        : type_(value_t::String),
+    basic_value(const char* s, string_t kind)
+        : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->string_, toml::string(std::string(s), kind));
     }
 
 #if __cplusplus >= 201703L
-    value(std::string_view s)
-        : type_(value_t::String),
+    basic_value(std::string_view s)
+        : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->string_, toml::string(s));
     }
-    value& operator=(std::string_view s)
+    basic_value& operator=(std::string_view s)
     {
         this->cleanup();
-        this->type_ = value_t::String;
+        this->type_ = value_t::string ;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->string_, toml::string(s));
         return *this;
     }
-    value(std::string_view s, string_t kind)
-        : type_(value_t::String),
+    basic_value(std::string_view s, string_t kind)
+        : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->string_, toml::string(s, kind));
@@ -322,23 +541,23 @@ class value
 
     // local date ===========================================================
 
-    value(const local_date& ld)
-        : type_(value_t::LocalDate),
+    basic_value(const local_date& ld)
+        : type_(value_t::local_date),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->local_date_, ld);
     }
     template<typename Container>
-    value(const local_date& ld, detail::region<Container> reg)
-        : type_(value_t::LocalDate),
+    basic_value(const local_date& ld, detail::region<Container> reg)
+        : type_(value_t::local_date),
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg)))
     {
         assigner(this->local_date_, ld);
     }
-    value& operator=(const local_date& ld)
+    basic_value& operator=(const local_date& ld)
     {
         this->cleanup();
-        this->type_ = value_t::LocalDate;
+        this->type_ = value_t::local_date;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->local_date_, ld);
         return *this;
@@ -346,39 +565,39 @@ class value
 
     // local time ===========================================================
 
-    value(const local_time& lt)
-        : type_(value_t::LocalTime),
+    basic_value(const local_time& lt)
+        : type_(value_t::local_time),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->local_time_, lt);
     }
     template<typename Container>
-    value(const local_time& lt, detail::region<Container> reg)
-        : type_(value_t::LocalTime),
+    basic_value(const local_time& lt, detail::region<Container> reg)
+        : type_(value_t::local_time),
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg)))
     {
         assigner(this->local_time_, lt);
     }
-    value& operator=(const local_time& lt)
+    basic_value& operator=(const local_time& lt)
     {
         this->cleanup();
-        this->type_ = value_t::LocalTime;
+        this->type_ = value_t::local_time;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->local_time_, lt);
         return *this;
     }
     template<typename Rep, typename Period>
-    value(const std::chrono::duration<Rep, Period>& dur)
-        : type_(value_t::LocalTime),
+    basic_value(const std::chrono::duration<Rep, Period>& dur)
+        : type_(value_t::local_time),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->local_time_, local_time(dur));
     }
     template<typename Rep, typename Period>
-    value& operator=(const std::chrono::duration<Rep, Period>& dur)
+    basic_value& operator=(const std::chrono::duration<Rep, Period>& dur)
     {
         this->cleanup();
-        this->type_ = value_t::LocalTime;
+        this->type_ = value_t::local_time;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->local_time_, local_time(dur));
         return *this;
@@ -386,23 +605,23 @@ class value
 
     // local datetime =======================================================
 
-    value(const local_datetime& ldt)
-        : type_(value_t::LocalDatetime),
+    basic_value(const local_datetime& ldt)
+        : type_(value_t::local_datetime),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->local_datetime_, ldt);
     }
     template<typename Container>
-    value(const local_datetime& ldt, detail::region<Container> reg)
-        : type_(value_t::LocalDatetime),
+    basic_value(const local_datetime& ldt, detail::region<Container> reg)
+        : type_(value_t::local_datetime),
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg)))
     {
         assigner(this->local_datetime_, ldt);
     }
-    value& operator=(const local_datetime& ldt)
+    basic_value& operator=(const local_datetime& ldt)
     {
         this->cleanup();
-        this->type_ = value_t::LocalDatetime;
+        this->type_ = value_t::local_datetime;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->local_datetime_, ldt);
         return *this;
@@ -410,37 +629,37 @@ class value
 
     // offset datetime ======================================================
 
-    value(const offset_datetime& odt)
-        : type_(value_t::OffsetDatetime),
+    basic_value(const offset_datetime& odt)
+        : type_(value_t::offset_datetime),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->offset_datetime_, odt);
     }
     template<typename Container>
-    value(const offset_datetime& odt, detail::region<Container> reg)
-        : type_(value_t::OffsetDatetime),
+    basic_value(const offset_datetime& odt, detail::region<Container> reg)
+        : type_(value_t::offset_datetime),
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg)))
     {
         assigner(this->offset_datetime_, odt);
     }
-    value& operator=(const offset_datetime& odt)
+    basic_value& operator=(const offset_datetime& odt)
     {
         this->cleanup();
-        this->type_ = value_t::OffsetDatetime;
+        this->type_ = value_t::offset_datetime;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->offset_datetime_, odt);
         return *this;
     }
-    value(const std::chrono::system_clock::time_point& tp)
-        : type_(value_t::OffsetDatetime),
+    basic_value(const std::chrono::system_clock::time_point& tp)
+        : type_(value_t::offset_datetime),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->offset_datetime_, offset_datetime(tp));
     }
-    value& operator=(const std::chrono::system_clock::time_point& tp)
+    basic_value& operator=(const std::chrono::system_clock::time_point& tp)
     {
         this->cleanup();
-        this->type_ = value_t::OffsetDatetime;
+        this->type_ = value_t::offset_datetime;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->offset_datetime_, offset_datetime(tp));
         return *this;
@@ -448,47 +667,49 @@ class value
 
     // array ================================================================
 
-    value(const array& ary)
-        : type_(value_t::Array),
+    basic_value(const array_type& ary)
+        : type_(value_t::array),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->array_, ary);
     }
     template<typename Container>
-    value(const array& ary, detail::region<Container> reg)
-        : type_(value_t::Array),
+    basic_value(const array_type& ary, detail::region<Container> reg)
+        : type_(value_t::array),
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg)))
     {
         assigner(this->array_, ary);
     }
-    value& operator=(const array& ary)
+    basic_value& operator=(const array_type& ary)
     {
         this->cleanup();
-        this->type_ = value_t::Array;
+        this->type_ = value_t::array ;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->array_, ary);
         return *this;
     }
 
-    template<typename T, typename std::enable_if<value_traits<T>::is_toml_type,
+    template<typename T, typename std::enable_if<
+            detail::is_convertible_to_toml_value<T, value_type>::value,
         std::nullptr_t>::type = nullptr>
-    value(std::initializer_list<T> list)
-        : type_(value_t::Array),
+    basic_value(std::initializer_list<T> list)
+        : type_(value_t::array),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
-        array ary; ary.reserve(list.size());
+        array_type ary; ary.reserve(list.size());
         for(auto& elem : list) {ary.emplace_back(std::move(elem));}
         assigner(this->array_, std::move(ary));
     }
-    template<typename T, typename std::enable_if<value_traits<T>::is_toml_type,
+    template<typename T, typename std::enable_if<
+            detail::is_convertible_to_toml_value<T, value_type>::value,
         std::nullptr_t>::type = nullptr>
-    value& operator=(std::initializer_list<T> list)
+    basic_value& operator=(std::initializer_list<T> list)
     {
         this->cleanup();
-        this->type_ = value_t::Array;
+        this->type_ = value_t::array ;
         this->region_info_ = std::make_shared<region_base>(region_base{});
 
-        array ary; ary.reserve(list.size());
+        array_type ary; ary.reserve(list.size());
         for(auto& elem : list) {ary.emplace_back(std::move(elem));}
         assigner(this->array_, std::move(ary));
         return *this;
@@ -496,23 +717,23 @@ class value
 
     template<typename T, typename std::enable_if<detail::is_container<T>::value,
         std::nullptr_t>::type = nullptr>
-    value(T&& list)
-        : type_(value_t::Array),
+    basic_value(T&& list)
+        : type_(value_t::array),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
-        array ary; ary.reserve(list.size());
+        array_type ary; ary.reserve(list.size());
         for(const auto& elem : list) {ary.emplace_back(elem);}
         assigner(this->array_, std::move(ary));
     }
     template<typename T, typename std::enable_if<detail::is_container<T>::value,
         std::nullptr_t>::type = nullptr>
-    value& operator=(T&& list)
+    basic_value& operator=(T&& list)
     {
         this->cleanup();
-        this->type_ = value_t::Array;
+        this->type_ = value_t::array ;
         this->region_info_ = std::make_shared<region_base>(region_base{});
 
-        array ary; ary.reserve(list.size());
+        array_type ary; ary.reserve(list.size());
         for(const auto& elem : list) {ary.emplace_back(elem);}
         assigner(this->array_, std::move(ary));
         return *this;
@@ -520,42 +741,42 @@ class value
 
     // table ================================================================
 
-    value(const table& tab)
-        : type_(value_t::Table),
+    basic_value(const table_type& tab)
+        : type_(value_t::table),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
         assigner(this->table_, tab);
     }
     template<typename Container>
-    value(const table& tab, detail::region<Container> reg)
-        : type_(value_t::Table),
+    basic_value(const table_type& tab, detail::region<Container> reg)
+        : type_(value_t::table),
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg)))
     {
         assigner(this->table_, tab);
     }
-    value& operator=(const table& tab)
+    basic_value& operator=(const table_type& tab)
     {
         this->cleanup();
-        this->type_ = value_t::Table;
+        this->type_ = value_t::table ;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->table_, tab);
         return *this;
     }
-    value(std::initializer_list<std::pair<key, value>> list)
-        : type_(value_t::Table),
+    basic_value(std::initializer_list<std::pair<key, basic_value>> list)
+        : type_(value_t::table),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
-        table tab;
+        table_type tab;
         for(const auto& elem : list) {tab[elem.first] = elem.second;}
         assigner(this->table_, std::move(tab));
     }
-    value& operator=(std::initializer_list<std::pair<key, value>> list)
+    basic_value& operator=(std::initializer_list<std::pair<key, basic_value>> list)
     {
         this->cleanup();
-        this->type_ = value_t::Array;
+        this->type_ = value_t::array ;
         this->region_info_ = std::make_shared<region_base>(region_base{});
 
-        table tab;
+        table_type tab;
         for(const auto& elem : list) {tab[elem.first] = elem.second;}
         assigner(this->table_, std::move(tab));
         return *this;
@@ -565,17 +786,13 @@ class value
 
     // convert using into_toml() method -------------------------------------
 
-    template<typename T, typename std::enable_if<detail::conjunction<
-        detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
-        detail::has_into_toml_method<T> // but has `into_toml` method
-        >::value, std::nullptr_t>::type = nullptr>
-    value(const T& ud): value(ud.into_toml()) {}
+    template<typename T, typename std::enable_if<
+        detail::has_into_toml_method<T>::value, std::nullptr_t>::type = nullptr>
+    basic_value(const T& ud): basic_value(ud.into_toml()) {}
 
-    template<typename T, typename std::enable_if<detail::conjunction<
-        detail::negation<detail::is_exact_toml_type<T>>, // not a toml::value
-        detail::has_into_toml_method<T> // but has `into_toml` method
-        >::value, std::nullptr_t>::type = nullptr>
-    value& operator=(const T& ud)
+    template<typename T, typename std::enable_if<
+        detail::has_into_toml_method<T>::value, std::nullptr_t>::type = nullptr>
+    basic_value& operator=(const T& ud)
     {
         *this = ud.into_toml();
         return *this;
@@ -583,17 +800,11 @@ class value
 
     // convert using into<T> struct -----------------------------------------
 
-    template<typename T, typename std::enable_if<
-        detail::negation<detail::is_exact_toml_type<T>>::value,
-        std::nullptr_t>::type = nullptr,
-        std::size_t S = sizeof(::toml::into<T>)>
-    value(const T& ud): value(::toml::into<T>::into_toml(ud)) {}
+    template<typename T, std::size_t S = sizeof(::toml::into<T>)>
+    basic_value(const T& ud): basic_value(::toml::into<T>::into_toml(ud)) {}
 
-    template<typename T, typename std::enable_if<
-        detail::negation<detail::is_exact_toml_type<T>>::value,
-        std::nullptr_t>::type = nullptr,
-        std::size_t S = sizeof(::toml::into<T>)>
-    value& operator=(const T& ud)
+    template<typename T, std::size_t S = sizeof(::toml::into<T>)>
+    basic_value& operator=(const T& ud)
     {
         *this = ::toml::into<T>::into_toml(ud);
         return *this;
@@ -602,37 +813,64 @@ class value
     // for internal use ------------------------------------------------------
 
     template<typename T, typename Container, typename std::enable_if<
-        detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-    value(std::pair<T, detail::region<Container>> parse_result)
-        : value(std::move(parse_result.first), std::move(parse_result.second))
+        detail::is_exact_toml_type<T, value_type>::value,
+        std::nullptr_t>::type = nullptr>
+    basic_value(std::pair<T, detail::region<Container>> parse_result)
+        : basic_value(std::move(parse_result.first), std::move(parse_result.second))
     {}
 
     // type checking and casting ============================================
 
-    template<typename T>
-    bool is() const noexcept {return value_traits<T>::type_index == this->type_;}
+    template<typename T, typename std::enable_if<
+        detail::is_exact_toml_type<T, value_type>::value,
+        std::nullptr_t>::type = nullptr>
+    bool is() const noexcept
+    {
+        return detail::type_to_enum<T, value_type>::value == this->type_;
+    }
     bool is(value_t t) const noexcept {return t == this->type_;}
 
-    bool is_uninitialized()   const noexcept {return this->is(value_t::Empty         );}
-    bool is_boolean()         const noexcept {return this->is(value_t::Boolean       );}
-    bool is_integer()         const noexcept {return this->is(value_t::Integer       );}
-    bool is_float()           const noexcept {return this->is(value_t::Float         );}
-    bool is_string()          const noexcept {return this->is(value_t::String        );}
-    bool is_offset_datetime() const noexcept {return this->is(value_t::OffsetDatetime);}
-    bool is_local_datetime()  const noexcept {return this->is(value_t::LocalDatetime );}
-    bool is_local_date()      const noexcept {return this->is(value_t::LocalDate     );}
-    bool is_local_time()      const noexcept {return this->is(value_t::LocalTime     );}
-    bool is_array()           const noexcept {return this->is(value_t::Array         );}
-    bool is_table()           const noexcept {return this->is(value_t::Table         );}
+    bool is_uninitialized()   const noexcept {return this->is(value_t::empty          );}
+    bool is_boolean()         const noexcept {return this->is(value_t::boolean        );}
+    bool is_integer()         const noexcept {return this->is(value_t::integer        );}
+    bool is_float()           const noexcept {return this->is(value_t::floating       );}
+    bool is_string()          const noexcept {return this->is(value_t::string         );}
+    bool is_offset_datetime() const noexcept {return this->is(value_t::offset_datetime);}
+    bool is_local_datetime()  const noexcept {return this->is(value_t::local_datetime );}
+    bool is_local_date()      const noexcept {return this->is(value_t::local_date     );}
+    bool is_local_time()      const noexcept {return this->is(value_t::local_time     );}
+    bool is_array()           const noexcept {return this->is(value_t::array          );}
+    bool is_table()           const noexcept {return this->is(value_t::table          );}
 
     value_t type() const {return type_;}
 
     template<value_t T>
-    typename detail::toml_default_type<T>::type&       cast() &;
+    typename detail::enum_to_type<T, value_type>::type&       cast() &
+    {
+        if(this->type_ != T)
+        {
+            detail::throw_bad_cast<T>(this->type_, *this);
+        }
+        return detail::switch_cast<T>::invoke(*this);
+    }
     template<value_t T>
-    typename detail::toml_default_type<T>::type const& cast() const&;
+    typename detail::enum_to_type<T, value_type>::type const& cast() const&
+    {
+        if(this->type_ != T)
+        {
+            detail::throw_bad_cast<T>(this->type_, *this);
+        }
+        return detail::switch_cast<T>::invoke(*this);
+    }
     template<value_t T>
-    typename detail::toml_default_type<T>::type&&      cast() &&;
+    typename detail::enum_to_type<T, value_type>::type&&      cast() &&
+    {
+        if(this->type_ != T)
+        {
+            detail::throw_bad_cast<T>(this->type_, *this);
+        }
+        return detail::switch_cast<T>::invoke(std::move(*this));
+    }
 
     boolean         const& as_boolean()         const& noexcept {return this->boolean_;}
     integer         const& as_integer()         const& noexcept {return this->integer_;}
@@ -642,8 +880,8 @@ class value
     local_datetime  const& as_local_datetime()  const& noexcept {return this->local_datetime_;}
     local_date      const& as_local_date()      const& noexcept {return this->local_date_;}
     local_time      const& as_local_time()      const& noexcept {return this->local_time_;}
-    array           const& as_array()           const& noexcept {return this->array_.value();}
-    table           const& as_table()           const& noexcept {return this->table_.value();}
+    array_type      const& as_array()           const& noexcept {return this->array_.value();}
+    table_type      const& as_table()           const& noexcept {return this->table_.value();}
 
     boolean        & as_boolean()         & noexcept {return this->boolean_;}
     integer        & as_integer()         & noexcept {return this->integer_;}
@@ -653,8 +891,8 @@ class value
     local_datetime & as_local_datetime()  & noexcept {return this->local_datetime_;}
     local_date     & as_local_date()      & noexcept {return this->local_date_;}
     local_time     & as_local_time()      & noexcept {return this->local_time_;}
-    array          & as_array()           & noexcept {return this->array_.value();}
-    table          & as_table()           & noexcept {return this->table_.value();}
+    array_type     & as_array()           & noexcept {return this->array_.value();}
+    table_type     & as_table()           & noexcept {return this->table_.value();}
 
     boolean        && as_boolean()         && noexcept {return std::move(this->boolean_);}
     integer        && as_integer()         && noexcept {return std::move(this->integer_);}
@@ -664,20 +902,17 @@ class value
     local_datetime && as_local_datetime()  && noexcept {return std::move(this->local_datetime_);}
     local_date     && as_local_date()      && noexcept {return std::move(this->local_date_);}
     local_time     && as_local_time()      && noexcept {return std::move(this->local_time_);}
-    array          && as_array()           && noexcept {return std::move(this->array_.value());}
-    table          && as_table()           && noexcept {return std::move(this->table_.value());}
+    array_type     && as_array()           && noexcept {return std::move(this->array_.value());}
+    table_type     && as_table()           && noexcept {return std::move(this->table_.value());}
 
-    std::string comment() const
+    comment_type const& comments() const noexcept
     {
-        return this->region_info_->comment();
+        return this->comments_;
     }
-    std::string comment_before() const
+
+    source_location location() const
     {
-        return this->region_info_->comment_before();
-    }
-    std::string comment_inline() const
-    {
-        return this->region_info_->comment_inline();
+        return source_location(this->region_info_);
     }
 
   private:
@@ -686,29 +921,30 @@ class value
     {
         switch(this->type_)
         {
-            case value_t::String : {string_.~string();       return;}
-            case value_t::Array  : {array_.~array_storage(); return;}
-            case value_t::Table  : {table_.~table_storage(); return;}
+            case value_t::string  : {string_.~string();       return;}
+            case value_t::array   : {array_.~array_storage(); return;}
+            case value_t::table   : {table_.~table_storage(); return;}
             default              : return;
         }
     }
 
     // for error messages
-    friend region_base const& detail::get_region(const value&);
+    template<typename C,
+             template<typename ...> class T, template<typename ...> class A>
+    friend region_base const& detail::get_region(const basic_value<C, T, A>&);
 
-    template<typename Region>
-    friend void detail::change_region(value&, Region&&);
+    template<typename Region, typename C,
+             template<typename ...> class T, template<typename ...> class A>
+    friend void detail::change_region(basic_value<C, T, A>&, Region&&);
 
   private:
 
-    using array_storage = detail::storage<array>;
-    using table_storage = detail::storage<table>;
+    using array_storage = detail::storage<array_type>;
+    using table_storage = detail::storage<table_type>;
 
-    value_t type_;
-
-    // for error message information.
+    comment_type                 comments_;
     std::shared_ptr<region_base> region_info_;
-
+    value_t                      type_;
     union
     {
         boolean         boolean_;
@@ -726,13 +962,16 @@ class value
 
 namespace detail
 {
-inline region_base const& get_region(const value& v)
+template<typename C,
+         template<typename ...> class T, template<typename ...> class A>
+inline region_base const& get_region(const basic_value<C, T, A>& v)
 {
     return *(v.region_info_);
 }
 
-template<typename Region>
-void change_region(value& v, Region&& reg)
+template<typename Region, typename C,
+         template<typename ...> class T, template<typename ...> class A>
+void change_region(basic_value<C, T, A>& v, Region&& reg)
 {
     using region_type = typename std::remove_reference<
         typename std::remove_cv<Region>::type
@@ -743,343 +982,238 @@ void change_region(value& v, Region&& reg)
     v.region_info_ = new_reg;
     return;
 }
-
-template<value_t Expected>
-[[noreturn]] inline void throw_bad_cast(value_t actual, const ::toml::value& v)
-{
-    throw type_error(detail::format_underline(concat_to_string(
-        "[error] toml::value bad_cast to ", Expected), {
-            {std::addressof(get_region(v)),
-             concat_to_string("the actual type is ", actual)}
-        }));
-}
-
-template<value_t T>
-struct switch_cast;
-template<>
-struct switch_cast<value_t::Boolean>
-{
-    static ::toml::boolean&       invoke(value&       v) {return v.as_boolean();}
-    static ::toml::boolean const& invoke(value const& v) {return v.as_boolean();}
-    static ::toml::boolean&&      invoke(value&&      v) {return std::move(v).as_boolean();}
-};
-template<>
-struct switch_cast<value_t::Integer>
-{
-    static ::toml::integer&       invoke(value&       v) {return v.as_integer();}
-    static ::toml::integer const& invoke(value const& v) {return v.as_integer();}
-    static ::toml::integer&&      invoke(value&&      v) {return std::move(v).as_integer();}
-};
-template<>
-struct switch_cast<value_t::Float>
-{
-    static ::toml::floating&       invoke(value&       v) {return v.as_float();}
-    static ::toml::floating const& invoke(value const& v) {return v.as_float();}
-    static ::toml::floating&&      invoke(value&&      v) {return std::move(v).as_float();}
-};
-template<>
-struct switch_cast<value_t::String>
-{
-    static ::toml::string&       invoke(value&       v) {return v.as_string();}
-    static ::toml::string const& invoke(value const& v) {return v.as_string();}
-    static ::toml::string&&      invoke(value&&      v) {return std::move(v).as_string();}
-};
-template<>
-struct switch_cast<value_t::OffsetDatetime>
-{
-    static ::toml::offset_datetime&       invoke(value&       v) {return v.as_offset_datetime();}
-    static ::toml::offset_datetime const& invoke(value const& v) {return v.as_offset_datetime();}
-    static ::toml::offset_datetime&&      invoke(value&&      v) {return std::move(v).as_offset_datetime();}
-};
-template<>
-struct switch_cast<value_t::LocalDatetime>
-{
-    static ::toml::local_datetime&       invoke(value&       v) {return v.as_local_datetime();}
-    static ::toml::local_datetime const& invoke(value const& v) {return v.as_local_datetime();}
-    static ::toml::local_datetime&&      invoke(value&&      v) {return std::move(v).as_local_datetime();}
-};
-template<>
-struct switch_cast<value_t::LocalDate>
-{
-    static ::toml::local_date&       invoke(value&       v) {return v.as_local_date();}
-    static ::toml::local_date const& invoke(value const& v) {return v.as_local_date();}
-    static ::toml::local_date&&      invoke(value&&      v) {return std::move(v).as_local_date();}
-};
-template<>
-struct switch_cast<value_t::LocalTime>
-{
-    static ::toml::local_time&       invoke(value&       v) {return v.as_local_time();}
-    static ::toml::local_time const& invoke(value const& v) {return v.as_local_time();}
-    static ::toml::local_time&&      invoke(value&&      v) {return std::move(v).as_local_time();}
-};
-template<>
-struct switch_cast<value_t::Array>
-{
-    static ::toml::array&       invoke(value&       v) {return v.as_array();}
-    static ::toml::array const& invoke(value const& v) {return v.as_array();}
-    static ::toml::array&&      invoke(value&&      v) {return std::move(v).as_array();}
-};
-template<>
-struct switch_cast<value_t::Table>
-{
-    static ::toml::table&       invoke(value&       v) {return v.as_table();}
-    static ::toml::table const& invoke(value const& v) {return v.as_table();}
-    static ::toml::table&&      invoke(value&&      v) {return std::move(v).as_table();}
-};
 }// detail
 
-template<value_t T>
-typename detail::toml_default_type<T>::type& value::cast() &
-{
-    if(T != this->type_)
-    {
-        detail::throw_bad_cast<T>(this->type_, *this);
-    }
-    return detail::switch_cast<T>::invoke(*this);
-}
-template<value_t T>
-typename detail::toml_default_type<T>::type const& value::cast() const&
-{
-    if(T != this->type_)
-    {
-        detail::throw_bad_cast<T>(this->type_, *this);
-    }
-    return detail::switch_cast<T>::invoke(*this);
-}
-template<value_t T>
-typename detail::toml_default_type<T>::type&&      value::cast() &&
-{
-    if(T != this->type_)
-    {
-        detail::throw_bad_cast<T>(this->type_, *this);
-    }
-    return detail::switch_cast<T>::invoke(std::move(*this));
-}
-
-inline bool operator==(const toml::value& lhs, const toml::value& rhs)
+template<typename C, template<typename ...> class T, template<typename ...> class A>
+inline bool
+operator==(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     if(lhs.type() != rhs.type()){return false;}
     switch(lhs.type())
     {
-        case value_t::Boolean :
+        case value_t::boolean  :
         {
             return lhs.as_boolean() == rhs.as_boolean();
         }
-        case value_t::Integer :
+        case value_t::integer  :
         {
             return lhs.as_integer() == rhs.as_integer();
         }
-        case value_t::Float   :
+        case value_t::floating :
         {
             return lhs.as_float() == rhs.as_float();
         }
-        case value_t::String  :
+        case value_t::string   :
         {
             return lhs.as_string() == rhs.as_string();
         }
-        case value_t::OffsetDatetime:
+        case value_t::offset_datetime:
         {
             return lhs.as_offset_datetime() == rhs.as_offset_datetime();
         }
-        case value_t::LocalDatetime:
+        case value_t::local_datetime:
         {
             return lhs.as_local_datetime() == rhs.as_local_datetime();
         }
-        case value_t::LocalDate:
+        case value_t::local_date:
         {
             return lhs.as_local_date() == rhs.as_local_date();
         }
-        case value_t::LocalTime:
+        case value_t::local_time:
         {
             return lhs.as_local_time() == rhs.as_local_time();
         }
-        case value_t::Array   :
+        case value_t::array    :
         {
             return lhs.as_array() == rhs.as_array();
         }
-        case value_t::Table   :
+        case value_t::table    :
         {
             return lhs.as_table() == rhs.as_table();
         }
-        case value_t::Empty   : {return true; }
-        case value_t::Unknown : {return false;}
-        default:                {return false;}
+        case value_t::empty    : {return true; }
+        default:                 {return false;}
     }
 }
-inline bool operator<(const toml::value& lhs, const toml::value& rhs)
+template<typename C, template<typename ...> class T, template<typename ...> class A>
+inline bool
+operator<(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     if(lhs.type() != rhs.type()){return (lhs.type() < rhs.type());}
     switch(lhs.type())
     {
-        case value_t::Boolean :
+        case value_t::boolean  :
         {
             return lhs.as_boolean() < rhs.as_boolean();
         }
-        case value_t::Integer :
+        case value_t::integer  :
         {
             return lhs.as_integer() < rhs.as_integer();
         }
-        case value_t::Float   :
+        case value_t::floating :
         {
             return lhs.as_float() < rhs.as_float();
         }
-        case value_t::String  :
+        case value_t::string   :
         {
             return lhs.as_string() < rhs.as_string();
         }
-        case value_t::OffsetDatetime:
+        case value_t::offset_datetime:
         {
             return lhs.as_offset_datetime() < rhs.as_offset_datetime();
         }
-        case value_t::LocalDatetime:
+        case value_t::local_datetime:
         {
             return lhs.as_local_datetime() < rhs.as_local_datetime();
         }
-        case value_t::LocalDate:
+        case value_t::local_date:
         {
             return lhs.as_local_date() < rhs.as_local_date();
         }
-        case value_t::LocalTime:
+        case value_t::local_time:
         {
             return lhs.as_local_time() < rhs.as_local_time();
         }
-        case value_t::Array   :
+        case value_t::array    :
         {
             return lhs.as_array() < rhs.as_array();
         }
-        case value_t::Table   :
+        case value_t::table    :
         {
             return lhs.as_table() < rhs.as_table();
         }
-        case value_t::Empty   : {return false;}
-        case value_t::Unknown : {return false;}
-        default:                {return false;}
+        case value_t::empty    : {return false;}
+        default:                 {return false;}
     }
 }
 
-inline bool operator!=(const toml::value& lhs, const toml::value& rhs)
+template<typename C, template<typename ...> class T, template<typename ...> class A>
+inline bool operator!=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     return !(lhs == rhs);
 }
-inline bool operator<=(const toml::value& lhs, const toml::value& rhs)
+template<typename C, template<typename ...> class T, template<typename ...> class A>
+inline bool operator<=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     return (lhs < rhs) || (lhs == rhs);
 }
-inline bool operator>(const toml::value& lhs, const toml::value& rhs)
+template<typename C, template<typename ...> class T, template<typename ...> class A>
+inline bool operator>(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     return !(lhs <= rhs);
 }
-inline bool operator>=(const toml::value& lhs, const toml::value& rhs)
+template<typename C, template<typename ...> class T, template<typename ...> class A>
+inline bool operator>=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     return !(lhs < rhs);
 }
 
-inline std::string format_error(const std::string& err_msg,
-        const toml::value& v, const std::string& comment,
-        std::vector<std::string> hints = {})
-{
-    return detail::format_underline(err_msg,
-        std::vector<std::pair<detail::region_base const*, std::string>>{
-            {std::addressof(detail::get_region(v)), comment}
-        }, std::move(hints));
-}
+// inline std::string format_error(const std::string& err_msg,
+//         const toml::basic_value& v, const std::string& comment,
+//         std::vector<std::string> hints = {})
+// {
+//     return detail::format_underline(err_msg,
+//         std::vector<std::pair<detail::region_base const*, std::string>>{
+//             {std::addressof(detail::get_region(v)), comment}
+//         }, std::move(hints));
+// }
+//
+// inline std::string format_error(const std::string& err_msg,
+//         const toml::basic_value& v1, const std::string& comment1,
+//         const toml::basic_value& v2, const std::string& comment2,
+//         std::vector<std::string> hints = {})
+// {
+//     return detail::format_underline(err_msg,
+//         std::vector<std::pair<detail::region_base const*, std::string>>{
+//             {std::addressof(detail::get_region(v1)), comment1},
+//             {std::addressof(detail::get_region(v2)), comment2}
+//         }, std::move(hints));
+// }
+//
+// inline std::string format_error(const std::string& err_msg,
+//         const toml::basic_value& v1, const std::string& comment1,
+//         const toml::basic_value& v2, const std::string& comment2,
+//         const toml::basic_value& v3, const std::string& comment3,
+//         std::vector<std::string> hints = {})
+// {
+//     return detail::format_underline(err_msg,
+//         std::vector<std::pair<detail::region_base const*, std::string>>{
+//             {std::addressof(detail::get_region(v1)), comment1},
+//             {std::addressof(detail::get_region(v2)), comment2},
+//             {std::addressof(detail::get_region(v3)), comment3}
+//         }, std::move(hints));
+// }
 
-inline std::string format_error(const std::string& err_msg,
-        const toml::value& v1, const std::string& comment1,
-        const toml::value& v2, const std::string& comment2,
-        std::vector<std::string> hints = {})
-{
-    return detail::format_underline(err_msg,
-        std::vector<std::pair<detail::region_base const*, std::string>>{
-            {std::addressof(detail::get_region(v1)), comment1},
-            {std::addressof(detail::get_region(v2)), comment2}
-        }, std::move(hints));
-}
-
-inline std::string format_error(const std::string& err_msg,
-        const toml::value& v1, const std::string& comment1,
-        const toml::value& v2, const std::string& comment2,
-        const toml::value& v3, const std::string& comment3,
-        std::vector<std::string> hints = {})
-{
-    return detail::format_underline(err_msg,
-        std::vector<std::pair<detail::region_base const*, std::string>>{
-            {std::addressof(detail::get_region(v1)), comment1},
-            {std::addressof(detail::get_region(v2)), comment2},
-            {std::addressof(detail::get_region(v3)), comment3}
-        }, std::move(hints));
-}
-
-template<typename Visitor>
+template<typename Visitor, typename C,
+         template<typename ...> class T, template<typename ...> class A>
 detail::return_type_of_t<Visitor, const toml::boolean&>
-visit(Visitor&& visitor, const toml::value& v)
+visit(Visitor&& visitor, const toml::basic_value<C, T, A>& v)
 {
     switch(v.type())
     {
-        case value_t::Boolean       : {return visitor(v.as_boolean        ());}
-        case value_t::Integer       : {return visitor(v.as_integer        ());}
-        case value_t::Float         : {return visitor(v.as_float          ());}
-        case value_t::String        : {return visitor(v.as_string         ());}
-        case value_t::OffsetDatetime: {return visitor(v.as_offset_datetime());}
-        case value_t::LocalDatetime : {return visitor(v.as_local_datetime ());}
-        case value_t::LocalDate     : {return visitor(v.as_local_date     ());}
-        case value_t::LocalTime     : {return visitor(v.as_local_time     ());}
-        case value_t::Array         : {return visitor(v.as_array          ());}
-        case value_t::Table         : {return visitor(v.as_table          ());}
-        case value_t::Empty         : break;
-        case value_t::Unknown       : break;
+        case value_t::boolean        : {return visitor(v.as_boolean        ());}
+        case value_t::integer        : {return visitor(v.as_integer        ());}
+        case value_t::floating       : {return visitor(v.as_float          ());}
+        case value_t::string         : {return visitor(v.as_string         ());}
+        case value_t::offset_datetime: {return visitor(v.as_offset_datetime());}
+        case value_t::local_datetime : {return visitor(v.as_local_datetime ());}
+        case value_t::local_date     : {return visitor(v.as_local_date     ());}
+        case value_t::local_time     : {return visitor(v.as_local_time     ());}
+        case value_t::array          : {return visitor(v.as_array          ());}
+        case value_t::table          : {return visitor(v.as_table          ());}
+        case value_t::empty          : break;
         default: break;
     }
-    throw std::runtime_error(format_error("[error] toml::visit: toml::value "
-            "does not have any valid value.", v, "here"));
+    throw std::runtime_error(format_error("[error] toml::visit: toml::basic_value "
+            "does not have any valid basic_value.", v, "here"));
 }
 
-template<typename Visitor>
+template<typename Visitor, typename C,
+         template<typename ...> class T, template<typename ...> class A>
 detail::return_type_of_t<Visitor, toml::boolean&>
-visit(Visitor&& visitor, toml::value& v)
+visit(Visitor&& visitor, toml::basic_value<C, T, A>& v)
 {
     switch(v.type())
     {
-        case value_t::Boolean       : {return visitor(v.as_boolean        ());}
-        case value_t::Integer       : {return visitor(v.as_integer        ());}
-        case value_t::Float         : {return visitor(v.as_float          ());}
-        case value_t::String        : {return visitor(v.as_string         ());}
-        case value_t::OffsetDatetime: {return visitor(v.as_offset_datetime());}
-        case value_t::LocalDatetime : {return visitor(v.as_local_datetime ());}
-        case value_t::LocalDate     : {return visitor(v.as_local_date     ());}
-        case value_t::LocalTime     : {return visitor(v.as_local_time     ());}
-        case value_t::Array         : {return visitor(v.as_array          ());}
-        case value_t::Table         : {return visitor(v.as_table          ());}
-        case value_t::Empty         : break;
-        case value_t::Unknown       : break;
+        case value_t::boolean        : {return visitor(v.as_boolean        ());}
+        case value_t::integer        : {return visitor(v.as_integer        ());}
+        case value_t::floating       : {return visitor(v.as_float          ());}
+        case value_t::string         : {return visitor(v.as_string         ());}
+        case value_t::offset_datetime: {return visitor(v.as_offset_datetime());}
+        case value_t::local_datetime : {return visitor(v.as_local_datetime ());}
+        case value_t::local_date     : {return visitor(v.as_local_date     ());}
+        case value_t::local_time     : {return visitor(v.as_local_time     ());}
+        case value_t::array          : {return visitor(v.as_array          ());}
+        case value_t::table          : {return visitor(v.as_table          ());}
+        case value_t::empty          : break;
         default: break;
     }
-    throw std::runtime_error(format_error("[error] toml::visit: toml::value "
-            "does not have any valid value.", v, "here"));
+    throw std::runtime_error(format_error("[error] toml::visit: toml::basic_value "
+            "does not have any valid basic_value.", v, "here"));
 }
 
-template<typename Visitor>
+template<typename Visitor, typename C,
+         template<typename ...> class T, template<typename ...> class A>
 detail::return_type_of_t<Visitor, toml::boolean&&>
-visit(Visitor&& visitor, toml::value&& v)
+visit(Visitor&& visitor, toml::basic_value<C, T, A>&& v)
 {
     switch(v.type())
     {
-        case value_t::Boolean       : {return visitor(std::move(v.as_boolean        ()));}
-        case value_t::Integer       : {return visitor(std::move(v.as_integer        ()));}
-        case value_t::Float         : {return visitor(std::move(v.as_float          ()));}
-        case value_t::String        : {return visitor(std::move(v.as_string         ()));}
-        case value_t::OffsetDatetime: {return visitor(std::move(v.as_offset_datetime()));}
-        case value_t::LocalDatetime : {return visitor(std::move(v.as_local_datetime ()));}
-        case value_t::LocalDate     : {return visitor(std::move(v.as_local_date     ()));}
-        case value_t::LocalTime     : {return visitor(std::move(v.as_local_time     ()));}
-        case value_t::Array         : {return visitor(std::move(v.as_array          ()));}
-        case value_t::Table         : {return visitor(std::move(v.as_table          ()));}
-        case value_t::Empty         : break;
-        case value_t::Unknown       : break;
+        case value_t::boolean        : {return visitor(std::move(v.as_boolean        ()));}
+        case value_t::integer        : {return visitor(std::move(v.as_integer        ()));}
+        case value_t::floating       : {return visitor(std::move(v.as_float          ()));}
+        case value_t::string         : {return visitor(std::move(v.as_string         ()));}
+        case value_t::offset_datetime: {return visitor(std::move(v.as_offset_datetime()));}
+        case value_t::local_datetime : {return visitor(std::move(v.as_local_datetime ()));}
+        case value_t::local_date     : {return visitor(std::move(v.as_local_date     ()));}
+        case value_t::local_time     : {return visitor(std::move(v.as_local_time     ()));}
+        case value_t::array          : {return visitor(std::move(v.as_array          ()));}
+        case value_t::table          : {return visitor(std::move(v.as_table          ()));}
+        case value_t::empty          : break;
         default: break;
     }
-    throw std::runtime_error(format_error("[error] toml::visit: toml::value "
-            "does not have any valid value.", v, "here"));
+    throw std::runtime_error(format_error("[error] toml::visit: toml::basic_value "
+            "does not have any valid basic_value.", v, "here"));
 }
 
 }// toml
