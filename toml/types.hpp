@@ -6,13 +6,15 @@
 #include "string.hpp"
 #include "traits.hpp"
 #include "comments.hpp"
+#include <vector>
+#include <unordered_map>
 
 namespace toml
 {
 
 template<typename Comment, // discard/preserve_comment
-         template<typename ...> Table, // map-like class
-         template<typename ...> Array> // vector-like class
+         template<typename ...> class Table, // map-like class
+         template<typename ...> class Array> // vector-like class
 class basic_value;
 
 using character = char;
@@ -30,7 +32,7 @@ using floating       = double; // "float" is a keyward, cannot use it here.
 // - local_time
 
 // default toml::value and default array/table
-using value = basic_value<discard_comment, std::unordered_map, std::vector>;
+using value = basic_value<discard_comments, std::unordered_map, std::vector>;
 
 enum class value_t : std::uint8_t
 {
@@ -102,7 +104,7 @@ template<typename Value> struct enum_to_type<value_t::table          , Value>{us
 
 // meta-function that converts from an exact toml type to the enum that corresponds to.
 template<typename T, typename Value>
-struct type_to_enum : typename std::conditional<
+struct type_to_enum : std::conditional<
     std::is_same<T, typename Value::array_type>::value, // if T == array_type,
     value_t_constant<value_t::array>,                   // then value_t::array
     typename std::conditional<                          // else...
@@ -110,7 +112,7 @@ struct type_to_enum : typename std::conditional<
         value_t_constant<value_t::table>,               // then value_t::table
         value_t_constant<value_t::empty>                // else value_t::empty
         >::type
-    >::type {}
+    >::type {};
 template<typename Value> struct type_to_enum<boolean        , Value>: value_t_constant<value_t::boolean        > {};
 template<typename Value> struct type_to_enum<integer        , Value>: value_t_constant<value_t::integer        > {};
 template<typename Value> struct type_to_enum<floating       , Value>: value_t_constant<value_t::floating       > {};
@@ -152,15 +154,15 @@ struct is_convertible_to_toml_value : disjunction<
     std::is_same<T, toml::local_time>,           // T is local_time or
     std::is_same<T, toml::local_datetime>,       // T is local_datetime or
     std::is_same<T, toml::offset_datetime>,      // T is offset_datetime or
-    std::is_same<T, std::chrono::system_clock::time_point> // T is time_point or
+    std::is_same<T, std::chrono::system_clock::time_point>, // T is time_point or
     is_chrono_duration<T>,                       // T is a duration or
     std::is_same<T, typename Value::array_type>, // T is an array type or
-    std::is_same<T, typename Value::table_type>, // T is an array type or
-    >{}
+    std::is_same<T, typename Value::table_type>  // T is an array type or
+    >{};
 
 // meta-function that returns value_t that represent the convertible type
 template<typename T, typename Value>
-struct convertible_toml_type_of : typename std::conditional<
+struct convertible_toml_type_of : std::conditional<
     /* if   */ is_exact_toml_type<T, Value>::value,
     /* then */ value_t_constant<type_to_enum<T, Value>::value>,
     /* else */ typename std::conditional<
@@ -173,24 +175,23 @@ struct convertible_toml_type_of : typename std::conditional<
     /* then */ value_t_constant<value_t::floating>,
     /* else */ typename std::conditional<
     // ----------------------------------------------------------------------
-    /* if   */ std::is_same<std::string>::value,
+    /* if   */ std::is_same<T, std::string>::value,
     /* then */ value_t_constant<value_t::string>,
     /* else */ typename std::conditional<
     // ----------------------------------------------------------------------
-    /* if   */ is_string_literal<T>,
+    /* if   */ is_string_literal<T>::value,
     /* then */ value_t_constant<value_t::string>,
     /* else */ typename std::conditional<
     // ----------------------------------------------------------------------
-    /* if   */ is_chrono_duration<T>,
+    /* if   */ is_chrono_duration<T>::value,
     /* then */ value_t_constant<value_t::local_time>,
     /* else */ typename std::conditional<
     // ----------------------------------------------------------------------
-    /* if   */ std::is_same<T, std::chrono::system_clock::time_point>,
+    /* if   */ std::is_same<T, std::chrono::system_clock::time_point>::value,
     /* then */ value_t_constant<value_t::offset_datetime>,
-    /* else */ value_t_constant<value_t::empty>,
+    /* else */ value_t_constant<value_t::empty>
     // ----------------------------------------------------------------------
-    >::type>::type>::type>::type>::type>::type>::type
-    >{}
+    >::type>::type>::type>::type>::type>::type>::type {};
 
 } // detail
 } // toml
