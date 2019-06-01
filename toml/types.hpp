@@ -5,50 +5,46 @@
 #include "datetime.hpp"
 #include "string.hpp"
 #include "traits.hpp"
-#include <vector>
-#include <unordered_map>
+#include "comments.hpp"
 
 namespace toml
 {
 
-using character = char;
+template<typename Comment, // discard/preserve_comment
+         template<typename ...> Table, // map-like class
+         template<typename ...> Array> // vector-like class
+class basic_value;
 
-class value;
+using character = char;
 using key = std::string;
 
-using Boolean        = bool;
-using Integer        = std::int64_t;
-using Float          = double;
-using String         = ::toml::string;
-using Datetime       = offset_datetime;
-using OffsetDatetime = offset_datetime;
-using LocalDatetime  = local_datetime;
-using LocalDate      = local_date;
-using LocalTime      = local_time;
-using Array          = std::vector<value>;
-using Table          = std::unordered_map<key, value>;
+using boolean        = bool;
+using integer        = std::int64_t;
+using floating       = double; // "float" is a keyward, cannot use it here.
+// the following stuffs are structs defined here, so aliases are not needed.
+// - string
+// - offset_datetime
+// - offset_datetime
+// - local_datetime
+// - local_date
+// - local_time
 
-// alias for snake_case, consistency with STL/Boost, toml::key, toml::value
-using boolean  = Boolean;
-using integer  = Integer;
-using floating = Float;   // XXX `float` is keyword. we can't use it here
-using array    = Array;
-using table    = Table;
+// default toml::value and default array/table
+using value = basic_value<discard_comment, std::unordered_map, std::vector>;
 
 enum class value_t : std::uint8_t
 {
-    Empty          = 0,
-    Boolean        = 1,
-    Integer        = 2,
-    Float          = 3,
-    String         = 4,
-    OffsetDatetime = 5,
-    LocalDatetime  = 6,
-    LocalDate      = 7,
-    LocalTime      = 8,
-    Array          = 9,
-    Table          = 10,
-    Unknown        = 255,
+    empty           =  0,
+    boolean         =  1,
+    integer         =  2,
+    floating        =  3,
+    string          =  4,
+    offset_datetime =  5,
+    local_datetime  =  6,
+    local_date      =  7,
+    local_time      =  8,
+    array           =  9,
+    table           = 10,
 };
 
 template<typename charT, typename traits>
@@ -57,27 +53,27 @@ operator<<(std::basic_ostream<charT, traits>& os, value_t t)
 {
     switch(t)
     {
-        case toml::value_t::Boolean       : os << "boolean";         return os;
-        case toml::value_t::Integer       : os << "integer";         return os;
-        case toml::value_t::Float         : os << "float";           return os;
-        case toml::value_t::String        : os << "string";          return os;
-        case toml::value_t::OffsetDatetime: os << "offset_datetime"; return os;
-        case toml::value_t::LocalDatetime : os << "local_datetime";  return os;
-        case toml::value_t::LocalDate     : os << "local_date";      return os;
-        case toml::value_t::LocalTime     : os << "local_time";      return os;
-        case toml::value_t::Array         : os << "array";           return os;
-        case toml::value_t::Table         : os << "table";           return os;
-        case toml::value_t::Empty         : os << "empty";           return os;
-        case toml::value_t::Unknown       : os << "unknown";         return os;
-        default                           : os << "nothing";         return os;
+        case value_t::boolean         : os << "boolean";         return os;
+        case value_t::integer         : os << "integer";         return os;
+        case value_t::floating        : os << "floating";        return os;
+        case value_t::string          : os << "string";          return os;
+        case value_t::offset_datetime : os << "offset_datetime"; return os;
+        case value_t::local_datetime  : os << "local_datetime";  return os;
+        case value_t::local_date      : os << "local_date";      return os;
+        case value_t::local_time      : os << "local_time";      return os;
+        case value_t::array           : os << "array";           return os;
+        case value_t::table           : os << "table";           return os;
+        case value_t::empty           : os << "empty";           return os;
+        default                       : os << "unknown";         return os;
     }
 }
 
-template<typename charT = character, typename traits = std::char_traits<charT>,
+template<typename charT = char,
+         typename traits = std::char_traits<charT>,
          typename alloc = std::allocator<charT>>
 inline std::basic_string<charT, traits, alloc> stringize(value_t t)
 {
-    std::ostringstream oss;
+    std::basic_ostringstream<charT, traits, alloc> oss;
     oss << t;
     return oss.str();
 }
@@ -85,60 +81,43 @@ inline std::basic_string<charT, traits, alloc> stringize(value_t t)
 namespace detail
 {
 
-template<typename T>
-constexpr inline value_t check_type()
-{
-    using type = typename std::remove_cv<
-                 typename std::remove_reference<T>::type
-                 >::type;
-    return std::is_same<type, toml::boolean>::value                         ? value_t::Boolean        :
-           std::is_integral<type>::value                                    ? value_t::Integer        :
-           std::is_floating_point<type>::value                              ? value_t::Float          :
-           std::is_same<type, std::string>::value                           ? value_t::String         :
-           std::is_same<type, toml::string>::value                          ? value_t::String         :
-           std::is_same<type, toml::local_date>::value                      ? value_t::LocalDate      :
-           std::is_same<type, toml::local_time>::value                      ? value_t::LocalTime      :
-           is_chrono_duration<type>::value                                  ? value_t::LocalTime      :
-           std::is_same<type, toml::local_datetime>::value                  ? value_t::LocalDatetime  :
-           std::is_same<type, toml::offset_datetime>::value                 ? value_t::OffsetDatetime :
-           std::is_same<type, std::chrono::system_clock::time_point>::value ? value_t::OffsetDatetime :
-           std::is_convertible<type, toml::array>::value                    ? value_t::Array          :
-           std::is_convertible<type, toml::table>::value                    ? value_t::Table          :
-           value_t::Unknown;
-}
+// meta-function that convertes from value_t to the exact toml type that corresponds to.
+// It takes toml::basic_value type because array and table types depend on it.
+template<value_t t, typename Value> struct enum_to_type                      {using type = void                      ;};
+template<typename Value> struct enum_to_type<value_t::empty          , Value>{using type = void                      ;};
+template<typename Value> struct enum_to_type<value_t::boolean        , Value>{using type = boolean                   ;};
+template<typename Value> struct enum_to_type<value_t::integer        , Value>{using type = integer                   ;};
+template<typename Value> struct enum_to_type<value_t::floating       , Value>{using type = floating                  ;};
+template<typename Value> struct enum_to_type<value_t::string         , Value>{using type = string                    ;};
+template<typename Value> struct enum_to_type<value_t::offset_datetime, Value>{using type = offset_datetime           ;};
+template<typename Value> struct enum_to_type<value_t::local_datetime , Value>{using type = local_datetime            ;};
+template<typename Value> struct enum_to_type<value_t::local_date     , Value>{using type = local_date                ;};
+template<typename Value> struct enum_to_type<value_t::local_time     , Value>{using type = local_time                ;};
+template<typename Value> struct enum_to_type<value_t::array          , Value>{using type = typename Value::array_type;};
+template<typename Value> struct enum_to_type<value_t::table          , Value>{using type = typename Value::table_type;};
 
-constexpr inline bool is_valid(value_t vt)
-{
-    return vt != value_t::Unknown;
-}
+// meta-function that converts from an exact toml type to the enum that corresponds to.
+template<typename T, typename Value>
+struct type_to_enum : typename std::conditional<
+    std::is_same<T, typename Value::array_type>::value, // if T == array_type,
+    std::integral_constant<value_t, value_t::array>,    // then value_t::array
+    typename std::conditional<                          // else...
+        std::is_same<T, typename Value::table_type>::value, // if T == table_type
+        std::integral_constant<value_t, value_t::table>,    // then value_t::table
+        std::integral_constant<value_t, value_t::empty>     // else value_t::empty
+        >::type
+    >::type {}
+template<typename Value> struct type_to_enum<boolean        , Value>: std::integral_constant<value_t, value_t::boolean        > {};
+template<typename Value> struct type_to_enum<integer        , Value>: std::integral_constant<value_t, value_t::integer        > {};
+template<typename Value> struct type_to_enum<floating       , Value>: std::integral_constant<value_t, value_t::floating       > {};
+template<typename Value> struct type_to_enum<string         , Value>: std::integral_constant<value_t, value_t::string         > {};
+template<typename Value> struct type_to_enum<offset_datetime, Value>: std::integral_constant<value_t, value_t::offset_datetime> {};
+template<typename Value> struct type_to_enum<local_datetime , Value>: std::integral_constant<value_t, value_t::local_datetime > {};
+template<typename Value> struct type_to_enum<local_date     , Value>: std::integral_constant<value_t, value_t::local_date     > {};
+template<typename Value> struct type_to_enum<local_time     , Value>: std::integral_constant<value_t, value_t::local_time     > {};
 
-template<value_t t> struct toml_default_type;
-template<> struct toml_default_type<value_t::Boolean >      {typedef boolean         type;};
-template<> struct toml_default_type<value_t::Integer >      {typedef integer         type;};
-template<> struct toml_default_type<value_t::Float   >      {typedef floating        type;};
-template<> struct toml_default_type<value_t::String  >      {typedef string          type;};
-template<> struct toml_default_type<value_t::OffsetDatetime>{typedef offset_datetime type;};
-template<> struct toml_default_type<value_t::LocalDatetime> {typedef local_datetime  type;};
-template<> struct toml_default_type<value_t::LocalDate>     {typedef local_date      type;};
-template<> struct toml_default_type<value_t::LocalTime>     {typedef local_time      type;};
-template<> struct toml_default_type<value_t::Array   >      {typedef array           type;};
-template<> struct toml_default_type<value_t::Table   >      {typedef table           type;};
-template<> struct toml_default_type<value_t::Empty   >      {typedef void            type;};
-template<> struct toml_default_type<value_t::Unknown >      {typedef void            type;};
-
-template<typename T> struct toml_value_t       {static constexpr value_t value = value_t::Unknown       ;};
-template<> struct toml_value_t<boolean        >{static constexpr value_t value = value_t::Boolean       ;};
-template<> struct toml_value_t<integer        >{static constexpr value_t value = value_t::Integer       ;};
-template<> struct toml_value_t<floating       >{static constexpr value_t value = value_t::Float         ;};
-template<> struct toml_value_t<string         >{static constexpr value_t value = value_t::String        ;};
-template<> struct toml_value_t<offset_datetime>{static constexpr value_t value = value_t::OffsetDatetime;};
-template<> struct toml_value_t<local_datetime >{static constexpr value_t value = value_t::LocalDatetime ;};
-template<> struct toml_value_t<local_date     >{static constexpr value_t value = value_t::LocalDate     ;};
-template<> struct toml_value_t<local_time     >{static constexpr value_t value = value_t::LocalTime     ;};
-template<> struct toml_value_t<array          >{static constexpr value_t value = value_t::Array         ;};
-template<> struct toml_value_t<table          >{static constexpr value_t value = value_t::Table         ;};
-
-template<typename T>
+// meta-function that checks the type T is the same as one of the toml::* types.
+template<typename T, typename Value>
 struct is_exact_toml_type : disjunction<
     std::is_same<T, boolean        >,
     std::is_same<T, integer        >,
@@ -148,13 +127,13 @@ struct is_exact_toml_type : disjunction<
     std::is_same<T, local_datetime >,
     std::is_same<T, local_date     >,
     std::is_same<T, local_time     >,
-    std::is_same<T, array          >,
-    std::is_same<T, table          >
+    std::is_same<T, typename Value::array_type>,
+    std::is_same<T, typename Value::table_type>
     >{};
-template<typename T> struct is_exact_toml_type<T&>               : is_exact_toml_type<T>{};
-template<typename T> struct is_exact_toml_type<T const&>         : is_exact_toml_type<T>{};
-template<typename T> struct is_exact_toml_type<T volatile&>      : is_exact_toml_type<T>{};
-template<typename T> struct is_exact_toml_type<T const volatile&>: is_exact_toml_type<T>{};
+template<typename T, typename V> struct is_exact_toml_type<T&, V>               : is_exact_toml_type<T, V>{};
+template<typename T, typename V> struct is_exact_toml_type<T const&, V>         : is_exact_toml_type<T, V>{};
+template<typename T, typename V> struct is_exact_toml_type<T volatile&, V>      : is_exact_toml_type<T, V>{};
+template<typename T, typename V> struct is_exact_toml_type<T const volatile&, V>: is_exact_toml_type<T, V>{};
 
 } // detail
 } // toml
