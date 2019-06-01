@@ -7,11 +7,6 @@
 #include "traits.hpp"
 #include <vector>
 #include <unordered_map>
-#if __cplusplus >= 201703L
-#if __has_include(<string_view>)
-#include <string_view>
-#endif
-#endif
 
 namespace toml
 {
@@ -160,34 +155,6 @@ template<typename T> struct is_exact_toml_type<T&>               : is_exact_toml
 template<typename T> struct is_exact_toml_type<T const&>         : is_exact_toml_type<T>{};
 template<typename T> struct is_exact_toml_type<T volatile&>      : is_exact_toml_type<T>{};
 template<typename T> struct is_exact_toml_type<T const volatile&>: is_exact_toml_type<T>{};
-
-template<typename T>
-struct is_map : conjunction<
-    has_iterator<T>,
-    has_value_type<T>,
-    has_key_type<T>,
-    has_mapped_type<T>
-    >{};
-template<typename T> struct is_map<T&>                : is_map<T>{};
-template<typename T> struct is_map<T const&>          : is_map<T>{};
-template<typename T> struct is_map<T volatile&>       : is_map<T>{};
-template<typename T> struct is_map<T const volatile&> : is_map<T>{};
-
-template<typename T>
-struct is_container : conjunction<
-    negation<is_map<T>>,
-    negation<std::is_same<T, std::string>>,
-#if __cplusplus >= 201703L
-    negation<std::is_same<T, std::string_view>>,
-#endif
-    has_iterator<T>,
-    has_value_type<T>
-    >{};
-template<typename T> struct is_container<T&>                : is_container<T>{};
-template<typename T> struct is_container<T const&>          : is_container<T>{};
-template<typename T> struct is_container<T volatile&>       : is_container<T>{};
-template<typename T> struct is_container<T const volatile&> : is_container<T>{};
-
 
 } // detail
 } // toml

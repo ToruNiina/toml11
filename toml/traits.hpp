@@ -6,6 +6,12 @@
 #include <utility>
 #include <chrono>
 #include <tuple>
+#include <string>
+#if __cplusplus >= 201703L
+#if __has_include(<string_view>)
+#include <string_view>
+#endif // has_include(<string_view>)
+#endif // cplusplus   >= C++17
 
 namespace toml
 {
@@ -81,7 +87,6 @@ struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
 template<typename T>
 struct has_resize_method : decltype(has_resize_method_impl::check<T>(nullptr)){};
 
-
 template<typename T>
 struct has_from_toml_method
 : decltype(has_from_toml_method_impl::check<T>(nullptr)){};
@@ -114,7 +119,7 @@ template<typename T>
 struct negation : std::integral_constant<bool, !static_cast<bool>(T::value)>{};
 
 // ---------------------------------------------------------------------------
-// normal type checker
+// type checkers
 
 template<typename T> struct is_std_pair : std::false_type{};
 template<typename T1, typename T2>
@@ -127,6 +132,33 @@ struct is_std_tuple<std::tuple<Ts...>> : std::true_type{};
 template<typename T> struct is_chrono_duration: std::false_type{};
 template<typename Rep, typename Period>
 struct is_chrono_duration<std::chrono::duration<Rep, Period>>: std::true_type{};
+
+template<typename T>
+struct is_map : conjunction< // map satisfies all the following conditions
+    has_iterator<T>,         // has T::iterator
+    has_value_type<T>,       // has T::value_type
+    has_key_type<T>,         // has T::key_type
+    has_mapped_type<T>       // has T::mapped_type
+    >{};
+template<typename T> struct is_map<T&>                : is_map<T>{};
+template<typename T> struct is_map<T const&>          : is_map<T>{};
+template<typename T> struct is_map<T volatile&>       : is_map<T>{};
+template<typename T> struct is_map<T const volatile&> : is_map<T>{};
+
+template<typename T>
+struct is_container : conjunction<
+    negation<is_map<T>>,                         // not a map
+    negation<std::is_same<T, std::string>>,      // not a std::string
+#if __cplusplus >= 201703L
+    negation<std::is_same<T, std::string_view>>, // not a std::string_view
+#endif
+    has_iterator<T>,                             // has T::iterator
+    has_value_type<T>                            // has T::value_type
+    >{};
+template<typename T> struct is_container<T&>                : is_container<T>{};
+template<typename T> struct is_container<T const&>          : is_container<T>{};
+template<typename T> struct is_container<T volatile&>       : is_container<T>{};
+template<typename T> struct is_container<T const volatile&> : is_container<T>{};
 
 // ---------------------------------------------------------------------------
 // C++14 index_sequence
