@@ -13,10 +13,14 @@
 #endif // has_include(<string_view>)
 #endif // cplusplus   >= C++17
 
+#include "comments.hpp"
+#include <vector>
+#include <unordered_map>
+
 namespace toml
 {
-
-class value; // forward decl
+template<typename C, template<typename ...> class T, template<typename ...> class A>
+class basic_value;
 
 namespace detail
 {
@@ -58,7 +62,10 @@ struct has_from_toml_method_impl
 {
     template<typename T>
     static std::true_type  check(
-        decltype(std::declval<T>().from_toml(std::declval<::toml::value>()))*);
+        decltype(std::declval<T>().from_toml(std::declval<::toml::basic_value<
+                ::toml::discard_comments, std::unordered_map, std::vector>>()
+                )
+        )*);
     template<typename T>
     static std::false_type check(...);
 };
