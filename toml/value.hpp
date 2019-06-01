@@ -960,6 +960,11 @@ class basic_value
     };
 };
 
+// default toml::value and default array/table.
+using value = basic_value<discard_comments, std::unordered_map, std::vector>;
+using array = typename value::array_type;
+using table = typename value::table_type;
+
 namespace detail
 {
 template<typename C,
