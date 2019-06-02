@@ -13,7 +13,6 @@
 #endif // has_include(<string_view>)
 #endif // cplusplus   >= C++17
 
-#include "comments.hpp"
 #include <vector>
 #include <unordered_map>
 

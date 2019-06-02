@@ -11,6 +11,7 @@
 #include "region.hpp"
 #include "types.hpp"
 #include "source_location.hpp"
+#include "comments.hpp"
 #include <cassert>
 
 namespace toml
