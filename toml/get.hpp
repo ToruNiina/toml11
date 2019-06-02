@@ -865,12 +865,14 @@ T find_or(const toml::table& tab, const toml::key& ky, T&& opt)
     if(tab.count(ky) == 0) {return opt;}
     return get_or(tab.at(ky), std::forward<T>(opt));
 }
+*/
 
 // ============================================================================
 // expect
 
-template<typename T>
-result<T, std::string> expect(const toml::value& v) noexcept
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+result<T, std::string> expect(const basic_value<C, M, V>& v) noexcept
 {
     try
     {
@@ -881,8 +883,10 @@ result<T, std::string> expect(const toml::value& v) noexcept
         return err(e.what());
     }
 }
-template<typename T>
-result<T, std::string> expect(const toml::value& v, const toml::key& k) noexcept
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+result<T, std::string>
+expect(const basic_value<C, M, V>& v, const toml::key& k) noexcept
 {
     try
     {
@@ -893,9 +897,12 @@ result<T, std::string> expect(const toml::value& v, const toml::key& k) noexcept
         return err(e.what());
     }
 }
-template<typename T>
-result<T, std::string> expect(const toml::table& t, const toml::key& k,
-        std::string tablename = "unknown table") noexcept
+template<typename T, typename Table>
+enable_if_t<detail::conjunction<
+    detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>
+    >::value, result<T, std::string>>
+expect(const Table& t, const toml::key& k,
+       std::string tablename = "unknown table") noexcept
 {
     try
     {
@@ -906,6 +913,5 @@ result<T, std::string> expect(const toml::table& t, const toml::key& k,
         return err(e.what());
     }
 }
-*/
 } // toml
 #endif// TOML11_GET
