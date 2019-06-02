@@ -300,7 +300,7 @@ class basic_value
     }
     basic_value(basic_value&& v)
         : type_(v.type()), region_info_(std::move(v.region_info_)),
-          comments_(std::move(comments_))
+          comments_(std::move(v.comments_))
     {
         switch(this->type_) // here this->type_ is already initialized
         {
