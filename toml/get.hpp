@@ -549,17 +549,16 @@ find(basic_value<C, M, V>&& v, const key& ky)
     return ::toml::get<T>(std::move(tab.at(ky)));
 }
 
-/*
-
 // ============================================================================
 // get_or(value, fallback)
 
 // ----------------------------------------------------------------------------
 // specialization for the exact toml types (return type becomes lvalue ref)
 
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-T const& get_or(const toml::value& v, const T& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> const&
+get_or(const basic_value<C, M, V>& v, const T& opt)
 {
     try
     {
@@ -571,9 +570,10 @@ T const& get_or(const toml::value& v, const T& opt)
         return opt;
     }
 }
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-T& get_or(toml::value& v, T& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&
+get_or(basic_value<C, M, V>& v, T& opt)
 {
     try
     {
@@ -585,9 +585,10 @@ T& get_or(toml::value& v, T& opt)
         return opt;
     }
 }
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-T&& get_or(toml::value&& v, T&& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&&
+get_or(basic_value<C, M, V>&& v, T&& opt)
 {
     try
     {
@@ -603,53 +604,67 @@ T&& get_or(toml::value&& v, T&& opt)
 // ----------------------------------------------------------------------------
 // specialization for std::string (return type becomes lvalue ref)
 
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-std::string const& get_or(const toml::value& v, const T& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<std::is_same<
+    typename std::remove_cv<typename std::remove_reference<T>::type>::type,
+    std::string>::value, std::string> const&
+get_or(const basic_value<C, M, V>& v, T&& opt)
 {
     try
     {
-        return get<std::string>(v);
+        return v.template cast<value_t::string>().str;
     }
     catch(...)
     {
         return opt;
     }
 }
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-std::string& get_or(toml::value& v, T& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<std::is_same<
+    typename std::remove_cv<typename std::remove_reference<T>::type>::type,
+    std::string>::value, std::string>&
+get_or(basic_value<C, M, V>& v, T& opt)
 {
     try
     {
-        return get<std::string>(v);
+        return v.template cast<value_t::string>().str;
     }
     catch(...)
     {
         return opt;
     }
 }
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-std::string get_or(toml::value&& v, T&& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<std::is_same<
+    typename std::remove_cv<typename std::remove_reference<T>::type>::type,
+    std::string>::value, std::string>
+get_or(basic_value<C, M, V>&& v, T&& opt)
 {
     try
     {
-        return get<std::string>(v);
+        return std::move(v.template cast<value_t::string>().str);
     }
     catch(...)
     {
         return opt;
     }
 }
-template<typename T, typename std::enable_if<
-    detail::is_string_literal<typename std::remove_reference<T>::type>::value,
-    std::nullptr_t>::type = nullptr>
-std::string get_or(const toml::value& v, T&& opt)
+
+// ----------------------------------------------------------------------------
+// specialization for string literal
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::is_string_literal<
+    typename std::remove_reference<T>::type>::value, std::string>
+get_or(basic_value<C, M, V>&& v, T&& opt)
 {
     try
     {
-        return get<std::string>(v);
+        return std::move(v.template cast<value_t::string>().str);
     }
     catch(...)
     {
@@ -660,12 +675,14 @@ std::string get_or(const toml::value& v, T&& opt)
 // ----------------------------------------------------------------------------
 // others (require type conversion and return type cannot be lvalue reference)
 
-template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>,
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T, basic_value<C, M, V>>>,
     detail::negation<std::is_same<T, std::string>>,
     detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
-    >::value, std::nullptr_t>::type = nullptr>
-T get_or(const toml::value& v, T&& opt)
+    >::value, T>
+get_or(const basic_value<C, M, V>& v, T&& opt)
 {
     try
     {
@@ -678,6 +695,7 @@ T get_or(const toml::value& v, T&& opt)
     }
 }
 
+/*
 // ===========================================================================
 // find_or(value, key, fallback)
 
