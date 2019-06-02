@@ -174,7 +174,7 @@ struct serializer
                 for(const auto& item : v)
                 {
                     const auto t =
-                        this->make_inline_table(item.cast<value_t::Table>());
+                        this->make_inline_table(item.cast<value_t::table>());
 
                     if(t.size() + 1 > width_ || // +1 for the last comma {...},
                        std::find(t.cbegin(), t.cend(), '\n') != t.cend())
@@ -199,7 +199,7 @@ struct serializer
                 token += "[[";
                 token += this->serialize_dotted_key(keys_);
                 token += "]]\n";
-                token += this->make_multiline_table(item.cast<value_t::Table>());
+                token += this->make_multiline_table(item.cast<value_t::table>());
             }
             return token;
         }
