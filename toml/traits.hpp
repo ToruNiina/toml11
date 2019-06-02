@@ -13,9 +13,6 @@
 #endif // has_include(<string_view>)
 #endif // cplusplus   >= C++17
 
-#include <vector>
-#include <unordered_map>
-
 namespace toml
 {
 template<typename C, template<typename ...> class T, template<typename ...> class A>
