@@ -241,8 +241,8 @@ struct switch_cast<value_t::table>
 }// detail
 
 template<typename Comment, // discard/preserve_comment
-         template<typename ...> class Table, // map-like class
-         template<typename ...> class Array> // vector-like class
+         template<typename ...> class Table = std::unordered_map,
+         template<typename ...> class Array = std::vector>
 class basic_value
 {
     template<typename T, typename U>
