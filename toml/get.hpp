@@ -10,50 +10,60 @@
 namespace toml
 {
 
+// C++14 alias
+template<bool B, typename T>
+using enable_if_t = typename std::enable_if<B, T>::type;
+
 // ============================================================================
 // exact toml::* type
 
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-inline T& get(value& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> &
+get(basic_value<C, M, V>& v)
 {
-    return v.cast<detail::toml_value_t<T>::value>();
+    return v.template cast<detail::type_to_enum<T, basic_value<C, M, V>>::value>();
 }
 
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-inline T const& get(const value& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> const&
+get(const basic_value<C, M, V>& v)
 {
-    return v.cast<detail::toml_value_t<T>::value>();
+    return v.template cast<detail::type_to_enum<T, basic_value<C, M, V>>::value>();
 }
 
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-inline T&& get(value&& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> &&
+get(basic_value<C, M, V>&& v)
 {
-    return std::move(v.cast<detail::toml_value_t<T>::value>());
+    return v.template cast<detail::type_to_enum<T, basic_value<C, M, V>>::value>();
 }
 
 // ============================================================================
 // T == toml::value; identity transformation.
 
-template<typename T, typename std::enable_if<
-    std::is_same<T, ::toml::value>::value, std::nullptr_t>::type = nullptr>
-inline T& get(value& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T>&
+get(basic_value<C, M, V>& v)
 {
     return v;
 }
 
-template<typename T, typename std::enable_if<
-    std::is_same<T, ::toml::value>::value, std::nullptr_t>::type = nullptr>
-inline T const& get(const value& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T> const&
+get(const basic_value<C, M, V>& v)
 {
     return v;
 }
 
-template<typename T, typename std::enable_if<
-    std::is_same<T, ::toml::value>::value, std::nullptr_t>::type = nullptr>
-inline T&& get(value&& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T> &&
+get(basic_value<C, M, V>&& v)
 {
     return std::move(v);
 }
@@ -61,104 +71,125 @@ inline T&& get(value&& v)
 // ============================================================================
 // integer convertible from toml::Integer
 
-template<typename T, typename std::enable_if<detail::conjunction<
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<detail::conjunction<
     std::is_integral<T>,                            // T is integral
     detail::negation<std::is_same<T, bool>>,        // but not bool
-    detail::negation<detail::is_exact_toml_type<T>> // but not toml::integer
-    >::value, std::nullptr_t>::type = nullptr>
-inline T get(const value& v)
+    detail::negation<                               // but not toml::integer
+        detail::is_exact_toml_type<T, basic_value<C, M, V>>>
+    >::value, T>
+get(const basic_value<C, M, V>& v)
 {
-    return static_cast<T>(v.cast<value_t::Integer>());
+    return static_cast<T>(v.template cast<value_t::integer>());
 }
 
 // ============================================================================
 // floating point convertible from toml::Float
 
-template<typename T, typename std::enable_if<detail::conjunction<
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<detail::conjunction<
     std::is_floating_point<T>,                      // T is floating_point
-    detail::negation<detail::is_exact_toml_type<T>> // but not toml::Float
-    >::value, std::nullptr_t>::type = nullptr>
-inline T get(const value& v)
+    detail::negation<                               // but not toml::floating
+        detail::is_exact_toml_type<T, basic_value<C, M, V>>>
+    >::value, T>
+get(const basic_value<C, M, V>& v)
 {
-    return static_cast<T>(v.cast<value_t::Float>());
+    return static_cast<T>(v.template cast<value_t::floating>());
 }
 
 // ============================================================================
 // std::string; toml uses its own toml::string, but it should be convertible to
 // std::string seamlessly
 
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-inline std::string& get(value& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<std::is_same<T, std::string>::value, std::string>&
+get(basic_value<C, M, V>& v)
 {
-    return v.cast<value_t::String>().str;
+    return v.template cast<value_t::string>().str;
 }
 
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-inline std::string const& get(const value& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<std::is_same<T, std::string>::value, std::string> const&
+get(const basic_value<C, M, V>& v)
 {
-    return v.cast<value_t::String>().str;
+    return v.template cast<value_t::string>().str;
 }
 
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-inline std::string get(value&& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<std::is_same<T, std::string>::value, std::string> const&
+get(basic_value<C, M, V>&& v)
 {
-    return std::move(v.cast<value_t::String>().str);
+    return std::move(v.template cast<value_t::string>().str);
 }
 
 // ============================================================================
 // std::string_view
 
 #if __cplusplus >= 201703L
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string_view>::value, std::nullptr_t>::type = nullptr>
-inline std::string_view get(const value& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<std::is_same<T, std::string_view>::value, std::string_view>
+get(const basic_value<C, M, V>& v)
 {
-    return std::string_view(v.cast<value_t::String>().str);
+    return std::string_view(v.template cast<value_t::string>().str);
 }
 #endif
 
 // ============================================================================
 // std::chrono::duration from toml::local_time.
 
-template<typename T, typename std::enable_if<
-    detail::is_chrono_duration<T>::value, std::nullptr_t>::type = nullptr>
-inline T get(const value& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<detail::is_chrono_duration<T>::value, T>
+get(const basic_value<C, M, V>& v)
 {
     return std::chrono::duration_cast<T>(
-            std::chrono::nanoseconds(v.cast<value_t::LocalTime>()));
+            std::chrono::nanoseconds(v.template cast<value_t::local_time>()));
 }
 
 // ============================================================================
 // std::chrono::system_clock::time_point from toml::datetime variants
 
-template<typename T, typename std::enable_if<
-    std::is_same<std::chrono::system_clock::time_point, T>::value,
-    std::nullptr_t>::type = nullptr>
-inline T get(const value& v)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<
+    std::is_same<std::chrono::system_clock::time_point, T>::value, T>
+get(const basic_value<C, M, V>& v)
 {
     switch(v.type())
     {
-        case value_t::LocalDate:
+        case value_t::local_date:
         {
             return std::chrono::system_clock::time_point(
-                    v.cast<value_t::LocalDate>());
+                    v.template cast<value_t::local_date>());
         }
-        case value_t::LocalDatetime:
+        case value_t::local_datetime:
         {
             return std::chrono::system_clock::time_point(
-                    v.cast<value_t::LocalDatetime>());
+                    v.template cast<value_t::local_datetime>());
+        }
+        case value_t::offset_datetime:
+        {
+            return std::chrono::system_clock::time_point(
+                    v.template cast<value_t::offset_datetime>());
         }
         default:
         {
-            return std::chrono::system_clock::time_point(
-                    v.cast<value_t::OffsetDatetime>());
+            throw type_error(detail::format_underline("[error] toml::value "
+                "bad_cast to std::chrono::system_clock::time_point", {
+                    {std::addressof(detail::get_region(v)),
+                     concat_to_string("the actual type is ", v.type())}
+                }));
         }
     }
 }
 
+/*
 // ============================================================================
 // forward declaration to use this recursively. ignore this and go ahead.
 
@@ -768,6 +799,6 @@ result<T, std::string> expect(const toml::table& t, const toml::key& k,
         return err(e.what());
     }
 }
-
+*/
 } // toml
 #endif// TOML11_GET
