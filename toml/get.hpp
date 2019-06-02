@@ -709,96 +709,106 @@ get_or(const basic_value<C, M, V>& v, T&& opt)
     }
 }
 
-/*
 // ===========================================================================
 // find_or(value, key, fallback)
 
 // ---------------------------------------------------------------------------
 // exact types (return type can be a reference)
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-T const& find_or(const toml::value& v, const toml::key& ky, const T& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> const&
+find_or(const basic_value<C, M, V>& v, const key& ky, const T& opt)
 {
     if(!v.is_table()) {return opt;}
-    const auto& tab = toml::get<toml::table>(v);
+    const auto& tab = v.as_table();
     if(tab.count(ky) == 0) {return opt;}
     return get_or(tab.at(ky), opt);
 }
 
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-T& find_or(toml::value& v, const toml::key& ky, T& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&
+find_or(basic_value<C, M, V>& v, const toml::key& ky, T& opt)
 {
     if(!v.is_table()) {return opt;}
-    auto& tab = toml::get<toml::table>(v);
+    auto& tab = v.as_table();
     if(tab.count(ky) == 0) {return opt;}
     return get_or(tab[ky], opt);
 }
 
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-T&& find_or(toml::value&& v, const toml::key& ky, T&& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&&
+find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
 {
     if(!v.is_table()) {return opt;}
-    auto tab = toml::get<toml::table>(std::move(v));
+    auto tab = std::move(v).as_table();
     if(tab.count(ky) == 0) {return opt;}
     return get_or(std::move(tab[ky]), std::forward<T>(opt));
 }
 
 // ---------------------------------------------------------------------------
 // std::string (return type can be a reference)
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-std::string const& find_or(const toml::value& v, const toml::key& ky, const T& opt)
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<std::is_same<T, std::string>::value, std::string> const&
+find_or(const basic_value<C, M, V>& v, const key& ky, const T& opt)
 {
     if(!v.is_table()) {return opt;}
-    const auto& tab = toml::get<toml::table>(v);
+    const auto& tab = v.as_table();
     if(tab.count(ky) == 0) {return opt;}
     return get_or(tab.at(ky), opt);
 }
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-std::string& find_or(toml::value& v, const toml::key& ky, T& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<std::is_same<T, std::string>::value, std::string>&
+find_or(basic_value<C, M, V>& v, const toml::key& ky, T& opt)
 {
     if(!v.is_table()) {return opt;}
-    auto& tab = toml::get<toml::table>(v);
+    auto& tab = v.as_table();
     if(tab.count(ky) == 0) {return opt;}
-    return get_or(tab[ky], opt);
+    return get_or(tab.at(ky), opt);
 }
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-std::string find_or(toml::value&& v, const toml::key& ky, T&& opt)
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<std::is_same<T, std::string>::value, std::string>
+find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
 {
     if(!v.is_table()) {return opt;}
-    auto tab = toml::get<toml::table>(std::move(v));
+    auto tab = std::move(v).as_table();
     if(tab.count(ky) == 0) {return opt;}
-    return get_or(std::move(tab[ky]), std::forward<T>(opt));
+    return get_or(std::move(tab.at(ky)), std::forward<T>(opt));
 }
 
 // ---------------------------------------------------------------------------
 // string literal (deduced as std::string)
-template<typename T, typename std::enable_if<
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<
     detail::is_string_literal<typename std::remove_reference<T>::type>::value,
-    std::nullptr_t>::type = nullptr>
-std::string find_or(const toml::value& v, const toml::key& ky, T&& opt)
+    std::string>
+find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
 {
     if(!v.is_table()) {return opt;}
-    const auto& tab = toml::get<toml::table>(v);
+    const auto& tab = v.as_table();
     if(tab.count(ky) == 0) {return std::string(opt);}
     return get_or(tab.at(ky), std::forward<T>(opt));
 }
 
 // ---------------------------------------------------------------------------
 // others (require type conversion and return type cannot be lvalue reference)
-template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>,
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+enable_if_t<detail::conjunction<
+    detail::negation<detail::is_exact_toml_type<T, basic_value<C, M, V>>>,
     detail::negation<std::is_same<T, std::string>>,
     detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
-    >::value, std::nullptr_t>::type = nullptr>
-T find_or(const toml::value& v, const toml::key& ky, T&& opt)
+    >::value, T>
+find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
 {
     if(!v.is_table()) {return opt;}
-    const auto& tab = toml::get<toml::table>(v);
+    const auto& tab = v.as_table();
     if(tab.count(ky) == 0) {return opt;}
     return get_or(tab.at(ky), std::forward<T>(opt));
 }
@@ -808,25 +818,34 @@ T find_or(const toml::value& v, const toml::key& ky, T&& opt)
 
 // ---------------------------------------------------------------------------
 // exact types (return type can be a reference)
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-T const& find_or(const toml::table& tab, const toml::key& ky, const T& opt)
+template<typename T, typename Table>
+enable_if_t<detail::conjunction<
+    detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
+    detail::is_exact_toml_type<T, typename Table::mapped_type>
+    >::value, T> const&
+find_or(const Table& tab, const key& ky, const T& opt)
 {
     if(tab.count(ky) == 0) {return opt;}
     return get_or(tab.at(ky), opt);
 }
 
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-T& find_or(toml::table& tab, const toml::key& ky, T& opt)
+template<typename T, typename Table>
+enable_if_t<detail::conjunction<
+    detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
+    detail::is_exact_toml_type<T, typename Table::mapped_type>
+    >::value, T>&
+find_or(Table& tab, const key& ky, T& opt)
 {
     if(tab.count(ky) == 0) {return opt;}
     return get_or(tab[ky], opt);
 }
 
-template<typename T, typename std::enable_if<
-    detail::is_exact_toml_type<T>::value, std::nullptr_t>::type = nullptr>
-T&& find_or(toml::table&& tab, const toml::key& ky, T&& opt)
+template<typename T, typename Table>
+enable_if_t<detail::conjunction<
+    detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
+    detail::is_exact_toml_type<T, typename Table::mapped_type>
+    >::value, T>&&
+find_or(typename std::remove_reference<Table>::type&& tab, const key& ky, T&& opt)
 {
     if(tab.count(ky) == 0) {return opt;}
     return get_or(std::move(tab[ky]), std::forward<T>(opt));
@@ -834,23 +853,32 @@ T&& find_or(toml::table&& tab, const toml::key& ky, T&& opt)
 
 // ---------------------------------------------------------------------------
 // std::string (return type can be a reference)
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-std::string const& find_or(const toml::table& tab, const toml::key& ky, const T& opt)
+template<typename T, typename Table>
+enable_if_t<detail::conjunction<
+    detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
+    std::is_same<T, std::string>
+    >::value, std::string> const&
+find_or(const Table& tab, const key& ky, const T& opt)
 {
     if(tab.count(ky) == 0) {return opt;}
     return get_or(tab.at(ky), opt);
 }
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-std::string& find_or(toml::table& tab, const toml::key& ky, T& opt)
+template<typename T, typename Table>
+enable_if_t<detail::conjunction<
+    detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
+    std::is_same<T, std::string>
+    >::value, std::string>&
+find_or(Table& tab, const key& ky, T& opt)
 {
     if(tab.count(ky) == 0) {return opt;}
     return get_or(tab[ky], opt);
 }
-template<typename T, typename std::enable_if<
-    std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
-std::string find_or(toml::table&& tab, const toml::key& ky, T&& opt)
+template<typename T, typename Table>
+enable_if_t<detail::conjunction<
+    detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
+    std::is_same<T, std::string>
+    >::value, std::string>
+find_or(Table&& tab, const key& ky, T&& opt)
 {
     if(tab.count(ky) == 0) {return opt;}
     return get_or(std::move(tab[ky]), std::forward<T>(opt));
@@ -858,10 +886,13 @@ std::string find_or(toml::table&& tab, const toml::key& ky, T&& opt)
 
 // ---------------------------------------------------------------------------
 // string literal (deduced as std::string)
-template<typename T, typename std::enable_if<
-    detail::is_string_literal<typename std::remove_reference<T>::type>::value,
-    std::nullptr_t>::type = nullptr>
-std::string find_or(const toml::table& tab, const toml::key& ky, T&& opt)
+template<typename T, typename Table>
+enable_if_t<detail::conjunction<
+    detail::is_map<Table>,
+    detail::is_basic_value<typename Table::mapped_type>,
+    detail::is_string_literal<typename std::remove_reference<T>::type>
+    >::value, std::string>
+find_or(const Table& tab, const key& ky, T&& opt)
 {
     if(tab.count(ky) == 0) {return std::string(opt);}
     return get_or(tab.at(ky), std::forward<T>(opt));
@@ -869,17 +900,19 @@ std::string find_or(const toml::table& tab, const toml::key& ky, T&& opt)
 
 // ---------------------------------------------------------------------------
 // others (require type conversion and return type cannot be lvalue reference)
-template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>,
+template<typename T, typename Table>
+enable_if_t<detail::conjunction<
+    detail::is_map<Table>,
+    detail::is_basic_value<typename Table::mapped_type>,
+    detail::negation<detail::is_exact_toml_type<T, typename Table::mapped_type>>,
     detail::negation<std::is_same<T, std::string>>,
     detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
-    >::value, std::nullptr_t>::type = nullptr>
-T find_or(const toml::table& tab, const toml::key& ky, T&& opt)
+    >::value, T>
+find_or(const Table& tab, const key& ky, T&& opt)
 {
     if(tab.count(ky) == 0) {return opt;}
     return get_or(tab.at(ky), std::forward<T>(opt));
 }
-*/
 
 // ============================================================================
 // expect
