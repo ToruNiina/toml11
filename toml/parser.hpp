@@ -869,13 +869,16 @@ parse_key(location<Container>& loc)
 }
 
 // forward-decl to implement parse_array and parse_table
-template<typename Container>
-result<value, std::string> parse_value(location<Container>&);
+template<typename Value, typename Container>
+result<Value, std::string> parse_value(location<Container>&);
 
-template<typename Container>
-result<std::pair<array, region<Container>>, std::string>
+template<typename Value, typename Container>
+result<std::pair<typename Value::array_type, region<Container>>, std::string>
 parse_array(location<Container>& loc)
 {
+    using value_type = Value;
+    using array_type = typename value_type::array_type;
+
     const auto first = loc.iter();
     if(loc.iter() == loc.end())
     {
@@ -890,7 +893,7 @@ parse_array(location<Container>& loc)
     using lex_ws_comment_newline = repeat<
         either<lex_wschar, lex_newline, lex_comment>, unlimited>;
 
-    array retval;
+    array_type retval;
     while(loc.iter() != loc.end())
     {
         lex_ws_comment_newline::invoke(loc); // skip
@@ -902,7 +905,7 @@ parse_array(location<Container>& loc)
                       region<Container>(loc, first, loc.iter())));
         }
 
-        if(auto val = parse_value(loc))
+        if(auto val = parse_value<value_type>(loc))
         {
             if(!retval.empty() && retval.front().type() != val.as_ok().type())
             {
@@ -966,10 +969,12 @@ parse_array(location<Container>& loc)
             {{std::addressof(loc), "should be closed"}}));
 }
 
-template<typename Container>
-result<std::pair<std::pair<std::vector<key>, region<Container>>, value>, std::string>
+template<typename Value, typename Container>
+result<std::pair<std::pair<std::vector<key>, region<Container>>, Value>, std::string>
 parse_key_value_pair(location<Container>& loc)
 {
+    using value_type = Value;
+
     const auto first = loc.iter();
     auto key_reg = parse_key(loc);
     if(!key_reg)
@@ -1013,7 +1018,7 @@ parse_key_value_pair(location<Container>& loc)
     }
 
     const auto after_kvsp = loc.iter(); // err msg
-    auto val = parse_value(loc);
+    auto val = parse_value<value_type>(loc);
     if(!val)
     {
         std::string msg;
@@ -1123,9 +1128,9 @@ bool is_valid_forward_table_definition(const value& fwd,
     return false;
 }
 
-template<typename InputIterator, typename Container>
+template<typename Value, typename InputIterator, typename Container>
 result<bool, std::string>
-insert_nested_key(table& root, const toml::value& v,
+insert_nested_key(typename Value::table_type& root, const Value& v,
                   InputIterator iter, const InputIterator last,
                   region<Container> key_reg,
                   const bool is_array_of_table = false)
@@ -1133,10 +1138,14 @@ insert_nested_key(table& root, const toml::value& v,
     static_assert(std::is_same<key,
         typename std::iterator_traits<InputIterator>::value_type>::value,"");
 
+    using value_type = Value;
+    using table_type = typename value_type::table_type;
+    using array_type = typename value_type::array_type;
+
     const auto first = iter;
     assert(iter != last);
 
-    table* tab = std::addressof(root);
+    table_type* tab = std::addressof(root);
     for(; iter != last; ++iter) // search recursively
     {
         const key& k = *iter;
@@ -1176,7 +1185,7 @@ insert_nested_key(table& root, const toml::value& v,
                             }));
                     }
                     // the above if-else-if checks tab->at(k) is an array
-                    array& a = tab->at(k).as_array();
+                    auto& a = tab->at(k).as_array();
                     if(!(a.front().is_table()))
                     {
                         throw syntax_error(format_underline(concat_to_string(
@@ -1223,7 +1232,7 @@ insert_nested_key(table& root, const toml::value& v,
                 }
                 else // if not, we need to create the array of table
                 {
-                    toml::value aot(toml::array(1, v), key_reg);
+                    value_type aot(array_type(1, v), key_reg);
                     tab->insert(std::make_pair(k, aot));
                     return ok(true);
                 }
@@ -1298,7 +1307,7 @@ insert_nested_key(table& root, const toml::value& v,
             // [x.y.z]
             if(tab->count(k) == 0)
             {
-                (*tab)[k] = toml::value(toml::table{}, key_reg);
+                (*tab)[k] = value_type(table_type{}, key_reg);
             }
 
             // type checking...
@@ -1308,7 +1317,7 @@ insert_nested_key(table& root, const toml::value& v,
             }
             else if(tab->at(k).is_array()) // inserting to array-of-tables?
             {
-                array& a = (*tab)[k].as_array();
+                auto& a = (*tab)[k].as_array();
                 if(!a.back().is_table())
                 {
                     throw syntax_error(format_underline(concat_to_string(
@@ -1338,12 +1347,15 @@ insert_nested_key(table& root, const toml::value& v,
     return err(std::string("toml::detail::insert_nested_key: never reach here"));
 }
 
-template<typename Container>
-result<std::pair<table, region<Container>>, std::string>
+template<typename Value, typename Container>
+result<std::pair<typename Value::table_type, region<Container>>, std::string>
 parse_inline_table(location<Container>& loc)
 {
+    using value_type = Value;
+    using table_type = typename value_type::table_type;
+
     const auto first = loc.iter();
-    table retval;
+    table_type retval;
     if(!(loc.iter() != loc.end() && *loc.iter() == '{'))
     {
         return err(format_underline("[error] toml::parse_inline_table: ",
@@ -1361,14 +1373,14 @@ parse_inline_table(location<Container>& loc)
                         retval, region<Container>(loc, first, loc.iter())));
         }
 
-        const auto kv_r = parse_key_value_pair(loc);
+        const auto kv_r = parse_key_value_pair<value_type>(loc);
         if(!kv_r)
         {
             return err(kv_r.unwrap_err());
         }
         const std::vector<key>&  keys    = kv_r.unwrap().first.first;
         const region<Container>& key_reg = kv_r.unwrap().first.second;
-        const value&             val     = kv_r.unwrap().second;
+        const value_type&        val     = kv_r.unwrap().second;
 
         const auto inserted =
             insert_nested_key(retval, val, keys.begin(), keys.end(), key_reg);
@@ -1414,22 +1426,22 @@ value_t guess_number_type(const location<Container>& l)
 {
     location<Container> loc = l;
 
-    if(lex_offset_date_time::invoke(loc)) {return value_t::OffsetDatetime;}
+    if(lex_offset_date_time::invoke(loc)) {return value_t::offset_datetime;}
     loc.reset(l.iter());
 
-    if(lex_local_date_time::invoke(loc)) {return value_t::LocalDatetime;}
+    if(lex_local_date_time::invoke(loc)) {return value_t::local_datetime;}
     loc.reset(l.iter());
 
-    if(lex_local_date::invoke(loc)) {return value_t::LocalDate;}
+    if(lex_local_date::invoke(loc)) {return value_t::local_date;}
     loc.reset(l.iter());
 
-    if(lex_local_time::invoke(loc)) {return value_t::LocalTime;}
+    if(lex_local_time::invoke(loc)) {return value_t::local_time;}
     loc.reset(l.iter());
 
-    if(lex_float::invoke(loc)) {return value_t::Float;}
+    if(lex_float::invoke(loc)) {return value_t::floating;}
     loc.reset(l.iter());
 
-    return value_t::Integer;
+    return value_t::integer;
 }
 
 template<typename Container>
@@ -1437,21 +1449,23 @@ value_t guess_value_type(const location<Container>& loc)
 {
     switch(*loc.iter())
     {
-        case '"' : {return value_t::String; }
-        case '\'': {return value_t::String; }
-        case 't' : {return value_t::Boolean;}
-        case 'f' : {return value_t::Boolean;}
-        case '[' : {return value_t::Array;  }
-        case '{' : {return value_t::Table;  }
-        case 'i' : {return value_t::Float;  } // inf.
-        case 'n' : {return value_t::Float;  } // nan.
+        case '"' : {return value_t::string;  }
+        case '\'': {return value_t::string;  }
+        case 't' : {return value_t::boolean; }
+        case 'f' : {return value_t::boolean; }
+        case '[' : {return value_t::array;   }
+        case '{' : {return value_t::table;   }
+        case 'i' : {return value_t::floating;} // inf.
+        case 'n' : {return value_t::floating;} // nan.
         default  : {return guess_number_type(loc);}
     }
 }
 
-template<typename Container>
-result<value, std::string> parse_value(location<Container>& loc)
+template<typename Value, typename Container>
+result<Value, std::string> parse_value(location<Container>& loc)
 {
+    using value_type = Value;
+
     const auto first = loc.iter();
     if(first == loc.end())
     {
@@ -1461,16 +1475,16 @@ result<value, std::string> parse_value(location<Container>& loc)
 
     switch(guess_value_type(loc))
     {
-        case value_t::Boolean        : {return parse_boolean(loc);        }
-        case value_t::Integer        : {return parse_integer(loc);        }
-        case value_t::Float          : {return parse_floating(loc);       }
-        case value_t::String         : {return parse_string(loc);         }
-        case value_t::OffsetDatetime : {return parse_offset_datetime(loc);}
-        case value_t::LocalDatetime  : {return parse_local_datetime(loc); }
-        case value_t::LocalDate      : {return parse_local_date(loc);     }
-        case value_t::LocalTime      : {return parse_local_time(loc);     }
-        case value_t::Array          : {return parse_array(loc);          }
-        case value_t::Table          : {return parse_inline_table(loc);   }
+        case value_t::boolean        : {return parse_boolean(loc);        }
+        case value_t::integer        : {return parse_integer(loc);        }
+        case value_t::floating       : {return parse_floating(loc);       }
+        case value_t::string         : {return parse_string(loc);         }
+        case value_t::offset_datetime: {return parse_offset_datetime(loc);}
+        case value_t::local_datetime : {return parse_local_datetime(loc); }
+        case value_t::local_date     : {return parse_local_date(loc);     }
+        case value_t::local_time     : {return parse_local_time(loc);     }
+        case value_t::array          : {return parse_array<value_type>(loc);       }
+        case value_t::table          : {return parse_inline_table<value_type>(loc);}
         default:
         {
             const auto msg = format_underline("[error] toml::parse_value: "
@@ -1594,13 +1608,17 @@ parse_array_table_key(location<Container>& loc)
 }
 
 // parse table body (key-value pairs until the iter hits the next [tablekey])
-template<typename Container>
-result<table, std::string> parse_ml_table(location<Container>& loc)
+template<typename Value, typename Container>
+result<typename Value::table_type, std::string>
+parse_ml_table(location<Container>& loc)
 {
+    using value_type = Value;
+    using table_type = typename value_type::table_type;
+
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return ok(toml::table{});
+        return ok(table_type{});
     }
 
     // XXX at lest one newline is needed.
@@ -1608,7 +1626,7 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
         sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>, at_least<1>>;
     skip_line::invoke(loc);
 
-    table tab;
+    table_type tab;
     while(loc.iter() != loc.end())
     {
         lex_ws::invoke(loc);
@@ -1624,11 +1642,11 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
             return ok(tab);
         }
 
-        if(const auto kv = parse_key_value_pair(loc))
+        if(const auto kv = parse_key_value_pair<value_type>(loc))
         {
-            const std::vector<key>& keys     = kv.unwrap().first.first;
+            const std::vector<key>&  keys    = kv.unwrap().first.first;
             const region<Container>& key_reg = kv.unwrap().first.second;
-            const value&            val      = kv.unwrap().second;
+            const value_type&        val     = kv.unwrap().second;
             const auto inserted =
                 insert_nested_key(tab, val, keys.begin(), keys.end(), key_reg);
             if(!inserted)
@@ -1673,18 +1691,21 @@ result<table, std::string> parse_ml_table(location<Container>& loc)
     return ok(tab);
 }
 
-template<typename Container>
-result<table, std::string> parse_toml_file(location<Container>& loc)
+template<typename Value, typename Container>
+result<Value, std::string> parse_toml_file(location<Container>& loc)
 {
+    using value_type = Value;
+    using table_type = typename value_type::table_type;
+
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return ok(toml::table{});
+        return ok(value_type(table_type{}));
     }
 
-    table data;
+    table_type data;
     // root object is also a table, but without [tablename]
-    if(auto tab = parse_ml_table(loc))
+    if(auto tab = parse_ml_table<value_type>(loc))
     {
         data = std::move(tab.unwrap());
     }
@@ -1700,14 +1721,14 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
         // message.
         if(const auto tabkey = parse_array_table_key(loc))
         {
-            const auto tab = parse_ml_table(loc);
+            const auto tab = parse_ml_table<value_type>(loc);
             if(!tab){return err(tab.unwrap_err());}
 
             const auto& keys = tabkey.unwrap().first;
             const auto& reg  = tabkey.unwrap().second;
 
             const auto inserted = insert_nested_key(data,
-                    toml::value(tab.unwrap(), reg),
+                    value_type(tab.unwrap(), reg),
                     keys.begin(), keys.end(), reg,
                     /*is_array_of_table=*/ true);
             if(!inserted) {return err(inserted.unwrap_err());}
@@ -1716,14 +1737,14 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
         }
         if(const auto tabkey = parse_table_key(loc))
         {
-            const auto tab = parse_ml_table(loc);
+            const auto tab = parse_ml_table<value_type>(loc);
             if(!tab){return err(tab.unwrap_err());}
 
             const auto& keys = tabkey.unwrap().first;
             const auto& reg  = tabkey.unwrap().second;
 
             const auto inserted = insert_nested_key(data,
-                toml::value(tab.unwrap(), reg), keys.begin(), keys.end(), reg);
+                value_type(tab.unwrap(), reg), keys.begin(), keys.end(), reg);
             if(!inserted) {return err(inserted.unwrap_err());}
 
             continue;
@@ -1736,8 +1757,14 @@ result<table, std::string> parse_toml_file(location<Container>& loc)
 
 } // detail
 
-inline table parse(std::istream& is, std::string fname = "unknown file")
+template<typename                     Comment = ::toml::discard_comments,
+         template<typename ...> class Table   = std::unordered_map,
+         template<typename ...> class Array   = std::vector>
+basic_value<Comment, Table, Array>
+parse(std::istream& is, const std::string& fname = "unknown file")
 {
+    using value_type = basic_value<Comment, Table, Array>;
+
     const auto beg = is.tellg();
     is.seekg(0, std::ios::end);
     const auto end = is.tellg();
@@ -1767,7 +1794,7 @@ inline table parse(std::istream& is, std::string fname = "unknown file")
         }
     }
 
-    const auto data = detail::parse_toml_file(loc);
+    const auto data = detail::parse_toml_file<value_type>(loc);
     if(!data)
     {
         throw syntax_error(data.unwrap_err());
@@ -1775,14 +1802,17 @@ inline table parse(std::istream& is, std::string fname = "unknown file")
     return data.unwrap();
 }
 
-inline table parse(const std::string& fname)
+template<typename                     Comment = ::toml::discard_comments,
+         template<typename ...> class Table   = std::unordered_map,
+         template<typename ...> class Array   = std::vector>
+inline basic_value<Comment, Table, Array> parse(const std::string& fname)
 {
     std::ifstream ifs(fname.c_str(), std::ios_base::binary);
     if(!ifs.good())
     {
         throw std::runtime_error("toml::parse: file open error -> " + fname);
     }
-    return parse(ifs, fname);
+    return parse<Comment, Table, Array>(ifs, fname);
 }
 
 } // toml
