@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(test_example)
 
     auto serialized = toml::parse("tmp1.toml");
     {
-        auto& owner = toml::get<toml::table>(serialized.at("owner"));
+        auto& owner = toml::find<toml::table>(serialized, "owner");
         auto& bio   = toml::get<std::string>(owner.at("bio"));
         const auto CR = std::find(bio.begin(), bio.end(), '\r');
         if(CR != bio.end())
