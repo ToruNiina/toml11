@@ -69,6 +69,17 @@ get(basic_value<C, M, V>&& v)
 }
 
 // ============================================================================
+// T == toml::basic_value<C2, M2, V2>; basic_value -> basic_value
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+inline enable_if_t<detail::is_basic_value<T>::value, T>
+get(const basic_value<C, M, V>& v)
+{
+    return T(v);
+}
+
+// ============================================================================
 // integer convertible from toml::Integer
 
 template<typename T, typename C,
