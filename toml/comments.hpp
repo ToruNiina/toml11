@@ -217,28 +217,28 @@ struct empty_iterator
 };
 
 template<typename T, bool C>
-bool operator==(const empty_iterator<T, C>& lhs, const empty_iterator<T, C>& rhs) noexcept {return true;}
+bool operator==(const empty_iterator<T, C>&, const empty_iterator<T, C>&) noexcept {return true;}
 template<typename T, bool C>
-bool operator!=(const empty_iterator<T, C>& lhs, const empty_iterator<T, C>& rhs) noexcept {return false;}
+bool operator!=(const empty_iterator<T, C>&, const empty_iterator<T, C>&) noexcept {return false;}
 template<typename T, bool C>
-bool operator< (const empty_iterator<T, C>& lhs, const empty_iterator<T, C>& rhs) noexcept {return false;}
+bool operator< (const empty_iterator<T, C>&, const empty_iterator<T, C>&) noexcept {return false;}
 template<typename T, bool C>
-bool operator<=(const empty_iterator<T, C>& lhs, const empty_iterator<T, C>& rhs) noexcept {return true;}
+bool operator<=(const empty_iterator<T, C>&, const empty_iterator<T, C>&) noexcept {return true;}
 template<typename T, bool C>
-bool operator> (const empty_iterator<T, C>& lhs, const empty_iterator<T, C>& rhs) noexcept {return false;}
+bool operator> (const empty_iterator<T, C>&, const empty_iterator<T, C>&) noexcept {return false;}
 template<typename T, bool C>
-bool operator>=(const empty_iterator<T, C>& lhs, const empty_iterator<T, C>& rhs) noexcept {return true;}
+bool operator>=(const empty_iterator<T, C>&, const empty_iterator<T, C>&) noexcept {return true;}
 
 template<typename T, bool C>
 typename empty_iterator<T, C>::difference_type
-operator-(const empty_iterator<T, C>& lhs, const empty_iterator<T, C>& rhs) noexcept {return 0;}
+operator-(const empty_iterator<T, C>&, const empty_iterator<T, C>&) noexcept {return 0;}
 
 template<typename T, bool C>
 empty_iterator<T, C>
-operator+(typename empty_iterator<T, C>::difference_type lhs, const empty_iterator<T, C>& rhs) noexcept {return rhs;}
+operator+(typename empty_iterator<T, C>::difference_type, const empty_iterator<T, C>& rhs) noexcept {return rhs;}
 template<typename T, bool C>
 empty_iterator<T, C>
-operator+(const empty_iterator<T, C>& lhs, typename empty_iterator<T, C>::difference_type rhs) noexcept {return lhs;}
+operator+(const empty_iterator<T, C>& lhs, typename empty_iterator<T, C>::difference_type) noexcept {return lhs;}
 
 } // detail
 
