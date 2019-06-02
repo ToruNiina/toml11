@@ -10,16 +10,12 @@
 namespace toml
 {
 
-// C++14 alias
-template<bool B, typename T>
-using enable_if_t = typename std::enable_if<B, T>::type;
-
 // ============================================================================
 // exact toml::* type
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> &
+detail::enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> &
 get(basic_value<C, M, V>& v)
 {
     return v.template cast<detail::type_to_enum<T, basic_value<C, M, V>>::value>();
@@ -27,7 +23,7 @@ get(basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> const&
+detail::enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> const&
 get(const basic_value<C, M, V>& v)
 {
     return v.template cast<detail::type_to_enum<T, basic_value<C, M, V>>::value>();
@@ -35,7 +31,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> &&
+detail::enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> &&
 get(basic_value<C, M, V>&& v)
 {
     return v.template cast<detail::type_to_enum<T, basic_value<C, M, V>>::value>();
@@ -46,7 +42,7 @@ get(basic_value<C, M, V>&& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T>&
+inline detail::enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T>&
 get(basic_value<C, M, V>& v)
 {
     return v;
@@ -54,7 +50,7 @@ get(basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T> const&
+inline detail::enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T> const&
 get(const basic_value<C, M, V>& v)
 {
     return v;
@@ -62,7 +58,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T> &&
+inline detail::enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T> &&
 get(basic_value<C, M, V>&& v)
 {
     return std::move(v);
@@ -73,7 +69,7 @@ get(basic_value<C, M, V>&& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<detail::is_basic_value<T>::value, T>
+inline detail::enable_if_t<detail::is_basic_value<T>::value, T>
 get(const basic_value<C, M, V>& v)
 {
     return T(v);
@@ -84,7 +80,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<detail::conjunction<
+inline detail::enable_if_t<detail::conjunction<
     std::is_integral<T>,                            // T is integral
     detail::negation<std::is_same<T, bool>>,        // but not bool
     detail::negation<                               // but not toml::integer
@@ -100,7 +96,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<detail::conjunction<
+inline detail::enable_if_t<detail::conjunction<
     std::is_floating_point<T>,                      // T is floating_point
     detail::negation<                               // but not toml::floating
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>
@@ -116,7 +112,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<std::is_same<T, std::string>::value, std::string>&
+inline detail::enable_if_t<std::is_same<T, std::string>::value, std::string>&
 get(basic_value<C, M, V>& v)
 {
     return v.template cast<value_t::string>().str;
@@ -124,7 +120,7 @@ get(basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<std::is_same<T, std::string>::value, std::string> const&
+inline detail::enable_if_t<std::is_same<T, std::string>::value, std::string> const&
 get(const basic_value<C, M, V>& v)
 {
     return v.template cast<value_t::string>().str;
@@ -132,7 +128,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<std::is_same<T, std::string>::value, std::string> const&
+inline detail::enable_if_t<std::is_same<T, std::string>::value, std::string> const&
 get(basic_value<C, M, V>&& v)
 {
     return std::move(v.template cast<value_t::string>().str);
@@ -144,7 +140,7 @@ get(basic_value<C, M, V>&& v)
 #if __cplusplus >= 201703L
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<std::is_same<T, std::string_view>::value, std::string_view>
+inline detail::enable_if_t<std::is_same<T, std::string_view>::value, std::string_view>
 get(const basic_value<C, M, V>& v)
 {
     return std::string_view(v.template cast<value_t::string>().str);
@@ -156,7 +152,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<detail::is_chrono_duration<T>::value, T>
+inline detail::enable_if_t<detail::is_chrono_duration<T>::value, T>
 get(const basic_value<C, M, V>& v)
 {
     return std::chrono::duration_cast<T>(
@@ -168,7 +164,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline enable_if_t<
+inline detail::enable_if_t<
     std::is_same<std::chrono::system_clock::time_point, T>::value, T>
 get(const basic_value<C, M, V>& v)
 {
@@ -206,7 +202,7 @@ get(const basic_value<C, M, V>& v)
 // array-like type with resize(N) method
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_container<T>,      // T is container
     detail::has_resize_method<T>, // T::resize(N) works
     detail::negation<             // but not toml::array
@@ -217,7 +213,7 @@ get(const basic_value<C, M, V>&);
 // array-like type with resize(N) method
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_container<T>,                        // T is container
     detail::negation<detail::has_resize_method<T>>, // no T::resize() exists
     detail::negation<                               // not toml::array
@@ -228,19 +224,19 @@ get(const basic_value<C, M, V>&);
 // std::pair<T1, T2>
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_std_pair<T>::value, T>
+detail::enable_if_t<detail::is_std_pair<T>::value, T>
 get(const basic_value<C, M, V>&);
 
 // std::tuple<T1, T2, ...>
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_std_tuple<T>::value, T>
+detail::enable_if_t<detail::is_std_tuple<T>::value, T>
 get(const basic_value<C, M, V>&);
 
 // map-like classes
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<T>, // T is map
     detail::negation<  // but not toml::table
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>
@@ -250,7 +246,7 @@ get(const basic_value<C, M, V>&);
 // T.from_toml(v)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::negation<                         // not a toml::* type
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>,
     detail::has_from_toml_method<T, C, M, V>, // but has from_toml(toml::value)
@@ -269,7 +265,7 @@ T get(const basic_value<C, M, V>&);
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_container<T>,      // T is container
     detail::has_resize_method<T>, // T::resize(N) works
     detail::negation<             // but not toml::array
@@ -291,7 +287,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_container<T>,                        // T is container
     detail::negation<detail::has_resize_method<T>>, // no T::resize() exists
     detail::negation<                              // but not toml::array
@@ -321,7 +317,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_std_pair<T>::value, T>
+detail::enable_if_t<detail::is_std_pair<T>::value, T>
 get(const basic_value<C, M, V>& v)
 {
     using first_type  = typename T::first_type;
@@ -355,7 +351,7 @@ T get_tuple_impl(const Array& a, index_sequence<I...>)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_std_tuple<T>::value, T>
+detail::enable_if_t<detail::is_std_tuple<T>::value, T>
 get(const basic_value<C, M, V>& v)
 {
     const auto& ar = v.template cast<value_t::array>();
@@ -377,7 +373,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<T>, // T is map
     detail::negation<  // but not toml::array
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>
@@ -402,7 +398,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::negation<                         // not a toml::* type
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>,
     detail::has_from_toml_method<T, C, M, V>, // but has from_toml(toml::value) memfn
@@ -427,7 +423,7 @@ T get(const basic_value<C, M, V>& v)
 
 // for toml::table.
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<detail::is_map<Table>,
+detail::enable_if_t<detail::conjunction<detail::is_map<Table>,
     detail::is_basic_value<typename Table::mapped_type>>::value,
     decltype(::toml::get<T>(std::declval<typename Table::mapped_type&>()))>
 find(Table& tab, const toml::key& ky, std::string tn = "unknown table")
@@ -440,7 +436,7 @@ find(Table& tab, const toml::key& ky, std::string tn = "unknown table")
     return ::toml::get<T>(tab.at(ky));
 }
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<detail::is_map<Table>,
+detail::enable_if_t<detail::conjunction<detail::is_map<Table>,
     detail::is_basic_value<typename Table::mapped_type>>::value,
     decltype(::toml::get<T>(std::declval<typename Table::mapped_type const&>()))>
 find(Table const& tab, const toml::key& ky, std::string tn = "unknown table")
@@ -453,7 +449,7 @@ find(Table const& tab, const toml::key& ky, std::string tn = "unknown table")
     return ::toml::get<T>(tab.at(ky));
 }
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<detail::is_map<Table>,
+detail::enable_if_t<detail::conjunction<detail::is_map<Table>,
     detail::is_basic_value<typename Table::mapped_type>>::value,
     decltype(::toml::get<T>(std::declval<typename Table::mapped_type &&>()))>
 find(typename std::remove_reference<Table>&& tab, const toml::key& ky,
@@ -571,7 +567,8 @@ find(basic_value<C, M, V>&& v, const key& ky)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> const&
+detail::enable_if_t<
+    detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> const&
 get_or(const basic_value<C, M, V>& v, const T& opt)
 {
     try
@@ -586,7 +583,8 @@ get_or(const basic_value<C, M, V>& v, const T& opt)
 }
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&
+detail::enable_if_t<
+    detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&
 get_or(basic_value<C, M, V>& v, T& opt)
 {
     try
@@ -601,7 +599,8 @@ get_or(basic_value<C, M, V>& v, T& opt)
 }
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&&
+detail::enable_if_t<
+    detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&&
 get_or(basic_value<C, M, V>&& v, T&& opt)
 {
     try
@@ -620,7 +619,7 @@ get_or(basic_value<C, M, V>&& v, T&& opt)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<std::is_same<
+detail::enable_if_t<std::is_same<
     typename std::remove_cv<typename std::remove_reference<T>::type>::type,
     std::string>::value, std::string> const&
 get_or(const basic_value<C, M, V>& v, T&& opt)
@@ -636,7 +635,7 @@ get_or(const basic_value<C, M, V>& v, T&& opt)
 }
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<std::is_same<
+detail::enable_if_t<std::is_same<
     typename std::remove_cv<typename std::remove_reference<T>::type>::type,
     std::string>::value, std::string>&
 get_or(basic_value<C, M, V>& v, T& opt)
@@ -652,7 +651,7 @@ get_or(basic_value<C, M, V>& v, T& opt)
 }
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<std::is_same<
+detail::enable_if_t<std::is_same<
     typename std::remove_cv<typename std::remove_reference<T>::type>::type,
     std::string>::value, std::string>
 get_or(basic_value<C, M, V>&& v, T&& opt)
@@ -672,7 +671,7 @@ get_or(basic_value<C, M, V>&& v, T&& opt)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_string_literal<
+detail::enable_if_t<detail::is_string_literal<
     typename std::remove_reference<T>::type>::value, std::string>
 get_or(basic_value<C, M, V>&& v, T&& opt)
 {
@@ -691,7 +690,7 @@ get_or(basic_value<C, M, V>&& v, T&& opt)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::negation<detail::is_exact_toml_type<T, basic_value<C, M, V>>>,
     detail::negation<std::is_same<T, std::string>>,
     detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
@@ -716,7 +715,8 @@ get_or(const basic_value<C, M, V>& v, T&& opt)
 // exact types (return type can be a reference)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> const&
+detail::enable_if_t<
+    detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> const&
 find_or(const basic_value<C, M, V>& v, const key& ky, const T& opt)
 {
     if(!v.is_table()) {return opt;}
@@ -727,7 +727,8 @@ find_or(const basic_value<C, M, V>& v, const key& ky, const T& opt)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&
+detail::enable_if_t<
+    detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&
 find_or(basic_value<C, M, V>& v, const toml::key& ky, T& opt)
 {
     if(!v.is_table()) {return opt;}
@@ -738,7 +739,8 @@ find_or(basic_value<C, M, V>& v, const toml::key& ky, T& opt)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&&
+detail::enable_if_t<
+    detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&&
 find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
 {
     if(!v.is_table()) {return opt;}
@@ -752,7 +754,7 @@ find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<std::is_same<T, std::string>::value, std::string> const&
+detail::enable_if_t<std::is_same<T, std::string>::value, std::string> const&
 find_or(const basic_value<C, M, V>& v, const key& ky, const T& opt)
 {
     if(!v.is_table()) {return opt;}
@@ -762,7 +764,7 @@ find_or(const basic_value<C, M, V>& v, const key& ky, const T& opt)
 }
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<std::is_same<T, std::string>::value, std::string>&
+detail::enable_if_t<std::is_same<T, std::string>::value, std::string>&
 find_or(basic_value<C, M, V>& v, const toml::key& ky, T& opt)
 {
     if(!v.is_table()) {return opt;}
@@ -772,7 +774,7 @@ find_or(basic_value<C, M, V>& v, const toml::key& ky, T& opt)
 }
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<std::is_same<T, std::string>::value, std::string>
+detail::enable_if_t<std::is_same<T, std::string>::value, std::string>
 find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
 {
     if(!v.is_table()) {return opt;}
@@ -785,7 +787,7 @@ find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
 // string literal (deduced as std::string)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<
+detail::enable_if_t<
     detail::is_string_literal<typename std::remove_reference<T>::type>::value,
     std::string>
 find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
@@ -800,7 +802,7 @@ find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
 // others (require type conversion and return type cannot be lvalue reference)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::negation<detail::is_exact_toml_type<T, basic_value<C, M, V>>>,
     detail::negation<std::is_same<T, std::string>>,
     detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
@@ -819,7 +821,7 @@ find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
 // ---------------------------------------------------------------------------
 // exact types (return type can be a reference)
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
     detail::is_exact_toml_type<T, typename Table::mapped_type>
     >::value, T> const&
@@ -830,7 +832,7 @@ find_or(const Table& tab, const key& ky, const T& opt)
 }
 
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
     detail::is_exact_toml_type<T, typename Table::mapped_type>
     >::value, T>&
@@ -841,7 +843,7 @@ find_or(Table& tab, const key& ky, T& opt)
 }
 
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
     detail::is_exact_toml_type<T, typename Table::mapped_type>
     >::value, T>&&
@@ -854,7 +856,7 @@ find_or(typename std::remove_reference<Table>::type&& tab, const key& ky, T&& op
 // ---------------------------------------------------------------------------
 // std::string (return type can be a reference)
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
     std::is_same<T, std::string>
     >::value, std::string> const&
@@ -864,7 +866,7 @@ find_or(const Table& tab, const key& ky, const T& opt)
     return get_or(tab.at(ky), opt);
 }
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
     std::is_same<T, std::string>
     >::value, std::string>&
@@ -874,7 +876,7 @@ find_or(Table& tab, const key& ky, T& opt)
     return get_or(tab[ky], opt);
 }
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>,
     std::is_same<T, std::string>
     >::value, std::string>
@@ -887,7 +889,7 @@ find_or(Table&& tab, const key& ky, T&& opt)
 // ---------------------------------------------------------------------------
 // string literal (deduced as std::string)
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<Table>,
     detail::is_basic_value<typename Table::mapped_type>,
     detail::is_string_literal<typename std::remove_reference<T>::type>
@@ -901,7 +903,7 @@ find_or(const Table& tab, const key& ky, T&& opt)
 // ---------------------------------------------------------------------------
 // others (require type conversion and return type cannot be lvalue reference)
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<Table>,
     detail::is_basic_value<typename Table::mapped_type>,
     detail::negation<detail::is_exact_toml_type<T, typename Table::mapped_type>>,
@@ -945,7 +947,7 @@ expect(const basic_value<C, M, V>& v, const toml::key& k) noexcept
     }
 }
 template<typename T, typename Table>
-enable_if_t<detail::conjunction<
+detail::enable_if_t<detail::conjunction<
     detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>
     >::value, result<T, std::string>>
 expect(const Table& t, const toml::key& k,

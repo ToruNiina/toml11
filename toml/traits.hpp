@@ -198,6 +198,11 @@ template<std::size_t N>
 using make_index_sequence = typename index_sequence_maker<N-1>::type;
 
 // ---------------------------------------------------------------------------
+// C++14 enable_if_t
+template<bool B, typename T>
+using enable_if_t = typename std::enable_if<B, T>::type;
+
+// ---------------------------------------------------------------------------
 // return_type_of_t
 
 #if __cplusplus >= 201703L
