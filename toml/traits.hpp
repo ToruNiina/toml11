@@ -20,10 +20,6 @@ class basic_value;
 
 namespace detail
 {
-
-template<typename T>
-using unwrap_t = typename std::decay<T>::type;
-
 // ---------------------------------------------------------------------------
 // check whether type T is a kind of container/map class
 
