@@ -166,6 +166,15 @@ template<typename T> struct is_container<T const&>          : is_container<T>{};
 template<typename T> struct is_container<T volatile&>       : is_container<T>{};
 template<typename T> struct is_container<T const volatile&> : is_container<T>{};
 
+template<typename T>
+struct is_basic_value: std::false_type{};
+template<typename T> struct is_basic_value<T&>                : is_basic_value<T>{};
+template<typename T> struct is_basic_value<T const&>          : is_basic_value<T>{};
+template<typename T> struct is_basic_value<T volatile&>       : is_basic_value<T>{};
+template<typename T> struct is_basic_value<T const volatile&> : is_basic_value<T>{};
+template<typename C, template<typename ...> class M, template<typename ...> class V>
+struct is_basic_value<::toml::basic_value<C, M, V>>: std::true_type{};
+
 // ---------------------------------------------------------------------------
 // C++14 index_sequence
 
