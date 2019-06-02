@@ -14,11 +14,11 @@ BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
 {
     const auto data = toml::parse("toml/tests/hard_example_unicode.toml");
 
-    const auto the = toml::get<toml::Table>(data.at("the"));
+    const auto the = toml::find<toml::table>(data, "the");
     BOOST_CHECK_EQUAL(toml::get<std::string>(the.at("test_string")),
                       std::string("\xC3\x9D\xC3\xB4\xC3\xBA\x27\xE2\x84\x93\xE2\x84\x93\x20\xCE\xBB\xC3\xA1\xC6\xAD\xC3\xA8\x20\xE2\x82\xA5\xC3\xA8\x20\xC3\xA1\xC6\x92\xC6\xAD\xC3\xA8\xC5\x99\x20\xC6\xAD\xCE\xBB\xC3\xAF\xC6\xA8\x20\x2D\x20\x23"));
 
-    const auto hard = toml::get<toml::Table>(the.at("hard"));
+    const auto hard = toml::get<toml::table>(the.at("hard"));
     const std::vector<std::string> expected_the_hard_test_array{"] ", " # "};
     BOOST_CHECK(toml::get<std::vector<std::string>>(hard.at("test_array")) ==
                 expected_the_hard_test_array);
@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
     BOOST_CHECK_EQUAL(toml::get<std::string>(hard.at("harder_test_string")),
                       std::string("\x20\xC3\x82\xC3\xB1\xCE\xB4\x20\xCF\x89\xCE\xBB\xC3\xA8\xC3\xB1\x20\x22\x27\xC6\xA8\x20\xC3\xA1\xC5\x99\xC3\xA8\x20\xC3\xAF\xC3\xB1\x20\xC6\xAD\xCE\xBB\xC3\xA8\x20\xC6\xA8\xC6\xAD\xC5\x99\xC3\xAF\xC3\xB1\xCF\xB1\x2C\x20\xC3\xA1\xE2\x84\x93\xC3\xB4\xC3\xB1\xCF\xB1\x20\xCF\x89\xC3\xAF\xC6\xAD\xCE\xBB\x20\x23\x20\x22"));
 //
-    const auto bit = toml::get<toml::Table>(hard.at(std::string("\xCE\xB2\xC3\xAF\xC6\xAD\x23")));
+    const auto bit = toml::get<toml::table>(hard.at(std::string("\xCE\xB2\xC3\xAF\xC6\xAD\x23")));
     BOOST_CHECK_EQUAL(toml::get<std::string>(bit.at(std::string("\xCF\x89\xCE\xBB\xC3\xA1\xC6\xAD\x3F"))),
         std::string("\xC3\x9D\xC3\xB4\xC3\xBA\x20\xCE\xB4\xC3\xB4\xC3\xB1\x27\xC6\xAD\x20\xC6\xAD\xCE\xBB\xC3\xAF\xC3\xB1\xC6\x99\x20\xC6\xA8\xC3\xB4\xE2\x82\xA5\xC3\xA8\x20\xC3\xBA\xC6\xA8\xC3\xA8\xC5\x99\x20\xCF\x89\xC3\xB4\xC3\xB1\x27\xC6\xAD\x20\xCE\xB4\xC3\xB4\x20\xC6\xAD\xCE\xBB\xC3\xA1\xC6\xAD\x3F"));
     const std::vector<std::string> expected_multi_line_array{"]"};
@@ -45,11 +45,11 @@ BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
 {
     const auto data = toml::parse("toml/tests/hard_example_unicode.toml");
 
-    const auto the = toml::get<toml::Table>(data.at("the"));
+    const auto the = toml::find<toml::table>(data, "the");
     BOOST_CHECK_EQUAL(toml::get<std::string>(the.at("test_string")),
                       std::string(u8"Ýôú'ℓℓ λáƭè ₥è áƒƭèř ƭλïƨ - #"));
 
-    const auto hard = toml::get<toml::Table>(the.at("hard"));
+    const auto hard = toml::get<toml::table>(the.at("hard"));
     const std::vector<std::string> expected_the_hard_test_array{"] ", " # "};
     BOOST_CHECK(toml::get<std::vector<std::string>>(hard.at("test_array")) ==
                 expected_the_hard_test_array);
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
     BOOST_CHECK_EQUAL(toml::get<std::string>(hard.at("harder_test_string")),
                       std::string(u8" Âñδ ωλèñ \"'ƨ ářè ïñ ƭλè ƨƭřïñϱ, áℓôñϱ ωïƭλ # \""));
 
-    const auto bit = toml::get<toml::Table>(hard.at(std::string(u8"βïƭ#")));
+    const auto bit = toml::get<toml::table>(hard.at(std::string(u8"βïƭ#")));
     BOOST_CHECK_EQUAL(toml::get<std::string>(bit.at(std::string(u8"ωλáƭ?"))),
                       std::string(u8"Ýôú δôñ'ƭ ƭλïñƙ ƨô₥è úƨèř ωôñ'ƭ δô ƭλáƭ?"));
     const std::vector<std::string> expected_multi_line_array{"]"};
