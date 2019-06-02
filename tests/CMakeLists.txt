@@ -24,7 +24,6 @@ set(TEST_NAMES
     test_comments
     test_get
     test_get_related_func
-    test_from_toml
     test_parse_file
     test_serialize_file
     test_parse_unicode
