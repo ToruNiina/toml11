@@ -231,7 +231,7 @@ template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 enable_if_t<detail::conjunction<
     detail::is_map<T>, // T is map
-    detail::negation<  // but not toml::array
+    detail::negation<  // but not toml::table
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>
     >::value, T>
 get(const basic_value<C, M, V>&);
@@ -411,52 +411,55 @@ T get(const basic_value<C, M, V>& v)
     return ::toml::from<T>::from_toml(v);
 }
 
-/*
 // ============================================================================
 // find and get
 
-template<typename T = ::toml::value>
-decltype(::toml::get<T>(std::declval<const ::toml::value&>()))
-find(const toml::table& tab, const toml::key& ky,
-     std::string tablename = "unknown table")
+// for toml::table.
+template<typename T, typename Table>
+enable_if_t<detail::is_map<Table>::value, decltype(
+    ::toml::get<T>(std::declval<typename Table::mapped_type&>()))>
+find(Table& tab, const toml::key& ky, std::string tn = "unknown table")
 {
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(concat_to_string("[error] key \"", ky,
-                    "\" not found in ", tablename));
+        throw std::out_of_range(concat_to_string(
+            "[error] key \"", ky, "\" not found in ", tn));
     }
     return ::toml::get<T>(tab.at(ky));
 }
-template<typename T = ::toml::value>
-decltype(::toml::get<T>(std::declval<::toml::value&>()))
-find(toml::table& tab, const toml::key& ky,
-     std::string tablename = "unknown table")
+template<typename T, typename Table>
+enable_if_t<detail::is_map<Table>::value, decltype(
+    ::toml::get<T>(std::declval<typename Table::mapped_type const&>()))>
+find(Table const& tab, const toml::key& ky, std::string tn = "unknown table")
 {
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(concat_to_string("[error] key \"", ky,
-                    "\" not found in ", tablename));
+        throw std::out_of_range(concat_to_string(
+            "[error] key \"", ky, "\" not found in ", tn));
     }
-    return ::toml::get<T>(tab[ky]);
+    return ::toml::get<T>(tab.at(ky));
 }
-template<typename T = ::toml::value>
-decltype(::toml::get<T>(std::declval<::toml::value&&>()))
-find(toml::table&& tab, const toml::key& ky,
-     std::string tablename = "unknown table")
+template<typename T, typename Table>
+enable_if_t<detail::is_map<Table>::value, decltype(
+    ::toml::get<T>(std::declval<typename Table::mapped_type &&>()))>
+find(typename std::remove_reference<Table>&& tab, const toml::key& ky,
+     std::string tn = "unknown table")
 {
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(concat_to_string("[error] key \"", ky,
-                    "\" not found in ", tablename));
+        throw std::out_of_range(concat_to_string(
+            "[error] key \"", ky, "\" not found in ", tn));
     }
-    return ::toml::get<T>(std::move(tab[ky]));
+    return ::toml::get<T>(std::move(tab.at(ky)));
 }
 
-template<typename T = ::toml::value>
-decltype(::toml::get<T>(std::declval<const ::toml::value&>()))
-find(const toml::value& v, const toml::key& ky)
+// ----------------------------------------------------------------------------
+// these overloads do not require to set T. and returns value itself.
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V> const& find(const basic_value<C, M, V>& v, const key& ky)
 {
-    const auto& tab = ::toml::get<toml::table>(v);
+    const auto& tab = v.template cast<value_t::table>();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -464,13 +467,13 @@ find(const toml::value& v, const toml::key& ky)
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }
-    return ::toml::get<T>(tab.at(ky));
+    return tab.at(ky);
 }
-template<typename T = ::toml::value>
-decltype(::toml::get<T>(std::declval<::toml::value&>()))
-find(toml::value& v, const toml::key& ky)
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V>& find(basic_value<C, M, V>& v, const key& ky)
 {
-    auto& tab = ::toml::get<toml::table>(v);
+    const auto& tab = v.template cast<value_t::table>();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -478,13 +481,13 @@ find(toml::value& v, const toml::key& ky)
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }
-    return ::toml::get<T>(tab.at(ky));
+    return tab.at(ky);
 }
-template<typename T = ::toml::value>
-decltype(::toml::get<T>(std::declval<::toml::value&&>()))
-find(toml::value&& v, const toml::key& ky)
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V>&& find(basic_value<C, M, V>&& v, const key& ky)
 {
-    auto tab = ::toml::get<toml::table>(std::move(v));
+    auto& tab = v.template cast<value_t::table>();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -492,9 +495,61 @@ find(toml::value&& v, const toml::key& ky)
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }
-    return ::toml::get<T>(std::move(tab[ky]));
+    return tab.at(ky);
 }
 
+// ----------------------------------------------------------------------------
+// find<T>(value, key);
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+decltype(::toml::get<T>(std::declval<basic_value<C, M, V> const&>()))
+find(const basic_value<C, M, V>& v, const key& ky)
+{
+    const auto& tab = v.template cast<value_t::table>();
+    if(tab.count(ky) == 0)
+    {
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
+    }
+    return ::toml::get<T>(tab.at(ky));
+}
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&>()))
+find(basic_value<C, M, V>& v, const key& ky)
+{
+    const auto& tab = v.template cast<value_t::table>();
+    if(tab.count(ky) == 0)
+    {
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
+    }
+    return ::toml::get<T>(tab.at(ky));
+}
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&&>()))
+find(basic_value<C, M, V>&& v, const key& ky)
+{
+    auto& tab = v.template cast<value_t::table>();
+    if(tab.count(ky) == 0)
+    {
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
+    }
+    return ::toml::get<T>(std::move(tab.at(ky)));
+}
+
+/*
 
 // ============================================================================
 // get_or(value, fallback)
