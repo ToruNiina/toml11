@@ -34,7 +34,7 @@ template<typename T, typename C,
 detail::enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> &&
 get(basic_value<C, M, V>&& v)
 {
-    return v.template cast<detail::type_to_enum<T, basic_value<C, M, V>>::value>();
+    return std::move(v).template cast<detail::type_to_enum<T, basic_value<C, M, V>>::value>();
 }
 
 // ============================================================================
@@ -532,7 +532,7 @@ template<typename T, typename C,
 decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&>()))
 find(basic_value<C, M, V>& v, const key& ky)
 {
-    const auto& tab = v.template cast<value_t::table>();
+    auto& tab = v.template cast<value_t::table>();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
