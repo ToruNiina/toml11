@@ -635,9 +635,7 @@ get_or(const basic_value<C, M, V>& v, T&& opt)
 }
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-detail::enable_if_t<std::is_same<
-    typename std::remove_cv<typename std::remove_reference<T>::type>::type,
-    std::string>::value, std::string>&
+detail::enable_if_t<std::is_same<T, std::string>::value, std::string>&
 get_or(basic_value<C, M, V>& v, T& opt)
 {
     try
@@ -662,7 +660,7 @@ get_or(basic_value<C, M, V>&& v, T&& opt)
     }
     catch(...)
     {
-        return opt;
+        return std::string(opt);
     }
 }
 
@@ -673,7 +671,7 @@ template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 detail::enable_if_t<detail::is_string_literal<
     typename std::remove_reference<T>::type>::value, std::string>
-get_or(basic_value<C, M, V>&& v, T&& opt)
+get_or(const basic_value<C, M, V>& v, T&& opt)
 {
     try
     {
@@ -692,9 +690,10 @@ template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 detail::enable_if_t<detail::conjunction<
     detail::negation<detail::is_exact_toml_type<T, basic_value<C, M, V>>>,
-    detail::negation<std::is_same<T, std::string>>,
+    detail::negation<std::is_same<std::string,
+        typename std::remove_cv<typename std::remove_reference<T>::type>::type>>,
     detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
-    >::value, T>
+    >::value, typename std::remove_reference<T>::type>
 get_or(const basic_value<C, M, V>& v, T&& opt)
 {
     try
@@ -704,7 +703,7 @@ get_or(const basic_value<C, M, V>& v, T&& opt)
     }
     catch(...)
     {
-        return opt;
+        return std::forward<T>(opt);
     }
 }
 
