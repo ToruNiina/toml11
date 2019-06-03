@@ -977,15 +977,13 @@ class basic_value
     array_type     && as_array()           && noexcept {return std::move(this->array_.value());}
     table_type     && as_table()           && noexcept {return std::move(this->table_.value());}
 
-    comment_type const& comments() const noexcept
-    {
-        return this->comments_;
-    }
-
     source_location location() const
     {
         return source_location(this->region_info_);
     }
+
+    comment_type const& comments() const noexcept {return this->comments_;}
+    comment_type&       comments()       noexcept {return this->comments_;}
 
   private:
 
