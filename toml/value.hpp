@@ -946,7 +946,7 @@ class basic_value
 
     boolean         const& as_boolean()         const& noexcept {return this->boolean_;}
     integer         const& as_integer()         const& noexcept {return this->integer_;}
-    floating        const& as_float()           const& noexcept {return this->floating_;}
+    floating        const& as_floating()        const& noexcept {return this->floating_;}
     string          const& as_string()          const& noexcept {return this->string_;}
     offset_datetime const& as_offset_datetime() const& noexcept {return this->offset_datetime_;}
     local_datetime  const& as_local_datetime()  const& noexcept {return this->local_datetime_;}
@@ -957,7 +957,7 @@ class basic_value
 
     boolean        & as_boolean()         & noexcept {return this->boolean_;}
     integer        & as_integer()         & noexcept {return this->integer_;}
-    floating       & as_float()           & noexcept {return this->floating_;}
+    floating       & as_floating()        & noexcept {return this->floating_;}
     string         & as_string()          & noexcept {return this->string_;}
     offset_datetime& as_offset_datetime() & noexcept {return this->offset_datetime_;}
     local_datetime & as_local_datetime()  & noexcept {return this->local_datetime_;}
@@ -968,7 +968,7 @@ class basic_value
 
     boolean        && as_boolean()         && noexcept {return std::move(this->boolean_);}
     integer        && as_integer()         && noexcept {return std::move(this->integer_);}
-    floating       && as_float()           && noexcept {return std::move(this->floating_);}
+    floating       && as_floating()        && noexcept {return std::move(this->floating_);}
     string         && as_string()          && noexcept {return std::move(this->string_);}
     offset_datetime&& as_offset_datetime() && noexcept {return std::move(this->offset_datetime_);}
     local_datetime && as_local_datetime()  && noexcept {return std::move(this->local_datetime_);}
