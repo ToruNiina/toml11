@@ -905,7 +905,7 @@ class basic_value
     bool is_uninitialized()   const noexcept {return this->is(value_t::empty          );}
     bool is_boolean()         const noexcept {return this->is(value_t::boolean        );}
     bool is_integer()         const noexcept {return this->is(value_t::integer        );}
-    bool is_float()           const noexcept {return this->is(value_t::floating       );}
+    bool is_floating()        const noexcept {return this->is(value_t::floating       );}
     bool is_string()          const noexcept {return this->is(value_t::string         );}
     bool is_offset_datetime() const noexcept {return this->is(value_t::offset_datetime);}
     bool is_local_datetime()  const noexcept {return this->is(value_t::local_datetime );}
