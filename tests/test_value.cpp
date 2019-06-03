@@ -96,12 +96,12 @@ BOOST_AUTO_TEST_CASE(test_value_boolean)
     BOOST_CHECK(v1.is<toml::integer>());
     BOOST_CHECK(v2.is<toml::floating>());
     BOOST_CHECK(v1.is_integer());
-    BOOST_CHECK(v2.is_float());
+    BOOST_CHECK(v2.is_floating());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::integer>(), 42);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::floating>(),   3.14);
     BOOST_CHECK_EQUAL(v1.as_integer(),  42);
-    BOOST_CHECK_EQUAL(v2.as_float(), 3.14);
+    BOOST_CHECK_EQUAL(v2.as_floating(), 3.14);
 }
 
 BOOST_AUTO_TEST_CASE(test_value_integer)
@@ -205,13 +205,13 @@ BOOST_AUTO_TEST_CASE(test_value_float)
     BOOST_CHECK(v2.is(toml::value_t::floating));
     BOOST_CHECK(v1.is<toml::floating>());
     BOOST_CHECK(v2.is<toml::floating>());
-    BOOST_CHECK(v1.is_float());
-    BOOST_CHECK(v2.is_float());
+    BOOST_CHECK(v1.is_floating());
+    BOOST_CHECK(v2.is_floating());
 
     BOOST_CHECK_EQUAL         (v1.cast<toml::value_t::floating>(), 3.14);
     BOOST_CHECK_CLOSE_FRACTION(v2.cast<toml::value_t::floating>(), 3.14, 1e-2);
-    BOOST_CHECK_EQUAL         (v1.as_float(), 3.14);
-    BOOST_CHECK_CLOSE_FRACTION(v2.as_float(), 3.14, 1e-2);
+    BOOST_CHECK_EQUAL         (v1.as_floating(), 3.14);
+    BOOST_CHECK_CLOSE_FRACTION(v2.as_floating(), 3.14, 1e-2);
 
     v1 = 2.718f;
     v2 = 2.718;
@@ -222,13 +222,13 @@ BOOST_AUTO_TEST_CASE(test_value_float)
     BOOST_CHECK(v2.is(toml::value_t::floating));
     BOOST_CHECK(v1.is<toml::floating>());
     BOOST_CHECK(v2.is<toml::floating>());
-    BOOST_CHECK(v1.is_float());
-    BOOST_CHECK(v2.is_float());
+    BOOST_CHECK(v1.is_floating());
+    BOOST_CHECK(v2.is_floating());
 
     BOOST_CHECK_CLOSE_FRACTION(v1.cast<toml::value_t::floating>(), 2.718, 1e-3);
     BOOST_CHECK_EQUAL         (v2.cast<toml::value_t::floating>(), 2.718);
-    BOOST_CHECK_CLOSE_FRACTION(v1.as_float(), 2.718, 1e-3);
-    BOOST_CHECK_EQUAL         (v2.as_float(), 2.718);
+    BOOST_CHECK_CLOSE_FRACTION(v1.as_floating(), 2.718, 1e-3);
+    BOOST_CHECK_EQUAL         (v2.as_floating(), 2.718);
 
     toml::value v3(v1);
     toml::value v4(v2);
@@ -241,13 +241,13 @@ BOOST_AUTO_TEST_CASE(test_value_float)
     BOOST_CHECK(v4.is(toml::value_t::floating));
     BOOST_CHECK(v3.is<toml::floating>());
     BOOST_CHECK(v4.is<toml::floating>());
-    BOOST_CHECK(v3.is_float());
-    BOOST_CHECK(v4.is_float());
+    BOOST_CHECK(v3.is_floating());
+    BOOST_CHECK(v4.is_floating());
 
     BOOST_CHECK_CLOSE_FRACTION(v3.cast<toml::value_t::floating>(), 2.718, 1e-3);
     BOOST_CHECK_EQUAL         (v4.cast<toml::value_t::floating>(), 2.718);
-    BOOST_CHECK_CLOSE_FRACTION(v3.as_float(), 2.718, 1e-3);
-    BOOST_CHECK_EQUAL         (v4.as_float(), 2.718);
+    BOOST_CHECK_CLOSE_FRACTION(v3.as_floating(), 2.718, 1e-3);
+    BOOST_CHECK_EQUAL         (v4.as_floating(), 2.718);
 
     toml::value v5(std::move(v1));
     toml::value v6(std::move(v2));
@@ -258,13 +258,13 @@ BOOST_AUTO_TEST_CASE(test_value_float)
     BOOST_CHECK(v6.is(toml::value_t::floating));
     BOOST_CHECK(v5.is<toml::floating>());
     BOOST_CHECK(v6.is<toml::floating>());
-    BOOST_CHECK(v5.is_float());
-    BOOST_CHECK(v6.is_float());
+    BOOST_CHECK(v5.is_floating());
+    BOOST_CHECK(v6.is_floating());
 
     BOOST_CHECK_CLOSE_FRACTION(v5.cast<toml::value_t::floating>(), 2.718, 1e-3);
     BOOST_CHECK_EQUAL         (v6.cast<toml::value_t::floating>(), 2.718);
-    BOOST_CHECK_CLOSE_FRACTION(v5.as_float(), 2.718, 1e-3);
-    BOOST_CHECK_EQUAL         (v6.as_float(), 2.718);
+    BOOST_CHECK_CLOSE_FRACTION(v5.as_floating(), 2.718, 1e-3);
+    BOOST_CHECK_EQUAL         (v6.as_floating(), 2.718);
 
     v1 = true;
     v2 = false;
@@ -792,7 +792,7 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("bar").cast<toml::value_t::floating>(),      3.14);
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("baz").cast<toml::value_t::string>().str, "qux");
     BOOST_CHECK_EQUAL(v1.as_table().at("foo").as_integer(),    42);
-    BOOST_CHECK_EQUAL(v1.as_table().at("bar").as_float(),   3.14);
+    BOOST_CHECK_EQUAL(v1.as_table().at("bar").as_floating(),   3.14);
     BOOST_CHECK_EQUAL(v1.as_table().at("baz").as_string().str, "qux");
 
 
@@ -806,7 +806,7 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("foo").cast<toml::value_t::floating>(),      2.71);
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("bar").cast<toml::value_t::integer>(),    54);
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("baz").cast<toml::value_t::string>().str, "quux");
-    BOOST_CHECK_EQUAL(v1.as_table().at("foo").as_float(),   2.71);
+    BOOST_CHECK_EQUAL(v1.as_table().at("foo").as_floating(),   2.71);
     BOOST_CHECK_EQUAL(v1.as_table().at("bar").as_integer(),    54);
     BOOST_CHECK_EQUAL(v1.as_table().at("baz").as_string().str, "quux");
 
@@ -822,7 +822,7 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::table>().at("foo").cast<toml::value_t::floating>(),      2.71);
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::table>().at("bar").cast<toml::value_t::integer>(),    54);
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::table>().at("baz").cast<toml::value_t::string>().str, "quux");
-    BOOST_CHECK_EQUAL(v3.as_table().at("foo").as_float(),   2.71);
+    BOOST_CHECK_EQUAL(v3.as_table().at("foo").as_floating(),   2.71);
     BOOST_CHECK_EQUAL(v3.as_table().at("bar").as_integer(),    54);
     BOOST_CHECK_EQUAL(v3.as_table().at("baz").as_string().str, "quux");
 

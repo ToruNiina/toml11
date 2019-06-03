@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(test_normal_table)
         );
     location<std::string> loc("test", table);
 
-    const auto result = toml::detail::parse_ml_table(loc);
+    const auto result = toml::detail::parse_ml_table<toml::value>(loc);
     BOOST_CHECK(result.is_ok());
     const auto data = result.unwrap();
 
@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(test_nested_table)
         );
     location<std::string> loc("test", table);
 
-    const auto result = toml::detail::parse_ml_table(loc);
+    const auto result = toml::detail::parse_ml_table<toml::value>(loc);
     BOOST_CHECK(result.is_ok());
     const auto data = result.unwrap();
 

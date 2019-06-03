@@ -19,6 +19,6 @@ BOOST_AUTO_TEST_CASE(test_boolean)
 
 BOOST_AUTO_TEST_CASE(test_boolean_value)
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value,  "true", toml::value( true));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "false", toml::value(false));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,  "true", toml::value( true));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "false", toml::value(false));
 }
