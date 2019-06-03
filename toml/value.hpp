@@ -1078,7 +1078,7 @@ operator==(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
         }
         case value_t::floating :
         {
-            return lhs.as_float() == rhs.as_float();
+            return lhs.as_floating() == rhs.as_floating();
         }
         case value_t::string   :
         {
@@ -1129,7 +1129,7 @@ operator<(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
         }
         case value_t::floating :
         {
-            return lhs.as_float() < rhs.as_float();
+            return lhs.as_floating() < rhs.as_floating();
         }
         case value_t::string   :
         {
@@ -1233,7 +1233,7 @@ visit(Visitor&& visitor, const toml::basic_value<C, T, A>& v)
     {
         case value_t::boolean        : {return visitor(v.as_boolean        ());}
         case value_t::integer        : {return visitor(v.as_integer        ());}
-        case value_t::floating       : {return visitor(v.as_float          ());}
+        case value_t::floating       : {return visitor(v.as_floating       ());}
         case value_t::string         : {return visitor(v.as_string         ());}
         case value_t::offset_datetime: {return visitor(v.as_offset_datetime());}
         case value_t::local_datetime : {return visitor(v.as_local_datetime ());}
@@ -1257,7 +1257,7 @@ visit(Visitor&& visitor, toml::basic_value<C, T, A>& v)
     {
         case value_t::boolean        : {return visitor(v.as_boolean        ());}
         case value_t::integer        : {return visitor(v.as_integer        ());}
-        case value_t::floating       : {return visitor(v.as_float          ());}
+        case value_t::floating       : {return visitor(v.as_floating       ());}
         case value_t::string         : {return visitor(v.as_string         ());}
         case value_t::offset_datetime: {return visitor(v.as_offset_datetime());}
         case value_t::local_datetime : {return visitor(v.as_local_datetime ());}
@@ -1281,7 +1281,7 @@ visit(Visitor&& visitor, toml::basic_value<C, T, A>&& v)
     {
         case value_t::boolean        : {return visitor(std::move(v.as_boolean        ()));}
         case value_t::integer        : {return visitor(std::move(v.as_integer        ()));}
-        case value_t::floating       : {return visitor(std::move(v.as_float          ()));}
+        case value_t::floating       : {return visitor(std::move(v.as_floating       ()));}
         case value_t::string         : {return visitor(std::move(v.as_string         ()));}
         case value_t::offset_datetime: {return visitor(std::move(v.as_offset_datetime()));}
         case value_t::local_datetime : {return visitor(std::move(v.as_local_datetime ()));}
