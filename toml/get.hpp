@@ -430,6 +430,32 @@ find(toml::value&& v, const toml::key& ky)
     return ::toml::get<T>(std::move(tab[ky]));
 }
 
+// --------------------------------------------------------------------------
+// toml::find(toml::value, toml::key, Ts&& ... keys)
+//
+// Note: C++ draft N3337 (14.1.11) says that...
+// > If a template-parameter of a class template or alias template has a default
+// > template-argument, each subsequent template-parameter shall either have a
+// > default template-argument supplied or be a template parameter pack.
+// So the template parameter pack can appear after a default template argument.
+template<typename T = ::toml::value, typename ... Ts>
+decltype(::toml::get<T>(std::declval<const ::toml::value&>()))
+find(const ::toml::value& v, const ::toml::key& ky, Ts&& ... keys)
+{
+    return ::toml::find<T>(::toml::find(v, ky), std::forward<Ts>(keys)...);
+}
+template<typename T = ::toml::value, typename ... Ts>
+decltype(::toml::get<T>(std::declval<::toml::value&>()))
+find(::toml::value& v, const ::toml::key& ky, Ts&& ... keys)
+{
+    return ::toml::find<T>(::toml::find(v, ky), std::forward<Ts>(keys)...);
+}
+template<typename T = ::toml::value, typename ... Ts>
+decltype(::toml::get<T>(std::declval<::toml::value&&>()))
+find(::toml::value&& v, const ::toml::key& ky, Ts&& ... keys)
+{
+    return ::toml::find<T>(::toml::find(std::move(v), ky), std::forward<Ts>(keys)...);
+}
 
 // ============================================================================
 // get_or(value, fallback)
