@@ -53,7 +53,7 @@ inline ::toml::value operator""_toml(const char* str, std::size_t len)
     // If it is neither a table-key or a array-of-table-key, it may be a value.
     if(!is_table_key && !is_aots_key)
     {
-        if(auto data = ::toml::detail::parse_value(loc))
+        if(auto data = ::toml::detail::parse_value<::toml::value>(loc))
         {
             return data.unwrap();
         }
@@ -70,14 +70,14 @@ inline ::toml::value operator""_toml(const char* str, std::size_t len)
     // It is a valid toml file.
     // It should be parsed as if we parse a file with this content.
 
-    if(auto data = ::toml::detail::parse_toml_file(loc))
+    if(auto data = ::toml::detail::parse_toml_file<::toml::value>(loc))
     {
-        loc.reset(loc.begin()); // rollback to the top of the literal
-        // skip needless characters for error message
-        skip_line::invoke(loc); // skip the first several needless lines
-        skip_ws::invoke(loc);   // skip the first several needless whitespaces
-        return ::toml::value(std::move(data.unwrap()),
-                ::toml::detail::region<std::vector<char>>(std::move(loc)));
+        // TODO later I need to move this logic to parse_toml_file
+//         loc.reset(loc.begin()); // rollback to the top of the literal
+//         // skip needless characters for error message
+//         skip_line::invoke(loc); // skip the first several needless lines
+//         skip_ws::invoke(loc);   // skip the first several needless whitespaces
+        return data.unwrap();
     }
     else // none of them.
     {
