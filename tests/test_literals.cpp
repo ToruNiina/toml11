@@ -78,8 +78,8 @@ BOOST_AUTO_TEST_CASE(test_value_as_literal)
         const toml::value v1 = u8"3.1415"_toml;
         const toml::value v2 = u8"6.02e+23"_toml;
 
-        BOOST_CHECK(v1.is_float());
-        BOOST_CHECK(v2.is_float());
+        BOOST_CHECK(v1.is_floating());
+        BOOST_CHECK(v2.is_floating());
         BOOST_CHECK_CLOSE(toml::get<double>(v1), 3.1415,  0.00001);
         BOOST_CHECK_CLOSE(toml::get<double>(v2), 6.02e23, 0.0001);
     }
