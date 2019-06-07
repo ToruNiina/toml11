@@ -616,7 +616,7 @@ class value
     bool is_uninitialized()   const noexcept {return this->is(value_t::Empty         );}
     bool is_boolean()         const noexcept {return this->is(value_t::Boolean       );}
     bool is_integer()         const noexcept {return this->is(value_t::Integer       );}
-    bool is_float()           const noexcept {return this->is(value_t::Float         );}
+    bool is_floating()        const noexcept {return this->is(value_t::Float         );}
     bool is_string()          const noexcept {return this->is(value_t::String        );}
     bool is_offset_datetime() const noexcept {return this->is(value_t::OffsetDatetime);}
     bool is_local_datetime()  const noexcept {return this->is(value_t::LocalDatetime );}
@@ -636,7 +636,7 @@ class value
 
     boolean         const& as_boolean()         const& noexcept {return this->boolean_;}
     integer         const& as_integer()         const& noexcept {return this->integer_;}
-    floating        const& as_float()           const& noexcept {return this->floating_;}
+    floating        const& as_floating()        const& noexcept {return this->floating_;}
     string          const& as_string()          const& noexcept {return this->string_;}
     offset_datetime const& as_offset_datetime() const& noexcept {return this->offset_datetime_;}
     local_datetime  const& as_local_datetime()  const& noexcept {return this->local_datetime_;}
@@ -647,7 +647,7 @@ class value
 
     boolean        & as_boolean()         & noexcept {return this->boolean_;}
     integer        & as_integer()         & noexcept {return this->integer_;}
-    floating       & as_float()           & noexcept {return this->floating_;}
+    floating       & as_floating()        & noexcept {return this->floating_;}
     string         & as_string()          & noexcept {return this->string_;}
     offset_datetime& as_offset_datetime() & noexcept {return this->offset_datetime_;}
     local_datetime & as_local_datetime()  & noexcept {return this->local_datetime_;}
@@ -658,7 +658,7 @@ class value
 
     boolean        && as_boolean()         && noexcept {return std::move(this->boolean_);}
     integer        && as_integer()         && noexcept {return std::move(this->integer_);}
-    floating       && as_float()           && noexcept {return std::move(this->floating_);}
+    floating       && as_floating()        && noexcept {return std::move(this->floating_);}
     string         && as_string()          && noexcept {return std::move(this->string_);}
     offset_datetime&& as_offset_datetime() && noexcept {return std::move(this->offset_datetime_);}
     local_datetime && as_local_datetime()  && noexcept {return std::move(this->local_datetime_);}
@@ -666,6 +666,15 @@ class value
     local_time     && as_local_time()      && noexcept {return std::move(this->local_time_);}
     array          && as_array()           && noexcept {return std::move(this->array_.value());}
     table          && as_table()           && noexcept {return std::move(this->table_.value());}
+
+    TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating() instead.")
+    bool is_float() const noexcept {return this->is(value_t::Float);}
+    TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating() instead.")
+    floating& as_float() & noexcept {return this->floating_;}
+    TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating() instead.")
+    floating&& as_float() && noexcept {return std::move(this->floating_);}
+    TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating() instead.")
+    floating const& as_float() const& noexcept {return this->floating_;}
 
     std::string comment() const
     {
@@ -773,9 +782,9 @@ struct switch_cast<value_t::Integer>
 template<>
 struct switch_cast<value_t::Float>
 {
-    static ::toml::floating&       invoke(value&       v) {return v.as_float();}
-    static ::toml::floating const& invoke(value const& v) {return v.as_float();}
-    static ::toml::floating&&      invoke(value&&      v) {return std::move(v).as_float();}
+    static ::toml::floating&       invoke(value&       v) {return v.as_floating();}
+    static ::toml::floating const& invoke(value const& v) {return v.as_floating();}
+    static ::toml::floating&&      invoke(value&&      v) {return std::move(v).as_floating();}
 };
 template<>
 struct switch_cast<value_t::String>
@@ -871,7 +880,7 @@ inline bool operator==(const toml::value& lhs, const toml::value& rhs)
         }
         case value_t::Float   :
         {
-            return lhs.as_float() == rhs.as_float();
+            return lhs.as_floating() == rhs.as_floating();
         }
         case value_t::String  :
         {
@@ -921,7 +930,7 @@ inline bool operator<(const toml::value& lhs, const toml::value& rhs)
         }
         case value_t::Float   :
         {
-            return lhs.as_float() < rhs.as_float();
+            return lhs.as_floating() < rhs.as_floating();
         }
         case value_t::String  :
         {
@@ -1018,7 +1027,7 @@ visit(Visitor&& visitor, const toml::value& v)
     {
         case value_t::Boolean       : {return visitor(v.as_boolean        ());}
         case value_t::Integer       : {return visitor(v.as_integer        ());}
-        case value_t::Float         : {return visitor(v.as_float          ());}
+        case value_t::Float         : {return visitor(v.as_floating       ());}
         case value_t::String        : {return visitor(v.as_string         ());}
         case value_t::OffsetDatetime: {return visitor(v.as_offset_datetime());}
         case value_t::LocalDatetime : {return visitor(v.as_local_datetime ());}
@@ -1042,7 +1051,7 @@ visit(Visitor&& visitor, toml::value& v)
     {
         case value_t::Boolean       : {return visitor(v.as_boolean        ());}
         case value_t::Integer       : {return visitor(v.as_integer        ());}
-        case value_t::Float         : {return visitor(v.as_float          ());}
+        case value_t::Float         : {return visitor(v.as_floating       ());}
         case value_t::String        : {return visitor(v.as_string         ());}
         case value_t::OffsetDatetime: {return visitor(v.as_offset_datetime());}
         case value_t::LocalDatetime : {return visitor(v.as_local_datetime ());}
@@ -1066,7 +1075,7 @@ visit(Visitor&& visitor, toml::value&& v)
     {
         case value_t::Boolean       : {return visitor(std::move(v.as_boolean        ()));}
         case value_t::Integer       : {return visitor(std::move(v.as_integer        ()));}
-        case value_t::Float         : {return visitor(std::move(v.as_float          ()));}
+        case value_t::Float         : {return visitor(std::move(v.as_floating       ()));}
         case value_t::String        : {return visitor(std::move(v.as_string         ()));}
         case value_t::OffsetDatetime: {return visitor(std::move(v.as_offset_datetime()));}
         case value_t::LocalDatetime : {return visitor(std::move(v.as_local_datetime ()));}

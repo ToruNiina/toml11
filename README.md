@@ -576,19 +576,26 @@ if(v.is_integer())
 The complete list of the functions is below.
 
 ```cpp
-const toml::value v(/*...*/);
-v.is_boolean();
-v.is_integer();
-v.is_float();
-v.is_string();
-v.is_offset_datetime();
-v.is_local_datetime();
-v.is_local_date();
-v.is_local_time();
-v.is_array();
-v.is_table();
-v.is_uninitialized();
+namespace toml {
+class value {
+    // ...
+    bool is_boolean()         const noexcept;
+    bool is_integer()         const noexcept;
+    bool is_floating()        const noexcept;
+    bool is_string()          const noexcept;
+    bool is_offset_datetime() const noexcept;
+    bool is_local_datetime()  const noexcept;
+    bool is_local_date()      const noexcept;
+    bool is_local_time()      const noexcept;
+    bool is_array()           const noexcept;
+    bool is_table()           const noexcept;
+    bool is_uninitialized()   const noexcept;
+    // ...
+};
+} // toml
 ```
+
+__NOTE__: `is_float` is marked as deprecated since v2.4.0 to make the function names consistent with snake case typenames. Please use `is_floating` instead.
 
 Also, you can get `enum class` value from `toml::value`.
 
@@ -629,19 +636,32 @@ if(v.is_integer() && v.as_integer() == 42)
 The complete list of the functions is below.
 
 ```cpp
-const toml::value v(/*...*/);
-v.as_boolean();
-v.as_integer();
-v.as_float();
-v.as_string();
-v.as_offset_datetime();
-v.as_local_datetime();
-v.as_local_date();
-v.as_local_time();
-v.as_array();
-v.as_table();
-v.as_uninitialized();
+namespace toml {
+class value {
+    // ...
+    const boolean&         as_boolean()         const& noexcept;
+    const integer&         as_integer()         const& noexcept;
+    const floating&        as_floating()        const& noexcept;
+    const string&          as_string()          const& noexcept;
+    const offset_datetime& as_offset_datetime() const& noexcept;
+    const local_datetime&  as_local_datetime()  const& noexcept;
+    const local_date&      as_local_date()      const& noexcept;
+    const local_time&      as_local_time()      const& noexcept;
+    const array&           as_array()           const& noexcept;
+    const table&           as_table()           const& noexcept;
+    // --------------------------------------------------------
+    // non-const version
+    boolean&               as_boolean()         &      noexcept;
+    // ditto...
+    // --------------------------------------------------------
+    // rvalue version
+    boolean&&              as_boolean()         &&     noexcept;
+    // ditto...
+};
+} // toml
 ```
+
+__NOTE__: `as_float` is marked as deprecated since v2.4.0 to make the function names consistent with snake case typenames. Please use `as_floating` instead.
 
 ## Visiting a toml::value
 
