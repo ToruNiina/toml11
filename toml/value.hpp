@@ -782,9 +782,9 @@ struct switch_cast<value_t::Integer>
 template<>
 struct switch_cast<value_t::Float>
 {
-    static ::toml::floating&       invoke(value&       v) {return v.as_float();}
-    static ::toml::floating const& invoke(value const& v) {return v.as_float();}
-    static ::toml::floating&&      invoke(value&&      v) {return std::move(v).as_float();}
+    static ::toml::floating&       invoke(value&       v) {return v.as_floating();}
+    static ::toml::floating const& invoke(value const& v) {return v.as_floating();}
+    static ::toml::floating&&      invoke(value&&      v) {return std::move(v).as_floating();}
 };
 template<>
 struct switch_cast<value_t::String>
@@ -880,7 +880,7 @@ inline bool operator==(const toml::value& lhs, const toml::value& rhs)
         }
         case value_t::Float   :
         {
-            return lhs.as_float() == rhs.as_float();
+            return lhs.as_floating() == rhs.as_floating();
         }
         case value_t::String  :
         {
@@ -930,7 +930,7 @@ inline bool operator<(const toml::value& lhs, const toml::value& rhs)
         }
         case value_t::Float   :
         {
-            return lhs.as_float() < rhs.as_float();
+            return lhs.as_floating() < rhs.as_floating();
         }
         case value_t::String  :
         {
@@ -1027,7 +1027,7 @@ visit(Visitor&& visitor, const toml::value& v)
     {
         case value_t::Boolean       : {return visitor(v.as_boolean        ());}
         case value_t::Integer       : {return visitor(v.as_integer        ());}
-        case value_t::Float         : {return visitor(v.as_float          ());}
+        case value_t::Float         : {return visitor(v.as_floating       ());}
         case value_t::String        : {return visitor(v.as_string         ());}
         case value_t::OffsetDatetime: {return visitor(v.as_offset_datetime());}
         case value_t::LocalDatetime : {return visitor(v.as_local_datetime ());}
@@ -1051,7 +1051,7 @@ visit(Visitor&& visitor, toml::value& v)
     {
         case value_t::Boolean       : {return visitor(v.as_boolean        ());}
         case value_t::Integer       : {return visitor(v.as_integer        ());}
-        case value_t::Float         : {return visitor(v.as_float          ());}
+        case value_t::Float         : {return visitor(v.as_floating       ());}
         case value_t::String        : {return visitor(v.as_string         ());}
         case value_t::OffsetDatetime: {return visitor(v.as_offset_datetime());}
         case value_t::LocalDatetime : {return visitor(v.as_local_datetime ());}
@@ -1075,7 +1075,7 @@ visit(Visitor&& visitor, toml::value&& v)
     {
         case value_t::Boolean       : {return visitor(std::move(v.as_boolean        ()));}
         case value_t::Integer       : {return visitor(std::move(v.as_integer        ()));}
-        case value_t::Float         : {return visitor(std::move(v.as_float          ()));}
+        case value_t::Float         : {return visitor(std::move(v.as_floating       ()));}
         case value_t::String        : {return visitor(std::move(v.as_string         ()));}
         case value_t::OffsetDatetime: {return visitor(std::move(v.as_offset_datetime()));}
         case value_t::LocalDatetime : {return visitor(std::move(v.as_local_datetime ()));}
