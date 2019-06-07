@@ -27,6 +27,16 @@ namespace detail
 region_base const& get_region(const value&);
 template<typename Region>
 void change_region(value&, Region&&);
+
+template<value_t Expected>
+[[noreturn]] inline void throw_bad_cast(value_t actual, const ::toml::value& v)
+{
+    throw type_error(detail::format_underline(concat_to_string(
+        "[error] toml::value bad_cast to ", Expected), {
+            {std::addressof(get_region(v)),
+             concat_to_string("the actual type is ", actual)}
+        }));
+}
 }// detail
 
 template<typename T>
@@ -634,47 +644,353 @@ class value
     template<value_t T>
     typename detail::toml_default_type<T>::type&&      cast() &&;
 
-    boolean         const& as_boolean()         const& noexcept {return this->boolean_;}
-    integer         const& as_integer()         const& noexcept {return this->integer_;}
-    floating        const& as_floating()        const& noexcept {return this->floating_;}
-    string          const& as_string()          const& noexcept {return this->string_;}
-    offset_datetime const& as_offset_datetime() const& noexcept {return this->offset_datetime_;}
-    local_datetime  const& as_local_datetime()  const& noexcept {return this->local_datetime_;}
-    local_date      const& as_local_date()      const& noexcept {return this->local_date_;}
-    local_time      const& as_local_time()      const& noexcept {return this->local_time_;}
-    array           const& as_array()           const& noexcept {return this->array_.value();}
-    table           const& as_table()           const& noexcept {return this->table_.value();}
+    // ------------------------------------------------------------------------
+    // nothrow version
 
-    boolean        & as_boolean()         & noexcept {return this->boolean_;}
-    integer        & as_integer()         & noexcept {return this->integer_;}
-    floating       & as_floating()        & noexcept {return this->floating_;}
-    string         & as_string()          & noexcept {return this->string_;}
-    offset_datetime& as_offset_datetime() & noexcept {return this->offset_datetime_;}
-    local_datetime & as_local_datetime()  & noexcept {return this->local_datetime_;}
-    local_date     & as_local_date()      & noexcept {return this->local_date_;}
-    local_time     & as_local_time()      & noexcept {return this->local_time_;}
-    array          & as_array()           & noexcept {return this->array_.value();}
-    table          & as_table()           & noexcept {return this->table_.value();}
+    boolean         const& as_boolean        (const std::nothrow_t&) const& noexcept {return this->boolean_;}
+    integer         const& as_integer        (const std::nothrow_t&) const& noexcept {return this->integer_;}
+    floating        const& as_floating       (const std::nothrow_t&) const& noexcept {return this->floating_;}
+    string          const& as_string         (const std::nothrow_t&) const& noexcept {return this->string_;}
+    offset_datetime const& as_offset_datetime(const std::nothrow_t&) const& noexcept {return this->offset_datetime_;}
+    local_datetime  const& as_local_datetime (const std::nothrow_t&) const& noexcept {return this->local_datetime_;}
+    local_date      const& as_local_date     (const std::nothrow_t&) const& noexcept {return this->local_date_;}
+    local_time      const& as_local_time     (const std::nothrow_t&) const& noexcept {return this->local_time_;}
+    array           const& as_array          (const std::nothrow_t&) const& noexcept {return this->array_.value();}
+    table           const& as_table          (const std::nothrow_t&) const& noexcept {return this->table_.value();}
 
-    boolean        && as_boolean()         && noexcept {return std::move(this->boolean_);}
-    integer        && as_integer()         && noexcept {return std::move(this->integer_);}
-    floating       && as_floating()        && noexcept {return std::move(this->floating_);}
-    string         && as_string()          && noexcept {return std::move(this->string_);}
-    offset_datetime&& as_offset_datetime() && noexcept {return std::move(this->offset_datetime_);}
-    local_datetime && as_local_datetime()  && noexcept {return std::move(this->local_datetime_);}
-    local_date     && as_local_date()      && noexcept {return std::move(this->local_date_);}
-    local_time     && as_local_time()      && noexcept {return std::move(this->local_time_);}
-    array          && as_array()           && noexcept {return std::move(this->array_.value());}
-    table          && as_table()           && noexcept {return std::move(this->table_.value());}
+    boolean        & as_boolean        (const std::nothrow_t&) & noexcept {return this->boolean_;}
+    integer        & as_integer        (const std::nothrow_t&) & noexcept {return this->integer_;}
+    floating       & as_floating       (const std::nothrow_t&) & noexcept {return this->floating_;}
+    string         & as_string         (const std::nothrow_t&) & noexcept {return this->string_;}
+    offset_datetime& as_offset_datetime(const std::nothrow_t&) & noexcept {return this->offset_datetime_;}
+    local_datetime & as_local_datetime (const std::nothrow_t&) & noexcept {return this->local_datetime_;}
+    local_date     & as_local_date     (const std::nothrow_t&) & noexcept {return this->local_date_;}
+    local_time     & as_local_time     (const std::nothrow_t&) & noexcept {return this->local_time_;}
+    array          & as_array          (const std::nothrow_t&) & noexcept {return this->array_.value();}
+    table          & as_table          (const std::nothrow_t&) & noexcept {return this->table_.value();}
+
+    boolean        && as_boolean        (const std::nothrow_t&) && noexcept {return std::move(this->boolean_);}
+    integer        && as_integer        (const std::nothrow_t&) && noexcept {return std::move(this->integer_);}
+    floating       && as_floating       (const std::nothrow_t&) && noexcept {return std::move(this->floating_);}
+    string         && as_string         (const std::nothrow_t&) && noexcept {return std::move(this->string_);}
+    offset_datetime&& as_offset_datetime(const std::nothrow_t&) && noexcept {return std::move(this->offset_datetime_);}
+    local_datetime && as_local_datetime (const std::nothrow_t&) && noexcept {return std::move(this->local_datetime_);}
+    local_date     && as_local_date     (const std::nothrow_t&) && noexcept {return std::move(this->local_date_);}
+    local_time     && as_local_time     (const std::nothrow_t&) && noexcept {return std::move(this->local_time_);}
+    array          && as_array          (const std::nothrow_t&) && noexcept {return std::move(this->array_.value());}
+    table          && as_table          (const std::nothrow_t&) && noexcept {return std::move(this->table_.value());}
+
+    // ========================================================================
+    // throw version
+    // ------------------------------------------------------------------------
+    // const reference
+
+    boolean const& as_boolean() const&
+    {
+        if(this->type_ != value_t::Boolean)
+        {
+            detail::throw_bad_cast<value_t::Boolean>(this->type_, *this);
+        }
+        return this->boolean_;
+    }
+    integer const& as_integer() const&
+    {
+        if(this->type_ != value_t::Integer)
+        {
+            detail::throw_bad_cast<value_t::Integer>(this->type_, *this);
+        }
+        return this->integer_;
+    }
+    floating const& as_floating() const&
+    {
+        if(this->type_ != value_t::Float)
+        {
+            detail::throw_bad_cast<value_t::Float>(this->type_, *this);
+        }
+        return this->floating_;
+    }
+    string const& as_string() const&
+    {
+        if(this->type_ != value_t::String)
+        {
+            detail::throw_bad_cast<value_t::String>(this->type_, *this);
+        }
+        return this->string_;
+    }
+    offset_datetime const& as_offset_datetime() const&
+    {
+        if(this->type_ != value_t::OffsetDatetime)
+        {
+            detail::throw_bad_cast<value_t::OffsetDatetime>(this->type_, *this);
+        }
+        return this->offset_datetime_;
+    }
+    local_datetime const& as_local_datetime() const&
+    {
+        if(this->type_ != value_t::LocalDatetime)
+        {
+            detail::throw_bad_cast<value_t::LocalDatetime>(this->type_, *this);
+        }
+        return this->local_datetime_;
+    }
+    local_date const& as_local_date() const&
+    {
+        if(this->type_ != value_t::LocalDate)
+        {
+            detail::throw_bad_cast<value_t::LocalDate>(this->type_, *this);
+        }
+        return this->local_date_;
+    }
+    local_time const& as_local_time() const&
+    {
+        if(this->type_ != value_t::LocalTime)
+        {
+            detail::throw_bad_cast<value_t::LocalTime>(this->type_, *this);
+        }
+        return this->local_time_;
+    }
+    array const& as_array() const&
+    {
+        if(this->type_ != value_t::Array)
+        {
+            detail::throw_bad_cast<value_t::Array>(this->type_, *this);
+        }
+        return this->array_.value();
+    }
+    table const& as_table() const&
+    {
+        if(this->type_ != value_t::Table)
+        {
+            detail::throw_bad_cast<value_t::Table>(this->type_, *this);
+        }
+        return this->table_.value();
+    }
+
+    // ------------------------------------------------------------------------
+    // nonconst reference
+
+    boolean & as_boolean() &
+    {
+        if(this->type_ != value_t::Boolean)
+        {
+            detail::throw_bad_cast<value_t::Boolean>(this->type_, *this);
+        }
+        return this->boolean_;
+    }
+    integer & as_integer() &
+    {
+        if(this->type_ != value_t::Integer)
+        {
+            detail::throw_bad_cast<value_t::Integer>(this->type_, *this);
+        }
+        return this->integer_;
+    }
+    floating & as_floating() &
+    {
+        if(this->type_ != value_t::Float)
+        {
+            detail::throw_bad_cast<value_t::Float>(this->type_, *this);
+        }
+        return this->floating_;
+    }
+    string & as_string() &
+    {
+        if(this->type_ != value_t::String)
+        {
+            detail::throw_bad_cast<value_t::String>(this->type_, *this);
+        }
+        return this->string_;
+    }
+    offset_datetime & as_offset_datetime() &
+    {
+        if(this->type_ != value_t::OffsetDatetime)
+        {
+            detail::throw_bad_cast<value_t::OffsetDatetime>(this->type_, *this);
+        }
+        return this->offset_datetime_;
+    }
+    local_datetime & as_local_datetime() &
+    {
+        if(this->type_ != value_t::LocalDatetime)
+        {
+            detail::throw_bad_cast<value_t::LocalDatetime>(this->type_, *this);
+        }
+        return this->local_datetime_;
+    }
+    local_date & as_local_date() &
+    {
+        if(this->type_ != value_t::LocalDate)
+        {
+            detail::throw_bad_cast<value_t::LocalDate>(this->type_, *this);
+        }
+        return this->local_date_;
+    }
+    local_time & as_local_time() &
+    {
+        if(this->type_ != value_t::LocalTime)
+        {
+            detail::throw_bad_cast<value_t::LocalTime>(this->type_, *this);
+        }
+        return this->local_time_;
+    }
+    array & as_array() &
+    {
+        if(this->type_ != value_t::Array)
+        {
+            detail::throw_bad_cast<value_t::Array>(this->type_, *this);
+        }
+        return this->array_.value();
+    }
+    table & as_table() &
+    {
+        if(this->type_ != value_t::Table)
+        {
+            detail::throw_bad_cast<value_t::Table>(this->type_, *this);
+        }
+        return this->table_.value();
+    }
+
+    // ------------------------------------------------------------------------
+    // rvalue reference
+
+    boolean && as_boolean() &&
+    {
+        if(this->type_ != value_t::Boolean)
+        {
+            detail::throw_bad_cast<value_t::Boolean>(this->type_, *this);
+        }
+        return std::move(this->boolean_);
+    }
+    integer && as_integer() &&
+    {
+        if(this->type_ != value_t::Integer)
+        {
+            detail::throw_bad_cast<value_t::Integer>(this->type_, *this);
+        }
+        return std::move(this->integer_);
+    }
+    floating && as_floating() &&
+    {
+        if(this->type_ != value_t::Float)
+        {
+            detail::throw_bad_cast<value_t::Float>(this->type_, *this);
+        }
+        return std::move(this->floating_);
+    }
+    string && as_string() &&
+    {
+        if(this->type_ != value_t::String)
+        {
+            detail::throw_bad_cast<value_t::String>(this->type_, *this);
+        }
+        return std::move(this->string_);
+    }
+    offset_datetime && as_offset_datetime() &&
+    {
+        if(this->type_ != value_t::OffsetDatetime)
+        {
+            detail::throw_bad_cast<value_t::OffsetDatetime>(this->type_, *this);
+        }
+        return std::move(this->offset_datetime_);
+    }
+    local_datetime && as_local_datetime() &&
+    {
+        if(this->type_ != value_t::LocalDatetime)
+        {
+            detail::throw_bad_cast<value_t::LocalDatetime>(this->type_, *this);
+        }
+        return std::move(this->local_datetime_);
+    }
+    local_date && as_local_date() &&
+    {
+        if(this->type_ != value_t::LocalDate)
+        {
+            detail::throw_bad_cast<value_t::LocalDate>(this->type_, *this);
+        }
+        return std::move(this->local_date_);
+    }
+    local_time && as_local_time() &&
+    {
+        if(this->type_ != value_t::LocalTime)
+        {
+            detail::throw_bad_cast<value_t::LocalTime>(this->type_, *this);
+        }
+        return std::move(this->local_time_);
+    }
+    array && as_array() &&
+    {
+        if(this->type_ != value_t::Array)
+        {
+            detail::throw_bad_cast<value_t::Array>(this->type_, *this);
+        }
+        return std::move(this->array_.value());
+    }
+    table && as_table() &&
+    {
+        if(this->type_ != value_t::Table)
+        {
+            detail::throw_bad_cast<value_t::Table>(this->type_, *this);
+        }
+        return std::move(this->table_.value());
+    }
+
+    // ------------------------------------------------------------------------
+    // as|is_float (deprecated)
 
     TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating() instead.")
     bool is_float() const noexcept {return this->is(value_t::Float);}
+
+    // ------------------------------------------------------------------------
+    // nothrow version
+
+    TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating(std::nothrow) instead.")
+    floating& as_float(const std::nothrow_t&) & noexcept
+    {
+        return this->floating_;
+    }
+    TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating(std::nothrow) instead.")
+    floating&& as_float(const std::nothrow_t&) && noexcept
+    {
+        return std::move(this->floating_);
+    }
+    TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating(std::nothrow) instead.")
+    floating const& as_float(const std::nothrow_t&) const& noexcept
+    {
+        return this->floating_;
+    }
+
+    // ------------------------------------------------------------------------
+    // throw version
+
     TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating() instead.")
-    floating& as_float() & noexcept {return this->floating_;}
+    floating& as_float() &
+    {
+        if(this->type_ != value_t::Float)
+        {
+            detail::throw_bad_cast<value_t::Float>(this->type_, *this);
+        }
+        return this->floating_;
+    }
     TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating() instead.")
-    floating&& as_float() && noexcept {return std::move(this->floating_);}
+    floating&& as_float() &&
+    {
+        if(this->type_ != value_t::Float)
+        {
+            detail::throw_bad_cast<value_t::Float>(this->type_, *this);
+        }
+        return std::move(this->floating_);
+    }
     TOML11_MARK_AS_DEPRECATED("use toml::value::is_floating() instead.")
-    floating const& as_float() const& noexcept {return this->floating_;}
+    floating const& as_float() const&
+    {
+        if(this->type_ != value_t::Float)
+        {
+            detail::throw_bad_cast<value_t::Float>(this->type_, *this);
+        }
+        return this->floating_;
+    }
+
+    // ------------------------------------------------------------------------
 
     std::string comment() const
     {
@@ -751,16 +1067,6 @@ void change_region(value& v, Region&& reg)
         std::make_shared<region_type>(std::forward<region_type>(reg));
     v.region_info_ = new_reg;
     return;
-}
-
-template<value_t Expected>
-[[noreturn]] inline void throw_bad_cast(value_t actual, const ::toml::value& v)
-{
-    throw type_error(detail::format_underline(concat_to_string(
-        "[error] toml::value bad_cast to ", Expected), {
-            {std::addressof(get_region(v)),
-             concat_to_string("the actual type is ", actual)}
-        }));
 }
 
 template<value_t T>
