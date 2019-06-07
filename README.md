@@ -487,7 +487,7 @@ if(data.count("num") == 1)
 
 ----
 
-You can also use this with a `toml::value` that is expected to be a `toml::table`.
+You can also use this with a `toml::value` that is expected to contain a `toml::table`.
 It automatically casts the `toml::value` to a `toml::table`. If it failed to cast,
 it would throw a `toml::type_error`.
 
