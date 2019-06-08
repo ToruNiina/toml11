@@ -32,6 +32,8 @@ BOOST_AUTO_TEST_CASE(test_value_boolean)
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::boolean>(), false);
     BOOST_CHECK_EQUAL(v1.as_boolean(), true);
     BOOST_CHECK_EQUAL(v2.as_boolean(), false);
+    BOOST_CHECK_EQUAL(v1.as_boolean(std::nothrow), true);
+    BOOST_CHECK_EQUAL(v2.as_boolean(std::nothrow), false);
 
     v1 = false;
     v2 = true;
@@ -122,6 +124,8 @@ BOOST_AUTO_TEST_CASE(test_value_integer)
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::integer>(),  42u);
     BOOST_CHECK_EQUAL(v1.as_integer(), -42);
     BOOST_CHECK_EQUAL(v2.as_integer(),  42u);
+    BOOST_CHECK_EQUAL(v1.as_integer(std::nothrow), -42);
+    BOOST_CHECK_EQUAL(v2.as_integer(std::nothrow),  42u);
 
     v1 = 54;
     v2 = -54;
@@ -212,6 +216,8 @@ BOOST_AUTO_TEST_CASE(test_value_float)
     BOOST_CHECK_CLOSE_FRACTION(v2.cast<toml::value_t::floating>(), 3.14, 1e-2);
     BOOST_CHECK_EQUAL         (v1.as_floating(), 3.14);
     BOOST_CHECK_CLOSE_FRACTION(v2.as_floating(), 3.14, 1e-2);
+    BOOST_CHECK_EQUAL         (v1.as_floating(std::nothrow), 3.14);
+    BOOST_CHECK_CLOSE_FRACTION(v2.as_floating(std::nothrow), 3.14, 1e-2);
 
     v1 = 2.718f;
     v2 = 2.718;
@@ -309,7 +315,9 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     BOOST_CHECK_EQUAL(v1.as_string(), "foo");
     BOOST_CHECK_EQUAL(v2.as_string(), "foo");
     BOOST_CHECK_EQUAL(v3.as_string(), "foo");
-
+    BOOST_CHECK_EQUAL(v1.as_string(std::nothrow), "foo");
+    BOOST_CHECK_EQUAL(v2.as_string(std::nothrow), "foo");
+    BOOST_CHECK_EQUAL(v3.as_string(std::nothrow), "foo");
 
     v1 = "bar";
     v2 = "bar";
@@ -439,6 +447,8 @@ BOOST_AUTO_TEST_CASE(test_value_local_date)
                       toml::local_date(2018, toml::month_t::Jan, 31));
     BOOST_CHECK_EQUAL(v1.as_local_date(),
                       toml::local_date(2018, toml::month_t::Jan, 31));
+    BOOST_CHECK_EQUAL(v1.as_local_date(std::nothrow),
+                      toml::local_date(2018, toml::month_t::Jan, 31));
 
     v1 = toml::local_date(2018, toml::month_t::Apr, 1);
 
@@ -503,6 +513,8 @@ BOOST_AUTO_TEST_CASE(test_value_local_time)
                       v2.cast<toml::value_t::local_time>());
     BOOST_CHECK_EQUAL(v1.as_local_time(),
                       v2.as_local_time());
+    BOOST_CHECK_EQUAL(v1.as_local_time(std::nothrow),
+                      v2.as_local_time(std::nothrow));
 
     v1 = toml::local_time(1, 30, 0, /*ms*/ 100, /*us*/ 0);
 
@@ -557,6 +569,11 @@ BOOST_AUTO_TEST_CASE(test_value_local_datetime)
                       toml::local_datetime(
                           toml::local_date(2018, toml::month_t::Jan, 31),
                           toml::local_time(12, 30, 45)));
+    BOOST_CHECK_EQUAL(v1.as_local_datetime(std::nothrow),
+                      toml::local_datetime(
+                          toml::local_date(2018, toml::month_t::Jan, 31),
+                          toml::local_time(12, 30, 45)));
+
 
     v1 = toml::local_datetime(
                 toml::local_date(2018, toml::month_t::Apr, 1),
@@ -628,6 +645,13 @@ BOOST_AUTO_TEST_CASE(test_value_offset_datetime)
                 toml::local_time(12, 30, 45),
                 toml::time_offset(9, 0)
                 ));
+    BOOST_CHECK_EQUAL(v1.as_offset_datetime(std::nothrow),
+            toml::offset_datetime(
+                toml::local_date(2018, toml::month_t::Jan, 31),
+                toml::local_time(12, 30, 45),
+                toml::time_offset(9, 0)
+                ));
+
 
     v1 = toml::offset_datetime(
                 toml::local_date(2018, toml::month_t::Apr, 1),
@@ -705,7 +729,11 @@ BOOST_AUTO_TEST_CASE(test_value_array)
     BOOST_CHECK_EQUAL(v1.as_array().at(2).as_integer(), 3);
     BOOST_CHECK_EQUAL(v1.as_array().at(3).as_integer(), 4);
     BOOST_CHECK_EQUAL(v1.as_array().at(4).as_integer(), 5);
-
+    BOOST_CHECK_EQUAL(v1.as_array(std::nothrow).at(0).as_integer(), 1);
+    BOOST_CHECK_EQUAL(v1.as_array(std::nothrow).at(1).as_integer(), 2);
+    BOOST_CHECK_EQUAL(v1.as_array(std::nothrow).at(2).as_integer(), 3);
+    BOOST_CHECK_EQUAL(v1.as_array(std::nothrow).at(3).as_integer(), 4);
+    BOOST_CHECK_EQUAL(v1.as_array(std::nothrow).at(4).as_integer(), 5);
 
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::array>().at(0).cast<toml::value_t::integer>(), 6);
     BOOST_CHECK_EQUAL(v2.cast<toml::value_t::array>().at(1).cast<toml::value_t::integer>(), 7);
@@ -794,6 +822,9 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v1.as_table().at("foo").as_integer(),    42);
     BOOST_CHECK_EQUAL(v1.as_table().at("bar").as_floating(),   3.14);
     BOOST_CHECK_EQUAL(v1.as_table().at("baz").as_string().str, "qux");
+    BOOST_CHECK_EQUAL(v1.as_table(std::nothrow).at("foo").as_integer(),    42);
+    BOOST_CHECK_EQUAL(v1.as_table(std::nothrow).at("bar").as_floating(),   3.14);
+    BOOST_CHECK_EQUAL(v1.as_table(std::nothrow).at("baz").as_string().str, "qux");
 
 
     v1 = toml::table{{"foo", 2.71}, {"bar", 54}, {"baz", "quux"}};
@@ -840,4 +871,15 @@ BOOST_AUTO_TEST_CASE(test_value_empty)
     toml::value v1;
     BOOST_CHECK(v1.is_uninitialized());
     BOOST_CHECK(v1.is(toml::value_t::empty));
+
+    BOOST_CHECK_THROW(v1.as_boolean(),         toml::type_error);
+    BOOST_CHECK_THROW(v1.as_integer(),         toml::type_error);
+    BOOST_CHECK_THROW(v1.as_floating(),        toml::type_error);
+    BOOST_CHECK_THROW(v1.as_string(),          toml::type_error);
+    BOOST_CHECK_THROW(v1.as_offset_datetime(), toml::type_error);
+    BOOST_CHECK_THROW(v1.as_local_datetime(),  toml::type_error);
+    BOOST_CHECK_THROW(v1.as_local_date(),      toml::type_error);
+    BOOST_CHECK_THROW(v1.as_local_time(),      toml::type_error);
+    BOOST_CHECK_THROW(v1.as_array(),           toml::type_error);
+    BOOST_CHECK_THROW(v1.as_table(),           toml::type_error);
 }

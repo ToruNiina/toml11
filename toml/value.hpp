@@ -944,38 +944,295 @@ class basic_value
         return detail::switch_cast<T>::invoke(std::move(*this));
     }
 
-    boolean         const& as_boolean()         const& noexcept {return this->boolean_;}
-    integer         const& as_integer()         const& noexcept {return this->integer_;}
-    floating        const& as_floating()        const& noexcept {return this->floating_;}
-    string          const& as_string()          const& noexcept {return this->string_;}
-    offset_datetime const& as_offset_datetime() const& noexcept {return this->offset_datetime_;}
-    local_datetime  const& as_local_datetime()  const& noexcept {return this->local_datetime_;}
-    local_date      const& as_local_date()      const& noexcept {return this->local_date_;}
-    local_time      const& as_local_time()      const& noexcept {return this->local_time_;}
-    array_type      const& as_array()           const& noexcept {return this->array_.value();}
-    table_type      const& as_table()           const& noexcept {return this->table_.value();}
+    // ------------------------------------------------------------------------
+    // nothrow version
 
-    boolean        & as_boolean()         & noexcept {return this->boolean_;}
-    integer        & as_integer()         & noexcept {return this->integer_;}
-    floating       & as_floating()        & noexcept {return this->floating_;}
-    string         & as_string()          & noexcept {return this->string_;}
-    offset_datetime& as_offset_datetime() & noexcept {return this->offset_datetime_;}
-    local_datetime & as_local_datetime()  & noexcept {return this->local_datetime_;}
-    local_date     & as_local_date()      & noexcept {return this->local_date_;}
-    local_time     & as_local_time()      & noexcept {return this->local_time_;}
-    array_type     & as_array()           & noexcept {return this->array_.value();}
-    table_type     & as_table()           & noexcept {return this->table_.value();}
+    boolean         const& as_boolean        (const std::nothrow_t&) const& noexcept {return this->boolean_;}
+    integer         const& as_integer        (const std::nothrow_t&) const& noexcept {return this->integer_;}
+    floating        const& as_floating       (const std::nothrow_t&) const& noexcept {return this->floating_;}
+    string          const& as_string         (const std::nothrow_t&) const& noexcept {return this->string_;}
+    offset_datetime const& as_offset_datetime(const std::nothrow_t&) const& noexcept {return this->offset_datetime_;}
+    local_datetime  const& as_local_datetime (const std::nothrow_t&) const& noexcept {return this->local_datetime_;}
+    local_date      const& as_local_date     (const std::nothrow_t&) const& noexcept {return this->local_date_;}
+    local_time      const& as_local_time     (const std::nothrow_t&) const& noexcept {return this->local_time_;}
+    array_type      const& as_array          (const std::nothrow_t&) const& noexcept {return this->array_.value();}
+    table_type      const& as_table          (const std::nothrow_t&) const& noexcept {return this->table_.value();}
 
-    boolean        && as_boolean()         && noexcept {return std::move(this->boolean_);}
-    integer        && as_integer()         && noexcept {return std::move(this->integer_);}
-    floating       && as_floating()        && noexcept {return std::move(this->floating_);}
-    string         && as_string()          && noexcept {return std::move(this->string_);}
-    offset_datetime&& as_offset_datetime() && noexcept {return std::move(this->offset_datetime_);}
-    local_datetime && as_local_datetime()  && noexcept {return std::move(this->local_datetime_);}
-    local_date     && as_local_date()      && noexcept {return std::move(this->local_date_);}
-    local_time     && as_local_time()      && noexcept {return std::move(this->local_time_);}
-    array_type     && as_array()           && noexcept {return std::move(this->array_.value());}
-    table_type     && as_table()           && noexcept {return std::move(this->table_.value());}
+    boolean        & as_boolean        (const std::nothrow_t&) & noexcept {return this->boolean_;}
+    integer        & as_integer        (const std::nothrow_t&) & noexcept {return this->integer_;}
+    floating       & as_floating       (const std::nothrow_t&) & noexcept {return this->floating_;}
+    string         & as_string         (const std::nothrow_t&) & noexcept {return this->string_;}
+    offset_datetime& as_offset_datetime(const std::nothrow_t&) & noexcept {return this->offset_datetime_;}
+    local_datetime & as_local_datetime (const std::nothrow_t&) & noexcept {return this->local_datetime_;}
+    local_date     & as_local_date     (const std::nothrow_t&) & noexcept {return this->local_date_;}
+    local_time     & as_local_time     (const std::nothrow_t&) & noexcept {return this->local_time_;}
+    array_type     & as_array          (const std::nothrow_t&) & noexcept {return this->array_.value();}
+    table_type     & as_table          (const std::nothrow_t&) & noexcept {return this->table_.value();}
+
+    boolean        && as_boolean        (const std::nothrow_t&) && noexcept {return std::move(this->boolean_);}
+    integer        && as_integer        (const std::nothrow_t&) && noexcept {return std::move(this->integer_);}
+    floating       && as_floating       (const std::nothrow_t&) && noexcept {return std::move(this->floating_);}
+    string         && as_string         (const std::nothrow_t&) && noexcept {return std::move(this->string_);}
+    offset_datetime&& as_offset_datetime(const std::nothrow_t&) && noexcept {return std::move(this->offset_datetime_);}
+    local_datetime && as_local_datetime (const std::nothrow_t&) && noexcept {return std::move(this->local_datetime_);}
+    local_date     && as_local_date     (const std::nothrow_t&) && noexcept {return std::move(this->local_date_);}
+    local_time     && as_local_time     (const std::nothrow_t&) && noexcept {return std::move(this->local_time_);}
+    array_type     && as_array          (const std::nothrow_t&) && noexcept {return std::move(this->array_.value());}
+    table_type     && as_table          (const std::nothrow_t&) && noexcept {return std::move(this->table_.value());}
+
+    // ========================================================================
+    // throw version
+    // ------------------------------------------------------------------------
+    // const reference
+
+    boolean const& as_boolean() const&
+    {
+        if(this->type_ != value_t::boolean)
+        {
+            detail::throw_bad_cast<value_t::boolean>(this->type_, *this);
+        }
+        return this->boolean_;
+    }
+    integer const& as_integer() const&
+    {
+        if(this->type_ != value_t::integer)
+        {
+            detail::throw_bad_cast<value_t::integer>(this->type_, *this);
+        }
+        return this->integer_;
+    }
+    floating const& as_floating() const&
+    {
+        if(this->type_ != value_t::floating)
+        {
+            detail::throw_bad_cast<value_t::floating>(this->type_, *this);
+        }
+        return this->floating_;
+    }
+    string const& as_string() const&
+    {
+        if(this->type_ != value_t::string)
+        {
+            detail::throw_bad_cast<value_t::string>(this->type_, *this);
+        }
+        return this->string_;
+    }
+    offset_datetime const& as_offset_datetime() const&
+    {
+        if(this->type_ != value_t::offset_datetime)
+        {
+            detail::throw_bad_cast<value_t::offset_datetime>(this->type_, *this);
+        }
+        return this->offset_datetime_;
+    }
+    local_datetime const& as_local_datetime() const&
+    {
+        if(this->type_ != value_t::local_datetime)
+        {
+            detail::throw_bad_cast<value_t::local_datetime>(this->type_, *this);
+        }
+        return this->local_datetime_;
+    }
+    local_date const& as_local_date() const&
+    {
+        if(this->type_ != value_t::local_date)
+        {
+            detail::throw_bad_cast<value_t::local_date>(this->type_, *this);
+        }
+        return this->local_date_;
+    }
+    local_time const& as_local_time() const&
+    {
+        if(this->type_ != value_t::local_time)
+        {
+            detail::throw_bad_cast<value_t::local_time>(this->type_, *this);
+        }
+        return this->local_time_;
+    }
+    array_type const& as_array() const&
+    {
+        if(this->type_ != value_t::array)
+        {
+            detail::throw_bad_cast<value_t::array>(this->type_, *this);
+        }
+        return this->array_.value();
+    }
+    table_type const& as_table() const&
+    {
+        if(this->type_ != value_t::table)
+        {
+            detail::throw_bad_cast<value_t::table>(this->type_, *this);
+        }
+        return this->table_.value();
+    }
+
+    // ------------------------------------------------------------------------
+    // nonconst reference
+
+    boolean & as_boolean() &
+    {
+        if(this->type_ != value_t::boolean)
+        {
+            detail::throw_bad_cast<value_t::boolean>(this->type_, *this);
+        }
+        return this->boolean_;
+    }
+    integer & as_integer() &
+    {
+        if(this->type_ != value_t::integer)
+        {
+            detail::throw_bad_cast<value_t::integer>(this->type_, *this);
+        }
+        return this->integer_;
+    }
+    floating & as_floating() &
+    {
+        if(this->type_ != value_t::floating)
+        {
+            detail::throw_bad_cast<value_t::floating>(this->type_, *this);
+        }
+        return this->floating_;
+    }
+    string & as_string() &
+    {
+        if(this->type_ != value_t::string)
+        {
+            detail::throw_bad_cast<value_t::string>(this->type_, *this);
+        }
+        return this->string_;
+    }
+    offset_datetime & as_offset_datetime() &
+    {
+        if(this->type_ != value_t::offset_datetime)
+        {
+            detail::throw_bad_cast<value_t::offset_datetime>(this->type_, *this);
+        }
+        return this->offset_datetime_;
+    }
+    local_datetime & as_local_datetime() &
+    {
+        if(this->type_ != value_t::local_datetime)
+        {
+            detail::throw_bad_cast<value_t::local_datetime>(this->type_, *this);
+        }
+        return this->local_datetime_;
+    }
+    local_date & as_local_date() &
+    {
+        if(this->type_ != value_t::local_date)
+        {
+            detail::throw_bad_cast<value_t::local_date>(this->type_, *this);
+        }
+        return this->local_date_;
+    }
+    local_time & as_local_time() &
+    {
+        if(this->type_ != value_t::local_time)
+        {
+            detail::throw_bad_cast<value_t::local_time>(this->type_, *this);
+        }
+        return this->local_time_;
+    }
+    array_type & as_array() &
+    {
+        if(this->type_ != value_t::array)
+        {
+            detail::throw_bad_cast<value_t::array>(this->type_, *this);
+        }
+        return this->array_.value();
+    }
+    table_type & as_table() &
+    {
+        if(this->type_ != value_t::table)
+        {
+            detail::throw_bad_cast<value_t::table>(this->type_, *this);
+        }
+        return this->table_.value();
+    }
+
+    // ------------------------------------------------------------------------
+    // rvalue reference
+
+    boolean && as_boolean() &&
+    {
+        if(this->type_ != value_t::boolean)
+        {
+            detail::throw_bad_cast<value_t::boolean>(this->type_, *this);
+        }
+        return std::move(this->boolean_);
+    }
+    integer && as_integer() &&
+    {
+        if(this->type_ != value_t::integer)
+        {
+            detail::throw_bad_cast<value_t::integer>(this->type_, *this);
+        }
+        return std::move(this->integer_);
+    }
+    floating && as_floating() &&
+    {
+        if(this->type_ != value_t::floating)
+        {
+            detail::throw_bad_cast<value_t::floating>(this->type_, *this);
+        }
+        return std::move(this->floating_);
+    }
+    string && as_string() &&
+    {
+        if(this->type_ != value_t::string)
+        {
+            detail::throw_bad_cast<value_t::string>(this->type_, *this);
+        }
+        return std::move(this->string_);
+    }
+    offset_datetime && as_offset_datetime() &&
+    {
+        if(this->type_ != value_t::offset_datetime)
+        {
+            detail::throw_bad_cast<value_t::offset_datetime>(this->type_, *this);
+        }
+        return std::move(this->offset_datetime_);
+    }
+    local_datetime && as_local_datetime() &&
+    {
+        if(this->type_ != value_t::local_datetime)
+        {
+            detail::throw_bad_cast<value_t::local_datetime>(this->type_, *this);
+        }
+        return std::move(this->local_datetime_);
+    }
+    local_date && as_local_date() &&
+    {
+        if(this->type_ != value_t::local_date)
+        {
+            detail::throw_bad_cast<value_t::local_date>(this->type_, *this);
+        }
+        return std::move(this->local_date_);
+    }
+    local_time && as_local_time() &&
+    {
+        if(this->type_ != value_t::local_time)
+        {
+            detail::throw_bad_cast<value_t::local_time>(this->type_, *this);
+        }
+        return std::move(this->local_time_);
+    }
+    array_type && as_array() &&
+    {
+        if(this->type_ != value_t::array)
+        {
+            detail::throw_bad_cast<value_t::array>(this->type_, *this);
+        }
+        return std::move(this->array_.value());
+    }
+    table_type && as_table() &&
+    {
+        if(this->type_ != value_t::table)
+        {
+            detail::throw_bad_cast<value_t::table>(this->type_, *this);
+        }
+        return std::move(this->table_.value());
+    }
 
     source_location location() const
     {

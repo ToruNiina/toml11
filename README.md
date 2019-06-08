@@ -633,29 +633,49 @@ if(v.is_integer() && v.as_integer() == 42)
 }
 ```
 
-The complete list of the functions is below.
+`as_*` functions internally checks the current contained type for safety and
+throws `toml::type_error` if the contained value type is different (after toml11
+v2.4.0). If you already confirmed that the value has the type you will cast
+into, you can skip the additional checking by passing `std::nothrow` object to it.
+
+```cpp
+toml::value v = /* ... */;
+if(v.is_integer() && v.as_integer(std::nothrow) == 42) // never fail
+{
+    std::cout << "value is 42" << std::endl;
+}
+```
+
+The full list of the functions is below.
 
 ```cpp
 namespace toml {
 class value {
     // ...
-    const boolean&         as_boolean()         const& noexcept;
-    const integer&         as_integer()         const& noexcept;
-    const floating&        as_floating()        const& noexcept;
-    const string&          as_string()          const& noexcept;
-    const offset_datetime& as_offset_datetime() const& noexcept;
-    const local_datetime&  as_local_datetime()  const& noexcept;
-    const local_date&      as_local_date()      const& noexcept;
-    const local_time&      as_local_time()      const& noexcept;
-    const array&           as_array()           const& noexcept;
-    const table&           as_table()           const& noexcept;
+    const boolean&         as_boolean()         const&;
+    const integer&         as_integer()         const&;
+    const floating&        as_floating()        const&;
+    const string&          as_string()          const&;
+    const offset_datetime& as_offset_datetime() const&;
+    const local_datetime&  as_local_datetime()  const&;
+    const local_date&      as_local_date()      const&;
+    const local_time&      as_local_time()      const&;
+    const array&           as_array()           const&;
+    const table&           as_table()           const&;
     // --------------------------------------------------------
     // non-const version
-    boolean&               as_boolean()         &      noexcept;
+    boolean&               as_boolean()         &;
     // ditto...
     // --------------------------------------------------------
     // rvalue version
-    boolean&&              as_boolean()         &&     noexcept;
+    boolean&&              as_boolean()         &&;
+    // ditto...
+
+    // --------------------------------------------------------
+    // noexcept versions ...
+    const boolean&         as_boolean(const std::nothrow_t&) const& noexcept;
+    boolean&               as_boolean(const std::nothrow_t&) &      noexcept;
+    boolean&&              as_boolean(const std::nothrow_t&) &&     noexcept;
     // ditto...
 };
 } // toml
