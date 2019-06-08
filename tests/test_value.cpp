@@ -810,7 +810,6 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v1.as_table().at("bar").as_integer(),    54);
     BOOST_CHECK_EQUAL(v1.as_table().at("baz").as_string().str, "quux");
 
-
     toml::value v3(v1);
     BOOST_CHECK(v3 == v1);
 

@@ -559,6 +559,55 @@ find(basic_value<C, M, V>&& v, const key& ky)
     return ::toml::get<T>(std::move(tab.at(ky)));
 }
 
+// --------------------------------------------------------------------------
+// toml::find(toml::value, toml::key, Ts&& ... keys)
+
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename ... Ts>
+const basic_value<C, M, V>&
+find(const basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
+{
+    return ::toml::find(::toml::find(v, ky), std::forward<Ts>(keys)...);
+}
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V>&
+find(basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
+{
+    return ::toml::find(::toml::find(v, ky), std::forward<Ts>(keys)...);
+}
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V>&&
+find(basic_value<C, M, V>&& v, const ::toml::key& ky, Ts&& ... keys)
+{
+    return ::toml::find(::toml::find(std::move(v), ky), std::forward<Ts>(keys)...);
+}
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename ... Ts>
+decltype(::toml::get<T>(std::declval<const basic_value<C, M, V>&>()))
+find(const basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
+{
+    return ::toml::find<T>(::toml::find(v, ky), std::forward<Ts>(keys)...);
+}
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&>()))
+find(basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
+{
+    return ::toml::find<T>(::toml::find(v, ky), std::forward<Ts>(keys)...);
+}
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&&>()))
+find(basic_value<C, M, V>&& v, const ::toml::key& ky, Ts&& ... keys)
+{
+    return ::toml::find<T>(::toml::find(std::move(v), ky), std::forward<Ts>(keys)...);
+}
+
 // ============================================================================
 // get_or(value, fallback)
 

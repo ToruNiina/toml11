@@ -11,7 +11,7 @@ inline namespace literals
 inline namespace toml_literals
 {
 
-inline ::toml::value operator""_toml(const char* str, std::size_t len)
+inline ::toml::value operator"" _toml(const char* str, std::size_t len)
 {
     ::toml::detail::location<std::vector<char>>
         loc(/* filename = */ std::string("TOML literal encoded in a C++ code"),
