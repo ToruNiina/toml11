@@ -483,7 +483,7 @@ template<typename C,
          template<typename ...> class M, template<typename ...> class V>
 basic_value<C, M, V>& find(basic_value<C, M, V>& v, const key& ky)
 {
-    const auto& tab = v.template cast<value_t::table>();
+    auto& tab = v.template cast<value_t::table>();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -571,14 +571,16 @@ find(const basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
     return ::toml::find(::toml::find(v, ky), std::forward<Ts>(keys)...);
 }
 template<typename C,
-         template<typename ...> class M, template<typename ...> class V>
+         template<typename ...> class M, template<typename ...> class V,
+         typename ... Ts>
 basic_value<C, M, V>&
 find(basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 {
     return ::toml::find(::toml::find(v, ky), std::forward<Ts>(keys)...);
 }
 template<typename C,
-         template<typename ...> class M, template<typename ...> class V>
+         template<typename ...> class M, template<typename ...> class V,
+         typename ... Ts>
 basic_value<C, M, V>&&
 find(basic_value<C, M, V>&& v, const ::toml::key& ky, Ts&& ... keys)
 {
@@ -594,14 +596,16 @@ find(const basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
     return ::toml::find<T>(::toml::find(v, ky), std::forward<Ts>(keys)...);
 }
 template<typename T, typename C,
-         template<typename ...> class M, template<typename ...> class V>
+         template<typename ...> class M, template<typename ...> class V,
+         typename ... Ts>
 decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&>()))
 find(basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 {
     return ::toml::find<T>(::toml::find(v, ky), std::forward<Ts>(keys)...);
 }
 template<typename T, typename C,
-         template<typename ...> class M, template<typename ...> class V>
+         template<typename ...> class M, template<typename ...> class V,
+         typename ... Ts>
 decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&&>()))
 find(basic_value<C, M, V>&& v, const ::toml::key& ky, Ts&& ... keys)
 {
