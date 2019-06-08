@@ -873,124 +873,14 @@ BOOST_AUTO_TEST_CASE(test_value_empty)
     BOOST_CHECK(v1.is_uninitialized());
     BOOST_CHECK(v1.is(toml::value_t::Empty));
 
-    {
-        bool thrown = false;
-        try
-        {
-            v1.as_boolean();
-        }
-        catch(toml::type_error&)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
-    {
-        bool thrown = false;
-        try
-        {
-            v1.as_integer();
-        }
-        catch(toml::type_error&)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
-    {
-        bool thrown = false;
-        try
-        {
-            v1.as_floating();
-        }
-        catch(toml::type_error&)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
-    {
-        bool thrown = false;
-        try
-        {
-            v1.as_string();
-        }
-        catch(toml::type_error&)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
-    {
-        bool thrown = false;
-        try
-        {
-            v1.as_offset_datetime();
-        }
-        catch(toml::type_error&)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
-    {
-        bool thrown = false;
-        try
-        {
-            v1.as_local_datetime();
-        }
-        catch(toml::type_error&)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
-    {
-        bool thrown = false;
-        try
-        {
-            v1.as_local_date();
-        }
-        catch(toml::type_error&)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
-    {
-        bool thrown = false;
-        try
-        {
-            v1.as_local_time();
-        }
-        catch(toml::type_error&)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
-    {
-        bool thrown = false;
-        try
-        {
-            v1.as_array();
-        }
-        catch(toml::type_error&)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
-    {
-        bool thrown = false;
-        try
-        {
-            v1.as_table();
-        }
-        catch(toml::type_error&)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
+    BOOST_CHECK_THROW(v1.as_boolean(),         toml::type_error);
+    BOOST_CHECK_THROW(v1.as_integer(),         toml::type_error);
+    BOOST_CHECK_THROW(v1.as_floating(),        toml::type_error);
+    BOOST_CHECK_THROW(v1.as_string(),          toml::type_error);
+    BOOST_CHECK_THROW(v1.as_offset_datetime(), toml::type_error);
+    BOOST_CHECK_THROW(v1.as_local_datetime(),  toml::type_error);
+    BOOST_CHECK_THROW(v1.as_local_date(),      toml::type_error);
+    BOOST_CHECK_THROW(v1.as_local_time(),      toml::type_error);
+    BOOST_CHECK_THROW(v1.as_array(),           toml::type_error);
+    BOOST_CHECK_THROW(v1.as_table(),           toml::type_error);
 }
