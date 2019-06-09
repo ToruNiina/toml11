@@ -545,7 +545,7 @@ std::string get_or(toml::value&& v, T&& opt)
     }
     catch(...)
     {
-        return opt;
+        return std::forward<T>(opt);
     }
 }
 template<typename T, typename std::enable_if<
@@ -643,9 +643,9 @@ template<typename T, typename std::enable_if<
     std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
 std::string find_or(toml::value&& v, const toml::key& ky, T&& opt)
 {
-    if(!v.is_table()) {return opt;}
+    if(!v.is_table()) {return std::forward<T>(opt);}
     auto tab = toml::get<toml::table>(std::move(v));
-    if(tab.count(ky) == 0) {return opt;}
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
     return get_or(std::move(tab[ky]), std::forward<T>(opt));
 }
 
@@ -726,7 +726,7 @@ template<typename T, typename std::enable_if<
     std::is_same<T, std::string>::value, std::nullptr_t>::type = nullptr>
 std::string find_or(toml::table&& tab, const toml::key& ky, T&& opt)
 {
-    if(tab.count(ky) == 0) {return opt;}
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
     return get_or(std::move(tab[ky]), std::forward<T>(opt));
 }
 
