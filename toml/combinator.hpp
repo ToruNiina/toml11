@@ -45,7 +45,7 @@ inline std::string show_char(const char c)
         buf.fill('\0');
         const auto r = std::snprintf(
                 buf.data(), buf.size(), "0x%02x", static_cast<int>(c) & 0xFF);
-        assert(r == buf.size() - 1);
+        assert(r == static_cast<int>(buf.size()) - 1);
         return std::string(buf.data());
     }
 }
