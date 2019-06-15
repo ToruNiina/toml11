@@ -1086,8 +1086,8 @@ parse_table_key(location<Container>& loc);
 // Here, it parses region of `tab->at(k)` as a table key and check the depth
 // of the key. If the key region points deeper node, it would be allowed.
 // Otherwise, the key points the same node. It would be rejected.
-template<typename Iterator>
-bool is_valid_forward_table_definition(const value& fwd,
+template<typename Value, typename Iterator>
+bool is_valid_forward_table_definition(const Value& fwd,
         Iterator key_first, Iterator key_curr, Iterator key_last)
 {
     location<std::string> def("internal", detail::get_region(fwd).str());
