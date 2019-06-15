@@ -256,6 +256,10 @@ class basic_value
 
     using region_base = detail::region_base;
 
+    template<typename C, template<typename ...> class T,
+             template<typename ...> class A>
+    friend class basic_value;
+
   public:
 
     using comment_type    = Comment;
@@ -368,7 +372,7 @@ class basic_value
              template<typename ...> class T,
              template<typename ...> class A>
     basic_value(const basic_value<C, T, A>& v)
-        : type_(v.type()), region_info_(v.region_info_), comments_(v.comments_)
+        : type_(v.type()), region_info_(v.region_info_), comments_(v.comments())
     {
         switch(v.type())
         {
@@ -382,13 +386,15 @@ class basic_value
             case value_t::local_time     : assigner(local_time_     , v.local_time_     ); break;
             case value_t::array          :
             {
-                array_type tmp(v.array_.begin(), v.array_.end());
+                array_type tmp(v.as_array(std::nothrow).begin(),
+                               v.as_array(std::nothrow).end());
                 assigner(array_, std::move(tmp));
                 break;
             }
             case value_t::table          :
             {
-                table_type tmp(v.table_.begin(), v.table_.end());
+                table_type tmp(v.as_table(std::nothrow).begin(),
+                               v.as_table(std::nothrow).end());
                 assigner(table_, std::move(tmp));
                 break;
             }
@@ -401,8 +407,8 @@ class basic_value
     basic_value& operator=(const basic_value<C, T, A>& v)
     {
         this->region_info_ = v.region_info_;
-        this->comments_    = v.comments_;
-        this->type_        = v.type_;
+        this->comments_    = v.comments();
+        this->type_        = v.type();
         switch(v.type())
         {
             case value_t::boolean        : assigner(boolean_        , v.boolean_        ); break;
@@ -415,18 +421,21 @@ class basic_value
             case value_t::local_time     : assigner(local_time_     , v.local_time_     ); break;
             case value_t::array          :
             {
-                array_type tmp(v.array_.begin(), v.array_.end());
+                array_type tmp(v.as_array(std::nothrow).begin(),
+                               v.as_array(std::nothrow).end());
                 assigner(array_, std::move(tmp));
                 break;
             }
             case value_t::table          :
             {
-                table_type tmp(v.table_.begin(), v.table_.end());
+                table_type tmp(v.as_table(std::nothrow).begin(),
+                               v.as_table(std::nothrow).end());
                 assigner(table_, std::move(tmp));
                 break;
             }
             default: break;
         }
+        return *this;
     }
 
     // boolean ==============================================================
