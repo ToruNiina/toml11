@@ -309,6 +309,7 @@ struct region final : public region_base
             {
                 iter = std::prev(iter);
 
+
                 // range [line_start, iter) represents the previous line
                 const auto line_start   = std::find(
                         rev_iter(iter), rev_iter(this->begin()), '\n').base();
@@ -327,7 +328,9 @@ struct region final : public region_base
                         }))
                 {
                     // unwrap the first '#' by std::next.
-                    com.push_back(make_string(std::next(comment_found), iter));
+                    auto str = make_string(std::next(comment_found), iter);
+                    if(str.back() == '\r') {str.pop_back();}
+                    com.push_back(std::move(str));
                 }
                 else
                 {
@@ -336,6 +339,12 @@ struct region final : public region_base
                 iter = line_start;
             }
         }
+
+        if(com.size() > 1)
+        {
+            std::reverse(com.begin(), com.end());
+        }
+
         {
             // find comments just after the current region.
             // ```toml
@@ -359,11 +368,14 @@ struct region final : public region_base
             //   3.14 # do this if you need a comment here.
             // ]
             // ```
-            const auto last_comment_found =
+            const auto comment_found =
                 std::find(this->last(), this->line_end(), '#');
-            if(last_comment_found != this->line_end()) // '#' found
+            if(comment_found != this->line_end()) // '#' found
             {
-                com.push_back(make_string(last_comment_found, this->line_end()));
+                // unwrap the first '#' by std::next.
+                auto str = make_string(std::next(comment_found), this->line_end());
+                if(str.back() == '\r') {str.pop_back();}
+                com.push_back(std::move(str));
             }
         }
         return com;
