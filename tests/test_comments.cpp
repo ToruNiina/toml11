@@ -140,3 +140,32 @@ BOOST_AUTO_TEST_CASE(test_comment_both)
         BOOST_CHECK_EQUAL(c0.comments().back(),  u8" this also.");
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_discard_comment)
+{
+    const std::string file = u8R"(
+        # comment for a.
+        a = 42 # inline comment for a.
+        # comment for b.
+        b = "baz" # inline comment for b.
+        # comment for c.
+        c = [ # this comment will be ignored
+            # comment for the first element.
+            10 # this also.
+        ] # another comment for c.
+    )";
+
+    std::istringstream iss(file);
+    const auto v = toml::parse(iss);
+
+    const auto& a  = toml::find(v, "a");
+    const auto& b  = toml::find(v, "b");
+    const auto& c  = toml::find(v, "c");
+    const auto& c0 = c.as_array().at(0);
+
+    BOOST_CHECK(a.comments().empty());
+    BOOST_CHECK(b.comments().empty());
+    BOOST_CHECK(c.comments().empty());
+    BOOST_CHECK(c0.comments().empty());
+}
+
