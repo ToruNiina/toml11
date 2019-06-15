@@ -995,9 +995,34 @@ you will get an error message like this.
 
 ### Obtaining location information
 
-`source_location`
+You can get `source_location` by calling `toml::value::location()`.
 
-TODO
+```cpp
+const toml::value v = /**/;
+const toml::source_location sl = v.location();
+```
+
+You can use it to format your own error message.
+
+```cpp
+class source_location {
+  public:
+
+// +-- line()       +-- region of interest (region() == 9)
+// v            .---+---.
+// 12 | value = "foo bar"
+//              ^
+//              +-- column()
+
+    std::uint_least32_t line()      const noexcept;
+    std::uint_least32_t column()    const noexcept;
+    std::uint_least32_t region()    const noexcept;
+
+    std::string const&  file_name() const noexcept;
+    std::string const&  line_str()  const noexcept; // the line itself
+// ...
+};
+```
 
 ## Serializing TOML data
 
