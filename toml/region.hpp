@@ -54,9 +54,7 @@ struct region_base
     // number of characters in the line after the region
     virtual std::size_t after()    const noexcept {return 0;}
 
-    virtual std::string comment_before() const {return "";} // just before
-    virtual std::string comment_inline() const {return "";} // in the same line
-    virtual std::string comment()        const {return "";} // concatenate
+    virtual std::vector<std::string> comments()const {return {};}
     // ```toml
     // # comment_before
     // key = "value" # comment_inline
@@ -289,90 +287,86 @@ struct region final : public region_base
 
     std::string name() const override {return source_name_;}
 
-    std::string comment_before() const override
+    std::vector<std::string> comments() const override
     {
-        auto iter = this->line_begin(); // points the first element
-        std::vector<std::pair<decltype(iter), decltype(iter)>> comments;
-        while(iter != this->begin())
-        {
-            iter = std::prev(iter);
-            using rev_iter = std::reverse_iterator<decltype(iter)>;
-            auto line_before = std::find(rev_iter(iter), rev_iter(this->begin()),
-                                         '\n').base();
-            // range [line_before, iter) represents the previous line
+        // assuming the current region (`*this`) points a value.
+        // ```toml
+        // a = "value"
+        //     ^^^^^^^- this region
+        // ```
+        using rev_iter = std::reverse_iterator<const_iterator>;
 
-            auto comment_found = std::find(line_before, iter, '#');
-            if(iter != comment_found && std::all_of(line_before, comment_found,
-                    [](const char c) noexcept -> bool {
-                        return c == ' ' || c == '\t';
-                    }))
+        std::vector<std::string> com{};
+        {
+            // find comments just before the current region.
+            // ```toml
+            // # this should be collected.
+            // # this also.
+            // a = value # not this.
+            // ```
+            auto iter = this->line_begin(); // points the first character
+            while(iter != this->begin())
             {
-                // the line before this range contains only a comment.
-                comments.push_back(std::make_pair(comment_found, iter));
+                iter = std::prev(iter);
+
+                // range [line_start, iter) represents the previous line
+                const auto line_start   = std::find(
+                        rev_iter(iter), rev_iter(this->begin()), '\n').base();
+                const auto comment_found = std::find(line_start, iter, '#');
+                if(comment_found == iter)
+                {
+                    break; // comment not found.
+                }
+
+                // exclude the following case.
+                // > a = "foo" # comment // <-- this is not a comment for b but a.
+                // > b = "current value"
+                if(std::all_of(line_start, comment_found,
+                        [](const char c) noexcept -> bool {
+                            return c == ' ' || c == '\t';
+                        }))
+                {
+                    // unwrap the first '#' by std::next.
+                    com.push_back(make_string(std::next(comment_found), iter));
+                }
+                else
+                {
+                    break;
+                }
+                iter = line_start;
             }
-            else
-            {
-                break;
-            }
-            iter = line_before;
         }
-
-        std::string com;
-        for(auto i = comments.crbegin(), e = comments.crend(); i!=e; ++i)
         {
-            if(i != comments.crbegin()) {com += '\n';}
-            com += std::string(i->first, i->second);
-        }
-        return com;
-    }
-
-    std::string comment_inline() const override
-    {
-        if(this->contain_newline())
-        {
-            std::string com;
-            // check both the first and the last line.
-            const auto first_line_end =
-                std::find(this->line_begin(), this->last(), '\n');
-            const auto first_comment_found =
-                std::find(this->line_begin(), first_line_end, '#');
-
-            if(first_comment_found != first_line_end)
-            {
-                com += std::string(first_comment_found, first_line_end);
-            }
-
+            // find comments just after the current region.
+            // ```toml
+            // # not this.
+            // a = value # this one.
+            // a = [ # not this (technically difficult)
+            //
+            // ] # and this.
+            // ```
+            // The reason why it's difficult is that it requires parsing in the
+            // following case.
+            // ```toml
+            // a = [ 10 # this comment is for `10`. not for `a` but `a[0]`.
+            // # ...
+            // ] # this is apparently a comment for a.
+            //
+            // b = [
+            // 3.14 ] # there is no way to add a comment to `3.14` currently.
+            //
+            // c = [
+            //   3.14 # do this if you need a comment here.
+            // ]
+            // ```
             const auto last_comment_found =
                 std::find(this->last(), this->line_end(), '#');
-            if(last_comment_found != this->line_end())
+            if(last_comment_found != this->line_end()) // '#' found
             {
-                if(!com.empty()){com += '\n';}
-                com += std::string(last_comment_found, this->line_end());
+                com.push_back(make_string(last_comment_found, this->line_end()));
             }
-            return com;
         }
-        const auto comment_found =
-            std::find(this->line_begin(), this->line_end(), '#');
-        return std::string(comment_found, this->line_end());
-    }
-
-    std::string comment() const override
-    {
-        std::string com_bef = this->comment_before();
-        std::string com_inl = this->comment_inline();
-        if(!com_bef.empty() && !com_inl.empty())
-        {
-            com_bef += '\n';
-            return com_bef + com_inl;
-        }
-        else if(com_bef.empty())
-        {
-            return com_inl;
-        }
-        else
-        {
-            return com_bef;
-        }
+        return com;
     }
 
   private:
