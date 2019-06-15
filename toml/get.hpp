@@ -69,7 +69,9 @@ get(basic_value<C, M, V>&& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline detail::enable_if_t<detail::is_basic_value<T>::value, T>
+inline detail::enable_if_t<detail::conjunction<detail::is_basic_value<T>,
+    detail::negation<std::is_same<T, basic_value<C, M, V>>>
+    >::value, T>
 get(const basic_value<C, M, V>& v)
 {
     return T(v);
