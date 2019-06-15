@@ -713,7 +713,7 @@ get_or(basic_value<C, M, V>&& v, T&& opt)
     }
     catch(...)
     {
-        return std::string(opt);
+        return std::forward<T>(opt);
     }
 }
 
@@ -829,10 +829,10 @@ template<typename T, typename C,
 detail::enable_if_t<std::is_same<T, std::string>::value, std::string>
 find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
 {
-    if(!v.is_table()) {return opt;}
-    auto tab = std::move(v).as_table();
-    if(tab.count(ky) == 0) {return opt;}
-    return get_or(std::move(tab.at(ky)), std::forward<T>(opt));
+    if(!v.is_table()) {return std::forward<T>(opt);}
+    auto tab = toml::get<toml::table>(std::move(v));
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
+    return get_or(std::move(tab[ky]), std::forward<T>(opt));
 }
 
 // ---------------------------------------------------------------------------
@@ -934,7 +934,7 @@ detail::enable_if_t<detail::conjunction<
     >::value, std::string>
 find_or(Table&& tab, const key& ky, T&& opt)
 {
-    if(tab.count(ky) == 0) {return opt;}
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
     return get_or(std::move(tab[ky]), std::forward<T>(opt));
 }
 

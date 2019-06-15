@@ -1170,6 +1170,8 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fixed warnings on MSVC
 - Ivan Shynkarenka (@chronoxor)
   - Fixed Visual Studio 2019 warnings
+- @khoitd1997
+  - Fixed warnings while type conversion
 
 ## Licensing terms
 
