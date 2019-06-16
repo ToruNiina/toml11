@@ -62,7 +62,7 @@ int main()
 - [Visiting a toml::value](#visiting-a-tomlvalue)
 - [Constructing a toml::value](#constructing-a-tomlvalue)
 - [Preserving Comments](#preserving-comments)
-- [Customizing container](#customizing-container)
+- [Customizing containers](#customizing-containers)
 - [TOML literal](#toml-literal)
 - [Conversion between toml value and arbitrary types](#conversion-between-toml-value-and-arbitrary-types)
 - [Invalid UTF-8 Codepoints](#invalid-utf-8-codepoints)
@@ -323,9 +323,9 @@ contain one of the following types.
 - `toml::local_datetime`
 - `toml::offset_datetime`
 - `toml::array` (by default, `std::vector<toml::value>`)
-  - It depends. See [customize toml::value](#customize-toml-value) for detail.
+  - It depends. See [customizing containers](#customizing-containers) for detail.
 - `toml::table` (by default, `std::unordered_map<toml::key, toml::value>`)
-  - It depends. See [customize toml::value](#customize-toml-value) for detail.
+  - It depends. See [customizing containers](#customizing-containers) for detail.
 
 To get a value inside, you can use `toml::get<T>()`. The usage is the same as
 `toml::find<T>` (actually, `toml::find` internally uses `toml::get`).
@@ -526,7 +526,7 @@ const auto first  = toml::get<std::vector<int>>(a_of_a.at(0));
 ```
 
 You can change the implementation of `toml::array` with `std::deque` or some
-other array-like container. See [Customizing container](#customizing-container)
+other array-like container. See [Customizing containers](#customizing-containers)
 for detail.
 
 ### Converting a table
@@ -561,7 +561,7 @@ if(data.count("title") != 0)
 ```
 
 You can change the implementation of `toml::table` with `std::map` or some
-other map-like container. See [Customizing container](#customizing-container)
+other map-like container. See [Customizing containers](#customizing-containers)
 for detail.
 
 ### Getting an array of tables
@@ -728,13 +728,103 @@ each other.
 
 TODO
 
-## Preserving Comments
+## Preserving comments
 
-TODO
+After toml11 v3, you can choose whether comments are preserved or not.
 
-## Customizing container
+```cpp
+const auto data1 = toml::parse<toml::discard_comments >("example.toml");
+const auto data2 = toml::parse<toml::preserve_comments>("example.toml");
+```
 
-TODO
+Comments related to a value can be obtained by `toml::value::comments()`.
+The return value has the same interface as `std::vector<std::string>`.
+
+```cpp
+const auto& com = v.comments();
+for(const auto& c : com)
+{
+    std::cout << c << std::endl;
+}
+```
+
+Comments just before and just after a value are kept in a value.
+
+```toml
+# this is a comment for v1.
+v1 = "foo"
+
+v2 = "bar" # this is a comment for v2.
+
+# this comment is not related to any value
+# because there are empty lines between v3.
+# this comment will be ignored even if you set `preserve_comments`.
+
+# this is a comment for v3
+# this is also a comment for v3
+v3 = "baz" # ditto.
+```
+
+Each comment line becomes one element of a `std::vector`.
+Hash signs will be removed, but spaces after hash sign will not be removed.
+
+```cpp
+v1.comments().at(0) == " this is a comment for v1."s;
+
+v2.comments().at(1) == " this is a comment for v1."s;
+
+v3.comments().at(0) == " this is a comment for v3."s;
+v3.comments().at(1) == " this is also a comment for v3."s;
+v3.comments().at(2) == " ditto."s;
+```
+
+Note that a comment just after an opening brace of an array will not be a
+comment for the array.
+
+```toml
+# this is a comment for a.
+a = [ # this is not a comment for a. this will be ignored.
+  1, 2, 3,
+  # this is a comment for `42`.
+  42, # this is also a comment for `42`.
+  5
+] # this is a comment for a.
+```
+
+You can also append comments. The interfaces are the same as `std::vector<std::string>`.
+
+```cpp
+v.comments().push_back(" add new comment.");
+```
+
+When `toml::discard_comments` is chosen, `value::comments()` will always be kept
+empty. All the modification on comments would be ignored.
+
+The comments will also be serialized. If comments exist, those comments will be
+added just before the values.
+
+## Customizing containers
+
+`toml::basic_value` has 3 template arguments.
+
+```cpp
+template<typename Comment, // discard/preserve_comment
+         template<typename ...> class Table = std::unordered_map,
+         template<typename ...> class Array = std::vector>
+class basic_value;
+```
+
+This enables you to change the containers used inside. E.g. you can use
+`std::map` to contain a table object instead of `std::unordered_map`.
+And also can use `std::deque` as a array object instead of `std::vector`.
+
+You can set these parameters while calling `toml::parse` function.
+
+```cpp
+const auto data = toml::parse<
+    toml::preserve_comments, std::map, std::deque
+    >("example.toml");
+```
 
 ## TOML literal
 
