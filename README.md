@@ -451,58 +451,36 @@ const auto value = toml::expect<int>(data.at("number"))
 
 ## Finding a value from a table
 
-toml11 provides utility function to find a value from `toml::value` and `toml::table`.
+toml11 provides utility function to find a value from `toml::table`.
+Of course, you can do this in your own way with `toml::get` because
+it just searches an  `unordered_map` and returns a value if it exists.
 
 ```cpp
 const auto data = toml::parse("example.toml");
-// find a value named "num" from `data`.
-const auto num  = toml::find<int>(data, "num");
+const auto num  = toml::find<int>(data, "num", /*for err msg*/"example.toml");
 ```
 
 If the value does not exist, it throws `std::out_of_range` with an error message.
-But, since `toml::table` is just an alias of `std::unordered_map<toml::key, toml::value>`,
-you need to pass a name to the function to show the name in the exception.
-
-```cpp
-const auto num  = toml::find<int>(data, "num", "example.toml");
-```
 
 ```console
 terminate called after throwing an instance of 'std::out_of_range'
   what():  [error] key "num" not found in example.toml
-#                                         ^^^^^^^^^^^^ this part
 ```
 
-Of course, you can do this in your own way with `toml::get` because
-it just searches an `unordered_map` and returns a value if it exists.
+You can use this with a `toml::value` that is expected to be a `toml::table`.
+It automatically casts the value to table.
 
 ```cpp
-const toml::table data = toml::parse("example.toml");
-if(data.count("num") == 1)
-{
-    const auto num = toml::get<int>(data.at("num"));
-    // more stuff ...
-}
-```
-
-----
-
-You can also use this with a `toml::value` that is expected to contain a `toml::table`.
-It automatically casts the `toml::value` to a `toml::table`. If it failed to cast,
-it would throw a `toml::type_error`.
-
-```cpp
-// # expecting the following example.toml
+const auto data = toml::parse("example.toml");
+const auto num  = toml::find<int>(data.at("table"), "num");
+// expecting the following example.toml
 // [table]
 // num = 42
-const toml::table data  = toml::parse("example.toml");
-const toml::value table = data.at("table");
-const auto num = toml::find<int>(table, "num");
 ```
 
-In this case, because the `toml::value table` knows the locatoin of itself,
-you don't need to pass the name to show it in an error message.
-`toml::find` will automatically format an error message with the location of the table.
+In this case, because the value `data.at("table")` knows the locatoin of itself,
+you don't need to pass where you find the value.
+`toml::find` will show you an error message including table location.
 
 ```console
 terminate called after throwing an instance of 'std::out_of_range'
@@ -512,45 +490,7 @@ terminate called after throwing an instance of 'std::out_of_range'
    | ~~~~~~~ in this table
 ```
 
-The default return value of the `toml::find` is a `toml::value`.
-
-```cpp
-const toml::value& subtable = toml::find(table, "subtable");
-```
-
-There are several ways to find a value buried in a deep recursion of tables.
-
-First, you can call `toml::find` as many as you need.
-
-```cpp
-// # expecting the following example.toml
-// answer.to.the.ultimate.question = 42
-// # is equivalent to {"answer": {"to":{"the":{"ultimate:{"question":42}}}}}
-
-const toml::table data = toml::parse("example.toml");
-const int a = toml::find<int>(toml::find(toml::find(toml::find(toml::find(
-    data, "answer"), "to"), "the"), "ultimate"), "question");
-```
-
-But it is a bother.
-
-After toml11 v2.4.0, you can pass a `toml::value` and as many number of keys as you want.
-
-```cpp
-const toml::table data = toml::parse("example.toml");
-const int a = toml::find<int>(data.at("answer"), "to", "the", "ultimate", "question");
-```
-
-__NOTE__:
-Currently, this function does not support `toml::table` because of some
-technical reason. Please make sure that the type of the first argument is
-`toml::value`. The main reason is that the `toml::table` may take an additional string
-as the third argumnet to show its location in an error message. And the
-most confusing part is that `toml::parse` returns `toml::table`, not a
-`toml::value`. This confusing API will hopefully be resolved in the next
-major update, v3 (it will contain some unavoidable breaking changes).
-
-----
+If it's not a `toml::table`, the same error as "invalid type" would be thrown.
 
 There is another utility function, `toml::find_or`.
 It is almost same as `toml::find`, but returns a default value if the value is
