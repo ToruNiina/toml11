@@ -421,48 +421,6 @@ T get(const basic_value<C, M, V>& v)
 // ============================================================================
 // find and get
 
-// for toml::table.
-template<typename T, typename Table>
-detail::enable_if_t<detail::conjunction<detail::is_map<Table>,
-    detail::is_basic_value<typename Table::mapped_type>>::value,
-    decltype(::toml::get<T>(std::declval<typename Table::mapped_type&>()))>
-find(Table& tab, const toml::key& ky, std::string tn = "unknown table")
-{
-    if(tab.count(ky) == 0)
-    {
-        throw std::out_of_range(concat_to_string(
-            "[error] key \"", ky, "\" not found in ", tn));
-    }
-    return ::toml::get<T>(tab.at(ky));
-}
-template<typename T, typename Table>
-detail::enable_if_t<detail::conjunction<detail::is_map<Table>,
-    detail::is_basic_value<typename Table::mapped_type>>::value,
-    decltype(::toml::get<T>(std::declval<typename Table::mapped_type const&>()))>
-find(Table const& tab, const toml::key& ky, std::string tn = "unknown table")
-{
-    if(tab.count(ky) == 0)
-    {
-        throw std::out_of_range(concat_to_string(
-            "[error] key \"", ky, "\" not found in ", tn));
-    }
-    return ::toml::get<T>(tab.at(ky));
-}
-template<typename T, typename Table>
-detail::enable_if_t<detail::conjunction<detail::is_map<Table>,
-    detail::is_basic_value<typename Table::mapped_type>>::value,
-    decltype(::toml::get<T>(std::declval<typename Table::mapped_type &&>()))>
-find(typename std::remove_reference<Table>&& tab, const toml::key& ky,
-     std::string tn = "unknown table")
-{
-    if(tab.count(ky) == 0)
-    {
-        throw std::out_of_range(concat_to_string(
-            "[error] key \"", ky, "\" not found in ", tn));
-    }
-    return ::toml::get<T>(std::move(tab.at(ky)));
-}
-
 // ----------------------------------------------------------------------------
 // these overloads do not require to set T. and returns value itself.
 template<typename C,
