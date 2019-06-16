@@ -1430,7 +1430,7 @@ result<value_t, std::string> guess_number_type(const location<Container>& l)
                     || *loc.iter() == 'Z' || *loc.iter() == 'z'))
         {
             return err(format_underline("[error] bad offset: should be [+-]HH:MM or Z",
-                        {{std::addressof(l), "[+-]HH:MM or Z"}},
+                        {{std::addressof(loc), "[+-]HH:MM or Z"}},
                         {"OK: +09:00, -05:30", "NG: +9:00, -5:30"}));
         }
         return ok(value_t::LocalDatetime);
@@ -1447,18 +1447,26 @@ result<value_t, std::string> guess_number_type(const location<Container>& l)
         if(loc.iter() != loc.end())
         {
             const auto c = *loc.iter();
-            if(c == 'T' || c == 't' || ('0' <= c && c <= '9'))
+            if(c == 'T' || c == 't')
             {
                 return err(format_underline("[error] bad time: should be HH:MM:SS.subsec",
-                        {{std::addressof(l), "HH:MM:SS.subsec"}},
+                        {{std::addressof(loc), "HH:MM:SS.subsec"}},
+                        {"OK: 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999",
+                         "NG: 1979-05-27T7:32:00, 1979-05-27 7:32"}));
+            }
+            if('0' <= c && c <= '9')
+            {
+                return err(format_underline("[error] bad time: missing T",
+                        {{std::addressof(loc), "T or space required here"}},
                         {"OK: 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999",
                          "NG: 1979-05-27T7:32:00, 1979-05-27 7:32"}));
             }
             if(c == ' ' && std::next(loc.iter()) != loc.end() &&
                 ('0' <= *std::next(loc.iter()) && *std::next(loc.iter())<= '9'))
             {
+                loc.advance();
                 return err(format_underline("[error] bad time: should be HH:MM:SS.subsec",
-                        {{std::addressof(l), "HH:MM:SS.subsec"}},
+                        {{std::addressof(loc), "HH:MM:SS.subsec"}},
                         {"OK: 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999",
                          "NG: 1979-05-27T7:32:00, 1979-05-27 7:32"}));
             }
@@ -1475,9 +1483,9 @@ result<value_t, std::string> guess_number_type(const location<Container>& l)
         if(loc.iter() != loc.end() && *loc.iter() == '_')
         {
             return err(format_underline("[error] bad float: `_` should be surrounded by digits",
-                        {{std::addressof(l), "here"}},
+                        {{std::addressof(loc), "here"}},
                         {"OK: +1.0, -2e-2, 3.141_592_653_589, inf, nan",
-                         "NG: _1.0, 1.0_, 1_.0, 1.0__0"}));
+                         "NG: .0, 1., _1.0, 1.0_, 1_.0, 1.0__0"}));
         }
         return ok(value_t::Float);
     }
@@ -1491,36 +1499,52 @@ result<value_t, std::string> guess_number_type(const location<Container>& l)
             if(c == '_')
             {
                 return err(format_underline("[error] bad integer: `_` should be surrounded by digits",
-                            {{std::addressof(l), "here"}},
-                            {"OK: -42, 1_000, 1_2_3_4_5, 0xCOFFEE, 0b0010, 0o755",
+                            {{std::addressof(loc), "here"}},
+                            {"OK: -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755",
                              "NG: 1__000, 0123"}));
             }
             if('0' <= c && c <= '9')
             {
+                // leading zero. point '0'
+                loc.retrace();
                 return err(format_underline("[error] bad integer: leading zero",
-                            {{std::addressof(l), "here"}},
-                            {"OK: -42, 1_000, 1_2_3_4_5, 0xCOFFEE, 0b0010, 0o755",
+                            {{std::addressof(loc), "here"}},
+                            {"OK: -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755",
                              "NG: 1__000, 0123"}));
             }
             if(c == ':' || c == '-')
             {
                 return err(format_underline("[error] bad datetime: invalid format",
-                            {{std::addressof(l), "here"}},
+                            {{std::addressof(loc), "here"}},
                             {"OK: 1979-05-27T07:32:00-07:00, 1979-05-27 07:32:00.999999Z",
                              "NG: 1979-05-27T7:32:00-7:00, 1979-05-27 7:32-00:30"}));
             }
             if(c == '.' || c == 'e' || c == 'E')
             {
                 return err(format_underline("[error] bad float: invalid format",
-                            {{std::addressof(l), "here"}},
+                            {{std::addressof(loc), "here"}},
                             {"OK: +1.0, -2e-2, 3.141_592_653_589, inf, nan",
-                             "NG: _1.0, 1.0_, 1_.0, 1.0__0"}));
+                             "NG: .0, 1., _1.0, 1.0_, 1_.0, 1.0__0"}));
             }
         }
         return ok(value_t::Integer);
     }
+    if(loc.iter() != loc.end() && *loc.iter() == '.')
+    {
+        return err(format_underline("[error] bad float: invalid format",
+                {{std::addressof(loc), "integer part required before this"}},
+                {"OK: +1.0, -2e-2, 3.141_592_653_589, inf, nan",
+                 "NG: .0, 1., _1.0, 1.0_, 1_.0, 1.0__0"}));
+    }
+    if(loc.iter() != loc.end() && *loc.iter() == '_')
+    {
+        return err(format_underline("[error] bad number: `_` should be surrounded by digits",
+                {{std::addressof(loc), "`_` is not surrounded by digits"}},
+                {"OK: -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755",
+                 "NG: 1__000, 0123"}));
+    }
     return err(format_underline("[error] bad format: unknown value appeared",
-                {{std::addressof(l), "here"}}));
+                {{std::addressof(loc), "here"}}));
 }
 
 template<typename Container>
