@@ -305,6 +305,8 @@ The above code works with the following toml file.
 
 ```toml
 "physical.color" = "orange"
+# equivalent to {"physical.color": "orange"},
+# NOT {"physical": {"color": "orange"}}.
 ```
 
 ## Casting a toml value
@@ -748,24 +750,26 @@ for(const auto& c : com)
 }
 ```
 
-Comments just before and just after a value are kept in a value.
+Comments just before and just after (within the same line) a value are kept in a value.
 
 ```toml
 # this is a comment for v1.
 v1 = "foo"
 
 v2 = "bar" # this is a comment for v2.
+# Note that this comment is NOT a comment for v2.
 
 # this comment is not related to any value
 # because there are empty lines between v3.
 # this comment will be ignored even if you set `preserve_comments`.
 
 # this is a comment for v3
-# this is also a comment for v3
+# this is also a comment for v3.
 v3 = "baz" # ditto.
 ```
 
 Each comment line becomes one element of a `std::vector`.
+
 Hash signs will be removed, but spaces after hash sign will not be removed.
 
 ```cpp
@@ -805,7 +809,7 @@ added just before the values.
 
 ## Customizing containers
 
-`toml::basic_value` has 3 template arguments.
+Actually, `toml::basic_value` has 3 template arguments.
 
 ```cpp
 template<typename Comment, // discard/preserve_comment
@@ -887,6 +891,10 @@ add a comma after the first element (like `[1,]`).
 "[[1,]]"_toml;    // This is an array of arrays.
 "[[1],]"_toml;    // ditto.
 ```
+
+NOTE: `_toml` literal returns a `toml::value`  that does not have comments.
+
+
 
 ## Conversion between toml value and arbitrary types
 
@@ -1098,7 +1106,7 @@ struct source_location
 };
 // +-- line()       +--- length of the region (here, region() == 9)
 // v            .---+---.
-// 12 | value = "foo bar"
+// 12 | value = "foo bar" <- line_str() returns the line itself.
 //              ^-------- column() points here
 ```
 
@@ -1250,12 +1258,16 @@ Between v2 and v3, those interfaces are rearranged.
 - `toml::value` is now an alias of `toml::basic_value<discard_comment, std::vector, std::unordered_map>`.
   - See [Customizing containers](#customizing-containers) for detail.
 - The elements of `toml::value_t` are renamed as `snake_case`.
+  - See [Underlying types](#underlying-types) for detail.
 - Supports for the CamelCaseNames are dropped.
+  - See [Underlying types](#underlying-types) for detail.
 - `(is|as)_float` has been removed to make the function names consistent with others.
   Since `float` is a keyword, toml11 named a float type as `toml::floating`.
   Also a `value_t` corresponds to `toml::floating` is named `value_t::floating`.
   So `(is|as)_floating` is introduced and `is_float` has been removed.
+  - See [Casting a toml::value](#casting-a-tomlvalue) and [Checking value type](#checking-value-type) for detail.
 - `toml::find` for `toml::table` has been dropped. Use `toml::value` version instead.
+  - See [Finding a toml::value](#finding-a-tomlvalue) for detail.
 - Interface around comments.
   - See [Preserving Comments](#preserving-comments) for detail.
 - An old `from_toml` has been removed
