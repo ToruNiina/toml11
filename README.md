@@ -451,36 +451,20 @@ const auto value = toml::expect<int>(data.at("number"))
 
 ## Finding a value from a table
 
-toml11 provides utility function to find a value from `toml::table`.
-Of course, you can do this in your own way with `toml::get` because
-it just searches an  `unordered_map` and returns a value if it exists.
+toml11 provides a utility function to find a value from `toml::value` and `toml::table`.
 
 ```cpp
-const auto data = toml::parse("example.toml");
-const auto num  = toml::find<int>(data, "num", /*for err msg*/"example.toml");
+const toml::value data = /* ... */;
+
+// find a value named "num" from `data`.
+const auto num = toml::find<int>(data, "num");
 ```
 
-If the value does not exist, it throws `std::out_of_range` with an error message.
+When you pass a `toml::value`, `toml::find` first casts it to `toml::table`.
+If casting failed, `toml::type_error` will be thrown.
 
-```console
-terminate called after throwing an instance of 'std::out_of_range'
-  what():  [error] key "num" not found in example.toml
-```
-
-You can use this with a `toml::value` that is expected to be a `toml::table`.
-It automatically casts the value to table.
-
-```cpp
-const auto data = toml::parse("example.toml");
-const auto num  = toml::find<int>(data.at("table"), "num");
-// expecting the following example.toml
-// [table]
-// num = 42
-```
-
-In this case, because the value `data.at("table")` knows the locatoin of itself,
-you don't need to pass where you find the value.
-`toml::find` will show you an error message including table location.
+When the value does not exist, it throws `std::out_of_range` with an error message.
+By passing a `toml::value`, it shows an informative error message like the following.
 
 ```console
 terminate called after throwing an instance of 'std::out_of_range'
@@ -490,16 +474,35 @@ terminate called after throwing an instance of 'std::out_of_range'
    | ~~~~~~~ in this table
 ```
 
-If it's not a `toml::table`, the same error as "invalid type" would be thrown.
-
-There is another utility function, `toml::find_or`.
-It is almost same as `toml::find`, but returns a default value if the value is
-not found or has a different type, like `toml::get_or`.
+Contrary, since `toml::table` is just an alias of `std::unordered_map<toml::key, toml::value>`,
+you need to pass a name to the function to show the name in the exception with `toml::table`.
 
 ```cpp
-const auto data = toml::parse("example.toml");
-const auto num  = toml::find_or(data.at("table"), "num", 42);
+const toml::table data = /* ... */;
+
+// you need to pass the name of the table to show it in an error message
+const auto num = toml::find<int>(data, "num", "[data]");
 ```
+
+```console
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  [error] key "num" not found in [data]
+# table name is needed to show this part  ^^^^^^
+```
+
+By default (w/o template parameter), `toml::find` returns a `toml::value`.
+
+```cpp
+const toml::value& subtable = toml::find(table, "subtable");
+```
+
+__NOTE__:
+A new feature, recursive toml::find was planned to be introduced, but it was
+found that the change breaks a code that previously worked fine. So the change
+was reverted.
+The reason is that the overload resolution was ambiguous. To support this,
+in the next major update, overloads of `toml::find` for `toml::table` possibly
+be removed.
 
 ## Checking value type
 
