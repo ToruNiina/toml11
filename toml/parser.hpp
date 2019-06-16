@@ -1410,41 +1410,132 @@ parse_inline_table(location<Container>& loc)
 }
 
 template<typename Container>
-value_t guess_number_type(const location<Container>& l)
+result<value_t, std::string> guess_number_type(const location<Container>& l)
 {
+    // This function tries to find some (common) mistakes by checking characters
+    // that follows the last character of a value. But it is often difficult
+    // because some non-newline characters can appear after a value. E.g.
+    // spaces, tabs, commas (in an array or inline table), closing brackets
+    // (of an array or inline table), comment-sign (#). Since this function
+    // does not parse further, those characters are always allowed to be there.
     location<Container> loc = l;
 
-    if(lex_offset_date_time::invoke(loc)) {return value_t::OffsetDatetime;}
+    if(lex_offset_date_time::invoke(loc)) {return ok(value_t::OffsetDatetime);}
     loc.reset(l.iter());
 
-    if(lex_local_date_time::invoke(loc)) {return value_t::LocalDatetime;}
+    if(lex_local_date_time::invoke(loc))
+    {
+        // bad offset may appear after this.
+        if(loc.iter() != loc.end() && (*loc.iter() == '+' || *loc.iter() == '-'
+                    || *loc.iter() == 'Z' || *loc.iter() == 'z'))
+        {
+            return err(format_underline("[error] bad offset: should be [+-]HH:MM or Z",
+                        {{std::addressof(l), "[+-]HH:MM or Z"}},
+                        {"OK: +09:00, -05:30", "NG: +9:00, -5:30"}));
+        }
+        return ok(value_t::LocalDatetime);
+    }
     loc.reset(l.iter());
 
-    if(lex_local_date::invoke(loc)) {return value_t::LocalDate;}
+    if(lex_local_date::invoke(loc))
+    {
+        // bad time may appear after this.
+        // A space is allowed as a delimiter between local time. But there are
+        // both cases in which a space becomes valid or invalid.
+        // - invalid: 2019-06-16 7:00:00
+        // - valid  : 2019-06-16 07:00:00
+        if(loc.iter() != loc.end())
+        {
+            const auto c = *loc.iter();
+            if(c == 'T' || c == 't' || ('0' <= c && c <= '9'))
+            {
+                return err(format_underline("[error] bad time: should be HH:MM:SS.subsec",
+                        {{std::addressof(l), "HH:MM:SS.subsec"}},
+                        {"OK: 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999",
+                         "NG: 1979-05-27T7:32:00, 1979-05-27 7:32"}));
+            }
+            if(c == ' ' && std::next(loc.iter()) != loc.end() &&
+                ('0' <= *std::next(loc.iter()) && *std::next(loc.iter())<= '9'))
+            {
+                return err(format_underline("[error] bad time: should be HH:MM:SS.subsec",
+                        {{std::addressof(l), "HH:MM:SS.subsec"}},
+                        {"OK: 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999",
+                         "NG: 1979-05-27T7:32:00, 1979-05-27 7:32"}));
+            }
+        }
+        return ok(value_t::LocalDate);
+    }
     loc.reset(l.iter());
 
-    if(lex_local_time::invoke(loc)) {return value_t::LocalTime;}
+    if(lex_local_time::invoke(loc)) {return ok(value_t::LocalTime);}
     loc.reset(l.iter());
 
-    if(lex_float::invoke(loc)) {return value_t::Float;}
+    if(lex_float::invoke(loc))
+    {
+        if(loc.iter() != loc.end() && *loc.iter() == '_')
+        {
+            return err(format_underline("[error] bad float: `_` should be surrounded by digits",
+                        {{std::addressof(l), "here"}},
+                        {"OK: +1.0, -2e-2, 3.141_592_653_589, inf, nan",
+                         "NG: _1.0, 1.0_, 1_.0, 1.0__0"}));
+        }
+        return ok(value_t::Float);
+    }
     loc.reset(l.iter());
 
-    return value_t::Integer;
+    if(lex_integer::invoke(loc))
+    {
+        if(loc.iter() != loc.end())
+        {
+            const auto c = *loc.iter();
+            if(c == '_')
+            {
+                return err(format_underline("[error] bad integer: `_` should be surrounded by digits",
+                            {{std::addressof(l), "here"}},
+                            {"OK: -42, 1_000, 1_2_3_4_5, 0xCOFFEE, 0b0010, 0o755",
+                             "NG: 1__000, 0123"}));
+            }
+            if('0' <= c && c <= '9')
+            {
+                return err(format_underline("[error] bad integer: leading zero",
+                            {{std::addressof(l), "here"}},
+                            {"OK: -42, 1_000, 1_2_3_4_5, 0xCOFFEE, 0b0010, 0o755",
+                             "NG: 1__000, 0123"}));
+            }
+            if(c == ':' || c == '-')
+            {
+                return err(format_underline("[error] bad datetime: invalid format",
+                            {{std::addressof(l), "here"}},
+                            {"OK: 1979-05-27T07:32:00-07:00, 1979-05-27 07:32:00.999999Z",
+                             "NG: 1979-05-27T7:32:00-7:00, 1979-05-27 7:32-00:30"}));
+            }
+            if(c == '.' || c == 'e' || c == 'E')
+            {
+                return err(format_underline("[error] bad float: invalid format",
+                            {{std::addressof(l), "here"}},
+                            {"OK: +1.0, -2e-2, 3.141_592_653_589, inf, nan",
+                             "NG: _1.0, 1.0_, 1_.0, 1.0__0"}));
+            }
+        }
+        return ok(value_t::Integer);
+    }
+    return err(format_underline("[error] bad format: unknown value appeared",
+                {{std::addressof(l), "here"}}));
 }
 
 template<typename Container>
-value_t guess_value_type(const location<Container>& loc)
+result<value_t, std::string> guess_value_type(const location<Container>& loc)
 {
     switch(*loc.iter())
     {
-        case '"' : {return value_t::String; }
-        case '\'': {return value_t::String; }
-        case 't' : {return value_t::Boolean;}
-        case 'f' : {return value_t::Boolean;}
-        case '[' : {return value_t::Array;  }
-        case '{' : {return value_t::Table;  }
-        case 'i' : {return value_t::Float;  } // inf.
-        case 'n' : {return value_t::Float;  } // nan.
+        case '"' : {return ok(value_t::String); }
+        case '\'': {return ok(value_t::String); }
+        case 't' : {return ok(value_t::Boolean);}
+        case 'f' : {return ok(value_t::Boolean);}
+        case '[' : {return ok(value_t::Array);  }
+        case '{' : {return ok(value_t::Table);  }
+        case 'i' : {return ok(value_t::Float);  } // inf.
+        case 'n' : {return ok(value_t::Float);  } // nan.
         default  : {return guess_number_type(loc);}
     }
 }
@@ -1459,7 +1550,12 @@ result<value, std::string> parse_value(location<Container>& loc)
                    {{std::addressof(loc), ""}}));
     }
 
-    switch(guess_value_type(loc))
+    const auto type = guess_value_type(loc);
+    if(!type)
+    {
+        return err(type.unwrap_err());
+    }
+    switch(type.unwrap())
     {
         case value_t::Boolean        : {return parse_boolean(loc);        }
         case value_t::Integer        : {return parse_integer(loc);        }
