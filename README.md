@@ -498,8 +498,8 @@ const toml::value& subtable = toml::find(table, "subtable");
 
 __NOTE__:
 A new feature, recursive toml::find was planned to be introduced, but it was
-found that the change breaks a code that previously worked fine. So the change
-was reverted.
+found that the change breaks a code that was previously compiled fine. So the
+change was reverted.
 The reason is that the overload resolution was ambiguous. To support this,
 in the next major update, overloads of `toml::find` for `toml::table` possibly
 be removed.
