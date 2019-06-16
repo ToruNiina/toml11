@@ -995,9 +995,28 @@ you will get an error message like this.
 
 ### Obtaining location information
 
-`source_location`
+You can also format error messages in your own way by using `source_location`.
 
-TODO
+```cpp
+struct source_location
+{
+    std::uint_least32_t line()      const noexcept;
+    std::uint_least32_t column()    const noexcept;
+    std::uint_least32_t region()    const noexcept;
+    std::string const&  file_name() const noexcept;
+    std::string const&  line_str()  const noexcept;
+};
+// +-- line()       +--- length of the region (here, region() == 9)
+// v            .---+---.
+// 12 | value = "foo bar"
+//              ^-------- column() points here
+```
+
+You can get this by
+```cpp
+const toml::value           v   = /*...*/;
+const toml::source_location loc = v.location();
+```
 
 ## Serializing TOML data
 
@@ -1096,6 +1115,7 @@ const auto serial = toml::format(data, /*width = */ 0, /*prec = */ 17);
 ```
 
 When you pass a comment-preserving-value, the comment will also be serialized.
+An array or a table containing a value that has a comment would not be inlined.
 
 ## Underlying types
 
@@ -1127,7 +1147,7 @@ that points to internal `std::string` by using `toml::get<std::string>()` for co
 Because `std::chrono::system_clock::time_point` is a __time point__,
 not capable of representing a Local Time independent from a specific day.
 
-It is recommended to get `Datetime`s as `std::chrono` classes through `toml::get`.
+It is recommended to get `datetime`s as `std::chrono` classes through `toml::get`.
 
 ## Breaking Changes from v2
 
@@ -1138,14 +1158,16 @@ Between v2 and v3, those interfaces are rearranged.
 
 - `toml::parse` now returns a `toml::value`, not `toml::table`.
 - `toml::value` is now an alias of `toml::basic_value<discard_comment, std::vector, std::unordered_map>`.
-   See [Customizing containers](#customizing-containers) for detail.
+  - See [Customizing containers](#customizing-containers) for detail.
 - The elements of `toml::value_t` are renamed as `snake_case`.
 - Supports for the CamelCaseNames are dropped.
 - `(is|as)_float` has been removed to make the function names consistent with others.
   Since `float` is a keyword, toml11 named a float type as `toml::floating`.
   Also a `value_t` corresponds to `toml::floating` is named `value_t::floating`.
   So `(is|as)_floating` is introduced and `is_float` has been removed.
+- `toml::find` for `toml::table` has been dropped. Use `toml::value` version instead.
 - Interface around comments.
+  - See [Preserving Comments](#preserving-comments) for detail.
 - An old `from_toml` has been removed
 
 Such a big change will not happen in the coming years.
