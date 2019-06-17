@@ -1339,7 +1339,9 @@ template<typename C, template<typename ...> class T, template<typename ...> clas
 inline bool
 operator==(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
-    if(lhs.type() != rhs.type()){return false;}
+    if(lhs.type()     != rhs.type())     {return false;}
+    if(lhs.comments() != rhs.comments()) {return false;}
+
     switch(lhs.type())
     {
         case value_t::boolean  :
@@ -1395,46 +1397,72 @@ operator<(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
     {
         case value_t::boolean  :
         {
-            return lhs.as_boolean() < rhs.as_boolean();
+            return lhs.as_boolean() <  rhs.as_boolean() ||
+                  (lhs.as_boolean() == rhs.as_boolean() &&
+                   lhs.comments() < rhs.comments());
         }
         case value_t::integer  :
         {
-            return lhs.as_integer() < rhs.as_integer();
+            return lhs.as_integer() <  rhs.as_integer() ||
+                  (lhs.as_integer() == rhs.as_integer() &&
+                   lhs.comments() < rhs.comments());
         }
         case value_t::floating :
         {
-            return lhs.as_floating() < rhs.as_floating();
+            return lhs.as_floating() <  rhs.as_floating() ||
+                  (lhs.as_floating() == rhs.as_floating() &&
+                   lhs.comments() < rhs.comments());
         }
         case value_t::string   :
         {
-            return lhs.as_string() < rhs.as_string();
+            return lhs.as_string() <  rhs.as_string() ||
+                  (lhs.as_string() == rhs.as_string() &&
+                   lhs.comments() < rhs.comments());
         }
         case value_t::offset_datetime:
         {
-            return lhs.as_offset_datetime() < rhs.as_offset_datetime();
+            return lhs.as_offset_datetime() <  rhs.as_offset_datetime() ||
+                  (lhs.as_offset_datetime() == rhs.as_offset_datetime() &&
+                   lhs.comments() < rhs.comments());
         }
         case value_t::local_datetime:
         {
-            return lhs.as_local_datetime() < rhs.as_local_datetime();
+            return lhs.as_local_datetime() <  rhs.as_local_datetime() ||
+                  (lhs.as_local_datetime() == rhs.as_local_datetime() &&
+                   lhs.comments() < rhs.comments());
         }
         case value_t::local_date:
         {
-            return lhs.as_local_date() < rhs.as_local_date();
+            return lhs.as_local_date() <  rhs.as_local_date() ||
+                  (lhs.as_local_date() == rhs.as_local_date() &&
+                   lhs.comments() < rhs.comments());
         }
         case value_t::local_time:
         {
-            return lhs.as_local_time() < rhs.as_local_time();
+            return lhs.as_local_time() <  rhs.as_local_time() ||
+                  (lhs.as_local_time() == rhs.as_local_time() &&
+                   lhs.comments() < rhs.comments());
         }
         case value_t::array    :
         {
-            return lhs.as_array() < rhs.as_array();
+            return lhs.as_array() <  rhs.as_array() ||
+                  (lhs.as_array() == rhs.as_array() &&
+                   lhs.comments() < rhs.comments());
         }
         case value_t::table    :
         {
-            return lhs.as_table() < rhs.as_table();
+            return lhs.as_table() <  rhs.as_table() ||
+                  (lhs.as_table() == rhs.as_table() &&
+                   lhs.comments() < rhs.comments());
         }
-        case value_t::empty    : {return false;}
-        default:                 {return false;}
+        case value_t::empty    :
+        {
+            return lhs.comments() < rhs.comments();
+        }
+        default:
+        {
+            return lhs.comments() < rhs.comments();
+        }
     }
 }
 
