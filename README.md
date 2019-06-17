@@ -46,6 +46,7 @@ int main()
 - [Integration](#integration)
 - [Decoding a toml file](#decoding-a-toml-file)
   - [In the case of syntax error](#in-the-case-of-syntax-error)
+  - [Invalid UTF-8 Codepoints](#invalid-utf-8-codepoints)
 - [Finding a toml value](#getting-a-toml-value)
   - [In the case of type error](#in-the-case-of-type-error)
   - [Dotted keys](#dotted-keys)
@@ -65,7 +66,6 @@ int main()
 - [Customizing containers](#customizing-containers)
 - [TOML literal](#toml-literal)
 - [Conversion between toml value and arbitrary types](#conversion-between-toml-value-and-arbitrary-types)
-- [Invalid UTF-8 Codepoints](#invalid-utf-8-codepoints)
 - [Formatting user-defined error messages](#formatting-user-defined-error-messages)
 - [Getting comments related to a value](#getting-comments)
 - [Serializing TOML data](#serializing-toml-data)
@@ -801,8 +801,9 @@ You can also append comments. The interfaces are the same as `std::vector<std::s
 v.comments().push_back(" add new comment.");
 ```
 
-When `toml::discard_comments` is chosen, `value::comments()` will always be kept
-empty. All the modification on comments would be ignored.
+When `toml::discard_comments` is chosen, comments will not be contained in a value.
+`value::comments()` will always be kept empty.
+All the modification on comments would be ignored.
 
 The comments will also be serialized. If comments exist, those comments will be
 added just before the values.
@@ -1035,8 +1036,8 @@ ext::foo    f{42, 3.14, "foobar"};
 toml::value v(f);
 ```
 
-Any type that can be converted to `toml::value`, e.g. `toml::table`, `toml::array`,
-is okay to return from `into_toml`.
+Any type that can be converted to `toml::value`, e.g. `int`, `toml::table` and
+`toml::array` are okay to return from `into_toml`.
 
 ## Formatting user-defined error messages
 
