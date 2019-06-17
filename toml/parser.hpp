@@ -1703,6 +1703,44 @@ result<Value, std::string> parse_toml_file(location<Container>& loc)
         return ok(value_type(table_type{}));
     }
 
+    // put the first line as a region of a file
+    const region<Container> file(loc, loc.iter(),
+            std::find(loc.iter(), loc.end(), '\n'));
+
+    // The first successive comments that are separated from the first value
+    // by an empty line are for a file itself.
+    // ```toml
+    // # this is a comment for a file.
+    //
+    // key = "the first value"
+    // ```
+    // ```toml
+    // # this is a comment for "the first value".
+    // key = "the first value"
+    // ```
+    std::vector<std::string> comments;
+    using lex_first_comments = sequence<
+        repeat<sequence<maybe<lex_ws>, lex_comment, lex_newline>, at_least<1>>,
+        sequence<maybe<lex_ws>, lex_newline>
+        >;
+    if(const auto token = lex_first_comments::invoke(loc))
+    {
+        location<std::string> inner_loc(loc.name(), token.unwrap().str());
+        while(inner_loc.iter() != inner_loc.end())
+        {
+            maybe<lex_ws>::invoke(inner_loc); // remove ws if exists
+            if(lex_newline::invoke(inner_loc))
+            {
+                assert(inner_loc.iter() == inner_loc.end());
+                break; // empty line found.
+            }
+            auto com = lex_comment::invoke(inner_loc).unwrap().str();
+            com.erase(com.begin()); // remove # sign
+            comments.push_back(std::move(com));
+            lex_newline::invoke(inner_loc);
+        }
+    }
+
     table_type data;
     // root object is also a table, but without [tablename]
     if(auto tab = parse_ml_table<value_type>(loc))
@@ -1752,7 +1790,11 @@ result<Value, std::string> parse_toml_file(location<Container>& loc)
         return err(format_underline("[error]: toml::parse_toml_file: "
             "unknown line appeared", {{std::addressof(loc), "unknown format"}}));
     }
-    return ok(data);
+
+    Value v(std::move(data), file);
+    v.comments() = comments;
+
+    return ok(std::move(v));
 }
 
 } // detail
