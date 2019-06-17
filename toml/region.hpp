@@ -309,7 +309,6 @@ struct region final : public region_base
             {
                 iter = std::prev(iter);
 
-
                 // range [line_start, iter) represents the previous line
                 const auto line_start   = std::find(
                         rev_iter(iter), rev_iter(this->begin()), '\n').base();
@@ -372,10 +371,18 @@ struct region final : public region_base
                 std::find(this->last(), this->line_end(), '#');
             if(comment_found != this->line_end()) // '#' found
             {
-                // unwrap the first '#' by std::next.
-                auto str = make_string(std::next(comment_found), this->line_end());
-                if(str.back() == '\r') {str.pop_back();}
-                com.push_back(std::move(str));
+                // table = {key = "value"} # what is this for?
+                // the above comment is not for "value", but {key="value"}.
+                if(comment_found == std::find_if(this->last(), comment_found,
+                    [](const char c) noexcept -> bool {
+                        return c == '}' || c == ']';
+                    }))
+                {
+                    // unwrap the first '#' by std::next.
+                    auto str = make_string(std::next(comment_found), this->line_end());
+                    if(str.back() == '\r') {str.pop_back();}
+                    com.push_back(std::move(str));
+                }
             }
         }
         return com;
