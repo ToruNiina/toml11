@@ -465,7 +465,7 @@ basic_value<C, M, V>&& find(basic_value<C, M, V>&& v, const key& ky)
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }
-    return tab.at(ky);
+    return std::move(tab.at(ky));
 }
 
 // ----------------------------------------------------------------------------
