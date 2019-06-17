@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(test_find_for_value)
         {
             thrown = true;
         }
-        BOOST_CHECK(thrown);   
+        BOOST_CHECK(thrown);
     }
 
     {
@@ -77,37 +77,6 @@ BOOST_AUTO_TEST_CASE(test_find_for_value)
         BOOST_CHECK_EQUAL(42, toml::find<int>(v, a, b, c, d));
     }
 }
-
-BOOST_AUTO_TEST_CASE(test_find_for_table)
-{
-    // the value corresponding to the key is not the expected type
-    {
-        toml::table v{{"key", 42}};
-        bool thrown = false;
-        try
-        {
-            toml::find<toml::boolean>(v, "key");
-        }
-        catch(toml::type_error const& te)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);   
-    }
-
-    {
-        toml::table v{{"num", 42}};
-        BOOST_CHECK_EQUAL(42, toml::find<int>(v, "num"));
-
-        // reference that can be used to modify the content
-        auto& num = toml::find<toml::integer>(v, "num");
-        num = 54;
-        BOOST_CHECK_EQUAL(54, toml::find<int>(v, "num"));
-    }
-
-    // recursive search is not provided for tables.
-}
-
 
 BOOST_AUTO_TEST_CASE(test_get_or)
 {
@@ -176,75 +145,9 @@ BOOST_AUTO_TEST_CASE(test_get_or)
 
 BOOST_AUTO_TEST_CASE(test_find_or)
 {
-    // ========================================================================
-    // pass toml::value
-    //
     // requires conversion int -> uint
     {
-        toml::table v{{"num", 42}};
-        BOOST_CHECK_EQUAL(42u, toml::find_or(v, "num", 0u));
-        BOOST_CHECK_EQUAL(0u,  toml::find_or(v, "foo", 0u));
-    }
-    // exact toml type
-    {
-        toml::table v1{{"key", 42  }};
-        toml::table v2{{"key", 3.14}};
-        toml::table v3{{"not", "key"}};
-
-        toml::integer opt(0);
-        BOOST_CHECK_EQUAL(42, toml::find_or(v1, "key", opt));
-        BOOST_CHECK_EQUAL(0,  toml::find_or(v2, "key", opt));
-        BOOST_CHECK_EQUAL(0,  toml::find_or(v3, "key", opt));
-
-        toml::table v4{{"str", "foobar"}};
-        toml::string s("bazqux");
-
-        BOOST_CHECK_EQUAL("foobar", toml::find_or(v4, "str", s));
-        BOOST_CHECK_EQUAL("bazqux", toml::find_or(v1, "str", s));
-    }
-    // std::string
-    {
-        toml::table v1{{"key", "foobar"}};
-        toml::table v2{{"key", 42}};
-
-        std::string       s1("bazqux");
-        const std::string s2("bazqux");
-
-        BOOST_CHECK_EQUAL("foobar", toml::find_or(v1, "key", s1));
-        BOOST_CHECK_EQUAL("bazqux", toml::find_or(v2, "key", s1));
-
-        std::string& v1r = toml::find_or(v1, "key", s1);
-        std::string& s1r = toml::find_or(v2, "key", s1);
-
-        BOOST_CHECK_EQUAL("foobar", v1r);
-        BOOST_CHECK_EQUAL("bazqux", s1r);
-
-        BOOST_CHECK_EQUAL("foobar", toml::find_or(v1, "key", s2));
-        BOOST_CHECK_EQUAL("bazqux", toml::find_or(v2, "key", s2));
-
-        BOOST_CHECK_EQUAL("foobar", toml::find_or(std::move(v1), "key", std::move(s1)));
-        s1 = "bazqux"; // restoring moved value
-        BOOST_CHECK_EQUAL("bazqux", toml::find_or(std::move(v2), "key", std::move(s1)));
-    }
-    // string literal
-    {
-        toml::table v1{{"key", "foobar"}};
-        toml::table v2{{"key",42}};
-
-        BOOST_CHECK_EQUAL("foobar", toml::find_or(v1, "key", "bazqux"));
-        BOOST_CHECK_EQUAL("bazqux", toml::find_or(v2, "key", "bazqux"));
-
-        const char* lit = "bazqux";
-        BOOST_CHECK_EQUAL("foobar", toml::find_or(v1, "key", lit));
-        BOOST_CHECK_EQUAL("bazqux", toml::find_or(v2, "key", lit));
-    }
-
-    // ========================================================================
-    // pass toml::value
-    //
-    // requires conversion int -> uint
-    {
-        toml::table v = toml::table{{"num", 42}};
+        toml::value v = toml::table{{"num", 42}};
         BOOST_CHECK_EQUAL(42u, toml::find_or(v, "num", 0u));
         BOOST_CHECK_EQUAL(0u,  toml::find_or(v, "foo", 0u));
     }
