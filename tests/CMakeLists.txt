@@ -88,7 +88,7 @@ add_definitions(-DUNITTEST_FRAMEWORK_LIBRARY_EXIST)
 
 foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
-    target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} toml11::toml11)
     target_include_directories(${TEST_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 
@@ -105,3 +105,4 @@ endforeach(TEST_NAME)
 add_executable(test_multiple_translation_unit
                test_multiple_translation_unit_1.cpp
                test_multiple_translation_unit_2.cpp)
+target_link_libraries(test_multiple_translation_unit toml11::toml11)             
