@@ -304,38 +304,45 @@ struct region final : public region_base
             // # this also.
             // a = value # not this.
             // ```
-            auto iter = this->line_begin(); // points the first character
-            while(iter != this->begin())
+
+            // # this is a comment for `a`, not array elements.
+            // a = [1, 2, 3, 4, 5]
+            if(this->first() == std::find_if(this->line_begin(), this->first(),
+                [](const char c) noexcept -> bool {return c == '[' || c == '{';}))
             {
-                iter = std::prev(iter);
+                auto iter = this->line_begin(); // points the first character
+                while(iter != this->begin())
+                {
+                    iter = std::prev(iter);
 
-                // range [line_start, iter) represents the previous line
-                const auto line_start   = std::find(
-                        rev_iter(iter), rev_iter(this->begin()), '\n').base();
-                const auto comment_found = std::find(line_start, iter, '#');
-                if(comment_found == iter)
-                {
-                    break; // comment not found.
-                }
+                    // range [line_start, iter) represents the previous line
+                    const auto line_start   = std::find(
+                            rev_iter(iter), rev_iter(this->begin()), '\n').base();
+                    const auto comment_found = std::find(line_start, iter, '#');
+                    if(comment_found == iter)
+                    {
+                        break; // comment not found.
+                    }
 
-                // exclude the following case.
-                // > a = "foo" # comment // <-- this is not a comment for b but a.
-                // > b = "current value"
-                if(std::all_of(line_start, comment_found,
-                        [](const char c) noexcept -> bool {
-                            return c == ' ' || c == '\t';
-                        }))
-                {
-                    // unwrap the first '#' by std::next.
-                    auto str = make_string(std::next(comment_found), iter);
-                    if(str.back() == '\r') {str.pop_back();}
-                    com.push_back(std::move(str));
+                    // exclude the following case.
+                    // > a = "foo" # comment // <-- this is not a comment for b but a.
+                    // > b = "current value"
+                    if(std::all_of(line_start, comment_found,
+                            [](const char c) noexcept -> bool {
+                                return c == ' ' || c == '\t';
+                            }))
+                    {
+                        // unwrap the first '#' by std::next.
+                        auto str = make_string(std::next(comment_found), iter);
+                        if(str.back() == '\r') {str.pop_back();}
+                        com.push_back(std::move(str));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    iter = line_start;
                 }
-                else
-                {
-                    break;
-                }
-                iter = line_start;
             }
         }
 
