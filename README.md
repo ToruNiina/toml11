@@ -895,12 +895,10 @@ add a comma after the first element (like `[1,]`).
 
 NOTE: `_toml` literal returns a `toml::value`  that does not have comments.
 
-
-
 ## Conversion between toml value and arbitrary types
 
-You can also use `toml::get` and other related functions with the types you defined
-after you implement some stuff.
+You can also use `toml::get` and other related functions with the types
+you defined after you implement a way to convert it.
 
 ```cpp
 namespace ext
@@ -915,7 +913,8 @@ struct foo
 
 const auto data = toml::parse("example.toml");
 
-const foo f = toml::get<ext::foo>(data.at("foo"));
+// to do this
+const foo f = toml::find<ext::foo>(data, "foo");
 ```
 
 There are 2 ways to use `toml::get` with the types that you defined.
@@ -963,12 +962,12 @@ namespace toml
 template<>
 struct from<ext::foo>
 {
-    ext::foo from_toml(const toml::value& v)
+    ext::foo from_toml(const value& v)
     {
         ext::foo f;
-        f.a = toml::find<int        >(v, "a");
-        f.b = toml::find<double     >(v, "b");
-        f.c = toml::find<std::string>(v, "c");
+        f.a = find<int        >(v, "a");
+        f.b = find<double     >(v, "b");
+        f.c = find<std::string>(v, "c");
         return f;
     }
 };
@@ -980,6 +979,40 @@ you can add conversion between `toml::value` and classes defined in another libr
 
 Note that you cannot implement both of the functions because the overload
 resolution of `toml::get` will be ambiguous.
+
+If you want to convert arbitrary specialization of `toml::basic_value`,
+templatize the conversion function as follows.
+
+```cpp
+struct foo
+{
+    template<typename C, template<typename ...> class M, template<typename ...> class A>
+    void from_toml(const toml::basic_value<C, M, A>& v)
+    {
+        this->a = toml::find<int        >(v, "a");
+        this->b = toml::find<double     >(v, "b");
+        this->c = toml::find<std::string>(v, "c");
+        return;
+    }
+};
+// or
+namespace toml
+{
+template<>
+struct from<ext::foo>
+{
+    template<typename C, template<typename ...> class M, template<typename ...> class A>
+    ext::foo from_toml(const basic_value<C, M, A>& v)
+    {
+        ext::foo f;
+        f.a = find<int        >(v, "a");
+        f.b = find<double     >(v, "b");
+        f.c = find<std::string>(v, "c");
+        return f;
+    }
+};
+} // toml
+```
 
 ----
 
