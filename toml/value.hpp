@@ -262,19 +262,19 @@ class basic_value
 
   public:
 
-    using comment_type    = Comment;
-    using key_type        = ::toml::key;
-    using value_type      = basic_value<comment_type, Table, Array>;
-    using boolean_type    = ::toml::boolean;
-    using integer_type    = ::toml::integer;
-    using floating_type   = ::toml::floating;
-    using string_type     = ::toml::string;
-    using local_time      = ::toml::local_time;
-    using local_date      = ::toml::local_date;
-    using local_datetime  = ::toml::local_datetime;
-    using offset_datetime = ::toml::offset_datetime;
-    using array_type      = Array<value_type>;
-    using table_type      = Table<key_type, value_type>;
+    using comment_type         = Comment;
+    using key_type             = ::toml::key;
+    using value_type           = basic_value<comment_type, Table, Array>;
+    using boolean_type         = ::toml::boolean;
+    using integer_type         = ::toml::integer;
+    using floating_type        = ::toml::floating;
+    using string_type          = ::toml::string;
+    using local_time_type      = ::toml::local_time;
+    using local_date_type      = ::toml::local_date;
+    using local_datetime_type  = ::toml::local_datetime;
+    using offset_datetime_type = ::toml::offset_datetime;
+    using array_type           = Array<value_type>;
+    using table_type           = Table<key_type, value_type>;
 
   public:
 
