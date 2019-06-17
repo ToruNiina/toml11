@@ -796,7 +796,7 @@ class basic_value
     basic_value& operator=(std::initializer_list<T> list)
     {
         this->cleanup();
-        this->type_ = value_t::array ;
+        this->type_ = value_t::array;
         this->region_info_ = std::make_shared<region_base>(region_base{});
 
         array_type ary; ary.reserve(list.size());
@@ -805,8 +805,10 @@ class basic_value
         return *this;
     }
 
-    template<typename T, typename std::enable_if<detail::is_container<T>::value,
-        std::nullptr_t>::type = nullptr>
+    template<typename T, typename std::enable_if<detail::conjunction<
+            detail::negation<std::is_same<T, array_type>>,
+            detail::is_container<T>
+        >::value, std::nullptr_t>::type = nullptr>
     basic_value(T&& list)
         : type_(value_t::array),
           region_info_(std::make_shared<region_base>(region_base{}))
@@ -815,12 +817,14 @@ class basic_value
         for(const auto& elem : list) {ary.emplace_back(elem);}
         assigner(this->array_, std::move(ary));
     }
-    template<typename T, typename std::enable_if<detail::is_container<T>::value,
-        std::nullptr_t>::type = nullptr>
+    template<typename T, typename std::enable_if<detail::conjunction<
+            detail::negation<std::is_same<T, array_type>>,
+            detail::is_container<T>
+        >::value, std::nullptr_t>::type = nullptr>
     basic_value& operator=(T&& list)
     {
         this->cleanup();
-        this->type_ = value_t::array ;
+        this->type_ = value_t::array;
         this->region_info_ = std::make_shared<region_base>(region_base{});
 
         array_type ary; ary.reserve(list.size());
@@ -848,11 +852,14 @@ class basic_value
     basic_value& operator=(const table_type& tab)
     {
         this->cleanup();
-        this->type_ = value_t::table ;
+        this->type_ = value_t::table;
         this->region_info_ = std::make_shared<region_base>(region_base{});
         assigner(this->table_, tab);
         return *this;
     }
+
+    // initializer-list ------------------------------------------------------
+
     basic_value(std::initializer_list<std::pair<key, basic_value>> list)
         : type_(value_t::table),
           region_info_(std::make_shared<region_base>(region_base{}))
@@ -864,11 +871,41 @@ class basic_value
     basic_value& operator=(std::initializer_list<std::pair<key, basic_value>> list)
     {
         this->cleanup();
-        this->type_ = value_t::array ;
+        this->type_ = value_t::table;
         this->region_info_ = std::make_shared<region_base>(region_base{});
 
         table_type tab;
         for(const auto& elem : list) {tab[elem.first] = elem.second;}
+        assigner(this->table_, std::move(tab));
+        return *this;
+    }
+
+    // other table-like -----------------------------------------------------
+
+    template<typename Map, typename std::enable_if<detail::conjunction<
+            detail::negation<std::is_same<Map, table_type>>,
+            detail::is_map<Map>
+        >::value, std::nullptr_t>::type = nullptr>
+    basic_value(const Map& mp)
+        : type_(value_t::table),
+          region_info_(std::make_shared<region_base>(region_base{}))
+    {
+        table_type tab;
+        for(const auto& elem : mp) {tab[elem.first] = elem.second;}
+        assigner(this->table_, std::move(tab));
+    }
+    template<typename Map, typename std::enable_if<detail::conjunction<
+            detail::negation<std::is_same<Map, table_type>>,
+            detail::is_map<Map>
+        >::value, std::nullptr_t>::type = nullptr>
+    basic_value& operator=(const Map& mp)
+    {
+        this->cleanup();
+        this->type_ = value_t::table;
+        this->region_info_ = std::make_shared<region_base>(region_base{});
+
+        table_type tab;
+        for(const auto& elem : mp) {tab[elem.first] = elem.second;}
         assigner(this->table_, std::move(tab));
         return *this;
     }
