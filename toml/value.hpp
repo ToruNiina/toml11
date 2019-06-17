@@ -779,18 +779,17 @@ class basic_value
     }
 
     template<typename T, typename std::enable_if<
-            detail::is_convertible_to_toml_value<T, value_type>::value,
+            std::is_convertible<T, value_type>::value,
         std::nullptr_t>::type = nullptr>
     basic_value(std::initializer_list<T> list)
         : type_(value_t::array),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
-        array_type ary; ary.reserve(list.size());
-        for(auto& elem : list) {ary.emplace_back(std::move(elem));}
+        array_type ary(list.begin(), list.end());
         assigner(this->array_, std::move(ary));
     }
     template<typename T, typename std::enable_if<
-            detail::is_convertible_to_toml_value<T, value_type>::value,
+            std::is_convertible<T, value_type>::value,
         std::nullptr_t>::type = nullptr>
     basic_value& operator=(std::initializer_list<T> list)
     {
@@ -798,8 +797,7 @@ class basic_value
         this->type_ = value_t::array;
         this->region_info_ = std::make_shared<region_base>(region_base{});
 
-        array_type ary; ary.reserve(list.size());
-        for(auto& elem : list) {ary.emplace_back(std::move(elem));}
+        array_type ary(list.begin(), list.end());
         assigner(this->array_, std::move(ary));
         return *this;
     }
