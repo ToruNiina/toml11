@@ -4,7 +4,6 @@
 #define TOML11_VALUE_HPP
 #include "traits.hpp"
 #include "into.hpp"
-#include "from.hpp"
 #include "utility.hpp"
 #include "exception.hpp"
 #include "storage.hpp"
