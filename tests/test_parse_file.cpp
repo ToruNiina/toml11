@@ -194,6 +194,178 @@ BOOST_AUTO_TEST_CASE(test_hard_example)
                 expected_multi_line_array);
 }
 
+BOOST_AUTO_TEST_CASE(test_example_preserve_comment)
+{
+    const auto data = toml::parse<toml::preserve_comments>("toml/tests/example.toml");
+
+    BOOST_CHECK_EQUAL(toml::find<std::string>(data, "title"), "TOML Example");
+    const auto& owner = toml::find(data, "owner");
+    {
+        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "name"), "Tom Preston-Werner");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "organization"), "GitHub");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "bio"),
+                          "GitHub Cofounder & CEO\nLikes tater tots and beer.");
+        BOOST_CHECK_EQUAL(toml::find<toml::offset_datetime>(owner, "dob"),
+                          toml::offset_datetime(toml::local_date(1979, toml::month_t::May, 27),
+                                                toml::local_time(7, 32, 0), toml::time_offset(0, 0)));
+        BOOST_CHECK_EQUAL(toml::find(owner, "dob").comments().at(0),
+                          " First class dates? Why not?");
+    }
+
+    const auto& database = toml::find(data, "database");
+    {
+        BOOST_CHECK_EQUAL(toml::find<std::string>(database, "server"), "192.168.1.1");
+        const std::vector<int> expected_ports{8001, 8001, 8002};
+        BOOST_CHECK(toml::find<std::vector<int>>(database, "ports") == expected_ports);
+        BOOST_CHECK_EQUAL(toml::find<int >(database, "connection_max"), 5000);
+        BOOST_CHECK_EQUAL(toml::find<bool>(database, "enabled"), true);
+    }
+
+    const auto& servers = toml::find(data, "servers");
+    {
+        const auto& alpha = toml::find(servers, "alpha");
+        BOOST_CHECK_EQUAL(alpha.comments().at(0),
+            " You can indent as you please. Tabs or spaces. TOML don't care.");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(alpha, "ip"), "10.0.0.1");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(alpha, "dc"), "eqdc10");
+
+        const auto& beta = toml::find(servers, "beta");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "ip"), "10.0.0.2");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "dc"), "eqdc10");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "country"),
+                          "\xE4\xB8\xAD\xE5\x9B\xBD");
+        BOOST_CHECK_EQUAL(toml::find(beta, "country").comments().at(0),
+                          " This should be parsed as UTF-8");
+    }
+
+    const auto& clients = toml::find(data, "clients");
+    {
+        BOOST_CHECK_EQUAL(toml::find(clients, "data").comments().at(0),
+                " just an update to make sure parsers support it");
+
+
+        toml::array clients_data = toml::find<toml::array>(clients, "data");
+        std::vector<std::string> expected_name{"gamma", "delta"};
+        BOOST_CHECK(toml::get<std::vector<std::string>>(clients_data.at(0)) ==
+                    expected_name);
+        std::vector<int> expected_number{1, 2};
+        BOOST_CHECK(toml::get<std::vector<int>>(clients_data.at(1)) ==
+                    expected_number);
+        std::vector<std::string> expected_hosts{"alpha", "omega"};
+        BOOST_CHECK(toml::find<std::vector<std::string>>(clients, "hosts") ==
+                    expected_hosts);
+
+        BOOST_CHECK_EQUAL(toml::find(clients, "hosts").comments().at(0),
+                    " Line breaks are OK when inside arrays");
+    }
+
+    std::vector<toml::table> products =
+        toml::find<std::vector<toml::table>>(data, "products");
+    {
+        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(0).at("name")),
+                          "Hammer");
+        BOOST_CHECK_EQUAL(toml::get<std::int64_t>(products.at(0).at("sku")),
+                          738594937);
+
+        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(1).at("name")),
+                          "Nail");
+        BOOST_CHECK_EQUAL(toml::get<std::int64_t>(products.at(1).at("sku")),
+                          284758393);
+        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(1).at("color")),
+                          "gray");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_example_preserve_stdmap_stddeque)
+{
+    const auto data = toml::parse<toml::preserve_comments, std::map, std::deque
+          >("toml/tests/example.toml");
+
+    static_assert(std::is_same<typename decltype(data)::table_type,
+            std::map<toml::key, typename std::remove_cv<decltype(data)>::type>
+            >::value, "");
+    static_assert(std::is_same<typename decltype(data)::array_type,
+            std::deque<typename std::remove_cv<decltype(data)>::type>
+            >::value, "");
+
+    BOOST_CHECK_EQUAL(toml::find<std::string>(data, "title"), "TOML Example");
+    const auto& owner = toml::find(data, "owner");
+    {
+        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "name"), "Tom Preston-Werner");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "organization"), "GitHub");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "bio"),
+                          "GitHub Cofounder & CEO\nLikes tater tots and beer.");
+        BOOST_CHECK_EQUAL(toml::find<toml::offset_datetime>(owner, "dob"),
+                          toml::offset_datetime(toml::local_date(1979, toml::month_t::May, 27),
+                                                toml::local_time(7, 32, 0), toml::time_offset(0, 0)));
+        BOOST_CHECK_EQUAL(toml::find(owner, "dob").comments().at(0),
+                          " First class dates? Why not?");
+    }
+
+    const auto& database = toml::find(data, "database");
+    {
+        BOOST_CHECK_EQUAL(toml::find<std::string>(database, "server"), "192.168.1.1");
+        const std::vector<int> expected_ports{8001, 8001, 8002};
+        BOOST_CHECK(toml::find<std::vector<int>>(database, "ports") == expected_ports);
+        BOOST_CHECK_EQUAL(toml::find<int >(database, "connection_max"), 5000);
+        BOOST_CHECK_EQUAL(toml::find<bool>(database, "enabled"), true);
+    }
+
+    const auto& servers = toml::find(data, "servers");
+    {
+        const auto& alpha = toml::find(servers, "alpha");
+        BOOST_CHECK_EQUAL(alpha.comments().at(0),
+            " You can indent as you please. Tabs or spaces. TOML don't care.");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(alpha, "ip"), "10.0.0.1");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(alpha, "dc"), "eqdc10");
+
+        const auto& beta = toml::find(servers, "beta");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "ip"), "10.0.0.2");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "dc"), "eqdc10");
+        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "country"),
+                          "\xE4\xB8\xAD\xE5\x9B\xBD");
+        BOOST_CHECK_EQUAL(toml::find(beta, "country").comments().at(0),
+                          " This should be parsed as UTF-8");
+    }
+
+    const auto& clients = toml::find(data, "clients");
+    {
+        BOOST_CHECK_EQUAL(toml::find(clients, "data").comments().at(0),
+                " just an update to make sure parsers support it");
+
+
+        toml::array clients_data = toml::find<toml::array>(clients, "data");
+        std::vector<std::string> expected_name{"gamma", "delta"};
+        BOOST_CHECK(toml::get<std::vector<std::string>>(clients_data.at(0)) ==
+                    expected_name);
+        std::vector<int> expected_number{1, 2};
+        BOOST_CHECK(toml::get<std::vector<int>>(clients_data.at(1)) ==
+                    expected_number);
+        std::vector<std::string> expected_hosts{"alpha", "omega"};
+        BOOST_CHECK(toml::find<std::vector<std::string>>(clients, "hosts") ==
+                    expected_hosts);
+
+        BOOST_CHECK_EQUAL(toml::find(clients, "hosts").comments().at(0),
+                    " Line breaks are OK when inside arrays");
+    }
+
+    std::vector<toml::table> products =
+        toml::find<std::vector<toml::table>>(data, "products");
+    {
+        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(0).at("name")),
+                          "Hammer");
+        BOOST_CHECK_EQUAL(toml::get<std::int64_t>(products.at(0).at("sku")),
+                          738594937);
+
+        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(1).at("name")),
+                          "Nail");
+        BOOST_CHECK_EQUAL(toml::get<std::int64_t>(products.at(1).at("sku")),
+                          284758393);
+        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(1).at("color")),
+                          "gray");
+    }
+}
+
 // ---------------------------------------------------------------------------
 // after here, the test codes generate the content of a file.
 
@@ -695,174 +867,3 @@ BOOST_AUTO_TEST_CASE(test_files_end_with_empty_lines)
     }
 }
 
-BOOST_AUTO_TEST_CASE(test_example_preserve_comment)
-{
-    const auto data = toml::parse<toml::preserve_comments>("toml/tests/example.toml");
-
-    BOOST_CHECK_EQUAL(toml::find<std::string>(data, "title"), "TOML Example");
-    const auto& owner = toml::find(data, "owner");
-    {
-        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "name"), "Tom Preston-Werner");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "organization"), "GitHub");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "bio"),
-                          "GitHub Cofounder & CEO\nLikes tater tots and beer.");
-        BOOST_CHECK_EQUAL(toml::find<toml::offset_datetime>(owner, "dob"),
-                          toml::offset_datetime(toml::local_date(1979, toml::month_t::May, 27),
-                                                toml::local_time(7, 32, 0), toml::time_offset(0, 0)));
-        BOOST_CHECK_EQUAL(toml::find(owner, "dob").comments().at(0),
-                          " First class dates? Why not?");
-    }
-
-    const auto& database = toml::find(data, "database");
-    {
-        BOOST_CHECK_EQUAL(toml::find<std::string>(database, "server"), "192.168.1.1");
-        const std::vector<int> expected_ports{8001, 8001, 8002};
-        BOOST_CHECK(toml::find<std::vector<int>>(database, "ports") == expected_ports);
-        BOOST_CHECK_EQUAL(toml::find<int >(database, "connection_max"), 5000);
-        BOOST_CHECK_EQUAL(toml::find<bool>(database, "enabled"), true);
-    }
-
-    const auto& servers = toml::find(data, "servers");
-    {
-        const auto& alpha = toml::find(servers, "alpha");
-        BOOST_CHECK_EQUAL(alpha.comments().at(0),
-            " You can indent as you please. Tabs or spaces. TOML don't care.");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(alpha, "ip"), "10.0.0.1");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(alpha, "dc"), "eqdc10");
-
-        const auto& beta = toml::find(servers, "beta");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "ip"), "10.0.0.2");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "dc"), "eqdc10");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "country"),
-                          "\xE4\xB8\xAD\xE5\x9B\xBD");
-        BOOST_CHECK_EQUAL(toml::find(beta, "country").comments().at(0),
-                          " This should be parsed as UTF-8");
-    }
-
-    const auto& clients = toml::find(data, "clients");
-    {
-        BOOST_CHECK_EQUAL(toml::find(clients, "data").comments().at(0),
-                " just an update to make sure parsers support it");
-
-
-        toml::array clients_data = toml::find<toml::array>(clients, "data");
-        std::vector<std::string> expected_name{"gamma", "delta"};
-        BOOST_CHECK(toml::get<std::vector<std::string>>(clients_data.at(0)) ==
-                    expected_name);
-        std::vector<int> expected_number{1, 2};
-        BOOST_CHECK(toml::get<std::vector<int>>(clients_data.at(1)) ==
-                    expected_number);
-        std::vector<std::string> expected_hosts{"alpha", "omega"};
-        BOOST_CHECK(toml::find<std::vector<std::string>>(clients, "hosts") ==
-                    expected_hosts);
-
-        BOOST_CHECK_EQUAL(toml::find(clients, "hosts").comments().at(0),
-                    " Line breaks are OK when inside arrays");
-    }
-
-    std::vector<toml::table> products =
-        toml::find<std::vector<toml::table>>(data, "products");
-    {
-        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(0).at("name")),
-                          "Hammer");
-        BOOST_CHECK_EQUAL(toml::get<std::int64_t>(products.at(0).at("sku")),
-                          738594937);
-
-        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(1).at("name")),
-                          "Nail");
-        BOOST_CHECK_EQUAL(toml::get<std::int64_t>(products.at(1).at("sku")),
-                          284758393);
-        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(1).at("color")),
-                          "gray");
-    }
-}
-
-BOOST_AUTO_TEST_CASE(test_example_preserve_stdmap_stddeque)
-{
-    const auto data = toml::parse<toml::preserve_comments, std::map, std::deque
-          >("toml/tests/example.toml");
-
-    static_assert(std::is_same<typename decltype(data)::table_type,
-            std::map<toml::key, typename std::remove_cv<decltype(data)>::type>
-            >::value, "");
-    static_assert(std::is_same<typename decltype(data)::array_type,
-            std::deque<typename std::remove_cv<decltype(data)>::type>
-            >::value, "");
-
-    BOOST_CHECK_EQUAL(toml::find<std::string>(data, "title"), "TOML Example");
-    const auto& owner = toml::find(data, "owner");
-    {
-        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "name"), "Tom Preston-Werner");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "organization"), "GitHub");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(owner, "bio"),
-                          "GitHub Cofounder & CEO\nLikes tater tots and beer.");
-        BOOST_CHECK_EQUAL(toml::find<toml::offset_datetime>(owner, "dob"),
-                          toml::offset_datetime(toml::local_date(1979, toml::month_t::May, 27),
-                                                toml::local_time(7, 32, 0), toml::time_offset(0, 0)));
-        BOOST_CHECK_EQUAL(toml::find(owner, "dob").comments().at(0),
-                          " First class dates? Why not?");
-    }
-
-    const auto& database = toml::find(data, "database");
-    {
-        BOOST_CHECK_EQUAL(toml::find<std::string>(database, "server"), "192.168.1.1");
-        const std::vector<int> expected_ports{8001, 8001, 8002};
-        BOOST_CHECK(toml::find<std::vector<int>>(database, "ports") == expected_ports);
-        BOOST_CHECK_EQUAL(toml::find<int >(database, "connection_max"), 5000);
-        BOOST_CHECK_EQUAL(toml::find<bool>(database, "enabled"), true);
-    }
-
-    const auto& servers = toml::find(data, "servers");
-    {
-        const auto& alpha = toml::find(servers, "alpha");
-        BOOST_CHECK_EQUAL(alpha.comments().at(0),
-            " You can indent as you please. Tabs or spaces. TOML don't care.");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(alpha, "ip"), "10.0.0.1");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(alpha, "dc"), "eqdc10");
-
-        const auto& beta = toml::find(servers, "beta");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "ip"), "10.0.0.2");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "dc"), "eqdc10");
-        BOOST_CHECK_EQUAL(toml::find<std::string>(beta, "country"),
-                          "\xE4\xB8\xAD\xE5\x9B\xBD");
-        BOOST_CHECK_EQUAL(toml::find(beta, "country").comments().at(0),
-                          " This should be parsed as UTF-8");
-    }
-
-    const auto& clients = toml::find(data, "clients");
-    {
-        BOOST_CHECK_EQUAL(toml::find(clients, "data").comments().at(0),
-                " just an update to make sure parsers support it");
-
-
-        toml::array clients_data = toml::find<toml::array>(clients, "data");
-        std::vector<std::string> expected_name{"gamma", "delta"};
-        BOOST_CHECK(toml::get<std::vector<std::string>>(clients_data.at(0)) ==
-                    expected_name);
-        std::vector<int> expected_number{1, 2};
-        BOOST_CHECK(toml::get<std::vector<int>>(clients_data.at(1)) ==
-                    expected_number);
-        std::vector<std::string> expected_hosts{"alpha", "omega"};
-        BOOST_CHECK(toml::find<std::vector<std::string>>(clients, "hosts") ==
-                    expected_hosts);
-
-        BOOST_CHECK_EQUAL(toml::find(clients, "hosts").comments().at(0),
-                    " Line breaks are OK when inside arrays");
-    }
-
-    std::vector<toml::table> products =
-        toml::find<std::vector<toml::table>>(data, "products");
-    {
-        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(0).at("name")),
-                          "Hammer");
-        BOOST_CHECK_EQUAL(toml::get<std::int64_t>(products.at(0).at("sku")),
-                          738594937);
-
-        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(1).at("name")),
-                          "Nail");
-        BOOST_CHECK_EQUAL(toml::get<std::int64_t>(products.at(1).at("sku")),
-                          284758393);
-        BOOST_CHECK_EQUAL(toml::get<std::string>(products.at(1).at("color")),
-                          "gray");
-    }
-}
