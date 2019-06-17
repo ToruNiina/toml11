@@ -333,6 +333,11 @@ struct serializer
                 current_line += ',';
             }
         }
+        if(!current_line.empty())
+        {
+            if(current_line.back() != '\n') {current_line += '\n';}
+            token += current_line;
+        }
         token += "]\n";
         return token;
     }
