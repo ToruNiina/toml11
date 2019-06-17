@@ -817,7 +817,7 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK(v1.is_table());
 
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("foo").cast<toml::value_t::integer>(),    42);
-    BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("bar").cast<toml::value_t::floating>(),      3.14);
+    BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("bar").cast<toml::value_t::floating>(),   3.14);
     BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("baz").cast<toml::value_t::string>().str, "qux");
     BOOST_CHECK_EQUAL(v1.as_table().at("foo").as_integer(),    42);
     BOOST_CHECK_EQUAL(v1.as_table().at("bar").as_floating(),   3.14);
@@ -826,6 +826,19 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK_EQUAL(v1.as_table(std::nothrow).at("bar").as_floating(),   3.14);
     BOOST_CHECK_EQUAL(v1.as_table(std::nothrow).at("baz").as_string().str, "qux");
 
+    v1 = {{"foo", 2.71}, {"bar", 54}, {"baz", "quux"}};
+
+    BOOST_CHECK_EQUAL(v1.type(), toml::value_t::table);
+    BOOST_CHECK(v1.is(toml::value_t::table));
+    BOOST_CHECK(v1.is<toml::table>());
+    BOOST_CHECK(v1.is_table());
+
+    BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("foo").cast<toml::value_t::floating>(),      2.71);
+    BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("bar").cast<toml::value_t::integer>(),    54);
+    BOOST_CHECK_EQUAL(v1.cast<toml::value_t::table>().at("baz").cast<toml::value_t::string>().str, "quux");
+    BOOST_CHECK_EQUAL(v1.as_table().at("foo").as_floating(),   2.71);
+    BOOST_CHECK_EQUAL(v1.as_table().at("bar").as_integer(),    54);
+    BOOST_CHECK_EQUAL(v1.as_table().at("baz").as_string().str, "quux");
 
     v1 = toml::table{{"foo", 2.71}, {"bar", 54}, {"baz", "quux"}};
 
@@ -849,7 +862,7 @@ BOOST_AUTO_TEST_CASE(test_value_table)
     BOOST_CHECK(v3.is<toml::table>());
     BOOST_CHECK(v3.is_table());
 
-    BOOST_CHECK_EQUAL(v3.cast<toml::value_t::table>().at("foo").cast<toml::value_t::floating>(),      2.71);
+    BOOST_CHECK_EQUAL(v3.cast<toml::value_t::table>().at("foo").cast<toml::value_t::floating>(),   2.71);
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::table>().at("bar").cast<toml::value_t::integer>(),    54);
     BOOST_CHECK_EQUAL(v3.cast<toml::value_t::table>().at("baz").cast<toml::value_t::string>().str, "quux");
     BOOST_CHECK_EQUAL(v3.as_table().at("foo").as_floating(),   2.71);
