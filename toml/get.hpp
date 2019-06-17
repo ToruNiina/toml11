@@ -792,7 +792,7 @@ find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
     if(!v.is_table()) {return std::forward<T>(opt);}
     auto tab = toml::get<toml::table>(std::move(v));
     if(tab.count(ky) == 0) {return std::forward<T>(opt);}
-    return get_or(std::move(tab[ky]), std::forward<T>(opt));
+    return get_or(std::move(tab.at(ky)), std::forward<T>(opt));
 }
 
 // ---------------------------------------------------------------------------
