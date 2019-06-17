@@ -10,8 +10,25 @@
 namespace toml
 {
 
+template<typename Comment,
+         template<typename ...> class Table,
+         template<typename ...> class Array>
 struct serializer
 {
+    using value_type           = basic_value<Comment, Table, Array>;
+    using key_type             = typename value_type::key_type            ;
+    using comment_type         = typename value_type::comment_type        ;
+    using boolean_type         = typename value_type::boolean_type        ;
+    using integer_type         = typename value_type::integer_type        ;
+    using floating_type        = typename value_type::floating_type       ;
+    using string_type          = typename value_type::string_type         ;
+    using local_time_type      = typename value_type::local_time_type     ;
+    using local_date_type      = typename value_type::local_date_type     ;
+    using local_datetime_type  = typename value_type::local_datetime_type ;
+    using offset_datetime_type = typename value_type::offset_datetime_type;
+    using array_type           = typename value_type::array_type          ;
+    using table_type           = typename value_type::table_type          ;
+
     serializer(const std::size_t w              = 80,
                const int         float_prec     = std::numeric_limits<toml::floating>::max_digits10,
                const bool        can_be_inlined = false,
@@ -21,15 +38,15 @@ struct serializer
     {}
     ~serializer() = default;
 
-    std::string operator()(const toml::boolean& b) const
+    std::string operator()(const boolean_type& b) const
     {
         return b ? "true" : "false";
     }
-    std::string operator()(const integer i) const
+    std::string operator()(const integer_type i) const
     {
         return std::to_string(i);
     }
-    std::string operator()(const toml::floating f) const
+    std::string operator()(const floating_type f) const
     {
         const auto fmt = "%.*g";
         const auto bsz = std::snprintf(nullptr, 0, fmt, this->float_prec_, f);
@@ -68,7 +85,7 @@ struct serializer
         }
         return token;
     }
-    std::string operator()(const string& s) const
+    std::string operator()(const string_type& s) const
     {
         if(s.kind == string_t::basic)
         {
@@ -130,32 +147,32 @@ struct serializer
         }
     }
 
-    std::string operator()(const local_date& d) const
+    std::string operator()(const local_date_type& d) const
     {
         std::ostringstream oss;
         oss << d;
         return oss.str();
     }
-    std::string operator()(const local_time& t) const
+    std::string operator()(const local_time_type& t) const
     {
         std::ostringstream oss;
         oss << t;
         return oss.str();
     }
-    std::string operator()(const local_datetime& dt) const
+    std::string operator()(const local_datetime_type& dt) const
     {
         std::ostringstream oss;
         oss << dt;
         return oss.str();
     }
-    std::string operator()(const offset_datetime& odt) const
+    std::string operator()(const offset_datetime_type& odt) const
     {
         std::ostringstream oss;
         oss << odt;
         return oss.str();
     }
 
-    std::string operator()(const array& v) const
+    std::string operator()(const array_type& v) const
     {
         if(!v.empty() && v.front().is_table())// v is an array of tables
         {
@@ -173,8 +190,7 @@ struct serializer
                 token += "[\n";
                 for(const auto& item : v)
                 {
-                    const auto t =
-                        this->make_inline_table(item.cast<value_t::table>());
+                    const auto t = this->make_inline_table(item.as_table());
 
                     if(t.size() + 1 > width_ || // +1 for the last comma {...},
                        std::find(t.cbegin(), t.cend(), '\n') != t.cend())
@@ -199,7 +215,7 @@ struct serializer
                 token += "[[";
                 token += this->serialize_dotted_key(keys_);
                 token += "]]\n";
-                token += this->make_multiline_table(item.cast<value_t::table>());
+                token += this->make_multiline_table(item.as_table());
             }
             return token;
         }
@@ -258,7 +274,8 @@ struct serializer
         return token;
     }
 
-    std::string operator()(const table& v) const
+    // templatize for any table-like container
+    std::string operator()(const table_type& v) const
     {
         if(this->can_be_inlined_)
         {
@@ -369,7 +386,7 @@ struct serializer
         return retval;
     }
 
-    std::string make_inline_array(const array& v) const
+    std::string make_inline_array(const array_type& v) const
     {
         std::string token;
         token += '[';
@@ -384,7 +401,7 @@ struct serializer
         return token;
     }
 
-    std::string make_inline_table(const table& v) const
+    std::string make_inline_table(const table_type& v) const
     {
         assert(this->can_be_inlined_);
         std::string token;
@@ -403,7 +420,7 @@ struct serializer
         return token;
     }
 
-    std::string make_multiline_table(const table& v) const
+    std::string make_multiline_table(const table_type& v) const
     {
         std::string token;
 
@@ -465,7 +482,7 @@ struct serializer
         return token;
     }
 
-    bool is_array_of_tables(const value& v) const
+    bool is_array_of_tables(const value_type& v) const
     {
         if(!v.is_array()) {return false;}
         const auto& a = v.as_array();
@@ -480,45 +497,52 @@ struct serializer
     std::vector<toml::key> keys_;
 };
 
-inline std::string
-format(const value& v, std::size_t w = 80,
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+std::string
+format(const basic_value<C, M, V>& v, std::size_t w = 80,
        int fprec = std::numeric_limits<toml::floating>::max_digits10,
        bool force_inline = false)
 {
     // if value is a table, it is considered to be a root object.
-    // the root object can't be an inline table. so pass false. otherwise, true.
-    return visit(serializer(w, fprec, (!v.is_table()) || force_inline), v);
-}
-inline std::string
-format(const table& t, std::size_t w = 80,
-       int fprec = std::numeric_limits<toml::floating>::max_digits10,
-       bool force_inline = false)
-{
-    return serializer(w, fprec, force_inline)(t);
+    // the root object can't be an inline table.
+    if(v.is_table())
+    {
+        std::ostringstream oss;
+        if(!v.comments().empty())
+        {
+            for(const auto& c : v.comments())
+            {
+                oss << '#' << c << '\n';
+            }
+            oss << '\n';
+        }
+        oss << visit(serializer<C, M, V>(w, fprec, false), v);
+        return oss.str();
+    }
+    return visit(serializer<C, M, V>(w, fprec, force_inline), v);
 }
 
-template<typename charT, typename traits>
+template<typename charT, typename traits, typename C,
+         template<typename ...> class M, template<typename ...> class V>
 std::basic_ostream<charT, traits>&
-operator<<(std::basic_ostream<charT, traits>& os, const value& v)
+operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
 {
     // get status of std::setw().
     const std::size_t w     = os.width();
     const int         fprec = os.precision();
     os.width(0);
+
+    if(!v.comments().empty())
+    {
+        for(const auto& c : v.comments())
+        {
+            os << '#' << c << '\n';
+        }
+        os << '\n';
+    }
     // the root object can't be an inline table. so pass `false`.
-    os << visit(serializer(w, fprec, false), v);
-    return os;
-}
-template<typename charT, typename traits>
-std::basic_ostream<charT, traits>&
-operator<<(std::basic_ostream<charT, traits>& os, const table& v)
-{
-    // get status of std::setw().
-    const std::size_t w     = os.width();
-    const int         fprec = os.precision();
-    os.width(0);
-    // the root object can't be an inline table. so pass `false`.
-    os << serializer(w, fprec, false)(v);
+    os << visit(serializer<C, M, V>(w, fprec, false), v);
     return os;
 }
 
