@@ -177,7 +177,14 @@ struct serializer
         if(!v.empty() && v.front().is_table())// v is an array of tables
         {
             // if it's not inlined, we need to add `[[table.key]]`.
-            // but if it can be inlined, we need `table.key = [...]`.
+            // but if it can be inlined,
+            // ```
+            // table.key = [
+            //   {...},
+            //   # comment
+            //   {...},
+            // ]
+            // ```
             if(this->can_be_inlined_)
             {
                 std::string token;
@@ -186,32 +193,52 @@ struct serializer
                     token += this->serialize_key(keys_.back());
                     token += " = ";
                 }
-                bool width_exceeds = false;
+                bool failed = false;
                 token += "[\n";
                 for(const auto& item : v)
                 {
+                    // if an element of the table has a comment, the table
+                    // cannot be inlined.
+                    if(this->has_comment_inside(item.as_table()))
+                    {
+                        failed = true;
+                        break;
+                    }
+                    for(const auto& c : item.comments())
+                    {
+                        token += '#';
+                        token += c;
+                        token += '\n';
+                    }
+
                     const auto t = this->make_inline_table(item.as_table());
 
                     if(t.size() + 1 > width_ || // +1 for the last comma {...},
                        std::find(t.cbegin(), t.cend(), '\n') != t.cend())
                     {
-                        width_exceeds = true;
+                        failed = true;
                         break;
                     }
                     token += t;
                     token += ",\n";
                 }
-                if(!width_exceeds)
+                if(!failed)
                 {
                     token += "]\n";
                     return token;
                 }
-                // if width_exceeds, serialize it as [[array.of.tables]].
+                // if failed, serialize them as [[array.of.tables]].
             }
 
             std::string token;
             for(const auto& item : v)
             {
+                for(const auto& c : item.comments())
+                {
+                    token += '#';
+                    token += c;
+                    token += '\n';
+                }
                 token += "[[";
                 token += this->serialize_dotted_key(keys_);
                 token += "]]\n";
@@ -224,7 +251,9 @@ struct serializer
             return std::string("[]");
         }
 
-        // not an array of tables. normal array. first, try to make it inline.
+        // not an array of tables. normal array.
+        // first, try to make it inline if none of the elements have a comment.
+        if(!this->has_comment_inside(v))
         {
             const auto inl = this->make_inline_array(v);
             if(inl.size() < this->width_ &&
@@ -234,16 +263,54 @@ struct serializer
             }
         }
 
-        // if the length exceeds this->width_, print multiline array
+        // if the length exceeds this->width_, print multiline array.
+        // key = [
+        //   # ...
+        //   42,
+        //   ...
+        // ]
         std::string token;
         std::string current_line;
         token += "[\n";
         for(const auto& item : v)
         {
-            auto next_elem = toml::visit(*this, item);
-            // newline between array-value and comma is not allowed
-            if(next_elem.back() == '\n'){next_elem.pop_back();}
+            if(!item.comments().empty())
+            {
+                // if comment exists, the element must be the only element in the line.
+                // e.g. the following is not allowed.
+                // ```toml
+                // array = [
+                // # comment for what?
+                // 1, 2, 3, 4, 5
+                // ]
+                // ```
+                if(!current_line.empty())
+                {
+                    if(current_line.back() != '\n')
+                    {
+                        current_line += '\n';
+                    }
+                    token += current_line;
+                    current_line.clear();
+                }
+                for(const auto& c : item.comments())
+                {
+                    token += '#';
+                    token += c;
+                    token += '\n';
+                }
+                token += toml::visit(*this, item);
+                if(token.back() == '\n') {token.pop_back();}
+                token += ",\n";
+                continue;
+            }
+            std::string next_elem;
+            next_elem += toml::visit(*this, item);
 
+            // comma before newline.
+            if(next_elem.back() == '\n') {next_elem.pop_back();}
+
+            // if current line does not exceeds the width limit, continue.
             if(current_line.size() + next_elem.size() + 1 < this->width_)
             {
                 current_line += next_elem;
@@ -251,12 +318,13 @@ struct serializer
             }
             else if(current_line.empty())
             {
-                // the next elem cannot be within the width.
+                // if current line was empty, force put the next_elem because
+                // next_elem is not splittable
                 token += next_elem;
                 token += ",\n";
-                // keep current line empty
+                // current_line is kept empty
             }
-            else // current_line has some tokens and it exceeds width
+            else // reset current_line
             {
                 assert(current_line.back() == ',');
                 token += current_line;
@@ -265,11 +333,6 @@ struct serializer
                 current_line += ',';
             }
         }
-        if(!current_line.empty())
-        {
-            if(current_line.back() != '\n') {current_line += '\n';}
-            token += current_line;
-        }
         token += "]\n";
         return token;
     }
@@ -277,7 +340,9 @@ struct serializer
     // templatize for any table-like container
     std::string operator()(const table_type& v) const
     {
-        if(this->can_be_inlined_)
+        // if an element has a comment, then it can't be inlined.
+        // table = {# how can we write a comment for this? key = "value"}
+        if(this->can_be_inlined_ && !(this->has_comment_inside(v)))
         {
             std::string token;
             if(!this->keys_.empty())
@@ -386,8 +451,27 @@ struct serializer
         return retval;
     }
 
+    // if an element of a table or an array has a comment, it cannot be inlined.
+    bool has_comment_inside(const array_type& a) const noexcept
+    {
+        for(const auto& v : a)
+        {
+            if(!v.comments().empty()) {return true;}
+        }
+        return false;
+    }
+    bool has_comment_inside(const table_type& t) const noexcept
+    {
+        for(const auto& kv : t)
+        {
+            if(!kv.second.comments().empty()) {return true;}
+        }
+        return false;
+    }
+
     std::string make_inline_array(const array_type& v) const
     {
+        assert(!has_comment_inside(v));
         std::string token;
         token += '[';
         bool is_first = true;
@@ -403,6 +487,7 @@ struct serializer
 
     std::string make_inline_table(const table_type& v) const
     {
+        assert(!has_comment_inside(v));
         assert(this->can_be_inlined_);
         std::string token;
         token += '{';
@@ -433,6 +518,15 @@ struct serializer
                 continue;
             }
 
+            if(!kv.second.comments().empty())
+            {
+                for(const auto& c : kv.second.comments())
+                {
+                    token += '#';
+                    token += c;
+                    token += '\n';
+                }
+            }
             const auto key_and_sep    = this->serialize_key(kv.first) + " = ";
             const auto residual_width = (this->width_ > key_and_sep.size()) ?
                                         this->width_ - key_and_sep.size() : 0;
@@ -476,6 +570,16 @@ struct serializer
             {
                 // still inline tables only.
                 tmp += '\n';
+            }
+
+            if(!kv.second.comments().empty())
+            {
+                for(const auto& c : kv.second.comments())
+                {
+                    token += '#';
+                    token += c;
+                    token += '\n';
+                }
             }
             token += tmp;
         }
