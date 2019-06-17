@@ -62,7 +62,7 @@ int main()
 - [Visiting a toml::value](#visiting-a-tomlvalue)
 - [Constructing a toml::value](#constructing-a-tomlvalue)
 - [Preserving Comments](#preserving-comments)
-- [Customizing container](#customizing-container)
+- [Customizing containers](#customizing-containers)
 - [TOML literal](#toml-literal)
 - [Conversion between toml value and arbitrary types](#conversion-between-toml-value-and-arbitrary-types)
 - [Invalid UTF-8 Codepoints](#invalid-utf-8-codepoints)
@@ -305,6 +305,8 @@ The above code works with the following toml file.
 
 ```toml
 "physical.color" = "orange"
+# equivalent to {"physical.color": "orange"},
+# NOT {"physical": {"color": "orange"}}.
 ```
 
 ## Casting a toml value
@@ -323,9 +325,9 @@ contain one of the following types.
 - `toml::local_datetime`
 - `toml::offset_datetime`
 - `toml::array` (by default, `std::vector<toml::value>`)
-  - It depends. See [customize toml::value](#customize-toml-value) for detail.
+  - It depends. See [customizing containers](#customizing-containers) for detail.
 - `toml::table` (by default, `std::unordered_map<toml::key, toml::value>`)
-  - It depends. See [customize toml::value](#customize-toml-value) for detail.
+  - It depends. See [customizing containers](#customizing-containers) for detail.
 
 To get a value inside, you can use `toml::get<T>()`. The usage is the same as
 `toml::find<T>` (actually, `toml::find` internally uses `toml::get`).
@@ -526,7 +528,7 @@ const auto first  = toml::get<std::vector<int>>(a_of_a.at(0));
 ```
 
 You can change the implementation of `toml::array` with `std::deque` or some
-other array-like container. See [Customizing container](#customizing-container)
+other array-like container. See [Customizing containers](#customizing-containers)
 for detail.
 
 ### Converting a table
@@ -561,7 +563,7 @@ if(data.count("title") != 0)
 ```
 
 You can change the implementation of `toml::table` with `std::map` or some
-other map-like container. See [Customizing container](#customizing-container)
+other map-like container. See [Customizing containers](#customizing-containers)
 for detail.
 
 ### Getting an array of tables
@@ -728,13 +730,105 @@ each other.
 
 TODO
 
-## Preserving Comments
+## Preserving comments
 
-TODO
+After toml11 v3, you can choose whether comments are preserved or not.
 
-## Customizing container
+```cpp
+const auto data1 = toml::parse<toml::discard_comments >("example.toml");
+const auto data2 = toml::parse<toml::preserve_comments>("example.toml");
+```
 
-TODO
+Comments related to a value can be obtained by `toml::value::comments()`.
+The return value has the same interface as `std::vector<std::string>`.
+
+```cpp
+const auto& com = v.comments();
+for(const auto& c : com)
+{
+    std::cout << c << std::endl;
+}
+```
+
+Comments just before and just after (within the same line) a value are kept in a value.
+
+```toml
+# this is a comment for v1.
+v1 = "foo"
+
+v2 = "bar" # this is a comment for v2.
+# Note that this comment is NOT a comment for v2.
+
+# this comment is not related to any value
+# because there are empty lines between v3.
+# this comment will be ignored even if you set `preserve_comments`.
+
+# this is a comment for v3
+# this is also a comment for v3.
+v3 = "baz" # ditto.
+```
+
+Each comment line becomes one element of a `std::vector`.
+
+Hash signs will be removed, but spaces after hash sign will not be removed.
+
+```cpp
+v1.comments().at(0) == " this is a comment for v1."s;
+
+v2.comments().at(1) == " this is a comment for v1."s;
+
+v3.comments().at(0) == " this is a comment for v3."s;
+v3.comments().at(1) == " this is also a comment for v3."s;
+v3.comments().at(2) == " ditto."s;
+```
+
+Note that a comment just after an opening brace of an array will not be a
+comment for the array.
+
+```toml
+# this is a comment for a.
+a = [ # this is not a comment for a. this will be ignored.
+  1, 2, 3,
+  # this is a comment for `42`.
+  42, # this is also a comment for `42`.
+  5
+] # this is a comment for a.
+```
+
+You can also append comments. The interfaces are the same as `std::vector<std::string>`.
+
+```cpp
+v.comments().push_back(" add new comment.");
+```
+
+When `toml::discard_comments` is chosen, `value::comments()` will always be kept
+empty. All the modification on comments would be ignored.
+
+The comments will also be serialized. If comments exist, those comments will be
+added just before the values.
+
+## Customizing containers
+
+Actually, `toml::basic_value` has 3 template arguments.
+
+```cpp
+template<typename Comment, // discard/preserve_comment
+         template<typename ...> class Table = std::unordered_map,
+         template<typename ...> class Array = std::vector>
+class basic_value;
+```
+
+This enables you to change the containers used inside. E.g. you can use
+`std::map` to contain a table object instead of `std::unordered_map`.
+And also can use `std::deque` as a array object instead of `std::vector`.
+
+You can set these parameters while calling `toml::parse` function.
+
+```cpp
+const auto data = toml::parse<
+    toml::preserve_comments, std::map, std::deque
+    >("example.toml");
+```
 
 ## TOML literal
 
@@ -797,6 +891,10 @@ add a comma after the first element (like `[1,]`).
 "[[1,]]"_toml;    // This is an array of arrays.
 "[[1],]"_toml;    // ditto.
 ```
+
+NOTE: `_toml` literal returns a `toml::value`  that does not have comments.
+
+
 
 ## Conversion between toml value and arbitrary types
 
@@ -995,33 +1093,27 @@ you will get an error message like this.
 
 ### Obtaining location information
 
-You can get `source_location` by calling `toml::value::location()`.
+You can also format error messages in your own way by using `source_location`.
 
 ```cpp
-const toml::value v = /**/;
-const toml::source_location sl = v.location();
-```
-
-You can use it to format your own error message.
-
-```cpp
-class source_location {
-  public:
-
-// +-- line()       +-- region of interest (region() == 9)
-// v            .---+---.
-// 12 | value = "foo bar"
-//              ^
-//              +-- column()
-
+struct source_location
+{
     std::uint_least32_t line()      const noexcept;
     std::uint_least32_t column()    const noexcept;
     std::uint_least32_t region()    const noexcept;
-
     std::string const&  file_name() const noexcept;
-    std::string const&  line_str()  const noexcept; // the line itself
-// ...
+    std::string const&  line_str()  const noexcept;
 };
+// +-- line()       +--- length of the region (here, region() == 9)
+// v            .---+---.
+// 12 | value = "foo bar" <- line_str() returns the line itself.
+//              ^-------- column() points here
+```
+
+You can get this by
+```cpp
+const toml::value           v   = /*...*/;
+const toml::source_location loc = v.location();
 ```
 
 ## Serializing TOML data
@@ -1121,6 +1213,7 @@ const auto serial = toml::format(data, /*width = */ 0, /*prec = */ 17);
 ```
 
 When you pass a comment-preserving-value, the comment will also be serialized.
+An array or a table containing a value that has a comment would not be inlined.
 
 ## Underlying types
 
@@ -1152,7 +1245,7 @@ that points to internal `std::string` by using `toml::get<std::string>()` for co
 Because `std::chrono::system_clock::time_point` is a __time point__,
 not capable of representing a Local Time independent from a specific day.
 
-It is recommended to get `Datetime`s as `std::chrono` classes through `toml::get`.
+It is recommended to get `datetime`s as `std::chrono` classes through `toml::get`.
 
 ## Breaking Changes from v2
 
@@ -1163,14 +1256,20 @@ Between v2 and v3, those interfaces are rearranged.
 
 - `toml::parse` now returns a `toml::value`, not `toml::table`.
 - `toml::value` is now an alias of `toml::basic_value<discard_comment, std::vector, std::unordered_map>`.
-   See [Customizing containers](#customizing-containers) for detail.
+  - See [Customizing containers](#customizing-containers) for detail.
 - The elements of `toml::value_t` are renamed as `snake_case`.
+  - See [Underlying types](#underlying-types) for detail.
 - Supports for the CamelCaseNames are dropped.
+  - See [Underlying types](#underlying-types) for detail.
 - `(is|as)_float` has been removed to make the function names consistent with others.
   Since `float` is a keyword, toml11 named a float type as `toml::floating`.
   Also a `value_t` corresponds to `toml::floating` is named `value_t::floating`.
   So `(is|as)_floating` is introduced and `is_float` has been removed.
+  - See [Casting a toml::value](#casting-a-tomlvalue) and [Checking value type](#checking-value-type) for detail.
+- `toml::find` for `toml::table` has been dropped. Use `toml::value` version instead.
+  - See [Finding a toml::value](#finding-a-tomlvalue) for detail.
 - Interface around comments.
+  - See [Preserving Comments](#preserving-comments) for detail.
 - An old `from_toml` has been removed
 
 Such a big change will not happen in the coming years.
