@@ -1115,6 +1115,8 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fixed Visual Studio 2019 warnings
 - @khoitd1997
   - Fixed warnings while type conversion
+- @KerstinKeller
+  - Added installation script to CMake
 
 ## Licensing terms
 
