@@ -50,6 +50,12 @@ struct has_resize_method_impl
     template<typename T> static std::false_type check(...);
 };
 
+struct is_comparable_impl
+{
+    template<typename T> static std::true_type  check(decltype(std::declval<T>() < std::declval<T>())*);
+    template<typename T> static std::false_type check(...);
+};
+
 struct has_from_toml_method_impl
 {
     template<typename T, typename C,
@@ -86,6 +92,8 @@ template<typename T>
 struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
 template<typename T>
 struct has_resize_method : decltype(has_resize_method_impl::check<T>(nullptr)){};
+template<typename T>
+struct is_comparable : decltype(is_comparable_impl::check<T>(nullptr)){};
 
 template<typename T, typename C,
          template<typename ...> class Tb, template<typename ...> class A>

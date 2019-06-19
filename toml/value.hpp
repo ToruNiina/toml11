@@ -1375,7 +1375,6 @@ operator==(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     if(lhs.type()     != rhs.type())     {return false;}
     if(lhs.comments() != rhs.comments()) {return false;}
-
     switch(lhs.type())
     {
         case value_t::boolean  :
@@ -1422,8 +1421,26 @@ operator==(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
         default:                 {return false;}
     }
 }
+
 template<typename C, template<typename ...> class T, template<typename ...> class A>
-inline bool
+inline bool operator!=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
+{
+    return !(lhs == rhs);
+}
+
+template<typename C, template<typename ...> class T, template<typename ...> class A>
+typename std::enable_if<detail::conjunction<
+    detail::is_comparable<typename basic_value<C, T, A>::boolean_type         >,
+    detail::is_comparable<typename basic_value<C, T, A>::integer_type         >,
+    detail::is_comparable<typename basic_value<C, T, A>::floating_type        >,
+    detail::is_comparable<typename basic_value<C, T, A>::string_type          >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_time_type      >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_date_type      >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_datetime_type  >,
+    detail::is_comparable<typename basic_value<C, T, A>::offset_datetime_type >,
+    detail::is_comparable<typename basic_value<C, T, A>::array_type           >,
+    detail::is_comparable<typename basic_value<C, T, A>::table_type           >
+    >::value, bool>::type
 operator<(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     if(lhs.type() != rhs.type()){return (lhs.type() < rhs.type());}
@@ -1501,22 +1518,53 @@ operator<(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 }
 
 template<typename C, template<typename ...> class T, template<typename ...> class A>
-inline bool operator!=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
-{
-    return !(lhs == rhs);
-}
-template<typename C, template<typename ...> class T, template<typename ...> class A>
-inline bool operator<=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
+typename std::enable_if<detail::conjunction<
+    detail::is_comparable<typename basic_value<C, T, A>::boolean_type         >,
+    detail::is_comparable<typename basic_value<C, T, A>::integer_type         >,
+    detail::is_comparable<typename basic_value<C, T, A>::floating_type        >,
+    detail::is_comparable<typename basic_value<C, T, A>::string_type          >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_time_type      >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_date_type      >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_datetime_type  >,
+    detail::is_comparable<typename basic_value<C, T, A>::offset_datetime_type >,
+    detail::is_comparable<typename basic_value<C, T, A>::array_type           >,
+    detail::is_comparable<typename basic_value<C, T, A>::table_type           >
+    >::value, bool>::type
+operator<=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     return (lhs < rhs) || (lhs == rhs);
 }
 template<typename C, template<typename ...> class T, template<typename ...> class A>
-inline bool operator>(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
+typename std::enable_if<detail::conjunction<
+    detail::is_comparable<typename basic_value<C, T, A>::boolean_type         >,
+    detail::is_comparable<typename basic_value<C, T, A>::integer_type         >,
+    detail::is_comparable<typename basic_value<C, T, A>::floating_type        >,
+    detail::is_comparable<typename basic_value<C, T, A>::string_type          >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_time_type      >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_date_type      >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_datetime_type  >,
+    detail::is_comparable<typename basic_value<C, T, A>::offset_datetime_type >,
+    detail::is_comparable<typename basic_value<C, T, A>::array_type           >,
+    detail::is_comparable<typename basic_value<C, T, A>::table_type           >
+    >::value, bool>::type
+operator>(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     return !(lhs <= rhs);
 }
 template<typename C, template<typename ...> class T, template<typename ...> class A>
-inline bool operator>=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
+typename std::enable_if<detail::conjunction<
+    detail::is_comparable<typename basic_value<C, T, A>::boolean_type         >,
+    detail::is_comparable<typename basic_value<C, T, A>::integer_type         >,
+    detail::is_comparable<typename basic_value<C, T, A>::floating_type        >,
+    detail::is_comparable<typename basic_value<C, T, A>::string_type          >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_time_type      >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_date_type      >,
+    detail::is_comparable<typename basic_value<C, T, A>::local_datetime_type  >,
+    detail::is_comparable<typename basic_value<C, T, A>::offset_datetime_type >,
+    detail::is_comparable<typename basic_value<C, T, A>::array_type           >,
+    detail::is_comparable<typename basic_value<C, T, A>::table_type           >
+    >::value, bool>::type
+operator>=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     return !(lhs < rhs);
 }

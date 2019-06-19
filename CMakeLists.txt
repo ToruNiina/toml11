@@ -53,53 +53,53 @@ set(toml11_config                    ${toml11_config_dir}/toml11Config.cmake)
 set(toml11_config_version            ${toml11_config_dir}/toml11ConfigVersion.cmake)
 
 add_library(toml11 INTERFACE)
-target_include_directories(toml11 INTERFACE 
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<INSTALL_INTERFACE:${toml11_install_include_dir}>
+target_include_directories(toml11 INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${toml11_install_include_dir}>
 )
 add_library(toml11::toml11 ALIAS toml11)
 
 # Write config and version config files
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-  ${toml11_config_version}
-  VERSION ${toml11_VERSION}
-  COMPATIBILITY SameMajorVersion
+    ${toml11_config_version}
+    VERSION ${toml11_VERSION}
+    COMPATIBILITY SameMajorVersion
 )
 
 configure_package_config_file(
     cmake/toml11Config.cmake.in
     ${toml11_config}
-    INSTALL_DESTINATION ${toml11_install_cmake_dir} 
+    INSTALL_DESTINATION ${toml11_install_cmake_dir}
     PATH_VARS toml11_install_cmake_dir
-)  
+)
 
 # Install config files
 install(FILES ${toml11_config} ${toml11_config_version}
-  DESTINATION ${toml11_install_cmake_dir}
+    DESTINATION ${toml11_install_cmake_dir}
 )
 
 # Install header files
 install(
-  FILES toml.hpp
-  DESTINATION "${toml11_install_include_dir}" 
+    FILES toml.hpp
+    DESTINATION "${toml11_install_include_dir}"
 )
 install(
-  DIRECTORY "toml" 
-  DESTINATION "${toml11_install_include_dir}" 
-  FILES_MATCHING PATTERN "*.hpp"
+    DIRECTORY "toml"
+    DESTINATION "${toml11_install_include_dir}"
+    FILES_MATCHING PATTERN "*.hpp"
 )
 
 # Export targets and install them
 install(TARGETS toml11
-  EXPORT toml11Targets
+    EXPORT toml11Targets
 )
-install(EXPORT toml11Targets 
-  FILE toml11Targets.cmake
-  DESTINATION ${toml11_install_cmake_dir} 
-  NAMESPACE toml11::
+install(EXPORT toml11Targets
+    FILE toml11Targets.cmake
+    DESTINATION ${toml11_install_cmake_dir}
+    NAMESPACE toml11::
 )
 
 if (toml11_BUILD_TEST)
-add_subdirectory(tests)
+    add_subdirectory(tests)
 endif ()
