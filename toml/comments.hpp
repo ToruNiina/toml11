@@ -55,6 +55,17 @@ struct preserve_comments
     explicit preserve_comments(std::vector<std::string>&& c)
         : comments(std::move(c))
     {}
+    preserve_comments& operator=(const std::vector<std::string>& c)
+    {
+        comments = c;
+        return *this;
+    }
+    preserve_comments& operator=(std::vector<std::string>&& c)
+    {
+        comments = std::move(c);
+        return *this;
+    }
+
     explicit preserve_comments(const discard_comments&) {}
 
     explicit preserve_comments(size_type n): comments(n) {}
@@ -278,6 +289,9 @@ struct discard_comments
 
     explicit discard_comments(const std::vector<std::string>&) noexcept {}
     explicit discard_comments(std::vector<std::string>&&)      noexcept {}
+    discard_comments& operator=(const std::vector<std::string>&) noexcept {return *this;}
+    discard_comments& operator=(std::vector<std::string>&&)      noexcept {return *this;}
+
     explicit discard_comments(const preserve_comments&)        noexcept {}
 
     explicit discard_comments(size_type) noexcept {}

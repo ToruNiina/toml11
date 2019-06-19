@@ -134,14 +134,15 @@ BOOST_AUTO_TEST_CASE(test_conversion_by_member_methods)
     }
 
     {
-        const toml::basic_value<toml::discard_comment, std::map, std::deque>
+        const toml::basic_value<toml::discard_comments, std::map, std::deque>
             v{{"a", 42}, {"b", "baz"}};
 
         const auto foo = toml::get<extlib2::foo>(v);
         BOOST_CHECK_EQUAL(foo.a, 42);
         BOOST_CHECK_EQUAL(foo.b, "baz");
 
-        const toml::value v2(foo);
+        const toml::basic_value<toml::discard_comments, std::map, std::deque>
+            v2(foo);
 
         BOOST_CHECK_EQUAL(v, v2);
     }
@@ -172,14 +173,15 @@ BOOST_AUTO_TEST_CASE(test_conversion_by_specialization)
         BOOST_CHECK_EQUAL(v, v2);
     }
     {
-        const toml::basic_value<toml::discard_comment, std::map, std::deque>
+        const toml::basic_value<toml::discard_comments, std::map, std::deque>
             v{{"a", 42}, {"b", "baz"}};
 
         const auto bar = toml::get<extlib2::bar>(v);
         BOOST_CHECK_EQUAL(bar.a, 42);
         BOOST_CHECK_EQUAL(bar.b, "baz");
 
-        const toml::value v2(bar);
+        const toml::basic_value<toml::discard_comments, std::map, std::deque>
+            v2(bar);
 
         BOOST_CHECK_EQUAL(v, v2);
     }
@@ -253,12 +255,12 @@ BOOST_AUTO_TEST_CASE(test_recursive_conversion)
     }
 
     {
-        const toml::basic_value<toml::discard_comment, std::map, std::deque>
+        const toml::basic_value<toml::discard_comments, std::map, std::deque>
             v{
                 toml::table{{"a", 42}, {"b", "baz"}},
                 toml::table{{"a", 43}, {"b", "qux"}},
                 toml::table{{"a", 44}, {"b", "quux"}},
-                toml::table{{"a", 45}, {"b", "foobar"}},
+                toml::table{{"a", 45}, {"b", "foobar"}}
             };
 
         const auto foos = toml::get<std::vector<extlib2::foo>>(v);

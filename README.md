@@ -47,17 +47,17 @@ int main()
 - [Decoding a toml file](#decoding-a-toml-file)
   - [In the case of syntax error](#in-the-case-of-syntax-error)
   - [Invalid UTF-8 Codepoints](#invalid-utf-8-codepoints)
-- [Finding a toml value](#getting-a-toml-value)
+- [Finding a toml value](#finding-a-toml-value-from-a-table)
   - [In the case of type error](#in-the-case-of-type-error)
   - [Dotted keys](#dotted-keys)
 - [Casting a toml value](#casting-a-toml-value)
 - [Checking value type](#checking-value-type)
 - [More about conversion](#more-about-conversion)
-  - [Getting an array](#getting-an-array)
-  - [Getting a table](#getting-a-table)
+  - [Converting an array](#converting-an-array)
+  - [Converting a table](#converting-a-table)
   - [Getting an array of tables](#getting-an-array-of-tables)
   - [Cost of conversion](#cost-of-conversion)
-  - [Getting datetime and its variants](#getting-datetime-and-its-variants)
+  - [Converting datetime and its variants](#converting-datetime-and-its-variants)
 - [Getting with a fallback](#getting-with-a-fallback)
 - [Expecting conversion](#expecting-conversion)
 - [Visiting a toml::value](#visiting-a-tomlvalue)
@@ -67,7 +67,6 @@ int main()
 - [TOML literal](#toml-literal)
 - [Conversion between toml value and arbitrary types](#conversion-between-toml-value-and-arbitrary-types)
 - [Formatting user-defined error messages](#formatting-user-defined-error-messages)
-- [Getting comments related to a value](#getting-comments)
 - [Serializing TOML data](#serializing-toml-data)
 - [Underlying types](#underlying-types)
 - [Breaking Changes from v2](#breaking-changes-from-v2)
@@ -711,7 +710,7 @@ const auto value = toml::expect<int>(data.at("number"))
     }).unwrap_or(/*default value =*/ 3.14);
 ```
 
-## Visiting toml::value
+## Visiting a toml::value
 
 toml11 provides `toml::visit` to apply a function to `toml::value` in the
 same way as `std::variant`.
