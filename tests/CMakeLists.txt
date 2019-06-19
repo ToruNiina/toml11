@@ -105,4 +105,4 @@ endforeach(TEST_NAME)
 add_executable(test_multiple_translation_unit
                test_multiple_translation_unit_1.cpp
                test_multiple_translation_unit_2.cpp)
-target_link_libraries(test_multiple_translation_unit toml11::toml11)             
+target_link_libraries(test_multiple_translation_unit toml11::toml11)
