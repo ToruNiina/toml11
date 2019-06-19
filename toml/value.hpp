@@ -1171,6 +1171,9 @@ typename detail::toml_default_type<T>::type&&      value::cast() &&
     return detail::switch_cast<T>::invoke(std::move(*this));
 }
 
+bool operator==(const toml::value& lhs, const toml::value& rhs);
+bool operator< (const toml::value& lhs, const toml::value& rhs);
+
 inline bool operator==(const toml::value& lhs, const toml::value& rhs)
 {
     if(lhs.type() != rhs.type()){return false;}
@@ -1264,7 +1267,14 @@ inline bool operator<(const toml::value& lhs, const toml::value& rhs)
         }
         case value_t::Table   :
         {
-            return lhs.as_table() < rhs.as_table();
+            // since unordered_map does not have `operator<` ...
+            std::vector<std::pair<toml::key, toml::value>>
+                L(lhs.as_table().begin(), lhs.as_table().end()),
+                R(rhs.as_table().begin(), rhs.as_table().end());
+            std::sort(L.begin(), L.end());
+            std::sort(R.begin(), R.end());
+            return std::lexicographical_compare(
+                    L.begin(), L.end(), R.begin(), R.end());
         }
         case value_t::Empty   : {return false;}
         case value_t::Unknown : {return false;}
