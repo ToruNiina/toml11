@@ -150,13 +150,13 @@ the malformed files in [the language agnostic test suite](https://github.com/Bur
 is shown below.
 
 ```console
-  what(): [error] bad time: should be HH:MM:SS.subsec
+what(): [error] bad time: should be HH:MM:SS.subsec
  --> ./datetime-malformed-no-secs.toml
  1 | no-secs = 1987-07-05T17:45Z
    |                     ^------- HH:MM:SS.subsec
-   |
-Hint: OK: 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999
-Hint: NG: 1979-05-27T7:32:00, 1979-05-27 7:32
+   | 
+Hint: pass: 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999
+Hint: fail: 1979-05-27T7:32:00, 1979-05-27 17:32
 ```
 
 You can find other examples in a job named `output_result` on
