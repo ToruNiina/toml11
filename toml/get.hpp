@@ -541,9 +541,12 @@ std::string get_or(const toml::value& v, T&& opt)
 // others (require type conversion and return type cannot be lvalue reference)
 
 template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>,
-    detail::negation<std::is_same<T, std::string>>,
-    detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
+    detail::negation<detail::is_exact_toml_type<
+        typename std::remove_cv<typename std::remove_reference<T>::type>::type>>,
+    detail::negation<std::is_same<std::string,
+        typename std::remove_cv<typename std::remove_reference<T>::type>::type>>,
+    detail::negation<detail::is_string_literal<
+        typename std::remove_reference<T>::type>>
     >::value, std::nullptr_t>::type = nullptr>
 T get_or(const toml::value& v, T&& opt)
 {
@@ -554,7 +557,7 @@ T get_or(const toml::value& v, T&& opt)
     }
     catch(...)
     {
-        return opt;
+        return T(std::move(opt));
     }
 }
 
@@ -639,9 +642,12 @@ std::string find_or(const toml::value& v, const toml::key& ky, T&& opt)
 // ---------------------------------------------------------------------------
 // others (require type conversion and return type cannot be lvalue reference)
 template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>,
-    detail::negation<std::is_same<T, std::string>>,
-    detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
+    detail::negation<detail::is_exact_toml_type<
+        typename std::remove_cv<typename std::remove_reference<T>::type>::type>>,
+    detail::negation<std::is_same<std::string,
+        typename std::remove_cv<typename std::remove_reference<T>::type>::type>>,
+    detail::negation<detail::is_string_literal<
+        typename std::remove_reference<T>::type>>
     >::value, std::nullptr_t>::type = nullptr>
 T find_or(const toml::value& v, const toml::key& ky, T&& opt)
 {
@@ -651,8 +657,8 @@ T find_or(const toml::value& v, const toml::key& ky, T&& opt)
     return get_or(tab.at(ky), std::forward<T>(opt));
 }
 
-// ===========================================================================
-// find_or(table, key, opt)
+// ---------------------------------------------------------------------------
+// toml::find(table)
 
 // ---------------------------------------------------------------------------
 // exact types (return type can be a reference)
@@ -718,9 +724,12 @@ std::string find_or(const toml::table& tab, const toml::key& ky, T&& opt)
 // ---------------------------------------------------------------------------
 // others (require type conversion and return type cannot be lvalue reference)
 template<typename T, typename std::enable_if<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<T>>,
-    detail::negation<std::is_same<T, std::string>>,
-    detail::negation<detail::is_string_literal<typename std::remove_reference<T>::type>>
+    detail::negation<detail::is_exact_toml_type<
+        typename std::remove_cv<typename std::remove_reference<T>::type>::type>>,
+    detail::negation<std::is_same<std::string,
+        typename std::remove_cv<typename std::remove_reference<T>::type>::type>>,
+    detail::negation<detail::is_string_literal<
+        typename std::remove_reference<T>::type>>
     >::value, std::nullptr_t>::type = nullptr>
 T find_or(const toml::table& tab, const toml::key& ky, T&& opt)
 {
