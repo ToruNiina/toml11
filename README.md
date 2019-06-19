@@ -239,13 +239,20 @@ const toml::value& answer = toml::find(data, "answer");
 
 **NOTE**: For some technical reason, automatic conversion between `integer` and
 `floating` is not supported. If you want to get a floating value even if a value
-has integer value, you need to convert it manually after obtaining a value.
+has integer value, you need to convert it manually after obtaining a value,
+like the followings.
+
+```cpp
+const auto vx = toml::find(data, "x");
+double x = vx.is_floating() ? vx.as_floating(std::nothrow) :
+           static_cast<double>(vx.as_integer()); // it throws if vx is neither
+                                                 // floating nor integer.
+```
 
 ----
 
-There are several ways to find a value buried in a deep recursion of tables.
-
-First, you can call `toml::find` as many as you need.
+`toml::find` accepts arbitrary number of keys to find a value buried in a
+deep recursion of tables.
 
 ```cpp
 // # expecting the following example.toml
@@ -253,17 +260,11 @@ First, you can call `toml::find` as many as you need.
 // # is equivalent to {"answer": {"to":{"the":{"ultimate:{"question":42}}}}}
 
 const toml::table data = toml::parse("example.toml");
-const int a = toml::find<int>(toml::find(toml::find(toml::find(toml::find(
-    data, "answer"), "to"), "the"), "ultimate"), "question");
-```
-
-But it is a bother. Alternatively, you can pass several keys to `toml::find` to
-find the value.
-
-```cpp
-const toml::value data = toml::parse("example.toml");
 const int a = toml::find<int>(data, "answer", "to", "the", "ultimate", "question");
 ```
+
+Of course, alternatively, you can call `toml::find` as many as you need.
+But it is a bother.
 
 ### In the case of type error
 
@@ -745,7 +746,58 @@ each other.
 
 ## Constructing a toml::value
 
-TODO
+`toml::value` can be constructed in various ways.
+
+```cpp
+toml::value v(true);     // boolean
+toml::value v(42);       // integer
+toml::value v(3.14);     // floating
+toml::value v("foobar"); // string
+toml::value v(toml::local_date(2019, toml::month_t::Apr, 1)); // date
+toml::value v{1, 2, 3, 4, 5};                                 // array
+toml::value v{{"foo", 42}, {"bar", 3.14}, {"baz", "qux"}};    // table
+```
+
+When constructing a string, you can choose to use either literal or basic string.
+By default, it will be a basic string.
+
+```cpp
+toml::value v("foobar", toml::string_t::basic  );
+toml::value v("foobar", toml::string_t::literal);
+```
+
+Datetime objects can be constructed from `std::tm` and
+`std::chrono::system_clock::time_point`. But you need to specify what type
+you use to avoid ambiguity.
+
+```cpp
+const auto now = std::chrono::system_clock::now();
+toml::value v(toml::local_date(now));
+toml::value v(toml::local_datetime(now));
+toml::value v(toml::offset_datetime(now));
+```
+
+Since local time is not equivalent to a time point, because it lacks date
+information, it will be constructed from `std::chrono::duration`.
+
+```cpp
+toml::value v(toml::local_time(std::chrono::hours(10)));
+```
+
+You can construct an array object not only from `initializer_list`, but also
+from STL containers.
+
+```cpp
+std::vector<int> vec{1,2,3,4,5};
+toml::value v = vec;
+```
+
+
+
+```cpp
+toml::value v = vec;
+```
+
 
 ## Preserving comments
 
@@ -825,6 +877,9 @@ All the modification on comments would be ignored.
 The comments will also be serialized. If comments exist, those comments will be
 added just before the values.
 
+__NOTE__: Result types from `toml::parse(...)` and
+`toml::parse<toml::preserve_comments>(...)` are different.
+
 ## Customizing containers
 
 Actually, `toml::basic_value` has 3 template arguments.
@@ -847,6 +902,10 @@ const auto data = toml::parse<
     toml::preserve_comments, std::map, std::deque
     >("example.toml");
 ```
+
+__NOTE__: Needless to say, the result types from `toml::parse(...)` and
+`toml::parse<Com, Map, Cont>(...)` are different (unless you specify the same
+types as default).
 
 ## TOML literal
 
