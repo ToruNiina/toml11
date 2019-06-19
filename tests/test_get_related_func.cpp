@@ -12,9 +12,8 @@
 #include <deque>
 #include <array>
 
-BOOST_AUTO_TEST_CASE(test_find_for_value)
+BOOST_AUTO_TEST_CASE(test_find)
 {
-    // value itself is not a table
     {
         toml::value v(true);
         bool thrown = false;
@@ -41,16 +40,6 @@ BOOST_AUTO_TEST_CASE(test_find_for_value)
             thrown = true;
         }
         BOOST_CHECK(thrown);
-    }
-
-    {
-        toml::value v = toml::table{{"num", 42}};
-        BOOST_CHECK_EQUAL(42, toml::find<int>(v, "num"));
-
-        // reference that can be used to modify the content
-        auto& num = toml::find<toml::integer>(v, "num");
-        num = 54;
-        BOOST_CHECK_EQUAL(54, toml::find<int>(v, "num"));
     }
 
     // recursively search tables

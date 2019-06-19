@@ -150,6 +150,24 @@ terminate called after throwing an instance of 'toml::syntax_error'
    | ~~~~~~~ table defined twice
 ```
 
+When toml11 encounters a malformed value, it tries to detect what type it is.
+Then it shows hints to fix the format. An error message while reading one of
+the malformed files in [the language agnostic test suite](https://github.com/BurntSushi/toml-test).
+is shown below.
+
+```console
+what(): [error] bad time: should be HH:MM:SS.subsec
+ --> ./datetime-malformed-no-secs.toml
+ 1 | no-secs = 1987-07-05T17:45Z
+   |                     ^------- HH:MM:SS.subsec
+   | 
+Hint: pass: 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999
+Hint: fail: 1979-05-27T7:32:00, 1979-05-27 17:32
+```
+
+You can find other examples in a job named `output_result` on
+[CircleCI](https://circleci.com/gh/ToruNiina/toml11).
+
 Since the error message generation is generally a difficult task, the current
 status is not ideal. If you encounter a weird error message, please let us know
 and contribute to improve the quality!
@@ -1340,6 +1358,8 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fixed Visual Studio 2019 warnings
 - @khoitd1997
   - Fixed warnings while type conversion
+- @KerstinKeller
+  - Added installation script to CMake
 
 ## Licensing terms
 
