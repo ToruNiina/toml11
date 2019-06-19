@@ -4,8 +4,8 @@ enable_testing()
 project(toml11)
 
 set(toml11_VERSION_MAYOR  2)
-set(toml11_VERSION_MINOR  3)
-set(toml11_VERSION_PATCH  1)
+set(toml11_VERSION_MINOR  4)
+set(toml11_VERSION_PATCH  0)
 set(toml11_VERSION
   "${toml11_VERSION_MAYOR}.${toml11_VERSION_MINOR}.${toml11_VERSION_PATCH}"
 )
