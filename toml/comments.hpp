@@ -81,7 +81,10 @@ struct preserve_comments
     void assign(std::initializer_list<std::string> ini)  {comments.assign(ini);}
     void assign(size_type n, const std::string& val)     {comments.assign(n, val);}
 
-    iterator insert(const_iterator p, const std::string& x) {return comments.insert(p, x);}
+    iterator insert(const_iterator p, const std::string& x)
+    {
+        return comments.insert(p, x);
+    }
     iterator insert(const_iterator p, std::string&&      x)
     {
         return comments.insert(p, std::move(x));
@@ -210,7 +213,7 @@ struct empty_iterator
     empty_iterator& operator=(empty_iterator &&)     = default;
 
     // DO NOT call these operators.
-    reference_type operator*()  const noexcept {return *pointer_type(nullptr);}
+    reference_type operator*()  const noexcept {std::terminate();}
     pointer_type   operator->() const noexcept {return nullptr;}
     reference_type operator[](difference_type) const noexcept {return this->operator*();}
 
