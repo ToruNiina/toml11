@@ -660,9 +660,9 @@ parse_local_time(location<Container>& loc)
                 {{std::addressof(inner_loc), "here"}}));
         }
         local_time time(
-            static_cast<std::int8_t>(from_string<int>(h.unwrap().str(), 0)),
-            static_cast<std::int8_t>(from_string<int>(m.unwrap().str(), 0)),
-            static_cast<std::int8_t>(from_string<int>(s.unwrap().str(), 0)), 0, 0);
+            from_string<int>(h.unwrap().str(), 0),
+            from_string<int>(m.unwrap().str(), 0),
+            from_string<int>(s.unwrap().str(), 0), 0, 0);
 
         const auto before_secfrac = inner_loc.iter();
         if(const auto secfrac = lex_time_secfrac::invoke(inner_loc))
@@ -678,13 +678,13 @@ parse_local_time(location<Container>& loc)
             }
             if(sf.size() >= 6)
             {
-                time.millisecond = from_string<std::int16_t>(sf.substr(0, 3), 0);
-                time.microsecond = from_string<std::int16_t>(sf.substr(3, 3), 0);
+                time.millisecond = from_string<std::uint16_t>(sf.substr(0, 3), 0u);
+                time.microsecond = from_string<std::uint16_t>(sf.substr(3, 3), 0u);
             }
             else if(sf.size() >= 3)
             {
-                time.millisecond = from_string<std::int16_t>(sf, 0);
-                time.microsecond = 0;
+                time.millisecond = from_string<std::uint16_t>(sf, 0u);
+                time.microsecond = 0u;
             }
         }
         else

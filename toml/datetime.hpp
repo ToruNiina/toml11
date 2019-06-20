@@ -46,7 +46,7 @@ inline std::tm localtime_s(const std::time_t* src)
 #endif
 } // detail
 
-enum class month_t : std::int8_t
+enum class month_t : std::uint8_t
 {
     Jan =  0,
     Feb =  1,
@@ -98,9 +98,9 @@ struct local_date
         t.tm_sec   = 0;
         t.tm_min   = 0;
         t.tm_hour  = 0;
-        t.tm_mday  = this->day;
-        t.tm_mon   = this->month;
-        t.tm_year  = this->year - 1900;
+        t.tm_mday  = static_cast<int>(this->day);
+        t.tm_mon   = static_cast<int>(this->month);
+        t.tm_year  = static_cast<int>(this->year) - 1900;
         t.tm_wday  = 0; // the value will be ignored
         t.tm_yday  = 0; // the value will be ignored
         t.tm_isdst = -1;
