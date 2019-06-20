@@ -509,7 +509,7 @@ class basic_value
         : type_(value_t::floating),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
-        assigner(this->floating_, f);
+        assigner(this->floating_, static_cast<floating>(f));
     }
 
     template<typename T, typename Container, typename std::enable_if<
@@ -519,7 +519,7 @@ class basic_value
           region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
           comments_(region_info_->comments())
     {
-        assigner(this->floating_, f);
+        assigner(this->floating_, static_cast<floating>(f));
     }
 
     template<typename T, typename std::enable_if<
@@ -529,7 +529,7 @@ class basic_value
         this->cleanup();
         this->type_ = value_t::floating;
         this->region_info_ = std::make_shared<region_base>(region_base{});
-        assigner(this->floating_, f);
+        assigner(this->floating_, static_cast<floating>(f));
         return *this;
     }
 
