@@ -1376,15 +1376,18 @@ Between v2 and v3, those interfaces are rearranged.
 - Supports for the CamelCaseNames are dropped.
   - See [Underlying types](#underlying-types) for detail.
 - `(is|as)_float` has been removed to make the function names consistent with others.
-  Since `float` is a keyword, toml11 named a float type as `toml::floating`.
-  Also a `value_t` corresponds to `toml::floating` is named `value_t::floating`.
-  So `(is|as)_floating` is introduced and `is_float` has been removed.
+  - Since `float` is a keyword, toml11 named a float type as `toml::floating`.
+  - Also a `value_t` corresponds to `toml::floating` is named `value_t::floating`.
+  - So `(is|as)_floating` is introduced and `is_float` has been removed.
   - See [Casting a toml::value](#casting-a-tomlvalue) and [Checking value type](#checking-value-type) for detail.
-- `toml::find` for `toml::table` has been dropped. Use `toml::value` version instead.
+- An overload of `toml::find` for `toml::table` has been dropped. Use `toml::value` version instead.
+  - Because type conversion between a table and a value causes ambiguity while overload resolution
+  - Also because `toml::table` is a normal STL container, implementing utility function is easy.
   - See [Finding a toml::value](#finding-a-tomlvalue) for detail.
 - Interface around comments.
   - See [Preserving Comments](#preserving-comments) for detail.
-- An old `from_toml` has been removed
+- An ancient `from_toml/into_toml` has been removed. Use arbitrary type conversion support.
+  - See [Conversion between toml value and arbitrary types](#conversion-between-toml-value-and-arbitrary-types) for detail.
 
 Such a big change will not happen in the coming years.
 
