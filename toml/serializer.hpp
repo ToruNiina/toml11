@@ -29,7 +29,7 @@ struct serializer
     using array_type           = typename value_type::array_type          ;
     using table_type           = typename value_type::table_type          ;
 
-    serializer(const std::size_t w              = 80,
+    serializer(const std::size_t w              = 80u,
                const int         float_prec     = std::numeric_limits<toml::floating>::max_digits10,
                const bool        can_be_inlined = false,
                std::vector<toml::key> ks        = {})
@@ -50,7 +50,8 @@ struct serializer
     {
         const auto fmt = "%.*g";
         const auto bsz = std::snprintf(nullptr, 0, fmt, this->float_prec_, f);
-        std::vector<char> buf(bsz + 1, '\0'); // +1 for null character(\0)
+        // +1 for null character(\0)
+        std::vector<char> buf(static_cast<std::size_t>(bsz + 1), '\0');
         std::snprintf(buf.data(), buf.size(), fmt, this->float_prec_, f);
 
         std::string token(buf.begin(), std::prev(buf.end()));
@@ -58,16 +59,27 @@ struct serializer
         {
             token += '0';
         }
-        const auto e = std::find_if(token.cbegin(), token.cend(),
-            [](const char c) -> bool {
-                return c == 'E' || c == 'e';
+
+        const auto e = std::find_if(
+            token.cbegin(), token.cend(), [](const char c) noexcept -> bool {
+                return c == 'e' || c == 'E';
             });
-        if(e == token.cend())
+        const auto has_exponent = (token.cend() != e);
+        const auto has_fraction = (token.cend() != std::find(
+            token.cbegin(), token.cend(), '.'));
+
+        if(!has_exponent && !has_fraction)
+        {
+            // the resulting value does not have any float specific part!
+            token += ".0";
+            return token;
+        }
+        if(!has_exponent)
         {
             return token; // there is no exponent part. just return it.
         }
 
-        // zero-prefix in an exponent is not allowed in TOML.
+        // zero-prefix in an exponent is NOT allowed in TOML.
         // remove it if it exists.
         bool        sign_exists = false;
         std::size_t zero_prefix = 0;
@@ -81,7 +93,8 @@ struct serializer
         {
             const auto offset = std::distance(token.cbegin(), e) +
                                (sign_exists ? 2 : 1);
-            token.erase(offset, zero_prefix);
+            token.erase(static_cast<typename std::string::size_type>(offset),
+                        zero_prefix);
         }
         return token;
     }
@@ -609,7 +622,7 @@ struct serializer
 template<typename C,
          template<typename ...> class M, template<typename ...> class V>
 std::string
-format(const basic_value<C, M, V>& v, std::size_t w = 80,
+format(const basic_value<C, M, V>& v, std::size_t w = 80u,
        int fprec = std::numeric_limits<toml::floating>::max_digits10,
        bool force_inline = false)
 {
@@ -638,8 +651,8 @@ std::basic_ostream<charT, traits>&
 operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
 {
     // get status of std::setw().
-    const std::size_t w     = os.width();
-    const int         fprec = os.precision();
+    const auto w     = static_cast<std::size_t>(os.width());
+    const int  fprec = os.precision();
     os.width(0);
 
     if(!v.comments().empty())
