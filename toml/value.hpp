@@ -406,7 +406,7 @@ class basic_value
     basic_value& operator=(const basic_value<C, T, A>& v)
     {
         this->region_info_ = v.region_info_;
-        this->comments_    = v.comments();
+        this->comments_    = comment_type(v.comments());
         this->type_        = v.type();
         switch(v.type())
         {
@@ -806,26 +806,32 @@ class basic_value
             detail::negation<std::is_same<T, array_type>>,
             detail::is_container<T>
         >::value, std::nullptr_t>::type = nullptr>
-    basic_value(T&& list)
+    basic_value(const T& list)
         : type_(value_t::array),
           region_info_(std::make_shared<region_base>(region_base{}))
     {
-        array_type ary; ary.reserve(list.size());
-        for(const auto& elem : list) {ary.emplace_back(elem);}
+        static_assert(std::is_convertible<typename T::value_type, value_type>::value,
+            "elements of a container should be convertible to toml::value");
+
+        array_type ary(list.size());
+        std::copy(list.begin(), list.end(), ary.begin());
         assigner(this->array_, std::move(ary));
     }
     template<typename T, typename std::enable_if<detail::conjunction<
             detail::negation<std::is_same<T, array_type>>,
             detail::is_container<T>
         >::value, std::nullptr_t>::type = nullptr>
-    basic_value& operator=(T&& list)
+    basic_value& operator=(const T& list)
     {
+        static_assert(std::is_convertible<typename T::value_type, value_type>::value,
+            "elements of a container should be convertible to toml::value");
+
         this->cleanup();
         this->type_ = value_t::array;
         this->region_info_ = std::make_shared<region_base>(region_base{});
 
-        array_type ary; ary.reserve(list.size());
-        for(const auto& elem : list) {ary.emplace_back(elem);}
+        array_type ary(list.size());
+        std::copy(list.begin(), list.end(), ary.begin());
         assigner(this->array_, std::move(ary));
         return *this;
     }
@@ -1375,6 +1381,7 @@ operator==(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 {
     if(lhs.type()     != rhs.type())     {return false;}
     if(lhs.comments() != rhs.comments()) {return false;}
+
     switch(lhs.type())
     {
         case value_t::boolean  :
