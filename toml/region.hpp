@@ -424,13 +424,14 @@ inline std::string format_underline(const std::string& message,
 {
     assert(!reg_com.empty());
 
-    const auto line_num_width = std::max_element(reg_com.begin(), reg_com.end(),
+    const auto line_num_width = static_cast<int>(std::max_element(
+        reg_com.begin(), reg_com.end(),
         [](std::pair<region_base const*, std::string> const& lhs,
            std::pair<region_base const*, std::string> const& rhs)
         {
             return lhs.first->line_num().size() < rhs.first->line_num().size();
         }
-    )->first->line_num().size();
+    )->first->line_num().size());
 
     std::ostringstream retval;
     retval << message << '\n';
@@ -453,7 +454,7 @@ inline std::string format_underline(const std::string& message,
 
         retval << ' ' << std::setw(line_num_width) << reg->line_num();
         retval << " | " << reg->line() << '\n';
-        retval << make_string(line_num_width + 1, ' ');
+        retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ');
         retval << " | " << make_string(reg->before(), ' ');
 
         if(reg->size() == 1)
@@ -477,7 +478,7 @@ inline std::string format_underline(const std::string& message,
     if(!helps.empty())
     {
         retval << '\n';
-        retval << make_string(line_num_width + 1, ' ');
+        retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ');
         retval << " | ";
         for(const auto help : helps)
         {

@@ -652,7 +652,7 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
 {
     // get status of std::setw().
     const auto w     = static_cast<std::size_t>(os.width());
-    const int  fprec = os.precision();
+    const int  fprec = static_cast<int>(os.precision());
     os.width(0);
 
     if(!v.comments().empty())
