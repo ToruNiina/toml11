@@ -13,7 +13,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - g++-5
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: gcc
@@ -25,7 +25,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - g++-6
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: gcc
@@ -37,7 +37,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - g++-7
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: gcc
@@ -49,7 +49,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - g++-8
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: gcc
@@ -61,7 +61,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - g++-8
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: clang
@@ -74,7 +74,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - clang-3.7
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: clang
@@ -87,7 +87,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - clang-4.0
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: clang
@@ -100,7 +100,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - clang-5.0
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: clang
@@ -113,7 +113,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - clang-6.0
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: clang
@@ -126,7 +126,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - clang-7
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: clang
@@ -139,7 +139,7 @@ matrix:
         - sourceline: 'ppa:mhier/libboost-latest'
         packages:
         - clang-8
-        - libboost
+        - boost1.70
   - os: linux
     language: cpp
     compiler: clang
@@ -153,7 +153,7 @@ matrix:
         packages:
         - clang-8
         - g++-8
-        - libboost
+        - boost1.70
   - os: osx
     language: cpp
     compiler: clang
