@@ -1939,7 +1939,8 @@ parse(std::istream& is, const std::string& fname = "unknown file")
     is.seekg(beg);
 
     // read whole file as a sequence of char
-    std::vector<char> letters(fsize);
+    assert(fsize >= 0);
+    std::vector<char> letters(static_cast<std::size_t>(fsize));
     is.read(letters.data(), fsize);
 
     detail::location<std::vector<char>>
