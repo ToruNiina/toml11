@@ -12,60 +12,7 @@
 #include <deque>
 #include <array>
 
-BOOST_AUTO_TEST_CASE(test_find)
-{
-    {
-        toml::value v(true);
-        bool thrown = false;
-        try
-        {
-            toml::find<toml::boolean>(v, "key");
-        }
-        catch(toml::type_error const& te)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
-    // the value corresponding to the key is not the expected type
-    {
-        toml::value v{{"key", 42}};
-        bool thrown = false;
-        try
-        {
-            toml::find<toml::boolean>(v, "key");
-        }
-        catch(toml::type_error const& te)
-        {
-            thrown = true;
-        }
-        BOOST_CHECK(thrown);
-    }
 
-    // recursively search tables
-    {
-        toml::value v = toml::table{
-            {"a", toml::table{
-                {"b", toml::table{
-                    {"c", toml::table{
-                        {"d", 42}
-                    }}
-                }}
-            }}
-        };
-        BOOST_CHECK_EQUAL(42, toml::find<int>(v, "a", "b", "c", "d"));
-
-        // reference that can be used to modify the content
-        auto& num = toml::find<toml::integer>(v, "a", "b", "c", "d");
-        num = 54;
-        BOOST_CHECK_EQUAL(54, toml::find<int>(v, "a", "b", "c", "d"));
-
-        const std::string a("a"), b("b"), c("c"), d("d");
-        auto& num2 = toml::find<toml::integer>(v, a, b, c, d);
-        num2 = 42;
-        BOOST_CHECK_EQUAL(42, toml::find<int>(v, a, b, c, d));
-    }
-}
 
 BOOST_AUTO_TEST_CASE(test_get_or)
 {

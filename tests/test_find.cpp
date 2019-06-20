@@ -25,6 +25,58 @@ using test_value_types = std::tuple<
     toml::basic_value<toml::preserve_comments, std::map, std::deque>
     >;
 
+BOOST_AUTO_TEST_CASE(test_find_throws)
+{
+    {
+        // value is not a table
+        toml::value v(true);
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(v, "key"), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not the expected type
+        toml::value v{{"key", 42}};
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(v, "key"), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not found
+        toml::value v{{"key", 42}};
+        BOOST_CHECK_THROW(toml::find<toml::integer>(v, "different_key"),
+                          std::out_of_range);
+    }
+    {
+        // the positive control.
+        toml::value v{{"key", 42}};
+        BOOST_CHECK_EQUAL(42, toml::find<int>(v, "key"));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_find_recursive)
+{
+    // recursively search tables
+    {
+        toml::value v{
+            {"a", {
+                {"b", {
+                    {"c", {
+                        {"d", 42}
+                    }}
+                }}
+            }}
+        };
+        BOOST_CHECK_EQUAL(42, toml::find<int>(v, "a", "b", "c", "d"));
+
+        // reference that can be used to modify the content
+        auto& num = toml::find<toml::integer>(v, "a", "b", "c", "d");
+        num = 54;
+        BOOST_CHECK_EQUAL(54, toml::find<int>(v, "a", "b", "c", "d"));
+
+        const std::string a("a"), b("b"), c("c"), d("d");
+        auto& num2 = toml::find<toml::integer>(v, a, b, c, d);
+        num2 = 42;
+        BOOST_CHECK_EQUAL(42, toml::find<int>(v, a, b, c, d));
+    }
+}
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
 {
     {
