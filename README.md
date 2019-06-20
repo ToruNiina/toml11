@@ -704,10 +704,6 @@ toml::integer opt = 42;
 toml::integer& i = toml::get_or(v, opt); // this works.
 ```
 
-There is also a function `find_or`, but there is a known issue around overload
-resolution. To use it, passing a `toml::value`, not a `toml::table`, is strongly
-recommended.
-
 ## Expecting conversion
 
 By using `toml::expect`, you will get your expected value or an error message
