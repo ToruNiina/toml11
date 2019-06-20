@@ -253,6 +253,11 @@ std::string read_utf8_codepoint(const region<Container>& reg,
     std::istringstream iss(str);
     iss >> std::hex >> codepoint;
 
+    const auto to_char = [](const int i) noexcept -> char {
+        const auto uc = static_cast<unsigned char>(i);
+        return *reinterpret_cast<const char*>(std::addressof(uc));
+    };
+
     std::string character;
     if(codepoint < 0x80) // U+0000 ... U+0079 ; just an ASCII.
     {
@@ -261,8 +266,8 @@ std::string read_utf8_codepoint(const region<Container>& reg,
     else if(codepoint < 0x800) //U+0080 ... U+07FF
     {
         // 110yyyyx 10xxxxxx; 0x3f == 0b0011'1111
-        character += static_cast<unsigned char>(0xC0| codepoint >> 6);
-        character += static_cast<unsigned char>(0x80|(codepoint & 0x3F));
+        character += to_char(0xC0| codepoint >> 6);
+        character += to_char(0x80|(codepoint & 0x3F));
     }
     else if(codepoint < 0x10000) // U+0800...U+FFFF
     {
@@ -276,17 +281,17 @@ std::string read_utf8_codepoint(const region<Container>& reg,
         }
         assert(codepoint < 0xD800 || 0xDFFF < codepoint);
         // 1110yyyy 10yxxxxx 10xxxxxx
-        character += static_cast<unsigned char>(0xE0| codepoint >> 12);
-        character += static_cast<unsigned char>(0x80|(codepoint >> 6 & 0x3F));
-        character += static_cast<unsigned char>(0x80|(codepoint      & 0x3F));
+        character += to_char(0xE0| codepoint >> 12);
+        character += to_char(0x80|(codepoint >> 6 & 0x3F));
+        character += to_char(0x80|(codepoint      & 0x3F));
     }
     else if(codepoint < 0x110000) // U+010000 ... U+10FFFF
     {
         // 11110yyy 10yyxxxx 10xxxxxx 10xxxxxx
-        character += static_cast<unsigned char>(0xF0| codepoint >> 18);
-        character += static_cast<unsigned char>(0x80|(codepoint >> 12 & 0x3F));
-        character += static_cast<unsigned char>(0x80|(codepoint >> 6  & 0x3F));
-        character += static_cast<unsigned char>(0x80|(codepoint       & 0x3F));
+        character += to_char(0xF0| codepoint >> 18);
+        character += to_char(0x80|(codepoint >> 12 & 0x3F));
+        character += to_char(0x80|(codepoint >> 6  & 0x3F));
+        character += to_char(0x80|(codepoint       & 0x3F));
     }
     else // out of UTF-8 region
     {
