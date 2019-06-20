@@ -69,8 +69,9 @@ struct region_base
 template<typename Container>
 struct location final : public region_base
 {
-    using const_iterator = typename Container::const_iterator;
-    using source_ptr     = std::shared_ptr<const Container>;
+    using const_iterator  = typename Container::const_iterator;
+    using difference_type = typename const_iterator::difference_type;
+    using source_ptr      = std::shared_ptr<const Container>;
 
     static_assert(std::is_same<char, typename Container::value_type>::value,"");
     static_assert(std::is_same<std::random_access_iterator_tag,
@@ -103,15 +104,17 @@ struct location final : public region_base
     // to the location changes the point to look. So an overload of `iter()`
     // which returns mutable reference is removed and `advance()`, `retrace()`
     // and `reset()` is added.
-    void advance(std::size_t n = 1) noexcept
+    void advance(difference_type n = 1) noexcept
     {
-        this->line_number_ += std::count(this->iter_, this->iter_ + n, '\n');
+        this->line_number_ += static_cast<std::size_t>(
+                std::count(this->iter_, std::next(this->iter_, n), '\n'));
         this->iter_ += n;
         return;
     }
-    void retrace(std::size_t n = 1) noexcept
+    void retrace(difference_type n = 1) noexcept
     {
-        this->line_number_ -= std::count(this->iter_ - n, this->iter_, '\n');
+        this->line_number_ -= static_cast<std::size_t>(
+                std::count(std::prev(this->iter_, n), this->iter_, '\n'));
         this->iter_ -= n;
         return;
     }
@@ -121,11 +124,13 @@ struct location final : public region_base
         // iterators and returns a negative value if `first > last`.
         if(0 <= std::distance(rollback, this->iter_)) // rollback < iter
         {
-            this->line_number_ -= std::count(rollback, this->iter_, '\n');
+            this->line_number_ -= static_cast<std::size_t>(
+                    std::count(rollback, this->iter_, '\n'));
         }
         else // iter < rollback [[unlikely]]
         {
-            this->line_number_ += std::count(this->iter_, rollback, '\n');
+            this->line_number_ += static_cast<std::size_t>(
+                    std::count(this->iter_, rollback, '\n'));
         }
         this->iter_ = rollback;
         return;
@@ -162,11 +167,15 @@ struct location final : public region_base
     }
     std::size_t before() const noexcept override
     {
-        return std::distance(this->line_begin(), this->iter());
+        const auto sz = std::distance(this->line_begin(), this->iter());
+        assert(sz >= 0);
+        return static_cast<std::size_t>(sz);
     }
     std::size_t after() const noexcept override
     {
-        return std::distance(this->iter(), this->line_end());
+        const auto sz = std::distance(this->iter(), this->line_end());
+        assert(sz >= 0);
+        return static_cast<std::size_t>(sz);
     }
 
     source_ptr const& source() const& noexcept {return source_;}
@@ -250,15 +259,21 @@ struct region final : public region_base
 
     std::size_t size() const noexcept override
     {
-        return std::distance(first_, last_);
+        const auto sz = std::distance(first_, last_);
+        assert(sz >= 0);
+        return static_cast<std::size_t>(sz);
     }
     std::size_t before() const noexcept override
     {
-        return std::distance(this->line_begin(), this->first());
+        const auto sz = std::distance(this->line_begin(), this->first());
+        assert(sz >= 0);
+        return static_cast<std::size_t>(sz);
     }
     std::size_t after() const noexcept override
     {
-        return std::distance(this->last(), this->line_end());
+        const auto sz = std::distance(this->last(), this->line_end());
+        assert(sz >= 0);
+        return static_cast<std::size_t>(sz);
     }
 
     bool contain_newline() const noexcept
