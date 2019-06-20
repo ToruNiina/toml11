@@ -179,6 +179,6 @@ script:
 - mkdir build
 - cd build
 - git clone https://github.com/toml-lang/toml.git
-- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD ..
+- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libstdc++" ..
 - make
 - ctest --output-on-failure
