@@ -91,7 +91,8 @@ int main()
 }
 ```
 
-The convenient way is to add this repository as a git-submodule.
+The convenient way is to add this repository as a git-submodule or to install
+it in your system by CMake.
 
 ## Decoding a toml file
 
@@ -484,11 +485,6 @@ The `enum`s can be used as a parameter of `toml::value::is` function like the fo
 toml::value v = /* ... */;
 if(v.is(toml::value_t::boolean)) // ...
 ```
-
-**NOTE**: BREAKING CHANGES from v2.y.z: `(is|as)_float` has been removed.
-Use `(is|as)_floating` instead.
-See [Breaking Changes from v2](#breaking-changes-from-v2) for the complete list
-of breaking changes.
 
 ## More about conversion
 
@@ -1066,8 +1062,8 @@ you can add conversion between `toml::value` and classes defined in another libr
 Note that you cannot implement both of the functions because the overload
 resolution of `toml::get` will be ambiguous.
 
-If you want to convert arbitrary specialization of `toml::basic_value`,
-templatize the conversion function as follows.
+If you want to convert any versions of `toml::basic_value`,
+you need to templatize the conversion function as follows.
 
 ```cpp
 struct foo
