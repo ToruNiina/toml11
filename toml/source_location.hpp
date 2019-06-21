@@ -48,9 +48,9 @@ struct source_location
     {
         if(reg)
         {
-            line_num_    = std::stoul(reg->line_num());
-            column_num_  = reg->before() + 1;
-            region_size_ = reg->size();
+            line_num_    = static_cast<std::uint_least32_t>(std::stoul(reg->line_num()));
+            column_num_  = static_cast<std::uint_least32_t>(reg->before() + 1);
+            region_size_ = static_cast<std::uint_least32_t>(reg->size());
             file_name_   = reg->name();
             line_str_    = reg->line();
         }
