@@ -792,12 +792,7 @@ std::vector<int> vec{1,2,3,4,5};
 toml::value v = vec;
 ```
 
-
-
-```cpp
-toml::value v = vec;
-```
-
+All the elements of `initializer_list` should be convertible into `toml::value`.
 
 ## Preserving comments
 
@@ -864,10 +859,14 @@ a = [ # this is not a comment for a. this will be ignored.
 ] # this is a comment for a.
 ```
 
-You can also append comments. The interfaces are the same as `std::vector<std::string>`.
+You can also append and modify comments.
+The interfaces are the same as `std::vector<std::string>`.
 
 ```cpp
-v.comments().push_back(" add new comment.");
+toml::basic_value<toml::preserve_comments> v(42);
+v.comments().push_back(" add this comment.");
+// # add this comment.
+// i = 42
 ```
 
 When `toml::discard_comments` is chosen, comments will not be contained in a value.
