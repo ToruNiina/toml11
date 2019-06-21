@@ -102,20 +102,20 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
     }
     {
         value_type v{{"key", "foo"}};
-        BOOST_CHECK_EQUAL(toml::string("foo", toml::string_t::basic),
+        BOOST_TEST(toml::string("foo", toml::string_t::basic) ==
                           toml::find<toml::string>(v, "key"));
 
         toml::find<toml::string>(v, "key").str += "bar";
-        BOOST_CHECK_EQUAL(toml::string("foobar", toml::string_t::basic),
+        BOOST_TEST(toml::string("foobar", toml::string_t::basic) ==
                           toml::find<toml::string>(v, "key"));
     }
     {
         value_type v{{"key", value_type("foo", toml::string_t::literal)}};
-        BOOST_CHECK_EQUAL(toml::string("foo", toml::string_t::literal),
+        BOOST_TEST(toml::string("foo", toml::string_t::literal) ==
                           toml::find<toml::string>(v, "key"));
 
         toml::find<toml::string>(v, "key").str += "bar";
-        BOOST_CHECK_EQUAL(toml::string("foobar", toml::string_t::literal),
+        BOOST_TEST(toml::string("foobar", toml::string_t::literal) ==
                           toml::find<toml::string>(v, "key"));
     }
     {

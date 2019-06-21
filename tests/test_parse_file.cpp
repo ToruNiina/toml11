@@ -31,8 +31,7 @@ BOOST_AUTO_TEST_CASE(test_example)
     {
         BOOST_TEST(toml::find<std::string>(database, "server") == "192.168.1.1");
         const std::vector<int> expected_ports{8001, 8001, 8002};
-        const bool result = toml::find<std::vector<int>>(database, "ports") == expected_ports;
-        BOOST_TEST(result);
+        BOOST_CHECK(toml::find<std::vector<int>>(database, "ports") == expected_ports);
         BOOST_TEST(toml::find<int >(database, "connection_max") == 5000);
         BOOST_TEST(toml::find<bool>(database, "enabled") == true);
     }
@@ -54,16 +53,13 @@ BOOST_AUTO_TEST_CASE(test_example)
         toml::array clients_data = toml::find<toml::array>(clients, "data");
 
         std::vector<std::string> expected_name{"gamma", "delta"};
-        const bool result1 = toml::get<std::vector<std::string>>(clients_data.at(0)) == expected_name;
-        BOOST_TEST(reuslt1);
+        BOOST_CHECK(toml::get<std::vector<std::string>>(clients_data.at(0)) == expected_name);
 
         std::vector<int> expected_number{1, 2};
-        const bool result2 = toml::get<std::vector<int>>(clients_data.at(1)) == expected_number;
-        BOOST_TEST(reuslt2);
+        BOOST_CHECK(toml::get<std::vector<int>>(clients_data.at(1)) == expected_number);
 
         std::vector<std::string> expected_hosts{"alpha", "omega"};
-        const bool result3 = toml::find<std::vector<std::string>>(clients, "hosts") == expected_hosts;
-        BOOST_TEST(reuslt3);
+        BOOST_CHECK(toml::find<std::vector<std::string>>(clients, "hosts") == expected_hosts);
     }
 
     std::vector<toml::table> products =
@@ -99,8 +95,7 @@ BOOST_AUTO_TEST_CASE(test_example_stream)
     {
         BOOST_TEST(toml::find<std::string>(database, "server") == "192.168.1.1");
         const std::vector<int> expected_ports{8001, 8001, 8002};
-        const bool result = (toml::find<std::vector<int>>(database, "ports") == expected_ports);
-        BOOST_TEST(result);
+        BOOST_CHECK(toml::find<std::vector<int>>(database, "ports") == expected_ports);
         BOOST_TEST(toml::find<int >(database, "connection_max") == 5000);
         BOOST_TEST(toml::find<bool>(database, "enabled") == true);
     }
@@ -121,16 +116,13 @@ BOOST_AUTO_TEST_CASE(test_example_stream)
     {
         toml::array clients_data = toml::find<toml::array>(clients, "data");
         std::vector<std::string> expected_name{"gamma", "delta"};
-        const bool result1 = toml::get<std::vector<std::string>>(clients_data.at(0)) == expected_name;
-        BOOST_TEST(reuslt1);
+        BOOST_CHECK(toml::get<std::vector<std::string>>(clients_data.at(0)) == expected_name);
 
         std::vector<int> expected_number{1, 2};
-        const bool result2 = toml::get<std::vector<int>>(clients_data.at(1)) == expected_number;
-        BOOST_TEST(reuslt2);
+        BOOST_CHECK(toml::get<std::vector<int>>(clients_data.at(1)) == expected_number);
 
         std::vector<std::string> expected_hosts{"alpha", "omega"};
-        const bool result3 = toml::find<std::vector<std::string>>(clients, "hosts") == expected_hosts;
-        BOOST_TEST(reuslt3);
+        BOOST_CHECK(toml::find<std::vector<std::string>>(clients, "hosts") == expected_hosts);
     }
 
     std::vector<toml::table> products =
