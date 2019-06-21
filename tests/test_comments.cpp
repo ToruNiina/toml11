@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     using value_type = toml::basic_value<toml::preserve_comments>;
     {
         const value_type v(true, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_boolean());
@@ -179,7 +179,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     }
     {
         const value_type v(42, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_integer());
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     }
     {
         const value_type v(3.14, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_floating());
@@ -195,7 +195,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     }
     {
         const value_type v(toml::string("str"), {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_string());
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     }
     {
         const value_type v(std::string("str"), {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_string());
@@ -212,7 +212,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     {
         const value_type v(std::string("str"), toml::string_t::literal,
                            {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_string());
@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     }
     {
         const value_type v("str", {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_string());
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     {
         const value_type v("str", toml::string_t::literal,
                            {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_string());
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     {
         using namespace std::literals::string_view_literals;
         const value_type v("str"sv, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_string());
@@ -249,7 +249,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
         using namespace std::literals::string_view_literals;
         const value_type v("str"sv, toml::string_t::literal,
                            {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_string());
@@ -262,7 +262,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     const toml::offset_datetime odt{ld, lt, toml::time_offset{9, 0}};
     {
         const value_type v(ld, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_local_date());
@@ -270,7 +270,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     }
     {
         const value_type v(lt, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_local_time());
@@ -279,7 +279,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     {
         const toml::local_time three_hours{3,0,0};
         const value_type v(std::chrono::hours(3), {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_local_time());
@@ -287,7 +287,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     }
     {
         const value_type v(ldt, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_local_datetime());
@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     }
     {
         const value_type v(odt, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_offset_datetime());
@@ -304,7 +304,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     {
         const auto systp = static_cast<std::chrono::system_clock::time_point>(odt);
         const value_type v(systp, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_offset_datetime());
@@ -313,7 +313,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     {
         const typename value_type::array_type a{1,2,3,4,5};
         const value_type v(a, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_array());
@@ -331,7 +331,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     {
         const std::initializer_list<int> a = {1,2,3,4,5};
         const value_type v(a, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_array());
@@ -349,7 +349,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
     {
         const std::vector<int> a = {1,2,3,4,5};
         const value_type v(a, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_array());
@@ -369,7 +369,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
                 {"key1", 42}, {"key2", "foobar"}
             };
         const value_type v(t, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_table());
@@ -383,7 +383,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
                 {"key1", 42}, {"key2", "foobar"}
             };
         const value_type v(t, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_table());
@@ -397,7 +397,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
                 {"key1", 42}, {"key2", "foobar"}
             };
         const value_type v(t, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_table());
@@ -413,14 +413,14 @@ BOOST_AUTO_TEST_CASE(test_overwrite_comments)
     using value_type = toml::basic_value<toml::preserve_comments>;
     {
         const value_type v(42, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_integer());
         BOOST_TEST(v.as_integer() == 42);
 
         const value_type u(v, {"comment3", "comment4"});
-        BOOST_TEST(u.comments().size() == 2);
+        BOOST_TEST(u.comments().size() == 2u);
         BOOST_TEST(u.comments().at(0)  == "comment3");
         BOOST_TEST(u.comments().at(1)  == "comment4");
         BOOST_TEST(u.is_integer());
@@ -428,14 +428,14 @@ BOOST_AUTO_TEST_CASE(test_overwrite_comments)
     }
     {
         const value_type v(42, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_integer());
         BOOST_TEST(v.as_integer() == 42);
 
         const value_type u(v);
-        BOOST_TEST(u.comments().size() == 2);
+        BOOST_TEST(u.comments().size() == 2u);
         BOOST_TEST(u.comments().at(0)  == "comment1");
         BOOST_TEST(u.comments().at(1)  == "comment2");
         BOOST_TEST(u.is_integer());
@@ -443,14 +443,14 @@ BOOST_AUTO_TEST_CASE(test_overwrite_comments)
     }
     {
         const value_type v(42, {"comment1", "comment2"});
-        BOOST_TEST(v.comments().size() == 2);
+        BOOST_TEST(v.comments().size() == 2u);
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_integer());
         BOOST_TEST(v.as_integer() == 42);
 
         const value_type u(v, {});
-        BOOST_TEST(u.comments().size() == 0);
+        BOOST_TEST(u.comments().size() == 0u);
         BOOST_TEST(u.is_integer());
         BOOST_TEST(u.as_integer() == 42);
     }
