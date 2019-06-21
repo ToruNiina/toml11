@@ -308,7 +308,12 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
         BOOST_TEST(v.comments().at(0)  == "comment1");
         BOOST_TEST(v.comments().at(1)  == "comment2");
         BOOST_TEST(v.is_offset_datetime());
-        BOOST_TEST(v.as_offset_datetime() == odt);
+
+        // While the conversion, the information about time offset may change.
+        const auto systp2 = static_cast<std::chrono::system_clock::time_point>(
+                v.as_offset_datetime());
+        const bool result = systp == systp2; // because there is no operator<<
+        BOOST_TEST(result);
     }
     {
         const typename value_type::array_type a{1,2,3,4,5};
