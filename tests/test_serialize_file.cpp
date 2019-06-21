@@ -6,6 +6,8 @@
 #include <boost/test/included/unit_test.hpp>
 #endif
 #include <toml.hpp>
+#include <deque>
+#include <map>
 #include <iostream>
 #include <fstream>
 
