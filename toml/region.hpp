@@ -382,7 +382,7 @@ struct region final : public region_base
                 // the above comment is not for "value", but {key="value"}.
                 if(comment_found == std::find_if(this->last(), comment_found,
                     [](const char c) noexcept -> bool {
-                        return c == '}' || c == ']';
+                        return !(c == ' ' || c == '\t' || c == ',');
                     }))
                 {
                     // unwrap the first '#' by std::next.
