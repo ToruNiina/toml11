@@ -869,9 +869,20 @@ v.comments().push_back(" add this comment.");
 // i = 42
 ```
 
+Also, you can pass a `std::vector<std::string>` when constructing a
+`toml::basic_value<toml::preserve_comments>`.
+
+```cpp
+std::vector<std::string> comments{"comment 1", "comment 2"};
+const toml::basic_value<toml::preserve_comments> v1(42, std::move(comments));
+const toml::basic_value<toml::preserve_comments> v2(42, {"comment 1", "comment 2"});
+```
+
 When `toml::discard_comments` is chosen, comments will not be contained in a value.
 `value::comments()` will always be kept empty.
 All the modification on comments would be ignored.
+All the element access in a `discard_comments` causes the same error as accessing
+an element of an empty `std::vector`.
 
 The comments will also be serialized. If comments exist, those comments will be
 added just before the values.
