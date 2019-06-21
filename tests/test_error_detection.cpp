@@ -12,50 +12,19 @@
 BOOST_AUTO_TEST_CASE(test_detect_empty_key)
 {
     std::istringstream stream(std::string("= \"value\""));
-    bool exception_thrown = false;
-    try
-    {
-        toml::parse(stream, "test_detect_empty_key");
-    }
-    catch(const toml::syntax_error& syn)
-    {
-        // to see the error message
-        std::cerr << syn.what() << std::endl;
-        exception_thrown = true;
-    }
-    BOOST_CHECK(exception_thrown);
+    BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
 }
 
 BOOST_AUTO_TEST_CASE(test_detect_missing_value)
 {
     std::istringstream stream(std::string("a ="));
-    bool exception_thrown = false;
-    try
-    {
-        toml::parse(stream, "test_detect_missing_value");
-    }
-    catch(const toml::syntax_error& syn)
-    {
-        std::cerr << syn.what() << std::endl;
-        exception_thrown = true;
-    }
-    BOOST_CHECK(exception_thrown);
+    BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
 }
 
 BOOST_AUTO_TEST_CASE(test_detect_too_many_value)
 {
     std::istringstream stream(std::string("a = 1 = \"value\""));
-    bool exception_thrown = false;
-    try
-    {
-        toml::parse(stream, "test_detect_too_many_value");
-    }
-    catch(const toml::syntax_error& syn)
-    {
-        std::cerr << syn.what() << std::endl;
-        exception_thrown = true;
-    }
-    BOOST_CHECK(exception_thrown);
+    BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
 }
 
 BOOST_AUTO_TEST_CASE(test_detect_duplicate_table)
@@ -66,17 +35,7 @@ BOOST_AUTO_TEST_CASE(test_detect_duplicate_table)
             "[table]\n"
             "b = 42\n"
             ));
-    bool exception_thrown = false;
-    try
-    {
-        toml::parse(stream, "test_detect_duplicate_table");
-    }
-    catch(const toml::syntax_error& syn)
-    {
-        std::cerr << syn.what() << std::endl;
-        exception_thrown = true;
-    }
-    BOOST_CHECK(exception_thrown);
+    BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
 }
 
 BOOST_AUTO_TEST_CASE(test_detect_conflict_array_table)
@@ -87,17 +46,7 @@ BOOST_AUTO_TEST_CASE(test_detect_conflict_array_table)
             "[table]\n"
             "b = 42\n"
             ));
-    bool exception_thrown = false;
-    try
-    {
-        toml::parse(stream, "test_detect_conflict_array_table");
-    }
-    catch(const toml::syntax_error& syn)
-    {
-        std::cerr << syn.what() << std::endl;
-        exception_thrown = true;
-    }
-    BOOST_CHECK(exception_thrown);
+    BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
 }
 
 BOOST_AUTO_TEST_CASE(test_detect_conflict_table_array)
@@ -108,17 +57,7 @@ BOOST_AUTO_TEST_CASE(test_detect_conflict_table_array)
             "[[table]]\n"
             "b = 42\n"
             ));
-    bool exception_thrown = false;
-    try
-    {
-        toml::parse(stream, "test_detect_conflict_table_array");
-    }
-    catch(const toml::syntax_error& syn)
-    {
-        std::cerr << syn.what() << std::endl;
-        exception_thrown = true;
-    }
-    BOOST_CHECK(exception_thrown);
+    BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
 }
 
 BOOST_AUTO_TEST_CASE(test_detect_duplicate_value)
@@ -127,17 +66,7 @@ BOOST_AUTO_TEST_CASE(test_detect_duplicate_value)
             "a = 1\n"
             "a = 2\n"
             ));
-    bool exception_thrown = false;
-    try
-    {
-        toml::parse(stream, "test_detect_duplicate_value");
-    }
-    catch(const toml::syntax_error& syn)
-    {
-        std::cerr << syn.what() << std::endl;
-        exception_thrown = true;
-    }
-    BOOST_CHECK(exception_thrown);
+    BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
 }
 
 BOOST_AUTO_TEST_CASE(test_detect_conflicting_value)
@@ -146,17 +75,7 @@ BOOST_AUTO_TEST_CASE(test_detect_conflicting_value)
             "a.b   = 1\n"
             "a.b.c = 2\n"
             ));
-    bool exception_thrown = false;
-    try
-    {
-        toml::parse(stream, "test_detect_conflicting_value");
-    }
-    catch(const toml::syntax_error& syn)
-    {
-        std::cerr << syn.what() << std::endl;
-        exception_thrown = true;
-    }
-    BOOST_CHECK(exception_thrown);
+    BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
 }
 
 BOOST_AUTO_TEST_CASE(test_detect_inhomogeneous_array)
@@ -164,17 +83,7 @@ BOOST_AUTO_TEST_CASE(test_detect_inhomogeneous_array)
     std::istringstream stream(std::string(
             "a = [1, 1.0]\n"
             ));
-    bool exception_thrown = false;
-    try
-    {
-        toml::parse(stream, "test_detect_inhomogeneous_array");
-    }
-    catch(const toml::syntax_error& syn)
-    {
-        std::cerr << syn.what() << std::endl;
-        exception_thrown = true;
-    }
-    BOOST_CHECK(exception_thrown);
+    BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
 }
 
 BOOST_AUTO_TEST_CASE(test_detect_appending_array_of_table)
@@ -184,16 +93,5 @@ BOOST_AUTO_TEST_CASE(test_detect_appending_array_of_table)
             "[[a]]\n"
             "b = 2\n"
             ));
-    bool exception_thrown = false;
-    try
-    {
-        toml::parse(stream, "test_detect_appending_array_of_table");
-    }
-    catch(const toml::syntax_error& syn)
-    {
-        std::cerr << syn.what() << std::endl;
-        exception_thrown = true;
-    }
-    BOOST_CHECK(exception_thrown);
+    BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
 }
-
