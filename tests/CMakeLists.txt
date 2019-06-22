@@ -23,6 +23,7 @@ set(TEST_NAMES
     test_literals
     test_comments
     test_get
+    test_get_or
     test_find
     test_get_related_func
     test_parse_file
