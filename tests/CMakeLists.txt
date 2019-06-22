@@ -25,6 +25,7 @@ set(TEST_NAMES
     test_get
     test_get_or
     test_find
+    test_find_or
     test_get_related_func
     test_parse_file
     test_serialize_file
