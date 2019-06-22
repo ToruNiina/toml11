@@ -144,58 +144,6 @@ template<typename T, typename V> struct is_exact_toml_type<T const&, V>         
 template<typename T, typename V> struct is_exact_toml_type<T volatile&, V>      : is_exact_toml_type<T, V>{};
 template<typename T, typename V> struct is_exact_toml_type<T const volatile&, V>: is_exact_toml_type<T, V>{};
 
-// meta-function that check type T is convertible to toml::* types
-template<typename T, typename Value>
-struct is_convertible_to_toml_value : disjunction<
-    std::is_same<T, boolean>,                    // T is bool or
-    std::is_integral<T>,                         // T is an integer or
-    std::is_floating_point<T>,                   // T is a floating point or
-    std::is_same<T, std::string>,                // T is std::string or
-    std::is_same<T, toml::string>,               // T is toml::string or
-    is_string_literal<T>,                        // T is "string literal" or
-    std::is_same<T, toml::local_date>,           // T is local_date or
-    std::is_same<T, toml::local_time>,           // T is local_time or
-    std::is_same<T, toml::local_datetime>,       // T is local_datetime or
-    std::is_same<T, toml::offset_datetime>,      // T is offset_datetime or
-    std::is_same<T, std::chrono::system_clock::time_point>, // T is time_point or
-    is_chrono_duration<T>,                       // T is a duration or
-    std::is_same<T, typename Value::array_type>, // T is an array type or
-    std::is_same<T, typename Value::table_type>  // T is an array type or
-    >{};
-
-// meta-function that returns value_t that represent the convertible type
-template<typename T, typename Value>
-struct convertible_toml_type_of : std::conditional<
-    /* if   */ is_exact_toml_type<T, Value>::value,
-    /* then */ value_t_constant<type_to_enum<T, Value>::value>,
-    /* else */ typename std::conditional<
-    // ----------------------------------------------------------------------
-    /* if   */ std::is_integral<T>::value,
-    /* then */ value_t_constant<value_t::integer>,
-    /* else */ typename std::conditional<
-    // ----------------------------------------------------------------------
-    /* if   */ std::is_floating_point<T>::value,
-    /* then */ value_t_constant<value_t::floating>,
-    /* else */ typename std::conditional<
-    // ----------------------------------------------------------------------
-    /* if   */ std::is_same<T, std::string>::value,
-    /* then */ value_t_constant<value_t::string>,
-    /* else */ typename std::conditional<
-    // ----------------------------------------------------------------------
-    /* if   */ is_string_literal<T>::value,
-    /* then */ value_t_constant<value_t::string>,
-    /* else */ typename std::conditional<
-    // ----------------------------------------------------------------------
-    /* if   */ is_chrono_duration<T>::value,
-    /* then */ value_t_constant<value_t::local_time>,
-    /* else */ typename std::conditional<
-    // ----------------------------------------------------------------------
-    /* if   */ std::is_same<T, std::chrono::system_clock::time_point>::value,
-    /* then */ value_t_constant<value_t::offset_datetime>,
-    /* else */ value_t_constant<value_t::empty>
-    // ----------------------------------------------------------------------
-    >::type>::type>::type>::type>::type>::type>::type {};
-
 } // detail
 } // toml
 #endif// TOML11_TYPES_H
