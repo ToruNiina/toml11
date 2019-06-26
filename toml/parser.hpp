@@ -1973,7 +1973,7 @@ parse(std::istream& is, const std::string& fname = "unknown file")
 template<typename                     Comment = ::toml::discard_comments,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
-inline basic_value<Comment, Table, Array> parse(const std::string& fname)
+basic_value<Comment, Table, Array> parse(const std::string& fname)
 {
     std::ifstream ifs(fname.c_str(), std::ios_base::binary);
     if(!ifs.good())
