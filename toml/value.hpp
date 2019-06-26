@@ -1569,7 +1569,7 @@ class basic_value
 
     source_location location() const
     {
-        return source_location(this->region_info_);
+        return source_location(this->region_info_.get());
     }
 
     comment_type const& comments() const noexcept {return this->comments_;}
