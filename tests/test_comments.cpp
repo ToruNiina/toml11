@@ -475,4 +475,15 @@ BOOST_AUTO_TEST_CASE(test_output_comments)
 
         BOOST_TEST(oss.str() == ref.str());
     }
+    {
+        const value_type v(42, {"comment1", "comment2"});
+        std::ostringstream oss;
+
+        // If v is not a table, toml11 assumes that user is writing something
+        // like the following.
+
+        oss << "answer = " << v;
+
+        BOOST_TEST(oss.str() == "answer = 42 #comment1comment2");
+    }
 }
