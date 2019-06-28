@@ -682,13 +682,36 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
     const int  fprec = static_cast<int>(os.precision());
     os.width(0);
 
-    if(!v.comments().empty())
+    if(v.is_table() && !v.comments().empty())
     {
         os << v.comments();
         os << '\n'; // to split the file comment from the first element
     }
     // the root object can't be an inline table. so pass `false`.
     os << visit(serializer<C, M, V>(w, fprec, false), v);
+
+    // if v is a non-table value, and has only one comment, then
+    // put a comment just after a value. in the following way.
+    //
+    // ```toml
+    // key = "value" # comment.
+    // ```
+    //
+    // Since the top-level toml object is a table, one who want to put a
+    // non-table toml value must use this in a following way.
+    //
+    // ```cpp
+    // toml::value v;
+    // std::cout << "user-defined-key = " << v << std::endl;
+    // ```
+    //
+    // In this case, it is impossible to put comments before key-value pair.
+    // The only way to preserve comments is to put all of them after a value.
+    if(!v.is_table() && !v.comments().empty())
+    {
+        os << " #";
+        for(const auto& c : v.comments()) {os << c;}
+    }
     return os;
 }
 
