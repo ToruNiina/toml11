@@ -633,11 +633,8 @@ format(const basic_value<C, M, V>& v, std::size_t w = 80u,
         std::ostringstream oss;
         if(!v.comments().empty())
         {
-            for(const auto& c : v.comments())
-            {
-                oss << '#' << c << '\n';
-            }
-            oss << '\n';
+            oss << v.comments();
+            oss << '\n'; // to split the file comment from the first element
         }
         oss << visit(serializer<C, M, V>(w, fprec, false), v);
         return oss.str();
@@ -657,11 +654,8 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
 
     if(!v.comments().empty())
     {
-        for(const auto& c : v.comments())
-        {
-            os << '#' << c << '\n';
-        }
-        os << '\n';
+        os << v.comments();
+        os << '\n'; // to split the file comment from the first element
     }
     // the root object can't be an inline table. so pass `false`.
     os << visit(serializer<C, M, V>(w, fprec, false), v);
