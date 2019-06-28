@@ -194,3 +194,23 @@ BOOST_AUTO_TEST_CASE(test_hard_example_with_comment)
     }
     BOOST_TEST(data == serialized);
 }
+
+BOOST_AUTO_TEST_CASE(test_format_key)
+{
+    {
+        const toml::key key("normal_bare-key");
+        BOOST_TEST("normal_bare-key" == toml::format_key(key));
+    }
+    {
+        const toml::key key("key.include.dots");
+        BOOST_TEST("\"key.include.dots\"" == toml::format_key(key));
+    }
+    {
+        const toml::key key("key-include-unicode-\xE3\x81\x82");
+        BOOST_TEST("\"key-include-unicode-\xE3\x81\x82\"" == toml::format_key(key));
+    }
+    {
+        const toml::key key("special-chars-\\-\"-\b-\f-\r-\n-\t");
+        BOOST_TEST("\"special-chars-\\\\-\\\"-\\b-\\f-\\r-\\n-\\t\"" == toml::format_key(key));
+    }
+}
