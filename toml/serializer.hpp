@@ -10,6 +10,45 @@
 namespace toml
 {
 
+// This function serialize a key. It checks a string is a bare key and
+// escapes special characters if the string is not compatible to a bare key.
+// ```cpp
+// std::string k("non.bare.key"); // the key itself includes `.`s.
+// std::string formatted = toml::format_key(k);
+// assert(formatted == "\"non.bare.key\"");
+// ```
+//
+// This function is exposed to make it easy to write a user-defined serializer.
+// Since toml restricts characters available in a bare key, generally a string
+// should be escaped. But checking whether a string needs to be surrounded by
+// a `"` and escaping some special character is boring.
+inline std::string format_key(const toml::key& key)
+{
+    detail::location<toml::key> loc(key, key);
+    detail::lex_unquoted_key::invoke(loc);
+    if(loc.iter() == loc.end())
+    {
+        return key; // all the tokens are consumed. the key is unquoted-key.
+    }
+    std::string token("\"");
+    for(const char c : key)
+    {
+        switch(c)
+        {
+            case '\\': {token += "\\\\"; break;}
+            case '\"': {token += "\\\""; break;}
+            case '\b': {token += "\\b";  break;}
+            case '\t': {token += "\\t";  break;}
+            case '\f': {token += "\\f";  break;}
+            case '\n': {token += "\\n";  break;}
+            case '\r': {token += "\\r";  break;}
+            default  : {token += c;      break;}
+        }
+    }
+    token += "\"";
+    return token;
+}
+
 template<typename Comment,
          template<typename ...> class Table,
          template<typename ...> class Array>
@@ -390,16 +429,7 @@ struct serializer
 
     std::string serialize_key(const toml::key& key) const
     {
-        detail::location<toml::key> loc(key, key);
-        detail::lex_unquoted_key::invoke(loc);
-        if(loc.iter() == loc.end())
-        {
-            return key; // all the tokens are consumed. the key is unquoted-key.
-        }
-        std::string token("\"");
-        token += this->escape_basic_string(key);
-        token += "\"";
-        return token;
+        return ::toml::format_key(key);
     }
 
     std::string serialize_dotted_key(const std::vector<toml::key>& keys) const
