@@ -187,6 +187,17 @@ inline void swap(preserve_comments& lhs, preserve_comments& rhs)
     return;
 }
 
+template<typename charT, typename traits>
+std::basic_ostream<charT, traits>&
+operator<<(std::basic_ostream<charT, traits>& os, const preserve_comments& com)
+{
+    for(const auto& c : com)
+    {
+        os << '#' << c << '\n';
+    }
+    return os;
+}
+
 namespace detail
 {
 
@@ -380,6 +391,13 @@ inline bool operator> (const discard_comments&, const discard_comments&) noexcep
 inline bool operator>=(const discard_comments&, const discard_comments&) noexcept {return true;}
 
 inline void swap(const discard_comments&, const discard_comments&) noexcept {return;}
+
+template<typename charT, typename traits>
+std::basic_ostream<charT, traits>&
+operator<<(std::basic_ostream<charT, traits>& os, const discard_comments&)
+{
+    return os;
+}
 
 } // toml11
 #endif// TOML11_COMMENTS_HPP
