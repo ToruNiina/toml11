@@ -672,6 +672,34 @@ format(const basic_value<C, M, V>& v, std::size_t w = 80u,
     return visit(serializer<C, M, V>(w, fprec, force_inline), v);
 }
 
+namespace detail
+{
+template<typename charT, typename traits>
+int comment_index(std::basic_ostream<charT, traits>&)
+{
+    static const int index = std::ios_base::xalloc();
+    return index;
+}
+} // detail
+
+template<typename charT, typename traits>
+std::basic_ostream<charT, traits>&
+nocomment(std::basic_ostream<charT, traits>& os)
+{
+    // by default, it is zero. and by defalut, it shows comments.
+    os.iword(detail::comment_index(os)) = 1;
+    return os;
+}
+
+template<typename charT, typename traits>
+std::basic_ostream<charT, traits>&
+showcomment(std::basic_ostream<charT, traits>& os)
+{
+    // by default, it is zero. and by defalut, it shows comments.
+    os.iword(detail::comment_index(os)) = 0;
+    return os;
+}
+
 template<typename charT, typename traits, typename C,
          template<typename ...> class M, template<typename ...> class V>
 std::basic_ostream<charT, traits>&
@@ -682,7 +710,11 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
     const int  fprec = static_cast<int>(os.precision());
     os.width(0);
 
-    if(v.is_table() && !v.comments().empty())
+    // by defualt, iword is initialized byl 0. And by default, toml11 outputs
+    // comments. So `0` means showcomment. 1 means nocommnet.
+    const bool show_comment = (0 == os.iword(detail::comment_index(os)));
+
+    if(show_comment && v.is_table() && !v.comments().empty())
     {
         os << v.comments();
         os << '\n'; // to split the file comment from the first element
@@ -707,7 +739,7 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
     //
     // In this case, it is impossible to put comments before key-value pair.
     // The only way to preserve comments is to put all of them after a value.
-    if(!v.is_table() && !v.comments().empty())
+    if(show_comment && !v.is_table() && !v.comments().empty())
     {
         os << " #";
         for(const auto& c : v.comments()) {os << c;}
