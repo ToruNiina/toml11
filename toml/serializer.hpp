@@ -71,9 +71,10 @@ struct serializer
     serializer(const std::size_t w              = 80u,
                const int         float_prec     = std::numeric_limits<toml::floating>::max_digits10,
                const bool        can_be_inlined = false,
+               const bool        no_comment     = false,
                std::vector<toml::key> ks        = {})
-        : can_be_inlined_(can_be_inlined), float_prec_(float_prec), width_(w),
-          keys_(std::move(ks))
+        : can_be_inlined_(can_be_inlined), no_comment_(no_comment),
+          float_prec_(float_prec), width_(w), keys_(std::move(ks))
     {}
     ~serializer() = default;
 
@@ -256,11 +257,14 @@ struct serializer
                         failed = true;
                         break;
                     }
-                    for(const auto& c : item.comments())
+                    if(!no_comment_)
                     {
-                        token += '#';
-                        token += c;
-                        token += '\n';
+                        for(const auto& c : item.comments())
+                        {
+                            token += '#';
+                            token += c;
+                            token += '\n';
+                        }
                     }
 
                     const auto t = this->make_inline_table(item.as_table());
@@ -285,11 +289,14 @@ struct serializer
             std::string token;
             for(const auto& item : v)
             {
-                for(const auto& c : item.comments())
+                if(!no_comment_)
                 {
-                    token += '#';
-                    token += c;
-                    token += '\n';
+                    for(const auto& c : item.comments())
+                    {
+                        token += '#';
+                        token += c;
+                        token += '\n';
+                    }
                 }
                 token += "[[";
                 token += this->serialize_dotted_key(keys_);
@@ -326,7 +333,7 @@ struct serializer
         token += "[\n";
         for(const auto& item : v)
         {
-            if(!item.comments().empty())
+            if(!item.comments().empty() && !no_comment_)
             {
                 // if comment exists, the element must be the only element in the line.
                 // e.g. the following is not allowed.
@@ -502,6 +509,9 @@ struct serializer
     // if an element of a table or an array has a comment, it cannot be inlined.
     bool has_comment_inside(const array_type& a) const noexcept
     {
+        // if no_comment is set, comments would not be written.
+        if(this->no_comment_) {return false;}
+
         for(const auto& v : a)
         {
             if(!v.comments().empty()) {return true;}
@@ -510,6 +520,9 @@ struct serializer
     }
     bool has_comment_inside(const table_type& t) const noexcept
     {
+        // if no_comment is set, comments would not be written.
+        if(this->no_comment_) {return false;}
+
         for(const auto& kv : t)
         {
             if(!kv.second.comments().empty()) {return true;}
@@ -566,7 +579,7 @@ struct serializer
                 continue;
             }
 
-            if(!kv.second.comments().empty())
+            if(!kv.second.comments().empty() && !no_comment_)
             {
                 for(const auto& c : kv.second.comments())
                 {
@@ -605,8 +618,8 @@ struct serializer
             std::vector<toml::key> ks(this->keys_);
             ks.push_back(kv.first);
 
-            auto tmp = visit(serializer(
-                this->width_, this->float_prec_, !multiline_table_printed, ks),
+            auto tmp = visit(serializer(this->width_, this->float_prec_,
+                !multiline_table_printed, this->no_comment_, ks),
                 kv.second);
 
             if((!multiline_table_printed) &&
@@ -620,7 +633,7 @@ struct serializer
                 tmp += '\n';
             }
 
-            if(!kv.second.comments().empty())
+            if(!kv.second.comments().empty() && !no_comment_)
             {
                 for(const auto& c : kv.second.comments())
                 {
@@ -644,6 +657,7 @@ struct serializer
   private:
 
     bool        can_be_inlined_;
+    bool        no_comment_;
     int         float_prec_;
     std::size_t width_;
     std::vector<toml::key> keys_;
@@ -654,7 +668,7 @@ template<typename C,
 std::string
 format(const basic_value<C, M, V>& v, std::size_t w = 80u,
        int fprec = std::numeric_limits<toml::floating>::max_digits10,
-       bool force_inline = false)
+       bool no_comment = false, bool force_inline = false)
 {
     // if value is a table, it is considered to be a root object.
     // the root object can't be an inline table.
@@ -666,7 +680,7 @@ format(const basic_value<C, M, V>& v, std::size_t w = 80u,
             oss << v.comments();
             oss << '\n'; // to split the file comment from the first element
         }
-        oss << visit(serializer<C, M, V>(w, fprec, false), v);
+        oss << visit(serializer<C, M, V>(w, fprec, no_comment, false), v);
         return oss.str();
     }
     return visit(serializer<C, M, V>(w, fprec, force_inline), v);
@@ -712,15 +726,15 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
 
     // by defualt, iword is initialized byl 0. And by default, toml11 outputs
     // comments. So `0` means showcomment. 1 means nocommnet.
-    const bool show_comment = (0 == os.iword(detail::comment_index(os)));
+    const bool no_comment = (1 == os.iword(detail::comment_index(os)));
 
-    if(show_comment && v.is_table() && !v.comments().empty())
+    if(!no_comment && v.is_table() && !v.comments().empty())
     {
         os << v.comments();
         os << '\n'; // to split the file comment from the first element
     }
     // the root object can't be an inline table. so pass `false`.
-    os << visit(serializer<C, M, V>(w, fprec, false), v);
+    os << visit(serializer<C, M, V>(w, fprec, false, no_comment), v);
 
     // if v is a non-table value, and has only one comment, then
     // put a comment just after a value. in the following way.
@@ -739,7 +753,7 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
     //
     // In this case, it is impossible to put comments before key-value pair.
     // The only way to preserve comments is to put all of them after a value.
-    if(show_comment && !v.is_table() && !v.comments().empty())
+    if(!no_comment && !v.is_table() && !v.comments().empty())
     {
         os << " #";
         for(const auto& c : v.comments()) {os << c;}
