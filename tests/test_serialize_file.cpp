@@ -11,6 +11,39 @@
 #include <iostream>
 #include <fstream>
 
+template<typename Comment,
+         template<typename ...> class Table,
+         template<typename ...> class Array>
+bool has_comment_inside(const toml::basic_value<Comment, Table, Array>& v)
+{
+    if(!v.comments().empty())
+    {
+        return false;
+    }
+    // v itself does not have a comment.
+    if(v.is_array())
+    {
+        for(const auto& x : v.as_array())
+        {
+            if(has_comment_inside(x))
+            {
+                return false;
+            }
+        }
+    }
+    if(v.is_table())
+    {
+        for(const auto& x : v.as_table())
+        {
+            if(has_comment_inside(x.second))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 BOOST_AUTO_TEST_CASE(test_example)
 {
     const auto data = toml::parse("toml/tests/example.toml");
@@ -37,12 +70,12 @@ BOOST_AUTO_TEST_CASE(test_example_map_dq)
     const auto data = toml::parse<toml::discard_comments, std::map, std::deque>(
             "toml/tests/example.toml");
     {
-        std::ofstream ofs("tmp1.toml");
+        std::ofstream ofs("tmp1_map_dq.toml");
         ofs << std::setw(80) << data;
     }
 
     auto serialized = toml::parse<toml::discard_comments, std::map, std::deque>(
-            "tmp1.toml");
+            "tmp1_map_dq.toml");
     {
         auto& owner = toml::find(serialized, "owner");
         auto& bio   = toml::find<std::string>(owner, "bio");
@@ -80,17 +113,37 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment)
     }
 }
 
+BOOST_AUTO_TEST_CASE(test_example_with_comment_nocomment)
+{
+    {
+        const auto data = toml::parse<toml::preserve_comments>("toml/tests/example.toml");
+        {
+            std::ofstream ofs("tmp1_com_nocomment.toml");
+            ofs << std::setw(80) << toml::nocomment << data;
+        }
+        const auto serialized = toml::parse<toml::preserve_comments>("tmp1_com_nocomment.toml");
+        // check no comment exist
+        BOOST_TEST(!has_comment_inside(serialized));
+    }
+    {
+        const auto data_nocomment = toml::parse("toml/tests/example.toml");
+        const auto serialized     = toml::parse("tmp1_com_nocomment.toml");
+        // check collectly serialized
+        BOOST_TEST(data_nocomment == serialized);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(test_example_with_comment_map_dq)
 {
     const auto data = toml::parse<toml::preserve_comments, std::map, std::deque>(
             "toml/tests/example.toml");
     {
-        std::ofstream ofs("tmp1_com.toml");
+        std::ofstream ofs("tmp1_com_map_dq.toml");
         ofs << std::setw(80) << data;
     }
 
     auto serialized = toml::parse<toml::preserve_comments, std::map, std::deque>(
-            "tmp1_com.toml");
+            "tmp1_com_map_dq.toml");
     {
         auto& owner = toml::find(serialized, "owner");
         auto& bio   = toml::find<std::string>(owner, "bio");
@@ -102,8 +155,26 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment_map_dq)
     }
     BOOST_TEST(data == serialized);
     {
-        std::ofstream ofs("tmp1_com1.toml");
+        std::ofstream ofs("tmp1_com1_map_dq.toml");
         ofs << std::setw(80) << serialized;
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_example_with_comment_map_dq_nocomment)
+{
+    {
+        const auto data = toml::parse<toml::preserve_comments, std::map, std::deque>("toml/tests/example.toml");
+        {
+            std::ofstream ofs("tmp1_com_map_dq_nocomment.toml");
+            ofs << std::setw(80) << toml::nocomment << data;
+        }
+        const auto serialized = toml::parse<toml::preserve_comments, std::map, std::deque>("tmp1_com_map_dq_nocomment.toml");
+        BOOST_TEST(!has_comment_inside(serialized));
+    }
+    {
+        const auto data_nocomment = toml::parse("toml/tests/example.toml");
+        const auto serialized     = toml::parse("tmp1_com_map_dq_nocomment.toml");
+        BOOST_TEST(data_nocomment == serialized);
     }
 }
 
