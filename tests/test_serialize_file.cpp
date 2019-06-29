@@ -127,7 +127,16 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment_nocomment)
     }
     {
         const auto data_nocomment = toml::parse("toml/tests/example.toml");
-        const auto serialized     = toml::parse("tmp1_com_nocomment.toml");
+        auto serialized = toml::parse("tmp1_com_nocomment.toml");
+        {
+            auto& owner = toml::find(serialized, "owner");
+            auto& bio   = toml::find<std::string>(owner, "bio");
+            const auto CR = std::find(bio.begin(), bio.end(), '\r');
+            if(CR != bio.end())
+            {
+                bio.erase(CR);
+            }
+        }
         // check collectly serialized
         BOOST_TEST(data_nocomment == serialized);
     }
@@ -173,7 +182,16 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment_map_dq_nocomment)
     }
     {
         const auto data_nocomment = toml::parse("toml/tests/example.toml");
-        const auto serialized     = toml::parse("tmp1_com_map_dq_nocomment.toml");
+        auto serialized = toml::parse("tmp1_com_map_dq_nocomment.toml");
+        {
+            auto& owner = toml::find(serialized, "owner");
+            auto& bio   = toml::find<std::string>(owner, "bio");
+            const auto CR = std::find(bio.begin(), bio.end(), '\r');
+            if(CR != bio.end())
+            {
+                bio.erase(CR);
+            }
+        }
         BOOST_TEST(data_nocomment == serialized);
     }
 }
