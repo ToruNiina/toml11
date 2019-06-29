@@ -139,9 +139,74 @@ operator>=(const char* lhs, const string& rhs) {return std::string(lhs) >= rhs.s
 
 template<typename charT, typename traits>
 std::basic_ostream<charT, traits>&
-operator<<(std::basic_ostream<charT, traits>& os, const string& str)
+operator<<(std::basic_ostream<charT, traits>& os, const string& s)
 {
-    os << str.str;
+    if(s.kind == string_t::basic)
+    {
+        if(std::find(s.str.cbegin(), s.str.cend(), '\n') != s.str.cend())
+        {
+            // it contains newline. make it multiline string.
+            os << "\"\"\"\n";
+            for(auto i=s.str.cbegin(), e=s.str.cend(); i!=e; ++i)
+            {
+                switch(*i)
+                {
+                    case '\\': {os << "\\\\"; break;}
+                    case '\"': {os << "\\\""; break;}
+                    case '\b': {os << "\\b";  break;}
+                    case '\t': {os << "\\t";  break;}
+                    case '\f': {os << "\\f";  break;}
+                    case '\n': {os << '\n';   break;}
+                    case '\r':
+                    {
+                        // since it is a multiline string,
+                        // CRLF is not needed to be escaped.
+                        if(std::next(i) != e && *std::next(i) == '\n')
+                        {
+                            os << "\r\n";
+                            ++i;
+                        }
+                        else
+                        {
+                            os << "\\r";
+                        }
+                        break;
+                    }
+                    default: {os << *i; break;}
+                }
+            }
+            os << "\\\n\"\"\"";
+            return os;
+        }
+        // no newline. make it inline.
+        os << "\"";
+        for(const auto c : s.str)
+        {
+            switch(c)
+            {
+                case '\\': {os << "\\\\"; break;}
+                case '\"': {os << "\\\""; break;}
+                case '\b': {os << "\\b";  break;}
+                case '\t': {os << "\\t";  break;}
+                case '\f': {os << "\\f";  break;}
+                case '\n': {os << "\\n";  break;}
+                case '\r': {os << "\\r";  break;}
+                default  : {os << c;      break;}
+            }
+        }
+        os << "\"";
+        return os;
+    }
+    // the string `s` is literal-string.
+    if(std::find(s.str.cbegin(), s.str.cend(), '\n') != s.str.cend() ||
+       std::find(s.str.cbegin(), s.str.cend(), '\'') != s.str.cend() )
+    {
+        // contains newline or single quote. make it multiline.
+        os << "'''\n" << s.str << "'''";
+        return os;
+    }
+    // normal literal string
+    os << '\'' << s.str << '\'';
     return os;
 }
 
