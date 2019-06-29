@@ -79,4 +79,5 @@ workflows:
   test:
     jobs:
       - test_suite
+      - test_serialization
       - output_result
