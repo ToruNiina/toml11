@@ -1,0 +1,113 @@
+#define BOOST_TEST_MODULE "test_string"
+#include <boost/test/unit_test.hpp>
+#include <toml.hpp>
+
+BOOST_AUTO_TEST_CASE(test_basic_string)
+{
+    {
+        const toml::string str("basic string");
+        std::ostringstream oss;
+        oss << str;
+        BOOST_TEST(oss.str() == "\"basic string\"");
+    }
+    {
+        const std::string  s1 ("basic string");
+        const toml::string str(s1);
+        std::ostringstream oss;
+        oss << str;
+        BOOST_TEST(oss.str() == "\"basic string\"");
+    }
+    {
+        const toml::string str("basic string", toml::string_t::basic);
+        std::ostringstream oss;
+        oss << str;
+        BOOST_TEST(oss.str() == "\"basic string\"");
+    }
+    {
+        const std::string  s1 ("basic string");
+        const toml::string str(s1, toml::string_t::basic);
+        std::ostringstream oss;
+        oss << str;
+        BOOST_TEST(oss.str() == "\"basic string\"");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_basic_ml_string)
+{
+    {
+        const toml::string str("basic\nstring");
+        std::ostringstream oss1;
+        oss1 << str;
+        std::ostringstream oss2;
+        oss2 << "\"\"\"\nbasic\nstring\\\n\"\"\"";
+        BOOST_TEST(oss1.str() == oss2.str());
+    }
+    {
+        const std::string  s1 ("basic\nstring");
+        const toml::string str(s1);
+        std::ostringstream oss1;
+        oss1 << str;
+        std::ostringstream oss2;
+        oss2 << "\"\"\"\nbasic\nstring\\\n\"\"\"";
+        BOOST_TEST(oss1.str() == oss2.str());
+    }
+    {
+        const toml::string str("basic\nstring", toml::string_t::basic);
+        std::ostringstream oss1;
+        oss1 << str;
+        std::ostringstream oss2;
+        oss2 << "\"\"\"\nbasic\nstring\\\n\"\"\"";
+        BOOST_TEST(oss1.str() == oss2.str());
+
+    }
+    {
+        const std::string  s1 ("basic\nstring");
+        const toml::string str(s1, toml::string_t::basic);
+        std::ostringstream oss1;
+        oss1 << str;
+        std::ostringstream oss2;
+        oss2 << "\"\"\"\nbasic\nstring\\\n\"\"\"";
+        BOOST_TEST(oss1.str() == oss2.str());
+    }
+}
+
+
+BOOST_AUTO_TEST_CASE(test_literal_string)
+{
+    {
+        const toml::string str("literal string", toml::string_t::literal);
+        std::ostringstream oss;
+        oss << str;
+        BOOST_TEST(oss.str() == "'literal string'");
+    }
+    {
+        const std::string  s1 ("literal string");
+        const toml::string str(s1, toml::string_t::literal);
+        std::ostringstream oss;
+        oss << str;
+        BOOST_TEST(oss.str() == "'literal string'");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_literal_ml_string)
+{
+    {
+        const toml::string str("literal\nstring", toml::string_t::literal);
+        std::ostringstream oss1;
+        oss1 << str;
+        std::ostringstream oss2;
+        oss2 << "'''\nliteral\nstring'''";
+        BOOST_TEST(oss1.str() == oss2.str());
+
+    }
+    {
+        const std::string  s1 ("literal\nstring");
+        const toml::string str(s1, toml::string_t::literal);
+        std::ostringstream oss1;
+        oss1 << str;
+        std::ostringstream oss2;
+        oss2 << "'''\nliteral\nstring'''";
+        BOOST_TEST(oss1.str() == oss2.str());
+    }
+}
+

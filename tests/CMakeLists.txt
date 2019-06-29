@@ -1,5 +1,6 @@
 set(TEST_NAMES
     test_datetime
+    test_string
     test_utility
     test_result
     test_traits
