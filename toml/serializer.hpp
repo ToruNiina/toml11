@@ -415,7 +415,8 @@ struct serializer
                 token += " = ";
             }
             token += this->make_inline_table(v);
-            if(token.size() < this->width_)
+            if(token.size() < this->width_ &&
+               token.end() == std::find(token.begin(), token.end(), '\n'))
             {
                 return token;
             }
