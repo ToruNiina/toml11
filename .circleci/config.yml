@@ -32,7 +32,7 @@ jobs:
                 do echo "==> ${f}";
                 cat ${f};
                 echo "---------------------------------------";
-                ./check_serialization ${f} invalid;
+                ./check_serialization ${f};
                 if [ $? -ne 0 ] ; then
                   exit 1
                 fi
