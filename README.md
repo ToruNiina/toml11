@@ -19,7 +19,8 @@ Not only the test suite itself, a TOML reader/encoder also runs on [CircleCI](ht
 You can see the error messages about invalid files and serialization results of valid files at
 [CircleCI](https://circleci.com/gh/ToruNiina/toml11).
 
-Now a beta version of [the next major update](https://github.com/ToruNiina/toml11/tree/v3) is released. Try it!
+Now the master branch is showing a beta version of the version 3.
+It has some breaking changes from v2. Please be careful.
 
 ## Example
 
