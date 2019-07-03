@@ -9,6 +9,7 @@
 #include <initializer_list>
 #include <iterator>
 #include <iomanip>
+#include <cassert>
 
 namespace toml
 {
@@ -53,9 +54,7 @@ struct region_base
     // number of characters in the line after the region
     virtual std::size_t after()    const noexcept {return 0;}
 
-    virtual std::string comment_before() const {return "";} // just before
-    virtual std::string comment_inline() const {return "";} // in the same line
-    virtual std::string comment()        const {return "";} // concatenate
+    virtual std::vector<std::string> comments()const {return {};}
     // ```toml
     // # comment_before
     // key = "value" # comment_inline
@@ -70,8 +69,9 @@ struct region_base
 template<typename Container>
 struct location final : public region_base
 {
-    using const_iterator = typename Container::const_iterator;
-    using source_ptr     = std::shared_ptr<const Container>;
+    using const_iterator  = typename Container::const_iterator;
+    using difference_type = typename const_iterator::difference_type;
+    using source_ptr      = std::shared_ptr<const Container>;
 
     static_assert(std::is_same<char, typename Container::value_type>::value,"");
     static_assert(std::is_same<std::random_access_iterator_tag,
@@ -104,15 +104,17 @@ struct location final : public region_base
     // to the location changes the point to look. So an overload of `iter()`
     // which returns mutable reference is removed and `advance()`, `retrace()`
     // and `reset()` is added.
-    void advance(std::size_t n = 1) noexcept
+    void advance(difference_type n = 1) noexcept
     {
-        this->line_number_ += std::count(this->iter_, this->iter_ + n, '\n');
+        this->line_number_ += static_cast<std::size_t>(
+                std::count(this->iter_, std::next(this->iter_, n), '\n'));
         this->iter_ += n;
         return;
     }
-    void retrace(std::size_t n = 1) noexcept
+    void retrace(difference_type n = 1) noexcept
     {
-        this->line_number_ -= std::count(this->iter_ - n, this->iter_, '\n');
+        this->line_number_ -= static_cast<std::size_t>(
+                std::count(std::prev(this->iter_, n), this->iter_, '\n'));
         this->iter_ -= n;
         return;
     }
@@ -122,11 +124,13 @@ struct location final : public region_base
         // iterators and returns a negative value if `first > last`.
         if(0 <= std::distance(rollback, this->iter_)) // rollback < iter
         {
-            this->line_number_ -= std::count(rollback, this->iter_, '\n');
+            this->line_number_ -= static_cast<std::size_t>(
+                    std::count(rollback, this->iter_, '\n'));
         }
         else // iter < rollback [[unlikely]]
         {
-            this->line_number_ += std::count(this->iter_, rollback, '\n');
+            this->line_number_ += static_cast<std::size_t>(
+                    std::count(this->iter_, rollback, '\n'));
         }
         this->iter_ = rollback;
         return;
@@ -163,11 +167,15 @@ struct location final : public region_base
     }
     std::size_t before() const noexcept override
     {
-        return std::distance(this->line_begin(), this->iter());
+        const auto sz = std::distance(this->line_begin(), this->iter());
+        assert(sz >= 0);
+        return static_cast<std::size_t>(sz);
     }
     std::size_t after() const noexcept override
     {
-        return std::distance(this->iter(), this->line_end());
+        const auto sz = std::distance(this->iter(), this->line_end());
+        assert(sz >= 0);
+        return static_cast<std::size_t>(sz);
     }
 
     source_ptr const& source() const& noexcept {return source_;}
@@ -251,15 +259,21 @@ struct region final : public region_base
 
     std::size_t size() const noexcept override
     {
-        return std::distance(first_, last_);
+        const auto sz = std::distance(first_, last_);
+        assert(sz >= 0);
+        return static_cast<std::size_t>(sz);
     }
     std::size_t before() const noexcept override
     {
-        return std::distance(this->line_begin(), this->first());
+        const auto sz = std::distance(this->line_begin(), this->first());
+        assert(sz >= 0);
+        return static_cast<std::size_t>(sz);
     }
     std::size_t after() const noexcept override
     {
-        return std::distance(this->last(), this->line_end());
+        const auto sz = std::distance(this->last(), this->line_end());
+        assert(sz >= 0);
+        return static_cast<std::size_t>(sz);
     }
 
     bool contain_newline() const noexcept
@@ -288,90 +302,112 @@ struct region final : public region_base
 
     std::string name() const override {return source_name_;}
 
-    std::string comment_before() const override
+    std::vector<std::string> comments() const override
     {
-        auto iter = this->line_begin(); // points the first element
-        std::vector<std::pair<decltype(iter), decltype(iter)>> comments;
-        while(iter != this->begin())
-        {
-            iter = std::prev(iter);
-            using rev_iter = std::reverse_iterator<decltype(iter)>;
-            auto line_before = std::find(rev_iter(iter), rev_iter(this->begin()),
-                                         '\n').base();
-            // range [line_before, iter) represents the previous line
+        // assuming the current region (`*this`) points a value.
+        // ```toml
+        // a = "value"
+        //     ^^^^^^^- this region
+        // ```
+        using rev_iter = std::reverse_iterator<const_iterator>;
 
-            auto comment_found = std::find(line_before, iter, '#');
-            if(iter != comment_found && std::all_of(line_before, comment_found,
-                    [](const char c) noexcept -> bool {
-                        return c == ' ' || c == '\t';
-                    }))
+        std::vector<std::string> com{};
+        {
+            // find comments just before the current region.
+            // ```toml
+            // # this should be collected.
+            // # this also.
+            // a = value # not this.
+            // ```
+
+            // # this is a comment for `a`, not array elements.
+            // a = [1, 2, 3, 4, 5]
+            if(this->first() == std::find_if(this->line_begin(), this->first(),
+                [](const char c) noexcept -> bool {return c == '[' || c == '{';}))
             {
-                // the line before this range contains only a comment.
-                comments.push_back(std::make_pair(comment_found, iter));
+                auto iter = this->line_begin(); // points the first character
+                while(iter != this->begin())
+                {
+                    iter = std::prev(iter);
+
+                    // range [line_start, iter) represents the previous line
+                    const auto line_start   = std::find(
+                            rev_iter(iter), rev_iter(this->begin()), '\n').base();
+                    const auto comment_found = std::find(line_start, iter, '#');
+                    if(comment_found == iter)
+                    {
+                        break; // comment not found.
+                    }
+
+                    // exclude the following case.
+                    // > a = "foo" # comment // <-- this is not a comment for b but a.
+                    // > b = "current value"
+                    if(std::all_of(line_start, comment_found,
+                            [](const char c) noexcept -> bool {
+                                return c == ' ' || c == '\t';
+                            }))
+                    {
+                        // unwrap the first '#' by std::next.
+                        auto str = make_string(std::next(comment_found), iter);
+                        if(str.back() == '\r') {str.pop_back();}
+                        com.push_back(std::move(str));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    iter = line_start;
+                }
             }
-            else
-            {
-                break;
-            }
-            iter = line_before;
         }
 
-        std::string com;
-        for(auto i = comments.crbegin(), e = comments.crend(); i!=e; ++i)
+        if(com.size() > 1)
         {
-            if(i != comments.crbegin()) {com += '\n';}
-            com += std::string(i->first, i->second);
+            std::reverse(com.begin(), com.end());
+        }
+
+        {
+            // find comments just after the current region.
+            // ```toml
+            // # not this.
+            // a = value # this one.
+            // a = [ # not this (technically difficult)
+            //
+            // ] # and this.
+            // ```
+            // The reason why it's difficult is that it requires parsing in the
+            // following case.
+            // ```toml
+            // a = [ 10 # this comment is for `10`. not for `a` but `a[0]`.
+            // # ...
+            // ] # this is apparently a comment for a.
+            //
+            // b = [
+            // 3.14 ] # there is no way to add a comment to `3.14` currently.
+            //
+            // c = [
+            //   3.14 # do this if you need a comment here.
+            // ]
+            // ```
+            const auto comment_found =
+                std::find(this->last(), this->line_end(), '#');
+            if(comment_found != this->line_end()) // '#' found
+            {
+                // table = {key = "value"} # what is this for?
+                // the above comment is not for "value", but {key="value"}.
+                if(comment_found == std::find_if(this->last(), comment_found,
+                    [](const char c) noexcept -> bool {
+                        return !(c == ' ' || c == '\t' || c == ',');
+                    }))
+                {
+                    // unwrap the first '#' by std::next.
+                    auto str = make_string(std::next(comment_found), this->line_end());
+                    if(str.back() == '\r') {str.pop_back();}
+                    com.push_back(std::move(str));
+                }
+            }
         }
         return com;
-    }
-
-    std::string comment_inline() const override
-    {
-        if(this->contain_newline())
-        {
-            std::string com;
-            // check both the first and the last line.
-            const auto first_line_end =
-                std::find(this->line_begin(), this->last(), '\n');
-            const auto first_comment_found =
-                std::find(this->line_begin(), first_line_end, '#');
-
-            if(first_comment_found != first_line_end)
-            {
-                com += std::string(first_comment_found, first_line_end);
-            }
-
-            const auto last_comment_found =
-                std::find(this->last(), this->line_end(), '#');
-            if(last_comment_found != this->line_end())
-            {
-                if(!com.empty()){com += '\n';}
-                com += std::string(last_comment_found, this->line_end());
-            }
-            return com;
-        }
-        const auto comment_found =
-            std::find(this->line_begin(), this->line_end(), '#');
-        return std::string(comment_found, this->line_end());
-    }
-
-    std::string comment() const override
-    {
-        std::string com_bef = this->comment_before();
-        std::string com_inl = this->comment_inline();
-        if(!com_bef.empty() && !com_inl.empty())
-        {
-            com_bef += '\n';
-            return com_bef + com_inl;
-        }
-        else if(com_bef.empty())
-        {
-            return com_inl;
-        }
-        else
-        {
-            return com_bef;
-        }
     }
 
   private:
@@ -383,47 +419,42 @@ struct region final : public region_base
 
 // to show a better error message.
 inline std::string format_underline(const std::string& message,
-        std::vector<std::pair<region_base const*, std::string>> reg_com,
-        std::vector<std::string> helps = {})
+        const std::vector<std::pair<region_base const*, std::string>>& reg_com,
+        const std::vector<std::string>& helps = {})
 {
     assert(!reg_com.empty());
 
-#ifdef _WIN32
-    const auto newline = "\r\n";
-#else
-    const char newline = '\n';
-#endif
-
-    const auto line_num_width = std::max_element(reg_com.begin(), reg_com.end(),
+    const auto line_num_width = static_cast<int>(std::max_element(
+        reg_com.begin(), reg_com.end(),
         [](std::pair<region_base const*, std::string> const& lhs,
            std::pair<region_base const*, std::string> const& rhs)
         {
             return lhs.first->line_num().size() < rhs.first->line_num().size();
         }
-    )->first->line_num().size();
+    )->first->line_num().size());
 
     std::ostringstream retval;
-    retval << message << newline;
+    retval << message << '\n';
 
-    for(std::size_t i=0; i<reg_com.size(); ++i)
+    for(auto iter = reg_com.begin(); iter != reg_com.end(); ++iter)
     {
-        if(i!=0 && reg_com.at(i-1).first->name() == reg_com.at(i).first->name())
+        // if the filenames are the same, print "..."
+        if(iter != reg_com.begin() &&
+           std::prev(iter)->first->name() == iter->first->name())
         {
-            retval << newline << " ..." << newline;
+            retval << "\n ...\n";
         }
-        else
+        else // if filename differs, print " --> filename.toml"
         {
-            if(i != 0) {retval << newline;}
-            retval << " --> " << reg_com.at(i).first->name() << newline;
+            if(iter != reg_com.begin()) {retval << '\n';}
+            retval << " --> " << iter->first->name() << '\n';
         }
-
-        const region_base* const reg = reg_com.at(i).first;
-        const std::string&   comment = reg_com.at(i).second;
-
+        const region_base* const reg = iter->first;
+        const std::string&   comment = iter->second;
 
         retval << ' ' << std::setw(line_num_width) << reg->line_num();
-        retval << " | " << reg->line() << newline;
-        retval << make_string(line_num_width + 1, ' ');
+        retval << " | " << reg->line() << '\n';
+        retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ');
         retval << " | " << make_string(reg->before(), ' ');
 
         if(reg->size() == 1)
@@ -440,20 +471,18 @@ inline std::string format_underline(const std::string& message,
             const auto underline_len = std::min(reg->size(), reg->line().size());
             retval << make_string(underline_len, '~');
         }
-
         retval << ' ';
         retval << comment;
     }
 
-    if(helps.size() != 0)
+    if(!helps.empty())
     {
-        retval << newline;
-        retval << make_string(line_num_width + 1, ' ');
+        retval << '\n';
+        retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ');
         retval << " | ";
         for(const auto help : helps)
         {
-            retval << newline;
-            retval << "Hint: ";
+            retval << "\nHint: ";
             retval << help;
         }
     }

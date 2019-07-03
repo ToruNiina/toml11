@@ -84,8 +84,8 @@ struct json_serializer
         {
             if(!is_first) {std::cout << ", ";}
             is_first = false;
-            std::cout << toml::format(toml::string(elem.first),
-                                      std::numeric_limits<std::size_t>::max());
+            std::cout << toml::format(toml::value(elem.first),
+                    std::numeric_limits<std::size_t>::max());
             std::cout << ':';
             toml::visit(*this, elem.second);
         }

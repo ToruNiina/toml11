@@ -15,15 +15,11 @@
 
 namespace toml
 {
-
-class value; // forward decl
+template<typename C, template<typename ...> class T, template<typename ...> class A>
+class basic_value;
 
 namespace detail
 {
-
-template<typename T>
-using unwrap_t = typename std::decay<T>::type;
-
 // ---------------------------------------------------------------------------
 // check whether type T is a kind of container/map class
 
@@ -54,12 +50,22 @@ struct has_resize_method_impl
     template<typename T> static std::false_type check(...);
 };
 
+struct is_comparable_impl
+{
+    template<typename T> static std::true_type  check(decltype(std::declval<T>() < std::declval<T>())*);
+    template<typename T> static std::false_type check(...);
+};
+
 struct has_from_toml_method_impl
 {
-    template<typename T>
+    template<typename T, typename C,
+             template<typename ...> class Tb, template<typename ...> class A>
     static std::true_type  check(
-        decltype(std::declval<T>().from_toml(std::declval<::toml::value>()))*);
-    template<typename T>
+        decltype(std::declval<T>().from_toml(
+                std::declval<::toml::basic_value<C, Tb, A>>()))*);
+
+    template<typename T, typename C,
+             template<typename ...> class Tb, template<typename ...> class A>
     static std::false_type check(...);
 };
 struct has_into_toml_method_impl
@@ -86,10 +92,14 @@ template<typename T>
 struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
 template<typename T>
 struct has_resize_method : decltype(has_resize_method_impl::check<T>(nullptr)){};
-
 template<typename T>
+struct is_comparable : decltype(is_comparable_impl::check<T>(nullptr)){};
+
+template<typename T, typename C,
+         template<typename ...> class Tb, template<typename ...> class A>
 struct has_from_toml_method
-: decltype(has_from_toml_method_impl::check<T>(nullptr)){};
+: decltype(has_from_toml_method_impl::check<T, C, Tb, A>(nullptr)){};
+
 template<typename T>
 struct has_into_toml_method
 : decltype(has_into_toml_method_impl::check<T>(nullptr)){};
@@ -160,6 +170,15 @@ template<typename T> struct is_container<T const&>          : is_container<T>{};
 template<typename T> struct is_container<T volatile&>       : is_container<T>{};
 template<typename T> struct is_container<T const volatile&> : is_container<T>{};
 
+template<typename T>
+struct is_basic_value: std::false_type{};
+template<typename T> struct is_basic_value<T&>                : is_basic_value<T>{};
+template<typename T> struct is_basic_value<T const&>          : is_basic_value<T>{};
+template<typename T> struct is_basic_value<T volatile&>       : is_basic_value<T>{};
+template<typename T> struct is_basic_value<T const volatile&> : is_basic_value<T>{};
+template<typename C, template<typename ...> class M, template<typename ...> class V>
+struct is_basic_value<::toml::basic_value<C, M, V>>: std::true_type{};
+
 // ---------------------------------------------------------------------------
 // C++14 index_sequence
 
@@ -185,6 +204,11 @@ struct index_sequence_maker<0>
 };
 template<std::size_t N>
 using make_index_sequence = typename index_sequence_maker<N-1>::type;
+
+// ---------------------------------------------------------------------------
+// C++14 enable_if_t
+template<bool B, typename T>
+using enable_if_t = typename std::enable_if<B, T>::type;
 
 // ---------------------------------------------------------------------------
 // return_type_of_t

@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE "test_value"
+#define BOOST_TEST_MODULE "test_format_error"
 #ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
 #include <boost/test/unit_test.hpp>
 #else

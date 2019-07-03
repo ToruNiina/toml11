@@ -32,20 +32,20 @@ BOOST_AUTO_TEST_CASE(test_fractional)
 
 BOOST_AUTO_TEST_CASE(test_fractional_value)
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "1.0",               value( 1.0));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "0.1",               value( 0.1));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "0.001",             value( 0.001));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "0.100",             value( 0.1));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "+3.14",             value( 3.14));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "-3.14",             value(-3.14));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "3.1415_9265_3589",  value( 3.141592653589));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "+3.1415_9265_3589", value( 3.141592653589));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "-3.1415_9265_3589", value(-3.141592653589));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "123_456.789",       value( 123456.789));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "+123_456.789",      value( 123456.789));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "-123_456.789",      value(-123456.789));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "+0.0",              value( 0.0));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "-0.0",              value(-0.0));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1.0",               value( 1.0));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0.1",               value( 0.1));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0.001",             value( 0.001));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0.100",             value( 0.1));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "+3.14",             value( 3.14));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "-3.14",             value(-3.14));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "3.1415_9265_3589",  value( 3.141592653589));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "+3.1415_9265_3589", value( 3.141592653589));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "-3.1415_9265_3589", value(-3.141592653589));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "123_456.789",       value( 123456.789));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "+123_456.789",      value( 123456.789));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "-123_456.789",      value(-123456.789));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "+0.0",              value( 0.0));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "-0.0",              value(-0.0));
 }
 
 BOOST_AUTO_TEST_CASE(test_exponential)
@@ -72,24 +72,24 @@ BOOST_AUTO_TEST_CASE(test_exponential)
 
 BOOST_AUTO_TEST_CASE(test_exponential_value)
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "1e10",       value(1e10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "1e+10",      value(1e10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "1e-10",      value(1e-10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "+1e10",      value(1e10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "+1e+10",     value(1e10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "+1e-10",     value(1e-10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "-1e10",      value(-1e10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "-1e+10",     value(-1e10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "-1e-10",     value(-1e-10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "123e-10",    value(123e-10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "1E10",       value(1e10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "1E+10",      value(1e10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "1E-10",      value(1e-10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "123E-10",    value(123e-10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "1_2_3E-10",  value(123e-10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "1_2_3E-1_0", value(123e-10));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "+0e0",       value( 0.0));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "-0e0",       value(-0.0));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1e10",       value(1e10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1e+10",      value(1e10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1e-10",      value(1e-10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "+1e10",      value(1e10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "+1e+10",     value(1e10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "+1e-10",     value(1e-10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "-1e10",      value(-1e10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "-1e+10",     value(-1e10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "-1e-10",     value(-1e-10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "123e-10",    value(123e-10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1E10",       value(1e10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1E+10",      value(1e10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1E-10",      value(1e-10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "123E-10",    value(123e-10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1_2_3E-10",  value(123e-10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1_2_3E-1_0", value(123e-10));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "+0e0",       value( 0.0));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "-0e0",       value(-0.0));
 }
 BOOST_AUTO_TEST_CASE(test_fe)
 {
@@ -99,9 +99,9 @@ BOOST_AUTO_TEST_CASE(test_fe)
 }
 BOOST_AUTO_TEST_CASE(test_fe_vaule)
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "6.02e23",          value(6.02e23));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "6.02e+23",         value(6.02e23));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value, "1.112_650_06e-17", value(1.11265006e-17));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "6.02e23",          value(6.02e23));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "6.02e+23",         value(6.02e23));
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1.112_650_06e-17", value(1.11265006e-17));
 }
 
 BOOST_AUTO_TEST_CASE(test_inf)

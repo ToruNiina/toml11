@@ -29,14 +29,14 @@ Now a beta version of [the next major update](https://github.com/ToruNiina/toml1
 
 int main()
 {
-    const auto data  = toml::parse("example.toml");
+    const auto data = toml::parse("example.toml");
 
     // title = "an example toml file"
-    std::string title = toml::get<std::string>(data.at("title"));
+    std::string title = toml::find<std::string>(data, "title");
     std::cout << "the title is " << title << std::endl;
 
     // nums = [1, 2, 3, 4, 5]
-    std::vector<int> nums  = toml::get<std::vector<int>>(data.at("nums"));
+    std::vector<int> nums  = toml::find<std::vector<int>>(data, "nums");
     std::cout << "the length of `nums` is" << nums.size() << std::endl;
 
     return 0;
@@ -48,26 +48,30 @@ int main()
 - [Integration](#integration)
 - [Decoding a toml file](#decoding-a-toml-file)
   - [In the case of syntax error](#in-the-case-of-syntax-error)
-- [Getting a toml value](#getting-a-toml-value)
+  - [Invalid UTF-8 Codepoints](#invalid-utf-8-codepoints)
+- [Finding a toml value](#finding-a-toml-value-from-a-table)
   - [In the case of type error](#in-the-case-of-type-error)
-- [Getting an array](#getting-an-array)
-- [Getting a table](#getting-a-table)
   - [Dotted keys](#dotted-keys)
-- [Getting an array of tables](#getting-an-array-of-tables)
-- [Cost of conversion](#cost-of-conversion)
-- [Getting datetime and its variants](#getting-datetime-and-its-variants)
+- [Casting a toml value](#casting-a-toml-value)
+- [Checking value type](#checking-value-type)
+- [More about conversion](#more-about-conversion)
+  - [Converting an array](#converting-an-array)
+  - [Converting a table](#converting-a-table)
+  - [Getting an array of tables](#getting-an-array-of-tables)
+  - [Cost of conversion](#cost-of-conversion)
+  - [Converting datetime and its variants](#converting-datetime-and-its-variants)
 - [Getting with a fallback](#getting-with-a-fallback)
 - [Expecting conversion](#expecting-conversion)
-- [Finding a value from a table](#finding-a-value-from-a-table)
-- [Checking value type](#checking-value-type)
 - [Visiting a toml::value](#visiting-a-tomlvalue)
+- [Constructing a toml::value](#constructing-a-tomlvalue)
+- [Preserving Comments](#preserving-comments)
+- [Customizing containers](#customizing-containers)
 - [TOML literal](#toml-literal)
 - [Conversion between toml value and arbitrary types](#conversion-between-toml-value-and-arbitrary-types)
-- [Invalid UTF-8 Codepoints](#invalid-utf-8-codepoints)
 - [Formatting user-defined error messages](#formatting-user-defined-error-messages)
-- [Getting comments related to a value](#getting-comments)
 - [Serializing TOML data](#serializing-toml-data)
 - [Underlying types](#underlying-types)
+- [Breaking Changes from v2](#breaking-changes-from-v2)
 - [Running Tests](#running-tests)
 - [Contributors](#contributors)
 - [Licensing Terms](#licensing-terms)
@@ -83,11 +87,14 @@ Just include the file after adding it to the include path.
 int main()
 {
     const auto data  = toml::parse("example.toml");
-    const auto title = toml::get<std::string>(data.at("title"));
+    const auto title = toml::find<std::string>(data, "title");
     std::cout << "the title is " << title << std::endl;
     return 0;
 }
 ```
+
+The convenient way is to add this repository as a git-submodule or to install
+it in your system by CMake.
 
 ## Decoding a toml file
 
@@ -99,7 +106,7 @@ const std::string fname("sample.toml");
 const toml::table data = toml::parse(fname);
 ```
 
-If it encounters a file open error, it will throw `std::runtime_error`.
+If it encounters an error while opening a file, it will throw `std::runtime_error`.
 
 You can also pass a `std::istream` to the  `toml::parse` function.
 To show a filename in an error message, it is recommended to pass the filename
@@ -111,15 +118,15 @@ assert(ifs.good());
 const auto data = toml::parse(ifs, /*optional*/ "sample.toml");
 ```
 
-Note that on Windows, if a file is opened in text-mode, CRLF ("\r\n") will
-automatically be converted to LF ("\n") and this causes inconsistency between
-file size and the contents that would be read. This causes weird error.
-To use a file stream with `toml::parse` on Windows, don't forget to open it
-in binary mode.
+**Note**: When you are **on Windows, open a file in binary mode**.
+If a file is opened in text-mode, CRLF ("\r\n") will automatically be
+converted to LF ("\n") and this causes inconsistency between file size
+and the contents that would be read. This causes weird error.
 
 ### In the case of syntax error
 
-If there is a syntax error in a toml file, `toml::parse` will throw `toml::syntax_error`.
+If there is a syntax error in a toml file, `toml::parse` will throw
+`toml::syntax_error` that inherits `std::exception`.
 
 toml11 has clean and informative error messages inspired by Rust and
 it looks like the following.
@@ -168,10 +175,22 @@ Since the error message generation is generally a difficult task, the current
 status is not ideal. If you encounter a weird error message, please let us know
 and contribute to improve the quality!
 
-## Getting a toml value
+### Invalid UTF-8 codepoints
+
+It throws `syntax_error` if a value of an escape sequence
+representing unicode character is not a valid UTF-8 codepoint.
+
+```console
+  what():  [error] toml::read_utf8_codepoint: input codepoint is too large.
+ --> utf8.toml
+ 1 | exceeds_unicode = "\U0011FFFF example"
+   |                              ^--------- should be in [0x00..0x10FFFF]
+```
+
+## Finding a toml value from a table
 
 After parsing successfully, you can obtain the values from the result of
-`toml::parse` using `toml::get` function.
+`toml::parse` using `toml::find` function.
 
 ```toml
 # sample.toml
@@ -185,38 +204,76 @@ key = "value"
 
 ``` cpp
 const auto data      = toml::parse("sample.toml");
-const auto answer    = toml::get<std::int64_t    >(data.at("answer"));
-const auto pi        = toml::get<double          >(data.at("pi"));
-const auto numbers   = toml::get<std::vector<int>>(data.at("numbers"));
-const auto timepoint = toml::get<std::chrono::system_clock::time_point>(data.at("time"));
-const auto tab       = toml::get<toml::Table>(data.at("tab"));
-const auto key       = toml::get<std::string>( tab.at("key"));
+const auto answer    = toml::find<std::int64_t    >(data, "answer");
+const auto pi        = toml::find<double          >(data, "pi");
+const auto numbers   = toml::find<std::vector<int>>(data, "numbers");
+const auto timepoint = toml::find<std::chrono::system_clock::time_point>(data, "time");
+const auto tab       = toml::find<toml::table>(data, "tab");
+const auto key       = toml::find<std::string>(tab,  "key");
+```
+
+If the value does not exist, `toml::find` throws an error with the location of
+the table.
+
+```console
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  [error] key "answer" not found
+ --> example.toml
+ 6 | [tab]
+   | ~~~~~ in this table
 ```
 
 When you pass an exact TOML type that does not require type conversion,
-`toml::get` returns a reference through which you can modify the content.
+`toml::get` returns a reference without copying the value.
 
 ```cpp
-auto  data   = toml::parse("sample.toml");
-auto& answer = toml::get<toml::integer>(data["answer"]);     // get reference
-answer = 6 * 9;                                              // write to data.answer
-std::cout << toml::get<int>(data.at("answer")) << std::endl; // 54
+const auto  data   = toml::parse("sample.toml");
+const auto& answer = toml::find<toml::integer>(data, "answer");
 ```
 
 If the specified type requires conversion, you can't take a reference to the value.
 See also [underlying types](#underlying-types).
 
-NOTE: To enable to get a reference, conversions between Float and Integer are not supported.
-
-After C++17, you can use `std::string_view` to get a string from a `toml::value`.
+By default, `toml::find` returns a `toml::value`.
 
 ```cpp
-const auto sv = toml::get<std::string_view>(tab.at("key"));
+const toml::value& answer = toml::find(data, "answer");
 ```
+
+**NOTE**: For some technical reason, automatic conversion between `integer` and
+`floating` is not supported. If you want to get a floating value even if a value
+has integer value, you need to convert it manually after obtaining a value,
+like the followings.
+
+```cpp
+const auto vx = toml::find(data, "x");
+double x = vx.is_floating() ? vx.as_floating(std::nothrow) :
+           static_cast<double>(vx.as_integer()); // it throws if vx is neither
+                                                 // floating nor integer.
+```
+
+----
+
+`toml::find` accepts arbitrary number of keys to find a value buried in a
+deep recursion of tables.
+
+```cpp
+// # expecting the following example.toml
+// answer.to.the.ultimate.question = 42
+// # is equivalent to {"answer": {"to":{"the":{"ultimate:{"question":42}}}}}
+
+const toml::table data = toml::parse("example.toml");
+const int a = toml::find<int>(data, "answer", "to", "the", "ultimate", "question");
+```
+
+Of course, alternatively, you can call `toml::find` as many as you need.
+But it is a bother.
 
 ### In the case of type error
 
-If you pass an invalid type to `toml::get`, `toml::type_error` will be thrown.
+If the specified type differs from the actual value contained, it throws
+`toml::type_error` that inherits `std::exception`.
+
 Similar to the case of syntax error, toml11 also displays clean error messages.
 The error message when you choose `int` to get `string` value would be like this.
 
@@ -228,94 +285,13 @@ terminate called after throwing an instance of 'toml::type_error'
    |         ~~~~~~~~~~~~~~ the actual type is string
 ```
 
-NOTE: In order to show this kind of error message, all the toml values have
-pointers to represent its range in a file. The entire contents of a file is
+**NOTE**: In order to show this kind of error message, all the toml values have
+a pointer to represent its range in a file. The entire contents of a file is
 shared by `toml::value`s and remains on the heap memory. It is recommended to
 destruct all the `toml::value` classes after configuring your application
 if you have a large TOML file compared to the memory resource.
 
-## Getting an array
-
-You can get any kind of `container` class from a `toml::array`
-except for `map`-like classes.
-
-``` cpp
-// # sample.toml
-// numbers = [1,2,3]
-
-const auto vc  = toml::get<std::vector<int>  >(data.at("numbers"));
-const auto ls  = toml::get<std::list<int>    >(data.at("numbers"));
-const auto dq  = toml::get<std::deque<int>   >(data.at("numbers"));
-const auto ar  = toml::get<std::array<int, 3>>(data.at("numbers"));
-// if the size of data.at("numbers") is larger than that of std::array,
-// it will throw toml::type_error because std::array is not resizable.
-```
-
-Surprisingly, you can also get `std::pair`s and `std::tuple`s from `toml::array`.
-
-```cpp
-const auto tp = toml::get<std::tuple<short, int, unsigned int>>(data.at("numbers"));
-```
-
-This functionality is helpful when you have the following toml file.
-
-```toml
-array_of_arrays = [[1, 2, 3], ["foo", "bar", "baz"]] # toml allows this
-```
-
-What is the corresponding C++ type? Obviously, it is a `std::pair` of `std::vector`s.
-
-```cpp
-const auto aofa = toml::get<
-    std::pair<std::vector<int>, std::vector<std::string>>
-    >(data.at("array_of_arrays"));
-```
-
-If you don't know the type of the elements, you can use `toml::array`,
-which is a `std::vector` of `toml::value`, instead.
-
-```cpp
-const auto aofa  = toml::get<toml::array>(data.at("array_of_arrays"));
-const auto first = toml::get<std::vector<int>>(aofa.at(0));
-```
-
-See also [expecting conversion](#expecting-conversion)
-and [checking-value-type](#checking-value-type).
-
-## Getting a table
-
-`toml::table` is a key component of this library, which is an alias of
-a `std::unordered_map` from `toml::key (a.k.a. std::string)` to `toml::value`.
-`toml::parse` returns this.
-
-Since it is just an alias of `std::unordered_map`, it has all the functionalities
-that `std::unordered_map` has, e.g. `operator[]`, `count`, and `find`.
-
-```cpp
-toml::table data = toml::parse("example.toml");
-if(data.count("title") != 0)
-{
-    data["title"] = std::string("TOML example");
-}
-```
-
-When all the values of the table have the same type, toml11 allows you to
-convert a `toml::table` to a `map` that contains the convertible type.
-
-```toml
-[tab]
-key1 = "foo" # all the values are
-key2 = "bar" # toml String
-```
-
-```cpp
-const auto data = toml::parse("sample.toml");
-const auto tab = toml::get<std::map<std::string, std::string>>(data.at("tab"));
-std::cout << tab["key1"] << std::endl; // foo
-std::cout << tab["key2"] << std::endl; // bar
-```
-
-## Dotted keys
+### Dotted keys
 
 TOML v0.5.0 has a new feature named "dotted keys".
 You can chain keys to represent the structure of the data.
@@ -333,285 +309,90 @@ color = "orange"
 shape = "round"
 ```
 
-You can get both of the above formats with the same c++ code.
+You can get both of the above tables with the same c++ code.
 
 ```cpp
-const auto physical = toml::get<toml::table>(data.at("physical"));
-const auto color    = toml::get<std::string>(physical.at("color"));
+const auto physical = toml::find<toml::table>(data, "physical");
+const auto color    = toml::find<std::string>(physical, "color");
 ```
 
-## Getting an array of tables
+The following code does not work for the above toml file.
 
-An array of tables is just an array of tables.
-You can get it completely in the same way as the other arrays and tables.
+```cpp
+const auto color = toml::find<std::string>(data, "physical.color");
+```
+
+The above code works with the following toml file.
 
 ```toml
-# sample.toml
-array_of_inline_tables = [{key = "value1"}, {key = "value2"}, {key = "value3"}]
-
-[[array_of_tables]]
-key = "value4"
-[[array_of_tables]]
-key = "value5"
-[[array_of_tables]]
-key = "value6"
+"physical.color" = "orange"
+# equivalent to {"physical.color": "orange"},
+# NOT {"physical": {"color": "orange"}}.
 ```
 
-```cpp
-const auto data = toml::parse("sample.toml");
-const auto aot1 = toml::get<std::vector<toml::table>>(data.at("array_of_inline_tables"));
-const auto aot2 = toml::get<std::vector<toml::table>>(data.at("array_of_tables"));
-```
+## Casting a toml value
 
-## Cost of conversion
+### `toml::get`
 
-Although `toml::get` is convenient, it has additional copy-cost because
-it copies data contained in `toml::value` to the user-specified type.
-Of course in some cases this overhead is not ignorable.
+`toml::parse` returns `toml::value`. `toml::value` is a union type that can
+contain one of the following types.
 
-```cpp
-// the following code constructs a std::vector.
-// it requires heap allocation for vector and element conversion.
-const auto array = toml::get<std::vector<int>>(data.at("foo"));
-```
+- `toml::boolean` (`bool`)
+- `toml::integer` (`std::int64_t`)
+- `toml::floating` (`double`)
+- `toml::string` (a type convertible to std::string)
+- `toml::local_date`
+- `toml::local_time`
+- `toml::local_datetime`
+- `toml::offset_datetime`
+- `toml::array` (by default, `std::vector<toml::value>`)
+  - It depends. See [customizing containers](#customizing-containers) for detail.
+- `toml::table` (by default, `std::unordered_map<toml::key, toml::value>`)
+  - It depends. See [customizing containers](#customizing-containers) for detail.
 
-By passing the exact types, `toml::get` returns reference that has no overhead.
+To get a value inside, you can use `toml::get<T>()`. The usage is the same as
+`toml::find<T>` (actually, `toml::find` internally uses `toml::get`).
 
 ``` cpp
-const auto& tab     = toml::get<toml::array>(data.at("tab"));
-const auto& numbers = toml::get<toml::table>(data.at("numbers"));
+const toml::value  data    = toml::parse("sample.toml");
+const toml::value  answer_ = toml::get<toml::table >(data).at("answer")
+const std::int64_t answer  = toml::get<std::int64_t>(answer_);
 ```
 
-In this case you need to call `toml::get` each time you access to
-the element of `toml::array` because `toml::array` is an array of `toml::value`.
+When you pass an exact TOML type that does not require type conversion,
+`toml::get` returns a reference through which you can modify the content.
 
 ```cpp
-const auto& num0 = toml::get<toml::integer>(numbers.at(0));
-const auto& num1 = toml::get<toml::integer>(numbers.at(1));
-const auto& num2 = toml::get<toml::integer>(numbers.at(2));
+toml::integer& answer = toml::get<toml::integer>(answer_);
+answer = 6 * 9; // write to data.answer. now `answer_` contains 54.
 ```
 
-## Getting datetime and its variants
+If the specified type requires conversion, you can't take a reference to the value.
+See also [underlying types](#underlying-types).
 
-TOML v0.5.0 has 4 different datetime objects, `local_date`, `local_time`,
-`local_datetime`, and `offset_datetime`.
+It also throws a `toml::type_error` if the type differs.
 
-Since `local_date`, `local_datetime`, and `offset_datetime` represent a time
-point, you can convert them to `std::chrono::system_clock::time_point`.
+### `as_xxx`
 
-Contrary, `local_time` does not represents a time point because they lack a
-date information, but it can be converted to `std::chrono::duration` that
-represents a duration from the beginning of the day, `00:00:00.000`.
-
-```toml
-date = 2018-12-23
-time = 12:30:00
-l_dt = 2018-12-23T12:30:00
-o_dt = 2018-12-23T12:30:00+09:30
-```
+You can also use a member function to cast a value.
 
 ```cpp
-const auto data = toml::parse("sample.toml");
-
-const auto date = toml::get<std::chrono::system_clock::time_point>(data.at("date"));
-const auto l_dt = toml::get<std::chrono::system_clock::time_point>(data.at("l_dt"));
-const auto o_dt = toml::get<std::chrono::system_clock::time_point>(data.at("o_dt"));
-
-const auto time = toml::get<std::chrono::minutes>(data.at("time")); // 12 * 60 + 30 min
+const std::int64_t answer = data.as_table().at("answer").as_integer();
 ```
 
-toml11 contains datetime as its own struct.
-You can see the definitions in [toml/datetime.hpp](toml/datetime.hpp).
-
-## Getting with a fallback
-
-`toml::get_or` returns a default value if `toml::get<T>` failed.
+It also throws a `toml::type_error` if the type differs. If you are sure that
+the value `v` contains a value of the specified type, you can suppress checking
+by passing `std::nothrow`.
 
 ```cpp
-toml::value v("foo"); // v contains String
-const int value = toml::get_or(v, 42); // conversion fails. it returns 42.
-```
-
-`toml::get_or` automatically deduces what type you want to get from
-the default value you passed.
-
-To get a reference through this function, take care about the default value.
-
-```cpp
-toml::value v("foo"); // v contains String
-toml::integer& i = toml::get_or(v, 42); // does not work because binding `42`
-                                        // to `integer&` is invalid
-toml::integer opt = 42;
-toml::integer& i = toml::get_or(v, opt); // this works.
-```
-
-There is also a function `find_or`, but there is a known issue around overload
-resolution. To use it, passing a `toml::value`, not a `toml::table`, is strongly
-recommended.
-
-## Expecting conversion
-
-By using `toml::expect`, you will get your expected value or an error message
-without throwing `toml::type_error`.
-
-```cpp
-const auto value = toml::expect<std::string>(data.at("title"));
-if(value.is_ok()) {
-    std::cout << value.unwrap() << std::endl;
-} else {
-    std::cout << value.unwrap_err() << std::endl;
-}
-```
-
-Also, you can pass a function object to modify the expected value.
-
-```cpp
-const auto value = toml::expect<int>(data.at("number"))
-    .map(// function that receives expected type (here, int)
-    [](const int number) -> double {
-        return number * 1.5 + 1.0;
-    }).unwrap_or(/*default value =*/ 3.14);
-```
-
-## Finding a value from a table
-
-toml11 provides a utility function to find a value from `toml::value` and `toml::table`.
-
-```cpp
-const toml::value data = /* ... */;
-
-// find a value named "num" from `data`.
-const auto num = toml::find<int>(data, "num");
-```
-
-When you pass a `toml::value`, `toml::find` first casts it to `toml::table`.
-If casting failed, `toml::type_error` will be thrown.
-
-When the value does not exist, it throws `std::out_of_range` with an error message.
-By passing a `toml::value`, it shows an informative error message like the following.
-
-```console
-terminate called after throwing an instance of 'std::out_of_range'
-  what():  [error] key "num" not found
- --> example.toml
- 3 | [table]
-   | ~~~~~~~ in this table
-```
-
-Contrary, since `toml::table` is just an alias of `std::unordered_map<toml::key, toml::value>`,
-you need to pass a name to the function to show the name in the exception with `toml::table`.
-
-```cpp
-const toml::table data = /* ... */;
-
-// you need to pass the name of the table to show it in an error message
-const auto num = toml::find<int>(data, "num", "[data]");
-```
-
-```console
-terminate called after throwing an instance of 'std::out_of_range'
-  what():  [error] key "num" not found in [data]
-# table name is needed to show this part  ^^^^^^
-```
-
-By default (w/o template parameter), `toml::find` returns a `toml::value`.
-
-```cpp
-const toml::value& subtable = toml::find(table, "subtable");
-```
-
-__NOTE__:
-A new feature, recursive toml::find was planned to be introduced, but it was
-found that the change breaks a code that was previously compiled fine. So the
-change was reverted.
-The reason is that the overload resolution was ambiguous. To support this,
-in the next major update, overloads of `toml::find` for `toml::table` possibly
-be removed.
-
-## Checking value type
-
-You can check what type of value does `toml::value` contains by `is_*` function.
-
-```cpp
-toml::value v = /* ... */;
-if(v.is_integer())
-{
-    std::cout << "value is an integer" << std::endl;
-}
-```
-
-The complete list of the functions is below.
-
-```cpp
-namespace toml {
-class value {
-    // ...
-    bool is_boolean()         const noexcept;
-    bool is_integer()         const noexcept;
-    bool is_floating()        const noexcept;
-    bool is_string()          const noexcept;
-    bool is_offset_datetime() const noexcept;
-    bool is_local_datetime()  const noexcept;
-    bool is_local_date()      const noexcept;
-    bool is_local_time()      const noexcept;
-    bool is_array()           const noexcept;
-    bool is_table()           const noexcept;
-    bool is_uninitialized()   const noexcept;
-    // ...
-};
-} // toml
-```
-
-__NOTE__: `is_float` is marked as deprecated since v2.4.0 to make the function names consistent with snake case typenames. Please use `is_floating` instead.
-
-Also, you can get `enum class` value from `toml::value`.
-
-```cpp
-switch(data.at("something").type())
-{
-    case toml::value_t::Integer: /*do some stuff*/ ; break;
-    case toml::value_t::Float  : /*do some stuff*/ ; break;
-    case toml::value_t::String : /*do some stuff*/ ; break;
-    default : throw std::runtime_error(
-        "unexpected type : " + toml::stringize(data.at("something").type()));
-}
-```
-
-The complete list of the `enum`s can be found in the section
-[underlying types](#underlying-types).
-
-The `enum`s can be used as a parameter of `toml::value::is` function like the following.
-
-```cpp
-toml::value v = /* ... */;
-if(v.is(toml::value_t::Boolean)) // ...
-```
-
-## Casting value
-
-So far, `toml::get` is introduced, but if you don't need any type conversion,
-`as_*` is simpler to use.
-
-```cpp
-toml::value v = /* ... */;
-if(v.is_integer() && v.as_integer() == 42)
+const auto& answer = data.as_table().at("answer");
+if(answer.is_integer() && answer.as_integer(std::nothrow) == 42)
 {
     std::cout << "value is 42" << std::endl;
 }
 ```
 
-`as_*` functions internally checks the current contained type for safety and
-throws `toml::type_error` if the contained value type is different (after toml11
-v2.4.0). If you already confirmed that the value has the type you will cast
-into, you can skip the additional checking by passing `std::nothrow` object to it.
-
-```cpp
-toml::value v = /* ... */;
-if(v.is_integer() && v.as_integer(std::nothrow) == 42) // never fail
-{
-    std::cout << "value is 42" << std::endl;
-}
-```
+If `std::nothrow` is passed, the functions are marked as noexcept.
 
 The full list of the functions is below.
 
@@ -648,7 +429,302 @@ class value {
 } // toml
 ```
 
-__NOTE__: `as_float` is marked as deprecated since v2.4.0 to make the function names consistent with snake case typenames. Please use `as_floating` instead.
+
+
+## Checking value type
+
+You can check the type of a value by `is_xxx` function.
+
+```cpp
+const toml::value v = /* ... */;
+if(v.is_integer())
+{
+    std::cout << "value is an integer" << std::endl;
+}
+```
+
+The complete list of the functions is below.
+
+```cpp
+namespace toml {
+class value {
+    // ...
+    bool is_boolean()         const noexcept;
+    bool is_integer()         const noexcept;
+    bool is_floating()        const noexcept;
+    bool is_string()          const noexcept;
+    bool is_offset_datetime() const noexcept;
+    bool is_local_datetime()  const noexcept;
+    bool is_local_date()      const noexcept;
+    bool is_local_time()      const noexcept;
+    bool is_array()           const noexcept;
+    bool is_table()           const noexcept;
+    bool is_uninitialized()   const noexcept;
+    // ...
+};
+} // toml
+```
+
+Also, you can get `enum class value_t` from `toml::value::type()`.
+
+```cpp
+switch(data.at("something").type())
+{
+    case toml::value_t::integer:  /*do some stuff*/ ; break;
+    case toml::value_t::floating: /*do some stuff*/ ; break;
+    case toml::value_t::string :  /*do some stuff*/ ; break;
+    default : throw std::runtime_error(
+        "unexpected type : " + toml::stringize(data.at("something").type()));
+}
+```
+
+The complete list of the `enum`s can be found in the section
+[underlying types](#underlying-types).
+
+The `enum`s can be used as a parameter of `toml::value::is` function like the following.
+
+```cpp
+toml::value v = /* ... */;
+if(v.is(toml::value_t::boolean)) // ...
+```
+
+## More about conversion
+
+Since `toml::find` internally uses `toml::get`, all the following examples work
+with both `toml::get` and `toml::find`.
+
+### Converting an array
+
+You can get any kind of `container` class from a `toml::array`
+except for `map`-like classes.
+
+``` cpp
+// # sample.toml
+// numbers = [1,2,3]
+
+const auto numbers = toml::find(data, "numbers");
+
+const auto vc  = toml::get<std::vector<int>  >(numbers);
+const auto ls  = toml::get<std::list<int>    >(numbers);
+const auto dq  = toml::get<std::deque<int>   >(numbers);
+const auto ar  = toml::get<std::array<int, 3>>(numbers);
+// if the size of data.at("numbers") is larger than that of std::array,
+// it will throw toml::type_error because std::array is not resizable.
+```
+
+Surprisingly, you can convert `toml::array` into `std::pair` and `std::tuple`.
+
+```cpp
+// numbers = [1,2,3]
+const auto tp = toml::get<std::tuple<short, int, unsigned int>>(numbers);
+```
+
+This functionality is helpful when you have a toml file like the following.
+
+```toml
+array_of_arrays = [[1, 2, 3], ["foo", "bar", "baz"]] # toml allows this
+```
+
+What is the corresponding C++ type?
+Obviously, it is a `std::pair` of `std::vector`s.
+
+```cpp
+const auto array_of_arrays = toml::find(data, "array_of_arrays");
+const auto aofa = toml::get<
+    std::pair<std::vector<int>, std::vector<std::string>>
+    >(array_of_arrays);
+```
+
+If you don't know the type of the elements, you can use `toml::array`,
+which is a `std::vector` of `toml::value`, instead.
+
+```cpp
+const auto a_of_a = toml::get<toml::array>(array_of_arrays);
+const auto first  = toml::get<std::vector<int>>(a_of_a.at(0));
+```
+
+You can change the implementation of `toml::array` with `std::deque` or some
+other array-like container. See [Customizing containers](#customizing-containers)
+for detail.
+
+### Converting a table
+
+When all the values of the table have the same type, toml11 allows you to
+convert a `toml::table` to a `map` that contains the convertible type.
+
+```toml
+[tab]
+key1 = "foo" # all the values are
+key2 = "bar" # toml String
+```
+
+```cpp
+const auto data = toml::parse("sample.toml");
+const auto tab = toml::find<std::map<std::string, std::string>>(data, "tab");
+std::cout << tab["key1"] << std::endl; // foo
+std::cout << tab["key2"] << std::endl; // bar
+```
+
+But since `toml::table` is just an alias of `std::unordered_map<toml::key, toml::value>`,
+normally you don't need to convert it because it has all the functionalities that
+`std::unordered_map` has (e.g. `operator[]`, `count`, and `find`). In most cases
+`toml::table` is sufficient.
+
+```cpp
+toml::table tab = toml::get<toml::table>(data);
+if(data.count("title") != 0)
+{
+    data["title"] = std::string("TOML example");
+}
+```
+
+You can change the implementation of `toml::table` with `std::map` or some
+other map-like container. See [Customizing containers](#customizing-containers)
+for detail.
+
+### Getting an array of tables
+
+An array of tables is just an array of tables.
+You can get it in completely the same way as the other arrays and tables.
+
+```toml
+# sample.toml
+array_of_inline_tables = [{key = "value1"}, {key = "value2"}, {key = "value3"}]
+
+[[array_of_tables]]
+key = "value4"
+[[array_of_tables]]
+key = "value5"
+[[array_of_tables]]
+key = "value6"
+```
+
+```cpp
+const auto data = toml::parse("sample.toml");
+const auto aot1 = toml::find<std::vector<toml::table>>(data, "array_of_inline_tables");
+const auto aot2 = toml::find<std::vector<toml::table>>(data, "array_of_tables");
+```
+
+### Cost of conversion
+
+Although conversion through `toml::(get|find)` is convenient, it has additional
+copy-cost because it copies data contained in `toml::value` to the
+user-specified type. Of course in some cases this overhead is not ignorable.
+
+```cpp
+// the following code constructs a std::vector.
+// it requires heap allocation for vector and element conversion.
+const auto array = toml::find<std::vector<int>>(data, "foo");
+```
+
+By passing the exact types, `toml::get` returns reference that has no overhead.
+
+``` cpp
+const auto& tab     = toml::find<toml::table>(data, "tab");
+const auto& numbers = toml::find<toml::array>(data, "numbers");
+```
+
+Also, `as_xxx` are zero-overhead because they always return a reference.
+
+``` cpp
+const auto& tab     = toml::find(data, "tab"    ).as_table();
+const auto& numbers = toml::find(data, "numbers").as_array();
+```
+
+In this case you need to call `toml::get` each time you access to
+the element of `toml::array` because `toml::array` is an array of `toml::value`.
+
+```cpp
+const auto& num0 = toml::get<toml::integer>(numbers.at(0));
+const auto& num1 = toml::get<toml::integer>(numbers.at(1));
+const auto& num2 = toml::get<toml::integer>(numbers.at(2));
+```
+
+### Converting datetime and its variants
+
+TOML v0.5.0 has 4 different datetime objects, `local_date`, `local_time`,
+`local_datetime`, and `offset_datetime`.
+
+Since `local_date`, `local_datetime`, and `offset_datetime` represent a time
+point, you can convert them to `std::chrono::system_clock::time_point`.
+
+Contrary, `local_time` does not represents a time point because they lack a
+date information, but it can be converted to `std::chrono::duration` that
+represents a duration from the beginning of the day, `00:00:00.000`.
+
+```toml
+date = 2018-12-23
+time = 12:30:00
+l_dt = 2018-12-23T12:30:00
+o_dt = 2018-12-23T12:30:00+09:30
+```
+
+```cpp
+const auto data = toml::parse("sample.toml");
+
+const auto date = toml::get<std::chrono::system_clock::time_point>(data.at("date"));
+const auto l_dt = toml::get<std::chrono::system_clock::time_point>(data.at("l_dt"));
+const auto o_dt = toml::get<std::chrono::system_clock::time_point>(data.at("o_dt"));
+
+const auto time = toml::get<std::chrono::minutes>(data.at("time")); // 12 * 60 + 30 min
+```
+
+toml11 defines its own datetime classes.
+You can see the definitions in [toml/datetime.hpp](toml/datetime.hpp).
+
+## Getting with a fallback
+
+`toml::find_or` returns a default value if the value is not found or has a
+different type.
+
+```cpp
+const auto data = toml::parse("example.toml");
+const auto num  = toml::find_or(data, "num", 42);
+```
+
+Also, `toml::get_or` returns a default value if `toml::get<T>` failed.
+
+```cpp
+toml::value v("foo"); // v contains String
+const int value = toml::get_or(v, 42); // conversion fails. it returns 42.
+```
+
+These functions automatically deduce what type you want to get
+from the default value you passed.
+
+To get a reference through this function, take care about the default value.
+
+```cpp
+toml::value v("foo"); // v contains String
+toml::integer& i = toml::get_or(v, 42); // does not work because binding `42`
+                                        // to `integer&` is invalid
+toml::integer opt = 42;
+toml::integer& i = toml::get_or(v, opt); // this works.
+```
+
+## Expecting conversion
+
+By using `toml::expect`, you will get your expected value or an error message
+without throwing `toml::type_error`.
+
+```cpp
+const auto value = toml::expect<std::string>(data.at("title"));
+if(value.is_ok()) {
+    std::cout << value.unwrap() << std::endl;
+} else {
+    std::cout << value.unwrap_err() << std::endl;
+}
+```
+
+Also, you can pass a function object to modify the expected value.
+
+```cpp
+const auto value = toml::expect<int>(data.at("number"))
+    .map(// function that receives expected type (here, int)
+    [](const int number) -> double {
+        return number * 1.5 + 1.0;
+    }).unwrap_or(/*default value =*/ 3.14);
+```
 
 ## Visiting a toml::value
 
@@ -665,6 +741,179 @@ toml::visit([](const auto& val) -> void {
 The function object that would be passed to `toml::visit` must be able to
 recieve all the possible TOML types. Also, the result types should be the same
 each other.
+
+## Constructing a toml::value
+
+`toml::value` can be constructed in various ways.
+
+```cpp
+toml::value v(true);     // boolean
+toml::value v(42);       // integer
+toml::value v(3.14);     // floating
+toml::value v("foobar"); // string
+toml::value v(toml::local_date(2019, toml::month_t::Apr, 1)); // date
+toml::value v{1, 2, 3, 4, 5};                                 // array
+toml::value v{{"foo", 42}, {"bar", 3.14}, {"baz", "qux"}};    // table
+```
+
+When constructing a string, you can choose to use either literal or basic string.
+By default, it will be a basic string.
+
+```cpp
+toml::value v("foobar", toml::string_t::basic  );
+toml::value v("foobar", toml::string_t::literal);
+```
+
+Datetime objects can be constructed from `std::tm` and
+`std::chrono::system_clock::time_point`. But you need to specify what type
+you use to avoid ambiguity.
+
+```cpp
+const auto now = std::chrono::system_clock::now();
+toml::value v(toml::local_date(now));
+toml::value v(toml::local_datetime(now));
+toml::value v(toml::offset_datetime(now));
+```
+
+Since local time is not equivalent to a time point, because it lacks date
+information, it will be constructed from `std::chrono::duration`.
+
+```cpp
+toml::value v(toml::local_time(std::chrono::hours(10)));
+```
+
+You can construct an array object not only from `initializer_list`, but also
+from STL containers.
+
+```cpp
+std::vector<int> vec{1,2,3,4,5};
+toml::value v = vec;
+```
+
+All the elements of `initializer_list` should be convertible into `toml::value`.
+
+## Preserving comments
+
+After toml11 v3, you can choose whether comments are preserved or not.
+
+```cpp
+const auto data1 = toml::parse<toml::discard_comments >("example.toml");
+const auto data2 = toml::parse<toml::preserve_comments>("example.toml");
+```
+
+Comments related to a value can be obtained by `toml::value::comments()`.
+The return value has the same interface as `std::vector<std::string>`.
+
+```cpp
+const auto& com = v.comments();
+for(const auto& c : com)
+{
+    std::cout << c << std::endl;
+}
+```
+
+Comments just before and just after (within the same line) a value are kept in a value.
+
+```toml
+# this is a comment for v1.
+v1 = "foo"
+
+v2 = "bar" # this is a comment for v2.
+# Note that this comment is NOT a comment for v2.
+
+# this comment is not related to any value
+# because there are empty lines between v3.
+# this comment will be ignored even if you set `preserve_comments`.
+
+# this is a comment for v3
+# this is also a comment for v3.
+v3 = "baz" # ditto.
+```
+
+Each comment line becomes one element of a `std::vector`.
+
+Hash signs will be removed, but spaces after hash sign will not be removed.
+
+```cpp
+v1.comments().at(0) == " this is a comment for v1."s;
+
+v2.comments().at(1) == " this is a comment for v1."s;
+
+v3.comments().at(0) == " this is a comment for v3."s;
+v3.comments().at(1) == " this is also a comment for v3."s;
+v3.comments().at(2) == " ditto."s;
+```
+
+Note that a comment just after an opening brace of an array will not be a
+comment for the array.
+
+```toml
+# this is a comment for a.
+a = [ # this is not a comment for a. this will be ignored.
+  1, 2, 3,
+  # this is a comment for `42`.
+  42, # this is also a comment for `42`.
+  5
+] # this is a comment for a.
+```
+
+You can also append and modify comments.
+The interfaces are the same as `std::vector<std::string>`.
+
+```cpp
+toml::basic_value<toml::preserve_comments> v(42);
+v.comments().push_back(" add this comment.");
+// # add this comment.
+// i = 42
+```
+
+Also, you can pass a `std::vector<std::string>` when constructing a
+`toml::basic_value<toml::preserve_comments>`.
+
+```cpp
+std::vector<std::string> comments{"comment 1", "comment 2"};
+const toml::basic_value<toml::preserve_comments> v1(42, std::move(comments));
+const toml::basic_value<toml::preserve_comments> v2(42, {"comment 1", "comment 2"});
+```
+
+When `toml::discard_comments` is chosen, comments will not be contained in a value.
+`value::comments()` will always be kept empty.
+All the modification on comments would be ignored.
+All the element access in a `discard_comments` causes the same error as accessing
+an element of an empty `std::vector`.
+
+The comments will also be serialized. If comments exist, those comments will be
+added just before the values.
+
+__NOTE__: Result types from `toml::parse(...)` and
+`toml::parse<toml::preserve_comments>(...)` are different.
+
+## Customizing containers
+
+Actually, `toml::basic_value` has 3 template arguments.
+
+```cpp
+template<typename Comment, // discard/preserve_comment
+         template<typename ...> class Table = std::unordered_map,
+         template<typename ...> class Array = std::vector>
+class basic_value;
+```
+
+This enables you to change the containers used inside. E.g. you can use
+`std::map` to contain a table object instead of `std::unordered_map`.
+And also can use `std::deque` as a array object instead of `std::vector`.
+
+You can set these parameters while calling `toml::parse` function.
+
+```cpp
+const auto data = toml::parse<
+    toml::preserve_comments, std::map, std::deque
+    >("example.toml");
+```
+
+__NOTE__: Needless to say, the result types from `toml::parse(...)` and
+`toml::parse<Com, Map, Cont>(...)` are different (unless you specify the same
+types as default).
 
 ## TOML literal
 
@@ -697,7 +946,7 @@ inline namespace literals
 {
 inline namespace toml_literals
 {
-toml::value operator""_toml(const char* str, std::size_t len);
+toml::value operator"" _toml(const char* str, std::size_t len);
 
 } // toml_literals
 } // literals
@@ -728,10 +977,12 @@ add a comma after the first element (like `[1,]`).
 "[[1],]"_toml;    // ditto.
 ```
 
+NOTE: `_toml` literal returns a `toml::value`  that does not have comments.
+
 ## Conversion between toml value and arbitrary types
 
-You can also use `toml::get` and other related functions with the types you defined
-after you implement some stuff.
+You can also use `toml::get` and other related functions with the types
+you defined after you implement a way to convert it.
 
 ```cpp
 namespace ext
@@ -746,7 +997,8 @@ struct foo
 
 const auto data = toml::parse("example.toml");
 
-const foo f = toml::get<ext::foo>(data.at("foo"));
+// to do this
+const foo f = toml::find<ext::foo>(data, "foo");
 ```
 
 There are 2 ways to use `toml::get` with the types that you defined.
@@ -794,12 +1046,12 @@ namespace toml
 template<>
 struct from<ext::foo>
 {
-    ext::foo from_toml(const toml::value& v)
+    ext::foo from_toml(const value& v)
     {
         ext::foo f;
-        f.a = toml::find<int        >(v, "a");
-        f.b = toml::find<double     >(v, "b");
-        f.c = toml::find<std::string>(v, "c");
+        f.a = find<int        >(v, "a");
+        f.b = find<double     >(v, "b");
+        f.c = find<std::string>(v, "c");
         return f;
     }
 };
@@ -811,6 +1063,40 @@ you can add conversion between `toml::value` and classes defined in another libr
 
 Note that you cannot implement both of the functions because the overload
 resolution of `toml::get` will be ambiguous.
+
+If you want to convert any versions of `toml::basic_value`,
+you need to templatize the conversion function as follows.
+
+```cpp
+struct foo
+{
+    template<typename C, template<typename ...> class M, template<typename ...> class A>
+    void from_toml(const toml::basic_value<C, M, A>& v)
+    {
+        this->a = toml::find<int        >(v, "a");
+        this->b = toml::find<double     >(v, "b");
+        this->c = toml::find<std::string>(v, "c");
+        return;
+    }
+};
+// or
+namespace toml
+{
+template<>
+struct from<ext::foo>
+{
+    template<typename C, template<typename ...> class M, template<typename ...> class A>
+    ext::foo from_toml(const basic_value<C, M, A>& v)
+    {
+        ext::foo f;
+        f.a = find<int        >(v, "a");
+        f.b = find<double     >(v, "b");
+        f.c = find<std::string>(v, "c");
+        return f;
+    }
+};
+} // toml
+```
 
 ----
 
@@ -867,20 +1153,8 @@ ext::foo    f{42, 3.14, "foobar"};
 toml::value v(f);
 ```
 
-Any type that can be converted to `toml::value`, e.g. `toml::table`, `toml::array`,
-is okay to return from `into_toml`.
-
-## Invalid UTF-8 codepoints
-
-toml11 throws `syntax_error` if a value of an escape sequence
-representing unicode character is not a valid UTF-8 codepoint.
-
-```console
-  what():  [error] toml::read_utf8_codepoint: input codepoint is too large.
- --> utf8.toml
- 1 | exceeds_unicode = "\U0011FFFF example"
-   |                              ^--------- should be in [0x00..0x10FFFF]
-```
+Any type that can be converted to `toml::value`, e.g. `int`, `toml::table` and
+`toml::array` are okay to return from `into_toml`.
 
 ## Formatting user-defined error messages
 
@@ -935,56 +1209,34 @@ you will get an error message like this.
    |       ~~ maximum number here
 ```
 
-## Getting comments
+### Obtaining location information
 
-Since toml11 keeps a file data until all the values are destructed, you can
-also extract a comment related to a value by calling `toml::value::comment()`.
-
-If there is a comment just after a value (within the same line), you can get
-the specific comment by `toml::value::comment_inline()`.
-
-If there are comments just before a value (without any newline between them),
-you can get the comments by `toml::value::comment_before()`.
-
-`toml::value::comment()` returns the results of both functions after
-concatenating them.
-
-```toml
-a = 42 # comment for a.
-
-# comment for b.
-# this is also a comment for b.
-b = "foo"
-
-c = [ # comment for c.
-    3.14, # this is not a comment for c, but for 3.14.
-] # this is also a comment for c.
-```
+You can also format error messages in your own way by using `source_location`.
 
 ```cpp
-// "# comment for a."
-const std::string com1 = toml::find(data, "a").comment();
-
-// "# comment for b."
-const std::string com2 = toml::find(data, "b").comment();
-
-// "# comment for c.\n# this is also a comment for c."
-const std::string com3 = toml::find(data, "c").comment();
-
-// "# this is not a comment for c, but for 3.14."
-const std::string com3 = toml::find<toml::array>(data, "c").front().comment();
+struct source_location
+{
+    std::uint_least32_t line()      const noexcept;
+    std::uint_least32_t column()    const noexcept;
+    std::uint_least32_t region()    const noexcept;
+    std::string const&  file_name() const noexcept;
+    std::string const&  line_str()  const noexcept;
+};
+// +-- line()       +--- length of the region (here, region() == 9)
+// v            .---+---.
+// 12 | value = "foo bar" <- line_str() returns the line itself.
+//              ^-------- column() points here
 ```
 
-Note that once a data in a value is modified, the related file region
-information would be deleted. Thus after modifying a data, you cannot find any
-comments.
-
-Also note that currently it does not support any way to set a comment to a value.
-And currently, serializer does not take comments into account.
+You can get this by
+```cpp
+const toml::value           v   = /*...*/;
+const toml::source_location loc = v.location();
+```
 
 ## Serializing TOML data
 
-toml11 (after v2.1.0) enables you to serialize data into toml format.
+toml11 enables you to serialize data into toml format.
 
 ```cpp
 const auto data = toml::table{{"foo", 42}, {"bar", "baz"}};
@@ -1078,22 +1330,29 @@ third arguments to set them. By default, the witdh is 80 and the precision is
 const auto serial = toml::format(data, /*width = */ 0, /*prec = */ 17);
 ```
 
+When you pass a comment-preserving-value, the comment will also be serialized.
+An array or a table containing a value that has a comment would not be inlined.
+
 ## Underlying types
 
 The toml types (can be used as `toml::*` in this library) and corresponding `enum` names are listed in the table below.
 
-| toml::type     | underlying c++ type                          | enum                            |
-| -------------- | -------------------------------------------- | ------------------------------- |
-| Boolean        | `bool`                                       | `toml::value_t::Boolean`        |
-| Integer        | `std::int64_t`                               | `toml::value_t::Integer`        |
-| Float          | `double`                                     | `toml::value_t::Float`          |
-| String         | `toml::string`                               | `toml::value_t::String`         |
-| LocalDate      | `toml::local_date`                           | `toml::value_t::LocalDate`      |
-| LocalTime      | `toml::local_time`                           | `toml::value_t::LocalTime`      |
-| LocalDatetime  | `toml::local_datetime`                       | `toml::value_t::LocalDatetime`  |
-| OffsetDatetime | `toml::offset_datetime`                      | `toml::value_t::OffsetDatetime` |
-| Array          | `std::vector<toml::value>`                   | `toml::value_t::Array`          |
-| Table          | `std::unordered_map<toml::key, toml::value>` | `toml::value_t::Table`          |
+| TOML type      | underlying c++ type                | enum class                       |
+| -------------- | ---------------------------------- | -------------------------------- |
+| Boolean        | `bool`                             | `toml::value_t::boolean`         |
+| Integer        | `std::int64_t`                     | `toml::value_t::integer`         |
+| Float          | `double`                           | `toml::value_t::floating`        |
+| String         | `toml::string`                     | `toml::value_t::string`          |
+| LocalDate      | `toml::local_date`                 | `toml::value_t::local_date`      |
+| LocalTime      | `toml::local_time`                 | `toml::value_t::local_time`      |
+| LocalDatetime  | `toml::local_datetime`             | `toml::value_t::local_datetime`  |
+| OffsetDatetime | `toml::offset_datetime`            | `toml::value_t::offset_datetime` |
+| Array          | `array-like<toml::value>`          | `toml::value_t::array`           |
+| Table          | `map-like<toml::key, toml::value>` | `toml::value_t::table`           |
+
+`array-like` and `map-like` are the STL containers that works like a `std::vector` and
+`std::unordered_map`, respectively. By default, `std::vector` and `std::unordered_map`
+are used. See [Customizing containers](#customizing-containers) for detail.
 
 `toml::string` is effectively the same as `std::string` but has an additional
 flag that represents a kind of a string, `string_t::basic` and `string_t::literal`.
@@ -1104,7 +1363,37 @@ that points to internal `std::string` by using `toml::get<std::string>()` for co
 Because `std::chrono::system_clock::time_point` is a __time point__,
 not capable of representing a Local Time independent from a specific day.
 
-It is recommended to get `Datetime`s as `std::chrono` classes through `toml::get`.
+It is recommended to get `datetime`s as `std::chrono` classes through `toml::get`.
+
+## Breaking Changes from v2
+
+Although toml11 is relatively new library (it's three years old now), it had
+some confusing and inconvenient user-interfaces because of historical reasons.
+
+Between v2 and v3, those interfaces are rearranged.
+
+- `toml::parse` now returns a `toml::value`, not `toml::table`.
+- `toml::value` is now an alias of `toml::basic_value<discard_comment, std::vector, std::unordered_map>`.
+  - See [Customizing containers](#customizing-containers) for detail.
+- The elements of `toml::value_t` are renamed as `snake_case`.
+  - See [Underlying types](#underlying-types) for detail.
+- Supports for the CamelCaseNames are dropped.
+  - See [Underlying types](#underlying-types) for detail.
+- `(is|as)_float` has been removed to make the function names consistent with others.
+  - Since `float` is a keyword, toml11 named a float type as `toml::floating`.
+  - Also a `value_t` corresponds to `toml::floating` is named `value_t::floating`.
+  - So `(is|as)_floating` is introduced and `is_float` has been removed.
+  - See [Casting a toml::value](#casting-a-tomlvalue) and [Checking value type](#checking-value-type) for detail.
+- An overload of `toml::find` for `toml::table` has been dropped. Use `toml::value` version instead.
+  - Because type conversion between a table and a value causes ambiguity while overload resolution
+  - Also because `toml::table` is a normal STL container, implementing utility function is easy.
+  - See [Finding a toml::value](#finding-a-tomlvalue) for detail.
+- Interface around comments.
+  - See [Preserving Comments](#preserving-comments) for detail.
+- An ancient `from_toml/into_toml` has been removed. Use arbitrary type conversion support.
+  - See [Conversion between toml value and arbitrary types](#conversion-between-toml-value-and-arbitrary-types) for detail.
+
+Such a big change will not happen in the coming years.
 
 ## Running Tests
 

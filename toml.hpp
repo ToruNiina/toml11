@@ -36,7 +36,6 @@
 #include "toml/parser.hpp"
 #include "toml/literal.hpp"
 #include "toml/serializer.hpp"
-#include "toml/from_toml.hpp"
 #include "toml/get.hpp"
 
 #endif// TOML_FOR_MODERN_CPP

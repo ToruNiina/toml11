@@ -46,7 +46,7 @@ inline std::tm localtime_s(const std::time_t* src)
 #endif
 } // detail
 
-enum class month_t : std::int8_t
+enum class month_t : std::uint8_t
 {
     Jan =  0,
     Feb =  1,
@@ -98,9 +98,9 @@ struct local_date
         t.tm_sec   = 0;
         t.tm_min   = 0;
         t.tm_hour  = 0;
-        t.tm_mday  = this->day;
-        t.tm_mon   = this->month;
-        t.tm_year  = this->year - 1900;
+        t.tm_mday  = static_cast<int>(this->day);
+        t.tm_mon   = static_cast<int>(this->month);
+        t.tm_year  = static_cast<int>(this->year) - 1900;
         t.tm_wday  = 0; // the value will be ignored
         t.tm_yday  = 0; // the value will be ignored
         t.tm_isdst = -1;
@@ -188,22 +188,22 @@ struct local_time
     explicit local_time(const std::chrono::duration<Rep, Period>& t)
     {
         const auto h = std::chrono::duration_cast<std::chrono::hours>(t);
-        this->hour = h.count();
+        this->hour = static_cast<std::uint8_t>(h.count());
         const auto t2 = t - h;
         const auto m = std::chrono::duration_cast<std::chrono::minutes>(t2);
-        this->minute = m.count();
+        this->minute = static_cast<std::uint8_t>(m.count());
         const auto t3 = t2 - m;
         const auto s = std::chrono::duration_cast<std::chrono::seconds>(t3);
-        this->second = s.count();
+        this->second = static_cast<std::uint8_t>(s.count());
         const auto t4 = t3 - s;
         const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t4);
-        this->millisecond = ms.count();
+        this->millisecond = static_cast<std::uint16_t>(ms.count());
         const auto t5 = t4 - ms;
         const auto us = std::chrono::duration_cast<std::chrono::microseconds>(t5);
-        this->microsecond = us.count();
+        this->microsecond = static_cast<std::uint16_t>(us.count());
         const auto t6 = t5 - us;
         const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t6);
-        this->nanosecond = ns.count();
+        this->nanosecond = static_cast<std::uint16_t>(ns.count());
     }
 
     operator std::chrono::nanoseconds() const

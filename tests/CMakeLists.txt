@@ -1,5 +1,6 @@
 set(TEST_NAMES
     test_datetime
+    test_string
     test_utility
     test_result
     test_traits
@@ -23,8 +24,10 @@ set(TEST_NAMES
     test_literals
     test_comments
     test_get
-    test_get_related_func
-    test_from_toml
+    test_get_or
+    test_find
+    test_find_or
+    test_expect
     test_parse_file
     test_serialize_file
     test_parse_unicode
@@ -33,13 +36,16 @@ set(TEST_NAMES
     test_extended_conversions
 )
 
-CHECK_CXX_COMPILER_FLAG("-Wall" COMPILER_SUPPORTS_WALL)
+CHECK_CXX_COMPILER_FLAG("-Wall"      COMPILER_SUPPORTS_WALL)
+CHECK_CXX_COMPILER_FLAG("-Wextra"    COMPILER_SUPPORTS_WEXTRA)
 CHECK_CXX_COMPILER_FLAG("-Wpedantic" COMPILER_SUPPORTS_WPEDANTIC)
 
 if(COMPILER_SUPPORTS_WALL)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
-
+if(COMPILER_SUPPORTS_WEXTRA)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+endif()
 if(COMPILER_SUPPORTS_WPEDANTIC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic")
 endif()
