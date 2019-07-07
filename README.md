@@ -1359,6 +1359,9 @@ are used. See [Customizing containers](#customizing-containers) for detail.
 flag that represents a kind of a string, `string_t::basic` and `string_t::literal`.
 Although `std::string` is not an exact toml type, still you can get a reference
 that points to internal `std::string` by using `toml::get<std::string>()` for convenience.
+The most important difference between `std::string` and `toml::string` is that
+`toml::string` will be formatted as a TOML string when outputed with `ostream`.
+This feature is introduced to make it easy to write a custom serializer.
 
 `Datetime` variants are `struct` that are defined in this library.
 Because `std::chrono::system_clock::time_point` is a __time point__,
