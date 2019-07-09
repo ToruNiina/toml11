@@ -25,7 +25,7 @@ It has some breaking changes from v2. Please be careful.
 ## Example
 
 ```cpp
-#include <toml11/toml.hpp>
+#include <toml.hpp>
 #include <iostream>
 
 int main()
