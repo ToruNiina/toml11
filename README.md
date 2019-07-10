@@ -1240,7 +1240,7 @@ const toml::source_location loc = v.location();
 toml11 enables you to serialize data into toml format.
 
 ```cpp
-const auto data = toml::table{{"foo", 42}, {"bar", "baz"}};
+const toml::value data{{"foo", 42}, {"bar", "baz"}};
 std::cout << data << std::endl;
 // bar = "baz"
 // foo = 42
@@ -1250,11 +1250,11 @@ toml11 automatically makes a small table and small array inline.
 You can specify the width to make them inline by `std::setw` for streams.
 
 ```cpp
-const auto data = toml::table{
-    {"qux",    toml::table{{"foo", 42}, {"bar", "baz"}}},
-    {"quux",   toml::array{"small", "array", "of", "strings"}},
-    {"foobar", toml::array{"this", "array", "of", "strings", "is", "too", "long",
-                           "to", "print", "into", "single", "line", "isn't", "it?"}},
+const toml::value data{
+    {"qux",    {{"foo", 42}, {"bar", "baz"}}},
+    {"quux",   {"small", "array", "of", "strings"}},
+    {"foobar", {"this", "array", "of", "strings", "is", "too", "long",
+                "to", "print", "into", "single", "line", "isn't", "it?"}},
 };
 
 // the threshold becomes 80.
@@ -1293,7 +1293,7 @@ To control the precision of floating point numbers, you need to pass
 `std::setprecision` to stream.
 
 ```cpp
-const auto data = toml::table{
+const toml::value data{
     {"pi", 3.141592653589793},
     {"e",  2.718281828459045}
 };
@@ -1392,6 +1392,9 @@ Between v2 and v3, those interfaces are rearranged.
   - Because type conversion between a table and a value causes ambiguity while overload resolution
   - Also because `toml::table` is a normal STL container, implementing utility function is easy.
   - See [Finding a toml::value](#finding-a-tomlvalue) for detail.
+- An overload of `operator<<` and `toml::format` for `toml::table`s are dropped.
+  - Use `toml::value` instead.
+  - See [Serializing TOML data](#serializing-toml-data) for detail.
 - Interface around comments.
   - See [Preserving Comments](#preserving-comments) for detail.
 - An ancient `from_toml/into_toml` has been removed. Use arbitrary type conversion support.
