@@ -162,12 +162,15 @@ struct preserve_comments
     const_reverse_iterator crbegin() const noexcept {return comments.crbegin();}
     const_reverse_iterator crend()   const noexcept {return comments.crend();}
 
-    friend bool operator==(const preserve_comments& lhs, const preserve_comments& rhs);
-    friend bool operator!=(const preserve_comments& lhs, const preserve_comments& rhs);
-    friend bool operator< (const preserve_comments& lhs, const preserve_comments& rhs);
-    friend bool operator<=(const preserve_comments& lhs, const preserve_comments& rhs);
-    friend bool operator> (const preserve_comments& lhs, const preserve_comments& rhs);
-    friend bool operator>=(const preserve_comments& lhs, const preserve_comments& rhs);
+    friend bool operator==(const preserve_comments&, const preserve_comments&);
+    friend bool operator!=(const preserve_comments&, const preserve_comments&);
+    friend bool operator< (const preserve_comments&, const preserve_comments&);
+    friend bool operator<=(const preserve_comments&, const preserve_comments&);
+    friend bool operator> (const preserve_comments&, const preserve_comments&);
+    friend bool operator>=(const preserve_comments&, const preserve_comments&);
+
+    friend void swap(preserve_comments&, std::vector<std::string>&);
+    friend void swap(std::vector<std::string>&, preserve_comments&);
 
   private:
 
@@ -184,6 +187,16 @@ inline bool operator>=(const preserve_comments& lhs, const preserve_comments& rh
 inline void swap(preserve_comments& lhs, preserve_comments& rhs)
 {
     lhs.swap(rhs);
+    return;
+}
+inline void swap(preserve_comments& lhs, std::vector<std::string>& rhs)
+{
+    lhs.comments.swap(rhs);
+    return;
+}
+inline void swap(std::vector<std::string>& lhs, preserve_comments& rhs)
+{
+    lhs.swap(rhs.comments);
     return;
 }
 
