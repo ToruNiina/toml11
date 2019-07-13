@@ -19,9 +19,6 @@ Not only the test suite itself, a TOML reader/encoder also runs on [CircleCI](ht
 You can see the error messages about invalid files and serialization results of valid files at
 [CircleCI](https://circleci.com/gh/ToruNiina/toml11).
 
-Now the master branch is showing a beta version of the version 3.
-It has some breaking changes from v2. Please be careful.
-
 ## Example
 
 ```cpp
@@ -110,13 +107,13 @@ const toml::table data = toml::parse(fname);
 If it encounters an error while opening a file, it will throw `std::runtime_error`.
 
 You can also pass a `std::istream` to the  `toml::parse` function.
-To show a filename in an error message, it is recommended to pass the filename
-with the stream.
+To show a filename in an error message, however, it is recommended to pass the
+filename with the stream.
 
 ```cpp
 std::ifstream ifs("sample.toml", std::ios_base::binary);
 assert(ifs.good());
-const auto data = toml::parse(ifs, /*optional*/ "sample.toml");
+const auto data = toml::parse(ifs, /*optional -> */ "sample.toml");
 ```
 
 **Note**: When you are **on Windows, open a file in binary mode**.
@@ -268,7 +265,6 @@ const int a = toml::find<int>(data, "answer", "to", "the", "ultimate", "question
 ```
 
 Of course, alternatively, you can call `toml::find` as many as you need.
-But it is a bother.
 
 ### In the case of type error
 
@@ -320,7 +316,7 @@ const auto color    = toml::find<std::string>(physical, "color");
 The following code does not work for the above toml file.
 
 ```cpp
-const auto color = toml::find<std::string>(data, "physical.color");
+const auto color = toml::find<std::string>(data, "physical.color"); // does not work
 ```
 
 The above code works with the following toml file.
@@ -912,9 +908,16 @@ const auto data = toml::parse<
     >("example.toml");
 ```
 
-__NOTE__: Needless to say, the result types from `toml::parse(...)` and
+Needless to say, the result types from `toml::parse(...)` and
 `toml::parse<Com, Map, Cont>(...)` are different (unless you specify the same
 types as default).
+
+Note that, since `toml::table` and `toml::array` is an alias for a table and an
+array of a default `toml::value`, so it is different from the types actually
+contained in a `toml::basic_value` when you customize containers.
+To get the actual type in a generic way, use
+`typename toml::basic_type<C, T, A>::table_type` and
+`typename toml::basic_type<C, T, A>::array_type`.
 
 ## TOML literal
 
@@ -948,7 +951,6 @@ inline namespace literals
 inline namespace toml_literals
 {
 toml::value operator"" _toml(const char* str, std::size_t len);
-
 } // toml_literals
 } // literals
 } // toml
