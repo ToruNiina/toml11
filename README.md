@@ -101,7 +101,7 @@ to pass a filename to the `toml::parse` function.
 
 ```cpp
 const std::string fname("sample.toml");
-const toml::table data = toml::parse(fname);
+const toml::value data = toml::parse(fname);
 ```
 
 If it encounters an error while opening a file, it will throw `std::runtime_error`.
