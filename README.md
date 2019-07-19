@@ -47,8 +47,9 @@ int main()
 - [Decoding a toml file](#decoding-a-toml-file)
   - [In the case of syntax error](#in-the-case-of-syntax-error)
   - [Invalid UTF-8 Codepoints](#invalid-utf-8-codepoints)
-- [Finding a toml value](#finding-a-toml-value-from-a-table)
-  - [In the case of type error](#in-the-case-of-type-error)
+- [Finding a toml value](#finding-a-toml-value)
+  - [Finding a value in a table](#finding-a-value-in-a-table)
+  - [In case of error](#in-case-of-error)
   - [Dotted keys](#dotted-keys)
 - [Casting a toml value](#casting-a-toml-value)
 - [Checking value type](#checking-value-type)
@@ -185,7 +186,7 @@ representing unicode character is not a valid UTF-8 codepoint.
    |                              ^--------- should be in [0x00..0x10FFFF]
 ```
 
-## Finding a toml value from a table
+## Finding a toml value
 
 After parsing successfully, you can obtain the values from the result of
 `toml::parse` using `toml::find` function.
@@ -196,8 +197,6 @@ answer  = 42
 pi      = 3.14
 numbers = [1,2,3]
 time    = 1979-05-27T07:32:00Z
-[tab]
-key = "value"
 ```
 
 ``` cpp
@@ -206,23 +205,16 @@ const auto answer    = toml::find<std::int64_t    >(data, "answer");
 const auto pi        = toml::find<double          >(data, "pi");
 const auto numbers   = toml::find<std::vector<int>>(data, "numbers");
 const auto timepoint = toml::find<std::chrono::system_clock::time_point>(data, "time");
-const auto tab       = toml::find(data, "tab"); // get a table as toml::value
-const auto key       = toml::find<std::string>(tab, "key");
 ```
 
-If the value does not exist, `toml::find` throws an error with the location of
-the table.
+By default, `toml::find` returns a `toml::value`.
 
-```console
-terminate called after throwing an instance of 'std::out_of_range'
-  what():  [error] key "answer" not found
- --> example.toml
- 6 | [tab]
-   | ~~~~~ in this table
+```cpp
+const toml::value& answer = toml::find(data, "answer");
 ```
 
 When you pass an exact TOML type that does not require type conversion,
-`toml::get` returns a reference without copying the value.
+`toml::find` returns a reference without copying the value.
 
 ```cpp
 const auto  data   = toml::parse("sample.toml");
@@ -231,19 +223,6 @@ const auto& answer = toml::find<toml::integer>(data, "answer");
 
 If the specified type requires conversion, you can't take a reference to the value.
 See also [underlying types](#underlying-types).
-
-By default, `toml::find` returns a `toml::value`.
-
-```cpp
-const toml::value& answer = toml::find(data, "answer");
-```
-
-**Note**: It is recommended to find a table as `toml::value` because it has much information
-compared to `toml::table`, which is an alias of
-`std::unordered_map<std::string, toml::value>`. Since `toml::table` does not have
-any information about toml file, such as where the table was defined in the file.
-
-
 
 **NOTE**: For some technical reason, automatic conversion between `integer` and
 `floating` is not supported. If you want to get a floating value even if a value
@@ -257,23 +236,59 @@ double x = vx.is_floating() ? vx.as_floating(std::nothrow) :
                                                  // floating nor integer.
 ```
 
-----
+### Finding a value in a table
 
-`toml::find` accepts arbitrary number of keys to find a value buried in a
-deep recursion of tables.
+There are several way to get a value defined in a table.
+First, you can get a table as a normal value and find a value from the table.
 
-```cpp
-// # expecting the following example.toml
-// answer.to.the.ultimate.question = 42
-// # is equivalent to {"answer": {"to":{"the":{"ultimate:{"question":42}}}}}
-
-const auto data = toml::parse("example.toml");
-const int  a = toml::find<int>(data, "answer", "to", "the", "ultimate", "question");
+```toml
+[fruit]
+name = "apple"
+[fruit.physical]
+color = "red"
+shape = "round"
 ```
 
-Of course, alternatively, you can call `toml::find` as many as you need.
+``` cpp
+const auto  data  = toml::parse("fruit.toml");
+const auto& fruit = toml::find(data, "fruit");
+const auto  name  = toml::find<std::string>(fruit, "apple");
 
-### In the case of type error
+const auto& physical = toml::find(fruit, "physical");
+const auto  color    = toml::find<std::string>(fruit, "color");
+const auto  shape    = toml::find<std::string>(fruit, "shape");
+```
+
+Here, variable `fruit` is a `toml::value` and can be used as the first argument
+of `toml::find`.
+
+Second, you can pass as many arguments as the number of subtables to `toml::find`.
+
+```cpp
+const auto data  = toml::parse("fruit.toml");
+const auto color = toml::find<std::string>(data, "fruit", "physical", "color");
+const auto shape = toml::find<std::string>(data, "fruit", "physical", "shape");
+```
+
+### In case of error
+
+If the value does not exist, `toml::find` throws an error with the location of
+the table.
+
+```console
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  [error] key "answer" not found
+ --> example.toml
+ 6 | [tab]
+   | ~~~~~ in this table
+```
+
+**Note**: It is recommended to find a table as `toml::value` because it has much information
+compared to `toml::table`, which is an alias of
+`std::unordered_map<std::string, toml::value>`. Since `toml::table` does not have
+any information about toml file, such as where the table was defined in the file.
+
+----
 
 If the specified type differs from the actual value contained, it throws
 `toml::type_error` that inherits `std::exception`.
@@ -323,7 +338,8 @@ const auto color    = toml::find<std::string>(physical, "color");
 The following code does not work for the above toml file.
 
 ```cpp
-const auto color = toml::find<std::string>(data, "physical.color"); // does not work
+// XXX this does not work!
+const auto color = toml::find<std::string>(data, "physical.color");
 ```
 
 The above code works with the following toml file.
@@ -355,7 +371,8 @@ contain one of the following types.
   - It depends. See [customizing containers](#customizing-containers) for detail.
 
 To get a value inside, you can use `toml::get<T>()`. The usage is the same as
-`toml::find<T>` (actually, `toml::find` internally uses `toml::get`).
+`toml::find<T>` (actually, `toml::find` internally uses `toml::get` after casting
+a value to `toml::table`).
 
 ``` cpp
 const toml::value  data    = toml::parse("sample.toml");
@@ -364,9 +381,12 @@ const std::int64_t answer  = toml::get<std::int64_t>(answer_);
 ```
 
 When you pass an exact TOML type that does not require type conversion,
-`toml::get` returns a reference through which you can modify the content.
+`toml::get` returns a reference through which you can modify the content
+(if the `toml::value` is `const`, it returns `const` reference).
 
 ```cpp
+toml::value   data    = toml::parse("sample.toml");
+toml::value   answer_ = toml::get<toml::table >(data).at("answer");
 toml::integer& answer = toml::get<toml::integer>(answer_);
 answer = 6 * 9; // write to data.answer. now `answer_` contains 54.
 ```
@@ -432,8 +452,6 @@ class value {
 };
 } // toml
 ```
-
-
 
 ## Checking value type
 
@@ -1401,7 +1419,7 @@ Between v2 and v3, those interfaces are rearranged.
   - Because type conversion between a table and a value causes ambiguity while overload resolution
   - Since `toml::parse` now returns a `toml::value`, this feature becomes less important.
   - Also because `toml::table` is a normal STL container, implementing utility function is easy.
-  - See [Finding a toml::value](#finding-a-tomlvalue) for detail.
+  - See [Finding a toml::value](#finding-a-toml-value) for detail.
 - An overload of `operator<<` and `toml::format` for `toml::table`s are dropped.
   - Use `toml::value` instead.
   - See [Serializing TOML data](#serializing-toml-data) for detail.
