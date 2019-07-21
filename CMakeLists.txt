@@ -7,7 +7,7 @@ set(toml11_VERSION_MAYOR  3)
 set(toml11_VERSION_MINOR  0)
 set(toml11_VERSION_PATCH  0)
 set(toml11_VERSION
-  "${toml11_VERSION_MAYOR}.${toml11_VERSION_MINOR}.${toml11_VERSION_PATCH}-beta"
+  "${toml11_VERSION_MAYOR}.${toml11_VERSION_MINOR}.${toml11_VERSION_PATCH}"
 )
 
 option(toml11_BUILD_TEST "Build toml tests" ON)
