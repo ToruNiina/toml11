@@ -575,6 +575,28 @@ find(basic_value<C, M, V>&& v, const ::toml::key& ky, Ts&& ... keys)
 // ============================================================================
 // get_or(value, fallback)
 
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V> const&
+get_or(const basic_value<C, M, V>& v, const basic_value<C, M, V>&)
+{
+    return v;
+}
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V>&
+get_or(basic_value<C, M, V>& v, basic_value<C, M, V>&)
+{
+    return v;
+}
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V>
+get_or(basic_value<C, M, V>&& v, basic_value<C, M, V>&&)
+{
+    return v;
+}
+
 // ----------------------------------------------------------------------------
 // specialization for the exact toml types (return type becomes lvalue ref)
 
@@ -725,6 +747,40 @@ get_or(const basic_value<C, M, V>& v, T&& opt)
 
 // ===========================================================================
 // find_or(value, key, fallback)
+
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V> const&
+find_or(const basic_value<C, M, V>& v, const key& ky,
+        const basic_value<C, M, V>& opt)
+{
+    if(!v.is_table()) {return opt;}
+    const auto& tab = v.as_table();
+    if(tab.count(ky) == 0) {return opt;}
+    return tab.at(ky);
+}
+
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V>&
+find_or(basic_value<C, M, V>& v, const toml::key& ky, basic_value<C, M, V>& opt)
+{
+    if(!v.is_table()) {return opt;}
+    auto& tab = v.as_table();
+    if(tab.count(ky) == 0) {return opt;}
+    return tab[ky];
+}
+
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+basic_value<C, M, V>
+find_or(basic_value<C, M, V>&& v, const toml::key& ky, basic_value<C, M, V>&& opt)
+{
+    if(!v.is_table()) {return opt;}
+    auto tab = std::move(v).as_table();
+    if(tab.count(ky) == 0) {return opt;}
+    return std::move(tab[ky]);
+}
 
 // ---------------------------------------------------------------------------
 // exact types (return type can be a reference)
