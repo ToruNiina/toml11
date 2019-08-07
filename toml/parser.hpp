@@ -8,7 +8,8 @@
 #include "lexer.hpp"
 #include "types.hpp"
 #include "value.hpp"
-#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <cstring>
 
 namespace toml
