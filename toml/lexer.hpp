@@ -115,7 +115,8 @@ using lex_local_time       = lex_partial_time;
 // ===========================================================================
 
 using lex_quotation_mark  = character<'"'>;
-using lex_basic_unescaped = exclude<either<in_range<0x00, 0x1F>,
+using lex_basic_unescaped = exclude<either<in_range<0x00, 0x08>, // 0x09 (tab)
+                                           in_range<0x0a, 0x1F>, // is allowed
                                            character<0x22>, character<0x5C>,
                                            character<0x7F>>>;
 using lex_escape          = character<'\\'>;
@@ -137,7 +138,8 @@ using lex_basic_string = sequence<lex_quotation_mark,
                                   lex_quotation_mark>;
 
 using lex_ml_basic_string_delim = repeat<lex_quotation_mark, exactly<3>>;
-using lex_ml_basic_unescaped    = exclude<either<in_range<0x00, 0x1F>,
+using lex_ml_basic_unescaped    = exclude<either<in_range<0x00, 0x08>, // 0x09
+                                                 in_range<0x0a, 0x1F>, // is tab
                                                  character<0x5C>,
                                                  character<0x7F>,
                                                  lex_ml_basic_string_delim>>;
