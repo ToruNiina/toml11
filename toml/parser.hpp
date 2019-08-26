@@ -1751,6 +1751,7 @@ parse_ml_table(location<Container>& loc)
     using skip_line = repeat<
         sequence<maybe<lex_ws>, maybe<lex_comment>, lex_newline>, at_least<1>>;
     skip_line::invoke(loc);
+    lex_ws::invoke(loc);
 
     table_type tab;
     while(loc.iter() != loc.end())

@@ -47,6 +47,16 @@ BOOST_AUTO_TEST_CASE(test_file_as_literal)
 
         BOOST_TEST(r == v);
     }
+    {
+        const toml::value r{
+            {"array_of_tables", toml::array{toml::table{}}}
+        };
+        const toml::value v = u8R"(
+            [[array_of_tables]]
+        )"_toml;
+
+        BOOST_TEST(r == v);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(test_value_as_literal)
