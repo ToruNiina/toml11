@@ -35,27 +35,29 @@ BOOST_AUTO_TEST_CASE(test_fractional_invalid)
 
 BOOST_AUTO_TEST_CASE(test_exponential_valid)
 {
-    TOML11_TEST_LEX_ACCEPT(lex_float, "1e10",       "1e10");      
-    TOML11_TEST_LEX_ACCEPT(lex_float, "1e+10",      "1e+10");     
-    TOML11_TEST_LEX_ACCEPT(lex_float, "1e-10",      "1e-10");     
-    TOML11_TEST_LEX_ACCEPT(lex_float, "+1e10",      "+1e10");     
-    TOML11_TEST_LEX_ACCEPT(lex_float, "+1e+10",     "+1e+10");    
-    TOML11_TEST_LEX_ACCEPT(lex_float, "+1e-10",     "+1e-10");    
-    TOML11_TEST_LEX_ACCEPT(lex_float, "-1e10",      "-1e10");     
-    TOML11_TEST_LEX_ACCEPT(lex_float, "-1e+10",     "-1e+10");    
-    TOML11_TEST_LEX_ACCEPT(lex_float, "-1e-10",     "-1e-10");    
-    TOML11_TEST_LEX_ACCEPT(lex_float, "123e-10",    "123e-10");   
-    TOML11_TEST_LEX_ACCEPT(lex_float, "1E10",       "1E10");      
-    TOML11_TEST_LEX_ACCEPT(lex_float, "1E+10",      "1E+10");     
-    TOML11_TEST_LEX_ACCEPT(lex_float, "1E-10",      "1E-10");     
-    TOML11_TEST_LEX_ACCEPT(lex_float, "123E-10",    "123E-10");   
-    TOML11_TEST_LEX_ACCEPT(lex_float, "1_2_3E-10",  "1_2_3E-10"); 
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1e10",       "1e10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1e+10",      "1e+10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1e-10",      "1e-10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "+1e10",      "+1e10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "+1e+10",     "+1e+10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "+1e-10",     "+1e-10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "-1e10",      "-1e10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "-1e+10",     "-1e+10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "-1e-10",     "-1e-10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "123e-10",    "123e-10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1E10",       "1E10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1E+10",      "1E+10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1E-10",      "1E-10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "123E-10",    "123E-10");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1_2_3E-10",  "1_2_3E-10");
     TOML11_TEST_LEX_ACCEPT(lex_float, "1_2_3E-1_0", "1_2_3E-1_0");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1_2_3E-01",  "1_2_3E-01");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1_2_3E-0_1", "1_2_3E-0_1");
 }
 
 BOOST_AUTO_TEST_CASE(test_exponential_invalid)
 {
-    TOML11_TEST_LEX_ACCEPT(lex_float, "1e1E0", "1e1"); 
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1e1E0", "1e1");
     TOML11_TEST_LEX_ACCEPT(lex_float, "1E1e0", "1E1");
 }
 
@@ -64,12 +66,15 @@ BOOST_AUTO_TEST_CASE(test_both_valid)
     TOML11_TEST_LEX_ACCEPT(lex_float, "6.02e23",          "6.02e23");
     TOML11_TEST_LEX_ACCEPT(lex_float, "6.02e+23",         "6.02e+23");
     TOML11_TEST_LEX_ACCEPT(lex_float, "1.112_650_06e-17", "1.112_650_06e-17");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1.0e-07",          "1.0e-07");
 }
 
 BOOST_AUTO_TEST_CASE(test_both_invalid)
 {
-    TOML11_TEST_LEX_ACCEPT(lex_float, "1e1.0",  "1e1");
     TOML11_TEST_LEX_REJECT(lex_float, "01e1.0");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1e1.0",  "1e1");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1.0e_01",  "1.0");
+    TOML11_TEST_LEX_ACCEPT(lex_float, "1.0e0__1", "1.0e0");
 }
 
 BOOST_AUTO_TEST_CASE(test_special_floating_point)
