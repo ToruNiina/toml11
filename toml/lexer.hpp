@@ -63,11 +63,13 @@ using lex_integer = either<lex_bin_int, lex_oct_int, lex_hex_int, lex_dec_int>;
 using lex_inf = sequence<character<'i'>, character<'n'>, character<'f'>>;
 using lex_nan = sequence<character<'n'>, character<'a'>, character<'n'>>;
 using lex_special_float = sequence<maybe<lex_sign>, either<lex_inf, lex_nan>>;
-using lex_exponent_part = sequence<either<character<'e'>, character<'E'>>, lex_dec_int>;
 
 using lex_zero_prefixable_int = sequence<lex_digit, repeat<either<lex_digit,
-      sequence<lex_underscore, lex_digit>>, unlimited>>;
+    sequence<lex_underscore, lex_digit>>, unlimited>>;
+
 using lex_fractional_part = sequence<character<'.'>, lex_zero_prefixable_int>;
+using lex_exponent_part   = sequence<either<character<'e'>, character<'E'>>,
+    maybe<lex_sign>, lex_zero_prefixable_int>;
 
 using lex_float = either<lex_special_float,
       sequence<lex_dec_int, either<lex_exponent_part,
