@@ -41,7 +41,7 @@ template<typename C,
          template<typename ...> class M, template<typename ...> class V>
 basic_value<C, M, V>&& find(basic_value<C, M, V>&& v, const key& ky)
 {
-    auto& tab = v.template cast<value_t::table>();
+    auto tab = std::move(v).as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -60,7 +60,7 @@ template<typename T, typename C,
 decltype(::toml::get<T>(std::declval<basic_value<C, M, V> const&>()))
 find(const basic_value<C, M, V>& v, const key& ky)
 {
-    const auto& tab = v.template cast<value_t::table>();
+    const auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -76,7 +76,7 @@ template<typename T, typename C,
 decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&>()))
 find(basic_value<C, M, V>& v, const key& ky)
 {
-    auto& tab = v.template cast<value_t::table>();
+    auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -92,7 +92,7 @@ template<typename T, typename C,
 decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&&>()))
 find(basic_value<C, M, V>&& v, const key& ky)
 {
-    auto& tab = v.template cast<value_t::table>();
+    auto tab = std::move(v).as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -193,9 +193,9 @@ template<typename C,
 basic_value<C, M, V>
 find_or(basic_value<C, M, V>&& v, const toml::key& ky, basic_value<C, M, V>&& opt)
 {
-    if(!v.is_table()) {return opt;}
+    if(!v.is_table()) {return std::move(opt);}
     auto tab = std::move(v).as_table();
-    if(tab.count(ky) == 0) {return opt;}
+    if(tab.count(ky) == 0) {return std::move(opt);}
     return std::move(tab[ky]);
 }
 
@@ -231,9 +231,9 @@ detail::enable_if_t<
     detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&&
 find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
 {
-    if(!v.is_table()) {return opt;}
+    if(!v.is_table()) {return std::forward<T>(opt);}
     auto tab = std::move(v).as_table();
-    if(tab.count(ky) == 0) {return opt;}
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
     return get_or(std::move(tab[ky]), std::forward<T>(opt));
 }
 
