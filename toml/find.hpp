@@ -109,7 +109,8 @@ find(basic_value<C, M, V>&& v, const key& ky)
 template<typename C,
          template<typename ...> class M, template<typename ...> class V,
          typename ... Ts>
-const basic_value<C, M, V>&
+detail::enable_if_t<detail::conjunction<std::is_convertible<Ts, std::string>...
+    >::value, const basic_value<C, M, V>&>
 find(const basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 {
     return ::toml::find(::toml::find(v, ky), std::forward<Ts>(keys)...);
@@ -117,7 +118,8 @@ find(const basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 template<typename C,
          template<typename ...> class M, template<typename ...> class V,
          typename ... Ts>
-basic_value<C, M, V>&
+detail::enable_if_t<detail::conjunction<std::is_convertible<Ts, std::string>...
+    >::value, basic_value<C, M, V>&>
 find(basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 {
     return ::toml::find(::toml::find(v, ky), std::forward<Ts>(keys)...);
@@ -125,7 +127,8 @@ find(basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 template<typename C,
          template<typename ...> class M, template<typename ...> class V,
          typename ... Ts>
-basic_value<C, M, V>&&
+detail::enable_if_t<detail::conjunction<std::is_convertible<Ts, std::string>...
+    >::value, basic_value<C, M, V>&&>
 find(basic_value<C, M, V>&& v, const ::toml::key& ky, Ts&& ... keys)
 {
     return ::toml::find(::toml::find(std::move(v), ky), std::forward<Ts>(keys)...);
@@ -134,7 +137,8 @@ find(basic_value<C, M, V>&& v, const ::toml::key& ky, Ts&& ... keys)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V,
          typename ... Ts>
-decltype(::toml::get<T>(std::declval<const basic_value<C, M, V>&>()))
+detail::enable_if_t<detail::conjunction<std::is_convertible<Ts, std::string>...
+    >::value, decltype(get<T>(std::declval<const basic_value<C, M, V>&>()))>
 find(const basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 {
     return ::toml::find<T>(::toml::find(v, ky), std::forward<Ts>(keys)...);
@@ -142,7 +146,8 @@ find(const basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V,
          typename ... Ts>
-decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&>()))
+detail::enable_if_t<detail::conjunction<std::is_convertible<Ts, std::string>...
+    >::value, decltype(get<T>(std::declval<basic_value<C, M, V>&>()))>
 find(basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 {
     return ::toml::find<T>(::toml::find(v, ky), std::forward<Ts>(keys)...);
@@ -150,7 +155,8 @@ find(basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V,
          typename ... Ts>
-decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&&>()))
+detail::enable_if_t<detail::conjunction<std::is_convertible<Ts, std::string>...
+    >::value, decltype(get<T>(std::declval<basic_value<C, M, V>&&>()))>
 find(basic_value<C, M, V>&& v, const ::toml::key& ky, Ts&& ... keys)
 {
     return ::toml::find<T>(::toml::find(std::move(v), ky), std::forward<Ts>(keys)...);
