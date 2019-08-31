@@ -270,6 +270,46 @@ const auto color = toml::find<std::string>(data, "fruit", "physical", "color");
 const auto shape = toml::find<std::string>(data, "fruit", "physical", "shape");
 ```
 
+### Dotted keys
+
+TOML v0.5.0 has a new feature named "dotted keys".
+You can chain keys to represent the structure of the data.
+
+```toml
+physical.color = "orange"
+physical.shape = "round"
+```
+
+This is equivalent to the following.
+
+```toml
+[physical]
+color = "orange"
+shape = "round"
+```
+
+You can get both of the above tables with the same c++ code.
+
+```cpp
+const auto physical = toml::find(data, "physical");
+const auto color    = toml::find<std::string>(physical, "color");
+```
+
+The following code does not work for the above toml file.
+
+```cpp
+// XXX this does not work!
+const auto color = toml::find<std::string>(data, "physical.color");
+```
+
+The above code works with the following toml file.
+
+```toml
+"physical.color" = "orange"
+# equivalent to {"physical.color": "orange"},
+# NOT {"physical": {"color": "orange"}}.
+```
+
 ### In case of error
 
 If the value does not exist, `toml::find` throws an error with the location of
@@ -310,45 +350,38 @@ shared by `toml::value`s and remains on the heap memory. It is recommended to
 destruct all the `toml::value` classes after configuring your application
 if you have a large TOML file compared to the memory resource.
 
-### Dotted keys
+### Fuzzy Search
 
-TOML v0.5.0 has a new feature named "dotted keys".
-You can chain keys to represent the structure of the data.
-
-```toml
-physical.color = "orange"
-physical.shape = "round"
-```
-
-This is equivalent to the following.
+To find a value, you can use `find_fuzzy` instead of `find`.
 
 ```toml
-[physical]
-color = "orange"
-shape = "round"
+# typo!
+anseer = 42
 ```
-
-You can get both of the above tables with the same c++ code.
 
 ```cpp
-const auto physical = toml::find(data, "physical");
-const auto color    = toml::find<std::string>(physical, "color");
+const auto data = toml::parse("sample.toml");
+const auto answer = toml::find_fuzzy<int>(data, "answer"); // it finds "anseer".
 ```
 
-The following code does not work for the above toml file.
+When the specified key is not found, `toml::find_fuzzy` calculates
+[levenstein distance](https://en.wikipedia.org/wiki/Levenshtein_distance)
+between the specified key and other keys.
+If it finds a key that is 1 away from the specified key by the Levenstein
+distance, it returns the corresponding value.
 
-```cpp
-// XXX this does not work!
-const auto color = toml::find<std::string>(data, "physical.color");
-```
+However, in many cases rather than just allowing typographical errors,
+you will want to suggest a message and encouledge users to correct it.
 
-The above code works with the following toml file.
+If you pass a `FuzzyMatcher` to `toml::find`, a suggestion will be displayed
+in the error message.
 
 ```toml
-"physical.color" = "orange"
-# equivalent to {"physical.color": "orange"},
-# NOT {"physical": {"color": "orange"}}.
+toml::levenstein_matcher lev(1); // finds keys within distance <= 1
+const auto answer = toml::find<int>(data, "answer"); // it throws!
 ```
+
+Note: Currently, it receives only one key.
 
 ## Casting a toml value
 
