@@ -3,6 +3,7 @@
 #ifndef TOML11_FIND_HPP
 #define TOML11_FIND_HPP
 #include "get.hpp"
+#include <numeric>
 
 namespace toml
 {
@@ -357,6 +358,408 @@ expect(const Table& t, const toml::key& k,
     }
 }
 
+// ===========================================================================
+// find_fuzzy
+
+// ---------------------------------------------------------------------------
+// default fuzzy matcher; levenstein distance (all cost is 1)
+
+struct levenstein_matcher
+{
+    levenstein_matcher(): tolerance(1) {}
+    levenstein_matcher(const std::uint32_t tol): tolerance(tol) {}
+    ~levenstein_matcher() = default;
+    levenstein_matcher(levenstein_matcher const&) = default;
+    levenstein_matcher(levenstein_matcher &&)     = default;
+    levenstein_matcher& operator=(levenstein_matcher const&) = default;
+    levenstein_matcher& operator=(levenstein_matcher &&)     = default;
+
+    template<typename charT, typename traitsT, typename Alloc1, typename Alloc2>
+    bool operator()(const std::basic_string<charT, traitsT, Alloc1>& lhs,
+                    const std::basic_string<charT, traitsT, Alloc2>& rhs) const
+    {
+        return this->distance(lhs, rhs) <= this->tolerance;
+    }
+
+    template<typename charT, typename traitsT, typename Alloc1, typename Alloc2>
+    std::uint32_t distance(
+            const std::basic_string<charT, traitsT, Alloc1>& lhs,
+            const std::basic_string<charT, traitsT, Alloc2>& rhs) const
+    {
+        // force `lhs.size() <= rhs.size()`
+        if(lhs.size() > rhs.size()) {return this->distance(rhs, lhs);}
+
+        std::vector<std::uint32_t> matrix(lhs.size() + 1u);
+        std::iota(matrix.begin(), matrix.end(), 0);
+
+        for(const charT r : rhs)
+        {
+            std::uint32_t prev_diag = matrix.front();
+            matrix.front() += 1;
+
+            for(std::size_t i=0; i<lhs.size(); ++i)
+            {
+                const charT l = lhs[i];
+                if(traitsT::eq(l, r))
+                {
+                    std::swap(matrix[i+1], prev_diag);
+                }
+                else
+                {
+                    const auto tmp = matrix[i+1];
+                    matrix[i+1] = std::min(prev_diag, std::min(matrix[i], matrix[i+1])) + 1;
+                    prev_diag = tmp;
+                }
+            }
+        }
+        return matrix.back();
+    }
+
+  private:
+    std::uint32_t tolerance;
+};
+
+// ---------------------------------------------------------------------------
+// toml::find_fuzzy<T>(v, "tablename", FuzzyMatcher);
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher = levenstein_matcher>
+auto find_fuzzy(const basic_value<C, M, V>& v, const key& ky,
+                const FuzzyMatcher match = levenstein_matcher(1))
+    -> decltype(find<T>(std::declval<const basic_value<C, M, V>&>(), ky))
+{
+    try
+    {
+        return find<T>(v, ky);
+    }
+    catch(const std::out_of_range& oor)
+    {
+        const auto& tab = v.as_table();
+        for(const auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                return get<T>(kv.second);
+            }
+        }
+        throw;
+    }
+}
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher = levenstein_matcher>
+auto find_fuzzy(basic_value<C, M, V>& v, const key& ky,
+                const FuzzyMatcher match = levenstein_matcher(1))
+    -> decltype(find<T>(std::declval<basic_value<C, M, V>&>(), ky))
+{
+    try
+    {
+        return find<T>(v, ky);
+    }
+    catch(const std::out_of_range& oor)
+    {
+        auto& tab = v.as_table();
+        for(auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                return get<T>(kv.second);
+            }
+        }
+        throw;
+    }
+}
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher = levenstein_matcher>
+auto find_fuzzy(basic_value<C, M, V>&& v_, const key& ky,
+                const FuzzyMatcher match = levenstein_matcher(1))
+    -> decltype(find<T>(std::declval<basic_value<C, M, V>&&>(), ky))
+{
+    basic_value<C, M, V> v = v_; // to re-use later, store it once
+    try
+    {
+        return std::move(find<T>(v, ky)); // pass lref, move later
+    }
+    catch(const std::out_of_range& oor)
+    {
+        auto& tab = v.as_table(); // because v is used here
+        for(auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                return get<T>(std::move(kv.second));
+            }
+        }
+        throw;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// no-template-argument case (by default, return toml::value).
+// toml::find_fuzzy(v, "tablename", FuzzyMatcher);
+
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher = levenstein_matcher>
+basic_value<C, M, V> const&
+find_fuzzy(const basic_value<C, M, V>& v, const key& ky,
+           const FuzzyMatcher match = levenstein_matcher(1))
+{
+    try
+    {
+        return find(v, ky);
+    }
+    catch(const std::out_of_range& oor)
+    {
+        const auto& tab = v.as_table();
+        for(const auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                return kv.second;
+            }
+        }
+        throw;
+    }
+}
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher = levenstein_matcher>
+basic_value<C, M, V>&
+find_fuzzy(basic_value<C, M, V>& v, const key& ky,
+           const FuzzyMatcher match = levenstein_matcher(1))
+{
+    try
+    {
+        return find(v, ky);
+    }
+    catch(const std::out_of_range& oor)
+    {
+        auto& tab = v.as_table();
+        for(auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                return kv.second;
+            }
+        }
+        throw;
+    }
+}
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher = levenstein_matcher>
+basic_value<C, M, V>&&
+find_fuzzy(basic_value<C, M, V>&& v_, const key& ky,
+           const FuzzyMatcher match = levenstein_matcher(1))
+{
+    basic_value<C, M, V> v = v_; // to re-use later, store it once
+    try
+    {
+        return std::move(find(v, ky));
+    }
+    catch(const std::out_of_range& oor)
+    {
+        auto& tab = v.as_table();
+        for(auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                return std::move(kv.second);
+            }
+        }
+        throw;
+    }
+}
+
+// ===========================================================================
+// find(v, k, matcher)
+//
+// when matcher is passed, check a key that matches exists or not. if it exists,
+// suggest that in the error message
+
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher>
+basic_value<C, M, V> const&
+find(const basic_value<C, M, V>& v, const key& ky, FuzzyMatcher match)
+{
+    const auto& tab = v.template cast<value_t::table>();
+    if(tab.count(ky) == 0)
+    {
+        for(const auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                throw std::out_of_range(detail::format_underline(concat_to_string(
+                    "[error] key \"", ky, "\" not found."), {
+                        {std::addressof(detail::get_region(v)), "in this table"},
+                        {std::addressof(detail::get_region(kv.second)),
+                         "did you mean this?"}
+                    }));
+            }
+        }
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
+    }
+    return tab.at(ky);
+}
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher>
+basic_value<C, M, V>&
+find(basic_value<C, M, V>& v, const key& ky, FuzzyMatcher match)
+{
+    auto& tab = v.template cast<value_t::table>();
+    if(tab.count(ky) == 0)
+    {
+        for(const auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                throw std::out_of_range(detail::format_underline(concat_to_string(
+                    "[error] key \"", ky, "\" not found."), {
+                        {std::addressof(detail::get_region(v)), "in this table"},
+                        {std::addressof(detail::get_region(kv.second)),
+                         "did you mean this?"}
+                    }));
+            }
+        }
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
+    }
+    return tab.at(ky);
+}
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher>
+basic_value<C, M, V>&&
+find(basic_value<C, M, V>&& v, const key& ky, FuzzyMatcher match)
+{
+    auto tab = std::move(v).as_table();
+    if(tab.count(ky) == 0)
+    {
+        for(const auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                throw std::out_of_range(detail::format_underline(concat_to_string(
+                    "[error] key \"", ky, "\" not found."), {
+                        {std::addressof(detail::get_region(v)), "in this table"},
+                        {std::addressof(detail::get_region(kv.second)),
+                         "did you mean this?"}
+                    }));
+            }
+        }
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
+    }
+    return std::move(tab.at(ky));
+}
+
+// ----------------------------------------------------------------------------
+// find<T>(value, key, fuzzy_matcher);
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher>
+detail::enable_if_t<
+    detail::negation<std::is_convertible<FuzzyMatcher, std::string>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<C, M, V> const&>()))>
+find(const basic_value<C, M, V>& v, const key& ky, FuzzyMatcher match)
+{
+    const auto& tab = v.as_table();
+    if(tab.count(ky) == 0)
+    {
+        for(const auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                throw std::out_of_range(detail::format_underline(concat_to_string(
+                    "[error] key \"", ky, "\" not found."), {
+                        {std::addressof(detail::get_region(v)), "in this table"},
+                        {std::addressof(detail::get_region(kv.second)),
+                         "did you mean this here?"}
+                    }));
+            }
+        }
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
+    }
+    return ::toml::get<T>(tab.at(ky));
+}
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher>
+detail::enable_if_t<
+    detail::negation<std::is_convertible<FuzzyMatcher, std::string>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&>()))>
+find(basic_value<C, M, V>& v, const key& ky, FuzzyMatcher match)
+{
+    auto& tab = v.as_table();
+    if(tab.count(ky) == 0)
+    {
+        for(const auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                throw std::out_of_range(detail::format_underline(concat_to_string(
+                    "[error] key \"", ky, "\" not found."), {
+                        {std::addressof(detail::get_region(v)), "in this table"},
+                        {std::addressof(detail::get_region(kv.second)),
+                         "did you mean this here?"}
+                    }));
+            }
+        }
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
+    }
+    return ::toml::get<T>(tab.at(ky));
+}
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher>
+detail::enable_if_t<
+    detail::negation<std::is_convertible<FuzzyMatcher, std::string>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&&>()))>
+find(basic_value<C, M, V>&& v, const key& ky, FuzzyMatcher match)
+{
+    auto tab = v.as_table();
+    if(tab.count(ky) == 0)
+    {
+        for(const auto& kv : tab)
+        {
+            if(match(kv.first, ky))
+            {
+                throw std::out_of_range(detail::format_underline(concat_to_string(
+                    "[error] key \"", ky, "\" not found."), {
+                        {std::addressof(detail::get_region(v)), "in this table"},
+                        {std::addressof(detail::get_region(kv.second)),
+                         "did you mean this here?"}
+                    }));
+            }
+        }
+        throw std::out_of_range(detail::format_underline(concat_to_string(
+            "[error] key \"", ky, "\" not found"), {
+                {std::addressof(detail::get_region(v)), "in this table"}
+            }));
+    }
+    return ::toml::get<T>(std::move(tab.at(ky)));
+}
 
 } // toml
 #endif// TOML11_FIND_HPP
