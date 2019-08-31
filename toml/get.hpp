@@ -863,7 +863,7 @@ detail::enable_if_t<
     std::string>
 find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
 {
-    if(!v.is_table()) {return opt;}
+    if(!v.is_table()) {return std::string(opt);}
     const auto& tab = v.as_table();
     if(tab.count(ky) == 0) {return std::string(opt);}
     return get_or(tab.at(ky), std::forward<T>(opt));
@@ -874,19 +874,22 @@ find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 detail::enable_if_t<detail::conjunction<
+    // T is not an exact toml type
     detail::negation<detail::is_exact_toml_type<
         typename std::remove_cv<typename std::remove_reference<T>::type>::type,
         basic_value<C, M, V>>>,
+    // T is not std::string
     detail::negation<std::is_same<std::string,
         typename std::remove_cv<typename std::remove_reference<T>::type>::type>>,
+    // T is not a string literal
     detail::negation<detail::is_string_literal<
         typename std::remove_reference<T>::type>>
-    >::value, T>
+    >::value, typename std::remove_cv<typename std::remove_reference<T>::type>::type>
 find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
 {
-    if(!v.is_table()) {return opt;}
+    if(!v.is_table()) {return std::forward<T>(opt);}
     const auto& tab = v.as_table();
-    if(tab.count(ky) == 0) {return opt;}
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
     return get_or(tab.at(ky), std::forward<T>(opt));
 }
 
