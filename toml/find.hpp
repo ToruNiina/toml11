@@ -422,6 +422,39 @@ struct levenstein_matcher
 // ---------------------------------------------------------------------------
 // toml::find_fuzzy<T>(v, "tablename", FuzzyMatcher);
 
+namespace detail
+{
+template<typename Iterator, typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename FuzzyMatcher>
+Iterator find_unique(
+        Iterator iter, const Iterator end, const basic_value<C, M, V>& v,
+        const toml::key& k, const FuzzyMatcher& match)
+{
+    Iterator found = end;
+    for(; iter != end; ++iter)
+    {
+        if(match(iter->first, k))
+        {
+            if(found != end)
+            {
+                throw std::out_of_range(detail::format_underline(
+                    concat_to_string("[error] key \"", k, "\" not found."),
+                    {
+                        {std::addressof(detail::get_region(v)),"in this table"},
+                        {std::addressof(detail::get_region(found->second)),
+                         "did you mean this here?"},
+                        {std::addressof(detail::get_region(iter->second)),
+                         "or this?"}
+                    }));
+            }
+            found = iter;
+        }
+    }
+    return found;
+}
+} // detail
+
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V,
          typename FuzzyMatcher = levenstein_matcher>
@@ -435,13 +468,11 @@ auto find_fuzzy(const basic_value<C, M, V>& v, const key& ky,
     }
     catch(const std::out_of_range& oor)
     {
-        const auto& tab = v.as_table();
-        for(const auto& kv : tab)
+        const auto& t = v.as_table();
+        const auto found = detail::find_unique(t.begin(), t.end(), v, ky, match);
+        if(found != t.end())
         {
-            if(match(kv.first, ky))
-            {
-                return get<T>(kv.second);
-            }
+            return get<T>(found->second);
         }
         throw;
     }
@@ -459,13 +490,11 @@ auto find_fuzzy(basic_value<C, M, V>& v, const key& ky,
     }
     catch(const std::out_of_range& oor)
     {
-        auto& tab = v.as_table();
-        for(auto& kv : tab)
+        auto& t = v.as_table();
+        const auto found = detail::find_unique(t.begin(), t.end(), v, ky, match);
+        if(found != t.end())
         {
-            if(match(kv.first, ky))
-            {
-                return get<T>(kv.second);
-            }
+            return get<T>(found->second);
         }
         throw;
     }
@@ -484,13 +513,11 @@ auto find_fuzzy(basic_value<C, M, V>&& v_, const key& ky,
     }
     catch(const std::out_of_range& oor)
     {
-        auto& tab = v.as_table(); // because v is used here
-        for(auto& kv : tab)
+        auto& t = v.as_table(); // because v is used here
+        const auto found = detail::find_unique(t.begin(), t.end(), v, ky, match);
+        if(found != t.end())
         {
-            if(match(kv.first, ky))
-            {
-                return get<T>(std::move(kv.second));
-            }
+            return get<T>(std::move(found->second));
         }
         throw;
     }
@@ -513,13 +540,11 @@ find_fuzzy(const basic_value<C, M, V>& v, const key& ky,
     }
     catch(const std::out_of_range& oor)
     {
-        const auto& tab = v.as_table();
-        for(const auto& kv : tab)
+        const auto& t = v.as_table();
+        const auto found = detail::find_unique(t.begin(), t.end(), v, ky, match);
+        if(found != t.end())
         {
-            if(match(kv.first, ky))
-            {
-                return kv.second;
-            }
+            return found->second;
         }
         throw;
     }
@@ -537,13 +562,11 @@ find_fuzzy(basic_value<C, M, V>& v, const key& ky,
     }
     catch(const std::out_of_range& oor)
     {
-        auto& tab = v.as_table();
-        for(auto& kv : tab)
+        auto& t = v.as_table();
+        const auto found = detail::find_unique(t.begin(), t.end(), v, ky, match);
+        if(found != t.end())
         {
-            if(match(kv.first, ky))
-            {
-                return kv.second;
-            }
+            return found->second;
         }
         throw;
     }
@@ -562,13 +585,11 @@ find_fuzzy(basic_value<C, M, V>&& v_, const key& ky,
     }
     catch(const std::out_of_range& oor)
     {
-        auto& tab = v.as_table();
-        for(auto& kv : tab)
+        auto& t = v.as_table();
+        const auto found = detail::find_unique(t.begin(), t.end(), v, ky, match);
+        if(found != t.end())
         {
-            if(match(kv.first, ky))
-            {
-                return std::move(kv.second);
-            }
+            return std::move(found->second);
         }
         throw;
     }
