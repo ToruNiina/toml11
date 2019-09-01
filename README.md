@@ -355,12 +355,14 @@ if you have a large TOML file compared to the memory resource.
 To find a value, you can use `find_fuzzy` instead of `find`.
 
 ```toml
+[foobar]
 # typo!
 anseer = 42
 ```
 
 ```cpp
-const auto data = toml::parse("sample.toml");
+const auto data   = toml::parse("sample.toml");
+const auto foobar = toml::find(data, "foobar");
 const auto answer = toml::find_fuzzy<int>(data, "answer"); // it finds "anseer".
 ```
 
@@ -370,18 +372,54 @@ between the specified key and other keys.
 If it finds a key that is 1 away from the specified key by the Levenstein
 distance, it returns the corresponding value.
 
-However, in many cases rather than just allowing typographical errors,
-you will want to suggest a message and encouledge users to correct it.
+To allow a more distant string, you can explicitly pass `toml::levenstein_matcher`
+to `find_fuzzy`.
 
-If you pass a `FuzzyMatcher` to `toml::find`, a suggestion will be displayed
-in the error message.
-
-```toml
-toml::levenstein_matcher lev(1); // finds keys within distance <= 1
-const auto answer = toml::find<int>(data, "answer"); // it throws!
+```cpp
+toml::levenstein_matcher lev(2); // allow distance <= 2
+const auto answer = toml::find_fuzzy<int>(data, "answer", lev);
 ```
 
-Note: Currently, it receives only one key.
+You can also use your own distance metric. Implement your `fuzzy_matcher` that
+has `operator()` that takes two strings and returns true if two strings resemble
+each other.
+
+```cpp
+struct fuzzy_matcher
+{
+    bool operator()(const std::string& lhs, const std::string& rhs) const
+    {
+        // return true if lhs matches with rhs.
+    }
+};
+```
+
+If there are multiple keys that meets the condition, it throws `runtime_error`.
+
+However, in many cases, rather than just allowing typographical errors,
+you will want to suggest it and encouledge users to correct it.
+
+If you pass a `fuzzy_matcher` to `toml::find`, a suggestion will be displayed
+in the error message.
+
+```cpp
+toml::levenstein_matcher lev(1); // finds keys within distance <= 1
+const auto answer = toml::find<int>(data, "answer", lev); // it throws!
+```
+
+```console
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  [error] key "answer" not found.
+ --> hoge.toml
+ 1 | [foobar]
+   | ~~~~~~~~ in this table
+ ...
+ 2 | anseer = 42
+   |          ~~ did you mean this here?
+```
+
+Note: Currently, `find_fuzzy` and `find(value, key, matcher)` take only one key.
+The codes like `find_fuzzy(value, key1, key2, key3)` do not work.
 
 ## Casting a toml value
 
