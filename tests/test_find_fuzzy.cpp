@@ -103,6 +103,102 @@ BOOST_AUTO_TEST_CASE(test_find_fuzzy)
         static_assert(std::is_same<
                 toml::value&&, decltype(toml::find_fuzzy(std::move(v), "key"))>::value, "");
     }
+
+    // find with conversion
+
+    {
+        toml::value v{
+            {"keu", 42} // typo! key -> keu
+        };
+
+        BOOST_TEST(toml::find_fuzzy<int>(v, "key") == 42);
+        BOOST_CHECK_THROW(toml::find_fuzzy<int>(v, "kiwi"), std::out_of_range);
+
+        static_assert(std::is_same<int,
+                decltype(toml::find_fuzzy<int>(v, "key"))>::value, "");
+    }
+    {
+        const toml::value v{
+            {"keu", 42} // typo! key -> keu
+        };
+
+        BOOST_TEST(toml::find_fuzzy<int>(v, "key") == 42);
+        BOOST_CHECK_THROW(toml::find_fuzzy<int>(v, "kiwi"), std::out_of_range);
+
+        static_assert(std::is_same<int,
+                decltype(toml::find_fuzzy<int>(v, "key"))>::value, "");
+    }
+    {
+        toml::value v{
+            {"keu", 42} // typo! key -> keu
+        };
+
+        BOOST_TEST(toml::find_fuzzy<int>(std::move(v), "key") == 42);
+
+        static_assert(std::is_same<int,
+                decltype(toml::find_fuzzy<int>(std::move(v), "key"))>::value, "");
+    }
+    {
+        toml::value v{
+            {"keu", 42} // typo! key -> keu
+        };
+
+        BOOST_CHECK_THROW(toml::find_fuzzy<int>(std::move(v), "kiwi"), std::out_of_range);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_find_fuzzy_throw)
+{
+    {
+        toml::value v{
+            {"keu", "value"}, // typo! key -> keu
+            {"ky", "value"}   // typo! key -> ky
+        };
+
+        BOOST_CHECK_THROW(toml::find_fuzzy(v, "key"), std::out_of_range);
+    }
+    {
+        const toml::value v{
+            {"keu", "value"}, // typo! key -> keu
+            {"ky", "value"}   // typo! key -> ky
+        };
+
+        BOOST_CHECK_THROW(toml::find_fuzzy(v, "key"), std::out_of_range);
+    }
+    {
+        toml::value v{
+            {"keu", "value"}, // typo! key -> keu
+            {"ky", "value"}   // typo! key -> ky
+        };
+
+        BOOST_CHECK_THROW(toml::find_fuzzy(std::move(v), "key"), std::out_of_range);
+    }
+
+    {
+        toml::value v{
+            {"keu", 42}, // typo! key -> keu
+            {"ky",  42}  // typo! key -> ky
+        };
+
+        BOOST_CHECK_THROW(toml::find_fuzzy<int>(v, "key"), std::out_of_range);
+    }
+    {
+        const toml::value v{
+            {"keu", 42}, // typo! key -> keu
+            {"ky",  42}  // typo! key -> ky
+        };
+
+        BOOST_CHECK_THROW(toml::find_fuzzy<int>(v, "key"), std::out_of_range);
+    }
+    {
+        toml::value v{
+            {"keu", 42}, // typo! key -> keu
+            {"ky",  42}  // typo! key -> ky
+        };
+
+        BOOST_CHECK_THROW(toml::find_fuzzy<int>(std::move(v), "key"), std::out_of_range);
+    }
+
 }
 
 BOOST_AUTO_TEST_CASE(test_find_throw_typo_aware_exception)
@@ -176,5 +272,79 @@ BOOST_AUTO_TEST_CASE(test_find_throw_typo_aware_exception)
         BOOST_TEST(thrown);
         static_assert(std::is_same<
                 toml::value&, decltype(toml::find(v, "key"))>::value, "");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_find_throw_conversion_typo_aware_exception)
+{
+    using namespace toml::literals::toml_literals;
+    const toml::levenstein_matcher lev(1);
+    {
+        toml::value v = u8R"(
+            keu = 42
+        )"_toml;
+
+        BOOST_CHECK_THROW(toml::find<int>(v, "key", lev), std::out_of_range);
+        try
+        {
+            const auto& ret = toml::find<int>(v, "key", lev);
+            (void)ret; // suppress unused variable
+        }
+        catch(const std::out_of_range& oor)
+        {
+            // exception.what() should include the typo-ed key name
+            const std::string what(oor.what());
+            BOOST_TEST(what.find("keu") != std::string::npos);
+
+//             std::cout << what << std::endl;
+        }
+        static_assert(std::is_same<int,
+                decltype(toml::find<int>(v, "key"))>::value, "");
+    }
+    {
+        const toml::value v = u8R"(
+            keu = 42
+        )"_toml;
+
+        BOOST_CHECK_THROW(toml::find<int>(v, "key", lev), std::out_of_range);
+        try
+        {
+            const auto& ret = toml::find<int>(v, "key", lev);
+            (void)ret;
+        }
+        catch(const std::out_of_range& oor)
+        {
+            // exception.what() should include the typo-ed key name
+            const std::string what(oor.what());
+            BOOST_TEST(what.find("keu") != std::string::npos);
+
+//             std::cout << what << std::endl;
+        }
+        static_assert(std::is_same<int,
+                decltype(toml::find<int>(v, "key"))>::value, "");
+    }
+    {
+        toml::value v = u8R"(
+            keu = 42
+        )"_toml;
+
+        bool thrown = false; // since it moves, we need to check both once
+        try
+        {
+            const auto& ret = toml::find<int>(std::move(v), "key", lev);
+            (void)ret;
+        }
+        catch(const std::out_of_range& oor)
+        {
+            // exception.what() should include the typo-ed key name
+            const std::string what(oor.what());
+            BOOST_TEST(what.find("keu") != std::string::npos);
+            thrown = true;
+
+//             std::cout << what << std::endl;
+        }
+        BOOST_TEST(thrown);
+        static_assert(std::is_same<int,
+                decltype(toml::find<int>(v, "key"))>::value, "");
     }
 }
