@@ -68,8 +68,13 @@ BOOST_AUTO_TEST_CASE(test_exponential)
     TOML11_TEST_PARSE_EQUAL(parse_floating, "1_2_3E-1_0", 123e-10);
     TOML11_TEST_PARSE_EQUAL(parse_floating, "+0e0",        0.0);
     TOML11_TEST_PARSE_EQUAL(parse_floating, "-0e0",       -0.0);
+
+#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
+    BOOST_TEST_MESSAGE("testing an unreleased toml feature: leading zeroes in float exponent part");
+    // toml-lang/toml master permits leading 0s in exp part (unreleased)
     TOML11_TEST_PARSE_EQUAL(parse_floating, "1_2_3E-01",  123e-1);
     TOML11_TEST_PARSE_EQUAL(parse_floating, "1_2_3E-0_1", 123e-1);
+#endif
 }
 
 BOOST_AUTO_TEST_CASE(test_exponential_value)
@@ -92,8 +97,13 @@ BOOST_AUTO_TEST_CASE(test_exponential_value)
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1_2_3E-1_0", value(123e-10));
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "+0e0",       value( 0.0));
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "-0e0",       value(-0.0));
+
+#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
+    BOOST_TEST_MESSAGE("testing an unreleased toml feature: leading zeroes in float exponent part");
+    // toml-lang/toml master permits leading 0s in exp part (unreleased)
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1_2_3E-01",  value(123e-1));
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1_2_3E-0_1", value(123e-1));
+#endif
 }
 BOOST_AUTO_TEST_CASE(test_fe)
 {
@@ -106,7 +116,12 @@ BOOST_AUTO_TEST_CASE(test_fe_vaule)
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "6.02e23",          value(6.02e23));
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "6.02e+23",         value(6.02e23));
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "1.112_650_06e-17", value(1.11265006e-17));
+
+#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
+    BOOST_TEST_MESSAGE("testing an unreleased toml feature: leading zeroes in float exponent part");
+    // toml-lang/toml master permits leading 0s in exp part (unreleased)
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "3.141_5e-01",      value(3.1415e-1));
+#endif
 }
 
 BOOST_AUTO_TEST_CASE(test_inf)
