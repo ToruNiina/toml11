@@ -68,8 +68,16 @@ using lex_zero_prefixable_int = sequence<lex_digit, repeat<either<lex_digit,
     sequence<lex_underscore, lex_digit>>, unlimited>>;
 
 using lex_fractional_part = sequence<character<'.'>, lex_zero_prefixable_int>;
+
+#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
+// use toml-lang/toml HEAD
 using lex_exponent_part   = sequence<either<character<'e'>, character<'E'>>,
-    maybe<lex_sign>, lex_zero_prefixable_int>;
+        maybe<lex_sign>, lex_zero_prefixable_int>;
+#else
+// strictly TOML v0.5.0
+using lex_exponent_part = sequence<either<character<'e'>, character<'E'>>,
+        lex_dec_int>;
+#endif
 
 using lex_float = either<lex_special_float,
       sequence<lex_dec_int, either<lex_exponent_part,
