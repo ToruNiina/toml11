@@ -5,7 +5,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-5" CXX_STANDARD=11
+    env: COMPILER="g++-5" CXX_STANDARD=11 TOML_HEAD=OFF
     addons:
       apt:
         sources:
@@ -17,7 +17,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-6" CXX_STANDARD=11
+    env: COMPILER="g++-6" CXX_STANDARD=11 TOML_HEAD=OFF
     addons:
       apt:
         sources:
@@ -29,7 +29,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-7" CXX_STANDARD=11
+    env: COMPILER="g++-7" CXX_STANDARD=11 TOML_HEAD=OFF
     addons:
       apt:
         sources:
@@ -41,7 +41,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-8" CXX_STANDARD=11
+    env: COMPILER="g++-8" CXX_STANDARD=11 TOML_HEAD=OFF
     addons:
       apt:
         sources:
@@ -53,7 +53,31 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-8" CXX_STANDARD=17
+    env: COMPILER="g++-8" CXX_STANDARD=11 TOML_HEAD=ON
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - sourceline: 'ppa:mhier/libboost-latest'
+        packages:
+        - g++-8
+        - boost1.70
+  - os: linux
+    language: cpp
+    compiler: gcc
+    env: COMPILER="g++-8" CXX_STANDARD=17 TOML_HEAD=OFF
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - sourceline: 'ppa:mhier/libboost-latest'
+        packages:
+        - g++-8
+        - boost1.70
+  - os: linux
+    language: cpp
+    compiler: gcc
+    env: COMPILER="g++-8" CXX_STANDARD=17 TOML_HEAD=ON
     addons:
       apt:
         sources:
@@ -65,7 +89,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-3.7" CXX_STANDARD=11
+    env: COMPILER="clang++-3.7" CXX_STANDARD=11 TOML_HEAD=OFF
     addons:
       apt:
         sources:
@@ -79,7 +103,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-4.0" CXX_STANDARD=11
+    env: COMPILER="clang++-4.0" CXX_STANDARD=11 TOML_HEAD=OFF
     addons:
       apt:
         sources:
@@ -93,7 +117,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-5.0" CXX_STANDARD=11
+    env: COMPILER="clang++-5.0" CXX_STANDARD=11 TOML_HEAD=OFF
     addons:
       apt:
         sources:
@@ -107,7 +131,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-6.0" CXX_STANDARD=11
+    env: COMPILER="clang++-6.0" CXX_STANDARD=11 TOML_HEAD=OFF
     addons:
       apt:
         sources:
@@ -121,7 +145,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-7" CXX_STANDARD=11
+    env: COMPILER="clang++-7" CXX_STANDARD=11 TOML_HEAD=OFF
     addons:
       apt:
         sources:
@@ -135,7 +159,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-8" CXX_STANDARD=11
+    env: COMPILER="clang++-8" CXX_STANDARD=11 TOML_HEAD=OFF
     addons:
       apt:
         sources:
@@ -149,7 +173,35 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-8" CXX_STANDARD=17
+    env: COMPILER="clang++-8" CXX_STANDARD=11 TOML_HEAD=ON
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-8
+        - sourceline: 'ppa:mhier/libboost-latest'
+        packages:
+        - g++-8
+        - clang-8
+        - boost1.70
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-8" CXX_STANDARD=17 TOML_HEAD=OFF
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-8
+        - sourceline: 'ppa:mhier/libboost-latest'
+        packages:
+        - clang-8
+        - g++-8
+        - boost1.70
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-8" CXX_STANDARD=17 TOML_HEAD=ON
     addons:
       apt:
         sources:
@@ -179,6 +231,6 @@ script:
 - mkdir build
 - cd build
 - git clone https://github.com/toml-lang/toml.git
-- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD ..
+- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DTOML11_USE_UNRELEASED_TOML_FEATURES=${TOML_HEAD} ..
 - make
 - ctest --output-on-failure
