@@ -50,6 +50,14 @@ if(COMPILER_SUPPORTS_WPEDANTIC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic")
 endif()
 
+option(TOML11_USE_UNRELEASED_TOML_FEATURES
+    "use features in toml-lang/toml master while testing" OFF)
+
+if(TOML11_USE_UNRELEASED_TOML_FEATURES)
+    message(STATUS "adding TOML11_USE_UNRELEASED_TOML_FEATURES flag")
+    add_definitions("-DTOML11_USE_UNRELEASED_TOML_FEATURES")
+endif()
+
 # Disable some MSVC warnings
 if(MSVC)
     # conversion from 'double' to 'unsigned int', possible loss of data
