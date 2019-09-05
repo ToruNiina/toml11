@@ -70,6 +70,7 @@ int main()
 - [Formatting user-defined error messages](#formatting-user-defined-error-messages)
 - [Serializing TOML data](#serializing-toml-data)
 - [Underlying types](#underlying-types)
+- [Unreleased TOML features](#unreleased-toml-features)
 - [Breaking Changes from v2](#breaking-changes-from-v2)
 - [Running Tests](#running-tests)
 - [Contributors](#contributors)
@@ -1395,6 +1396,16 @@ Because `std::chrono::system_clock::time_point` is a __time point__,
 not capable of representing a Local Time independent from a specific day.
 
 It is recommended to get `datetime`s as `std::chrono` classes through `toml::get`.
+
+## Unreleased TOML features
+
+There are some unreleased features in toml-lang/toml:master.
+Currently, the following features are available after defining
+`TOML11_USE_UNRELEASED_TOML_FEATURES` macro flag.
+
+- Leading zeroes in exponent parts of floats are permitted.
+  - e.g. `1.0e+01`, `5e+05`
+- Allow raw tab characters in basic strings and multi-line basic strings.
 
 ## Breaking Changes from v2
 
