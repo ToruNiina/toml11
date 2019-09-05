@@ -358,3 +358,36 @@ BOOST_AUTO_TEST_CASE(test_find_or_string)
         BOOST_TEST("bazqux" == toml::find_or(v2, "key", lit));
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_find_or_map)
+{
+    using map_type = std::map<std::string, std::string>;
+    {
+        const toml::value v1{
+            {"key", {{"key", "value"}}}
+        };
+
+        const auto key  = toml::find_or(v1, "key",  map_type{});
+        const auto key2 = toml::find_or(v1, "key2", map_type{});
+
+        BOOST_TEST(!key.empty());
+        BOOST_TEST(key2.empty());
+
+        BOOST_TEST(key.size()    == 1u);
+        BOOST_TEST(key.at("key") == "value");
+    }
+    {
+        const toml::value v1{
+            {"key", {{"key", "value"}}}
+        };
+
+        const auto key  = toml::find_or<map_type>(v1, "key",  map_type{});
+        const auto key2 = toml::find_or<map_type>(v1, "key2", map_type{});
+
+        BOOST_TEST(!key.empty());
+        BOOST_TEST(key2.empty());
+
+        BOOST_TEST(key.size()    == 1u);
+        BOOST_TEST(key.at("key") == "value");
+    }
+}
