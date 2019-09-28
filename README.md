@@ -454,6 +454,22 @@ class value {
 } // toml
 ```
 
+### `at()`
+
+You can access to the element of a table and an array by `toml::basic_value::at`.
+
+```cpp
+const toml::value v{1,2,3,4,5};
+std::cout << v.at(2).as_integer() << std::endl; // 3
+
+const toml::value v{{"foo", 42}, {"bar", 3.14}};
+std::cout << v.at("foo").as_integer() << std::endl; // 42
+```
+
+If an invalid key (integer for a table, string for an array), it throws
+`toml::type_error` for the conversion. If the provided key is out-of-range,
+it throws `std::out_of_range`.
+
 ## Checking value type
 
 You can check the type of a value by `is_xxx` function.
