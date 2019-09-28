@@ -48,6 +48,29 @@ BOOST_AUTO_TEST_CASE(test_find_throws)
         toml::value v{{"key", 42}};
         BOOST_TEST(42 == toml::find<int>(v, "key"));
     }
+
+    {
+        // value is not a table
+        toml::value v(true);
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(std::move(v), "key"), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not the expected type
+        toml::value v{{"key", 42}};
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(std::move(v), "key"), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not found
+        toml::value v{{"key", 42}};
+        BOOST_CHECK_THROW(toml::find<toml::integer>(std::move(v), "different_key"),
+                          std::out_of_range);
+    }
+    {
+        // the positive control.
+        toml::value v{{"key", 42}};
+        BOOST_TEST(42 == toml::find<int>(std::move(v), "key"));
+    }
+
 }
 
 BOOST_AUTO_TEST_CASE(test_find_recursive)
@@ -74,6 +97,9 @@ BOOST_AUTO_TEST_CASE(test_find_recursive)
         auto& num2 = toml::find<toml::integer>(v, a, b, c, d);
         num2 = 42;
         BOOST_TEST(42 == toml::find<int>(v, a, b, c, d));
+
+        auto num3 = toml::find<toml::integer>(std::move(v), a, b, c, d);
+        BOOST_TEST(42 == num3);
     }
 }
 
@@ -85,6 +111,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
 
         toml::find<toml::boolean>(v, "key") = false;
         BOOST_TEST(false == toml::find<toml::boolean>(v, "key"));
+
+        const auto moved = toml::find<toml::boolean>(std::move(v), "key");
+        BOOST_TEST(false == moved);
     }
     {
         value_type v{{"key", 42}};
@@ -92,6 +121,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
 
         toml::find<toml::integer>(v, "key") = 54;
         BOOST_TEST(toml::integer(54) == toml::find<toml::integer>(v, "key"));
+
+        const auto moved = toml::find<toml::integer>(std::move(v), "key");
+        BOOST_TEST(toml::integer(54) == moved);
     }
     {
         value_type v{{"key", 3.14}};
@@ -99,6 +131,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
 
         toml::find<toml::floating>(v, "key") = 2.71;
         BOOST_TEST(toml::floating(2.71) == toml::find<toml::floating>(v, "key"));
+
+        const auto moved = toml::find<toml::floating>(std::move(v), "key");
+        BOOST_TEST(toml::floating(2.71) == moved);
     }
     {
         value_type v{{"key", "foo"}};
@@ -108,6 +143,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
         toml::find<toml::string>(v, "key").str += "bar";
         BOOST_TEST(toml::string("foobar", toml::string_t::basic) ==
                           toml::find<toml::string>(v, "key"));
+
+        const auto moved = toml::find<toml::string>(std::move(v), "key");
+        BOOST_TEST(toml::string("foobar", toml::string_t::basic) == moved);
     }
     {
         value_type v{{"key", value_type("foo", toml::string_t::literal)}};
@@ -117,6 +155,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
         toml::find<toml::string>(v, "key").str += "bar";
         BOOST_TEST(toml::string("foobar", toml::string_t::literal) ==
                           toml::find<toml::string>(v, "key"));
+
+        const auto moved = toml::find<toml::string>(std::move(v), "key");
+        BOOST_TEST(toml::string("foobar", toml::string_t::literal) == moved);
     }
     {
         toml::local_date d(2018, toml::month_t::Apr, 22);
@@ -126,6 +167,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
         toml::find<toml::local_date>(v, "key").year = 2017;
         d.year = 2017;
         BOOST_CHECK(d == toml::find<toml::local_date>(v, "key"));
+
+        const auto moved = toml::find<toml::local_date>(std::move(v), "key");
+        BOOST_CHECK(d == moved);
     }
     {
         toml::local_time t(12, 30, 45);
@@ -135,6 +179,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
         toml::find<toml::local_time>(v, "key").hour = 9;
         t.hour = 9;
         BOOST_CHECK(t == toml::find<toml::local_time>(v, "key"));
+
+        const auto moved = toml::find<toml::local_time>(std::move(v), "key");
+        BOOST_CHECK(t == moved);
     }
     {
         toml::local_datetime dt(toml::local_date(2018, toml::month_t::Apr, 22),
@@ -145,6 +192,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
         toml::find<toml::local_datetime>(v, "key").date.year = 2017;
         dt.date.year = 2017;
         BOOST_CHECK(dt == toml::find<toml::local_datetime>(v, "key"));
+
+        const auto moved = toml::find<toml::local_datetime>(std::move(v), "key");
+        BOOST_CHECK(dt == moved);
     }
     {
         toml::offset_datetime dt(toml::local_datetime(
@@ -156,6 +206,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
         toml::find<toml::offset_datetime>(v, "key").date.year = 2017;
         dt.date.year = 2017;
         BOOST_CHECK(dt == toml::find<toml::offset_datetime>(v, "key"));
+
+        const auto moved = toml::find<toml::offset_datetime>(std::move(v), "key");
+        BOOST_CHECK(dt == moved);
     }
     {
         typename value_type::array_type vec;
@@ -171,6 +224,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
 
         const bool result2 = (vec == toml::find<typename value_type::array_type>(v, "key"));
         BOOST_CHECK(result2);
+
+        const auto moved = toml::find<typename value_type::array_type>(std::move(v), "key");
+        const bool result3 = (vec == moved);
+        BOOST_CHECK(result3);
     }
     {
         typename value_type::table_type tab;
@@ -184,6 +241,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
         tab["key3"] = value_type(123);
         const bool result2 = (tab == toml::find<typename value_type::table_type>(v, "key"));
         BOOST_CHECK(result2);
+
+        const auto moved = toml::find<typename value_type::table_type>(std::move(v), "key");
+        const bool result3 = (tab == moved);
+        BOOST_CHECK(result3);
     }
     {
         value_type v1(42);
@@ -193,6 +254,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_exact, value_type, test_value_types)
         value_type v2(54);
         toml::find(v, "key") = v2;
         BOOST_CHECK(v2 == toml::find(v, "key"));
+
+        const auto moved = toml::find(std::move(v), "key");
+        BOOST_CHECK(v2 == moved);
     }
 }
 
@@ -200,15 +264,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_integer_type, value_type, test_value_typ
 {
     {
         value_type v{{"key", 42}};
-        BOOST_TEST(int(42) ==           toml::find<int          >(v, "key"));
-        BOOST_TEST(short(42) ==         toml::find<short        >(v, "key"));
-        BOOST_TEST(char(42) ==          toml::find<char         >(v, "key"));
-        BOOST_TEST(unsigned(42) ==      toml::find<unsigned     >(v, "key"));
-        BOOST_TEST(long(42) ==          toml::find<long         >(v, "key"));
-        BOOST_TEST(std::int64_t(42) ==  toml::find<std::int64_t >(v, "key"));
+        BOOST_TEST(int(42)           == toml::find<int          >(v, "key"));
+        BOOST_TEST(short(42)         == toml::find<short        >(v, "key"));
+        BOOST_TEST(char(42)          == toml::find<char         >(v, "key"));
+        BOOST_TEST(unsigned(42)      == toml::find<unsigned     >(v, "key"));
+        BOOST_TEST(long(42)          == toml::find<long         >(v, "key"));
+        BOOST_TEST(std::int64_t(42)  == toml::find<std::int64_t >(v, "key"));
         BOOST_TEST(std::uint64_t(42) == toml::find<std::uint64_t>(v, "key"));
-        BOOST_TEST(std::int16_t(42) ==  toml::find<std::int16_t >(v, "key"));
+        BOOST_TEST(std::int16_t(42)  == toml::find<std::int16_t >(v, "key"));
         BOOST_TEST(std::uint16_t(42) == toml::find<std::uint16_t>(v, "key"));
+        BOOST_TEST(std::uint16_t(42) == toml::find<std::uint16_t>(std::move(v), "key"));
     }
 }
 
@@ -219,6 +284,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_floating_type, value_type, test_value_ty
         BOOST_TEST(static_cast<float      >(3.14) == toml::find<float      >(v, "key"));
         BOOST_TEST(static_cast<double     >(3.14) == toml::find<double     >(v, "key"));
         BOOST_TEST(static_cast<long double>(3.14) == toml::find<long double>(v, "key"));
+        BOOST_TEST(static_cast<float      >(3.14) == toml::find<float      >(std::move(v), "key"));
     }
 }
 
@@ -235,6 +301,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_string_type, value_type, test_value_type
         BOOST_TEST("foo" == toml::find<std::string>(v, "key"));
         toml::find<std::string>(v, "key") += "bar";
         BOOST_TEST("foobar" == toml::find<std::string>(v, "key"));
+    }
+    {
+        value_type v{{"key", toml::string("foo", toml::string_t::literal)}};
+        const auto moved = toml::find<std::string>(std::move(v), "key");
+        BOOST_TEST("foo" == moved);
     }
 
 #if __cplusplus >= 201703L
@@ -292,6 +363,53 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_toml_array, value_type, test_value_types
     BOOST_TEST(2.71 == pr.second);
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_move_toml_array, value_type, test_value_types)
+{
+    value_type v1{{"key", {42, 54, 69, 72}}};
+    value_type v2{{"key", {42, 54, 69, 72}}};
+    value_type v3{{"key", {42, 54, 69, 72}}};
+    value_type v4{{"key", {42, 54, 69, 72}}};
+    value_type v5{{"key", {42, 54, 69, 72}}};
+
+    const std::vector<int>         vec = toml::find<std::vector<int>>(std::move(v1), "key");
+    const std::list<short>         lst = toml::find<std::list<short>>(std::move(v2), "key");
+    const std::deque<std::int64_t> deq = toml::find<std::deque<std::int64_t>>(std::move(v3), "key");
+
+    BOOST_TEST(42 == vec.at(0));
+    BOOST_TEST(54 == vec.at(1));
+    BOOST_TEST(69 == vec.at(2));
+    BOOST_TEST(72 == vec.at(3));
+
+    std::list<short>::const_iterator iter = lst.begin();
+    BOOST_TEST(static_cast<short>(42) == *(iter++));
+    BOOST_TEST(static_cast<short>(54) == *(iter++));
+    BOOST_TEST(static_cast<short>(69) == *(iter++));
+    BOOST_TEST(static_cast<short>(72) == *(iter++));
+
+    BOOST_TEST(static_cast<std::int64_t>(42) == deq.at(0));
+    BOOST_TEST(static_cast<std::int64_t>(54) == deq.at(1));
+    BOOST_TEST(static_cast<std::int64_t>(69) == deq.at(2));
+    BOOST_TEST(static_cast<std::int64_t>(72) == deq.at(3));
+
+    std::array<int, 4> ary = toml::find<std::array<int, 4>>(std::move(v4), "key");
+    BOOST_TEST(static_cast<int>(42) == ary.at(0));
+    BOOST_TEST(static_cast<int>(54) == ary.at(1));
+    BOOST_TEST(static_cast<int>(69) == ary.at(2));
+    BOOST_TEST(static_cast<int>(72) == ary.at(3));
+
+    std::tuple<int, short, unsigned, long> tpl =
+        toml::find<std::tuple<int, short, unsigned, long>>(std::move(v5), "key");
+    BOOST_TEST(static_cast<int     >(42) == std::get<0>(tpl));
+    BOOST_TEST(static_cast<short   >(54) == std::get<1>(tpl));
+    BOOST_TEST(static_cast<unsigned>(69) == std::get<2>(tpl));
+    BOOST_TEST(static_cast<long    >(72) == std::get<3>(tpl));
+
+    value_type p{{"key", {3.14, 2.71}}};
+    std::pair<double, double> pr = toml::find<std::pair<double, double> >(std::move(p), "key");
+    BOOST_TEST(3.14 == pr.first);
+    BOOST_TEST(2.71 == pr.second);
+}
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_toml_array_of_array, value_type, test_value_types)
 {
     value_type v1{42, 54, 69, 72};
@@ -323,62 +441,153 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_toml_array_of_array, value_type, test_va
     BOOST_TEST(std::get<1>(t).at(2) == "baz");
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_move_toml_array_of_array, value_type, test_value_types)
+{
+    value_type a1{42, 54, 69, 72};
+    value_type a2{"foo", "bar", "baz"};
+    value_type v1{{"key", {a1, a2}}};
+    value_type v2{{"key", {a1, a2}}};
+
+    std::pair<std::vector<int>, std::vector<std::string>> p =
+        toml::find<std::pair<std::vector<int>, std::vector<std::string>>>(std::move(v1), "key");
+
+    BOOST_TEST(p.first.at(0) == 42);
+    BOOST_TEST(p.first.at(1) == 54);
+    BOOST_TEST(p.first.at(2) == 69);
+    BOOST_TEST(p.first.at(3) == 72);
+
+    BOOST_TEST(p.second.at(0) == "foo");
+    BOOST_TEST(p.second.at(1) == "bar");
+    BOOST_TEST(p.second.at(2) == "baz");
+
+    std::tuple<std::vector<int>, std::vector<std::string>> t =
+        toml::find<std::tuple<std::vector<int>, std::vector<std::string>>>(std::move(v2), "key");
+
+    BOOST_TEST(std::get<0>(t).at(0) == 42);
+    BOOST_TEST(std::get<0>(t).at(1) == 54);
+    BOOST_TEST(std::get<0>(t).at(2) == 69);
+    BOOST_TEST(std::get<0>(t).at(3) == 72);
+
+    BOOST_TEST(std::get<1>(t).at(0) == "foo");
+    BOOST_TEST(std::get<1>(t).at(1) == "bar");
+    BOOST_TEST(std::get<1>(t).at(2) == "baz");
+}
+
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_toml_table, value_type, test_value_types)
 {
-    value_type v1{{"key", {
-            {"key1", 1}, {"key2", 2}, {"key3", 3}, {"key4", 4}
-        }}};
-    const auto v = toml::find<std::map<std::string, int>>(v1, "key");
-    BOOST_TEST(v.at("key1") == 1);
-    BOOST_TEST(v.at("key2") == 2);
-    BOOST_TEST(v.at("key3") == 3);
-    BOOST_TEST(v.at("key4") == 4);
+    {
+        value_type v1{{"key", {
+                {"key1", 1}, {"key2", 2}, {"key3", 3}, {"key4", 4}
+            }}};
+        const auto v = toml::find<std::map<std::string, int>>(v1, "key");
+        BOOST_TEST(v.at("key1") == 1);
+        BOOST_TEST(v.at("key2") == 2);
+        BOOST_TEST(v.at("key3") == 3);
+        BOOST_TEST(v.at("key4") == 4);
+    }
+    {
+        value_type v1{{"key", {
+                {"key1", 1}, {"key2", 2}, {"key3", 3}, {"key4", 4}
+            }}};
+        const auto v = toml::find<std::map<std::string, int>>(std::move(v1), "key");
+        BOOST_TEST(v.at("key1") == 1);
+        BOOST_TEST(v.at("key2") == 2);
+        BOOST_TEST(v.at("key3") == 3);
+        BOOST_TEST(v.at("key4") == 4);
+    }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_toml_local_date, value_type, test_value_types)
 {
-    value_type v1{{"key", toml::local_date{2018, toml::month_t::Apr, 1}}};
-    const auto date = std::chrono::system_clock::to_time_t(
-            toml::find<std::chrono::system_clock::time_point>(v1, "key"));
+    {
+        value_type v1{{"key", toml::local_date{2018, toml::month_t::Apr, 1}}};
+        const auto date = std::chrono::system_clock::to_time_t(
+                toml::find<std::chrono::system_clock::time_point>(v1, "key"));
 
-    std::tm t;
-    t.tm_year = 2018 - 1900;
-    t.tm_mon  = 4    - 1;
-    t.tm_mday = 1;
-    t.tm_hour = 0;
-    t.tm_min  = 0;
-    t.tm_sec  = 0;
-    t.tm_isdst = -1;
-    const auto c = std::mktime(&t);
-    BOOST_TEST(c == date);
+        std::tm t;
+        t.tm_year = 2018 - 1900;
+        t.tm_mon  = 4    - 1;
+        t.tm_mday = 1;
+        t.tm_hour = 0;
+        t.tm_min  = 0;
+        t.tm_sec  = 0;
+        t.tm_isdst = -1;
+        const auto c = std::mktime(&t);
+        BOOST_TEST(c == date);
+    }
+    {
+        value_type v1{{"key", toml::local_date{2018, toml::month_t::Apr, 1}}};
+        const auto date = std::chrono::system_clock::to_time_t(
+                toml::find<std::chrono::system_clock::time_point>(std::move(v1), "key"));
+
+        std::tm t;
+        t.tm_year = 2018 - 1900;
+        t.tm_mon  = 4    - 1;
+        t.tm_mday = 1;
+        t.tm_hour = 0;
+        t.tm_min  = 0;
+        t.tm_sec  = 0;
+        t.tm_isdst = -1;
+        const auto c = std::mktime(&t);
+        BOOST_TEST(c == date);
+    }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_toml_local_time, value_type, test_value_types)
 {
-    value_type v1{{"key", toml::local_time{12, 30, 45}}};
-    const auto time = toml::find<std::chrono::seconds>(v1, "key");
-    BOOST_CHECK(time == std::chrono::hours(12) +
-                        std::chrono::minutes(30) + std::chrono::seconds(45));
+    {
+        value_type v1{{"key", toml::local_time{12, 30, 45}}};
+        const auto time = toml::find<std::chrono::seconds>(v1, "key");
+        BOOST_CHECK(time == std::chrono::hours(12) +
+                            std::chrono::minutes(30) + std::chrono::seconds(45));
+    }
+    {
+        value_type v1{{"key", toml::local_time{12, 30, 45}}};
+        const auto time = toml::find<std::chrono::seconds>(std::move(v1), "key");
+        BOOST_CHECK(time == std::chrono::hours(12) +
+                            std::chrono::minutes(30) + std::chrono::seconds(45));
+    }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_toml_local_datetime, value_type, test_value_types)
 {
-    value_type v1{{"key", toml::local_datetime(
-                toml::local_date{2018, toml::month_t::Apr, 1},
-                toml::local_time{12, 30, 45})}};
+    {
+        value_type v1{{"key", toml::local_datetime(
+                    toml::local_date{2018, toml::month_t::Apr, 1},
+                    toml::local_time{12, 30, 45})}};
 
-    const auto date = std::chrono::system_clock::to_time_t(
-            toml::find<std::chrono::system_clock::time_point>(v1, "key"));
-    std::tm t;
-    t.tm_year = 2018 - 1900;
-    t.tm_mon  = 4    - 1;
-    t.tm_mday = 1;
-    t.tm_hour = 12;
-    t.tm_min  = 30;
-    t.tm_sec  = 45;
-    t.tm_isdst = -1;
-    const auto c = std::mktime(&t);
-    BOOST_TEST(c == date);
+        const auto date = std::chrono::system_clock::to_time_t(
+                toml::find<std::chrono::system_clock::time_point>(v1, "key"));
+        std::tm t;
+        t.tm_year = 2018 - 1900;
+        t.tm_mon  = 4    - 1;
+        t.tm_mday = 1;
+        t.tm_hour = 12;
+        t.tm_min  = 30;
+        t.tm_sec  = 45;
+        t.tm_isdst = -1;
+        const auto c = std::mktime(&t);
+        BOOST_TEST(c == date);
+    }
+    {
+        value_type v1{{"key", toml::local_datetime(
+                    toml::local_date{2018, toml::month_t::Apr, 1},
+                    toml::local_time{12, 30, 45})}};
+
+        const auto date = std::chrono::system_clock::to_time_t(
+                toml::find<std::chrono::system_clock::time_point>(std::move(v1), "key"));
+        std::tm t;
+        t.tm_year = 2018 - 1900;
+        t.tm_mon  = 4    - 1;
+        t.tm_mday = 1;
+        t.tm_hour = 12;
+        t.tm_min  = 30;
+        t.tm_sec  = 45;
+        t.tm_isdst = -1;
+        const auto c = std::mktime(&t);
+        BOOST_TEST(c == date);
+    }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(test_get_toml_offset_datetime, value_type, test_value_types)
@@ -415,6 +624,29 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_get_toml_offset_datetime, value_type, test_va
         // == 2018-04-01T20:30:00Z
 
         const auto date = toml::find<std::chrono::system_clock::time_point>(v1, "key");
+        const auto timet = std::chrono::system_clock::to_time_t(date);
+
+        // get time_t as gmtime (2018-04-01T03:30:00Z)
+        const auto tmp = std::gmtime(std::addressof(timet)); // XXX not threadsafe!
+        BOOST_CHECK(tmp);
+        const auto tm = *tmp;
+        BOOST_TEST(tm.tm_year + 1900 == 2018);
+        BOOST_TEST(tm.tm_mon  + 1 ==       4);
+        BOOST_TEST(tm.tm_mday ==           1);
+        BOOST_TEST(tm.tm_hour ==          20);
+        BOOST_TEST(tm.tm_min ==           30);
+        BOOST_TEST(tm.tm_sec ==            0);
+    }
+
+    {
+        value_type v1{{"key", toml::offset_datetime(
+                    toml::local_date{2018, toml::month_t::Apr, 1},
+                    toml::local_time{12, 30, 0},
+                    toml::time_offset{-8, 0})}};
+        //    2018-04-01T12:30:00-08:00
+        // == 2018-04-01T20:30:00Z
+
+        const auto date = toml::find<std::chrono::system_clock::time_point>(std::move(v1), "key");
         const auto timet = std::chrono::system_clock::to_time_t(date);
 
         // get time_t as gmtime (2018-04-01T03:30:00Z)
