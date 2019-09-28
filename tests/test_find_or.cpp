@@ -121,6 +121,55 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_or_exact, value_type, test_value_types)
 }
 #undef TOML11_TEST_FIND_OR_EXACT
 
+#define TOML11_TEST_FIND_OR_MOVE(toml_type, init_expr, opt_expr)   \
+    {                                                              \
+        using namespace test;                                      \
+        const toml::toml_type init init_expr ;                     \
+        toml::toml_type opt  opt_expr ;                            \
+        value_type v{{"key", init}};                               \
+        BOOST_TEST(init != opt);                                   \
+        const auto moved = toml::find_or(std::move(v), "key", std::move(opt));\
+        BOOST_TEST(init == moved);                                 \
+    }                                                              \
+    /**/
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_or_move, value_type, test_value_types)
+{
+    TOML11_TEST_FIND_OR_MOVE(boolean,         ( true), (false))
+    TOML11_TEST_FIND_OR_MOVE(integer,         (   42), (   54))
+    TOML11_TEST_FIND_OR_MOVE(floating,        ( 3.14), ( 2.71))
+    TOML11_TEST_FIND_OR_MOVE(string,          ("foo"), ("bar"))
+    TOML11_TEST_FIND_OR_MOVE(local_time,      (12, 30, 45), (6, 0, 30))
+    TOML11_TEST_FIND_OR_MOVE(local_date,      (2019, toml::month_t::Apr, 1),
+                                              (1999, toml::month_t::Jan, 2))
+    TOML11_TEST_FIND_OR_MOVE(local_datetime,
+            (toml::local_date(2019, toml::month_t::Apr, 1), toml::local_time(12, 30, 45)),
+            (toml::local_date(1999, toml::month_t::Jan, 2), toml::local_time( 6,  0, 30))
+            )
+    TOML11_TEST_FIND_OR_MOVE(offset_datetime,
+            (toml::local_date(2019, toml::month_t::Apr, 1), toml::local_time(12, 30, 45), toml::time_offset( 9, 0)),
+            (toml::local_date(1999, toml::month_t::Jan, 2), toml::local_time( 6,  0, 30), toml::time_offset(-3, 0))
+            )
+    {
+        typename value_type::array_type init{1,2,3,4,5};
+        typename value_type::array_type opt {6,7,8,9,10};
+        value_type v{{"key", init}};
+        BOOST_TEST(init != opt);
+        const auto moved = toml::find_or(std::move(v), "key", std::move(opt));
+        BOOST_TEST(init == moved);
+    }
+    {
+        typename value_type::table_type init{{"key1", 42}, {"key2", "foo"}};
+        typename value_type::table_type opt {{"key1", 54}, {"key2", "bar"}};
+        value_type v{{"key", init}};
+        BOOST_TEST(init != opt);
+        const auto moved = toml::find_or(std::move(v), "key", std::move(opt));
+        BOOST_TEST(init == moved);
+    }
+}
+#undef TOML11_TEST_FIND_OR_MOVE
+
+
 #define TOML11_TEST_FIND_OR_MODIFY(toml_type, init_expr, opt_expr)\
     {                                                             \
         using namespace test;                                     \
