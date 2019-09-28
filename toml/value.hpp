@@ -1567,6 +1567,28 @@ class basic_value
         return std::move(this->table_.value());
     }
 
+    // accessors =============================================================
+    //
+    // may throw type_error or out_of_range
+    //
+    value_type&       at(const key& k)
+    {
+        return this->as_table().at(k);
+    }
+    value_type const& at(const key& k) const
+    {
+        return this->as_table().at(k);
+    }
+
+    value_type&       at(const std::size_t idx)
+    {
+        return this->as_array().at(idx);
+    }
+    value_type const& at(const std::size_t idx) const
+    {
+        return this->as_array().at(idx);
+    }
+
     source_location location() const
     {
         return source_location(this->region_info_.get());
