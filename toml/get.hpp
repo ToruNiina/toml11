@@ -130,7 +130,7 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline detail::enable_if_t<std::is_same<T, std::string>::value, std::string> const&
+inline detail::enable_if_t<std::is_same<T, std::string>::value, std::string>&&
 get(basic_value<C, M, V>&& v)
 {
     return std::move(v.template cast<value_t::string>().str);
