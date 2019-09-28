@@ -25,6 +25,11 @@ using test_value_types = std::tuple<
 
 namespace test
 {
+// to compare result values in BOOST_TEST().
+//
+// BOOST_TEST outputs the expected and actual values. Thus it includes the
+// output stream operator inside. To compile it, we need operator<<s for
+// containers to compare.
 template<typename charT, typename traits, typename T, typename Alloc>
 std::basic_ostream<charT, traits>&
 operator<<(std::basic_ostream<charT, traits>& os, const std::vector<T, Alloc>& v)
