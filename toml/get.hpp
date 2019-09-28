@@ -608,7 +608,7 @@ get_or(const basic_value<C, M, V>& v, const T& opt)
 {
     try
     {
-        return get<detail::remove_cvref_t<T>>::type>(v);
+        return get<detail::remove_cvref_t<T>>(v);
     }
     catch(...)
     {
@@ -623,7 +623,7 @@ get_or(basic_value<C, M, V>& v, T& opt)
 {
     try
     {
-        return get<detail::remove_cvref_t<T>>::type>(v);
+        return get<detail::remove_cvref_t<T>>(v);
     }
     catch(...)
     {
