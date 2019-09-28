@@ -353,9 +353,19 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_or_fallback, value_type, test_value_type
 BOOST_AUTO_TEST_CASE(test_find_or_integer)
 {
     {
-        toml::value v = toml::table{{"num", 42}};
+        toml::value v{{"num", 42}};
         BOOST_TEST(42u == toml::find_or(v, "num", 0u));
         BOOST_TEST(0u ==  toml::find_or(v, "foo", 0u));
+    }
+    {
+        toml::value v{{"num", 42}};
+        const auto moved = toml::find_or(std::move(v), "num", 0u);
+        BOOST_TEST(42u == moved);
+    }
+    {
+        toml::value v{{"num", 42}};
+        const auto moved = toml::find_or(std::move(v), "foo", 0u);
+        BOOST_TEST(0u ==  moved);
     }
 }
 
@@ -366,6 +376,14 @@ BOOST_AUTO_TEST_CASE(test_find_or_floating)
         toml::value v2{{"key", 3.14}};
         BOOST_TEST(2.71f == toml::find_or(v1, "key", 2.71f));
         BOOST_TEST(static_cast<float>(double(3.14)) == toml::find_or(v2, "key", 2.71f));
+    }
+    {
+        toml::value v1{{"key", 42}};
+        toml::value v2{{"key", 3.14}};
+        const auto moved1 = toml::find_or(std::move(v1), "key", 2.71f);
+        const auto moved2 = toml::find_or(std::move(v2), "key", 2.71f);
+        BOOST_TEST(2.71f == moved1);
+        BOOST_TEST(static_cast<float>(double(3.14)) == moved2);
     }
 }
 
@@ -394,6 +412,32 @@ BOOST_AUTO_TEST_CASE(test_find_or_string)
         s1 = "bazqux"; // restoring moved value
         BOOST_TEST("bazqux" == toml::find_or(std::move(v2), "key", std::move(s1)));
     }
+    {
+        toml::value v1 = toml::table{{"key", "foobar"}};
+        toml::value v2 = toml::table{{"key", 42}};
+
+        std::string s1("bazqux");
+
+        const auto moved1 = toml::find_or(std::move(v1), "key", s1);
+        const auto moved2 = toml::find_or(std::move(v2), "key", s1);
+
+        BOOST_TEST("foobar" == moved1);
+        BOOST_TEST("bazqux" == moved2);
+    }
+    {
+        toml::value v1 = toml::table{{"key", "foobar"}};
+        toml::value v2 = toml::table{{"key", 42}};
+
+        std::string s1("bazqux");
+        std::string s2("bazqux");
+
+        const auto moved1 = toml::find_or(std::move(v1), "key", std::move(s1));
+        const auto moved2 = toml::find_or(std::move(v2), "key", std::move(s2));
+
+        BOOST_TEST("foobar" == moved1);
+        BOOST_TEST("bazqux" == moved2);
+    }
+
     // string literal
     {
         toml::value v1 = toml::table{{"key", "foobar"}};
@@ -406,6 +450,28 @@ BOOST_AUTO_TEST_CASE(test_find_or_string)
         BOOST_TEST("foobar" == toml::find_or(v1, "key", lit));
         BOOST_TEST("bazqux" == toml::find_or(v2, "key", lit));
     }
+    {
+        toml::value v1 = toml::table{{"key", "foobar"}};
+        toml::value v2 = toml::table{{"key",42}};
+
+        const auto moved1 = toml::find_or(std::move(v1), "key", "bazqux");
+        const auto moved2 = toml::find_or(std::move(v2), "key", "bazqux");
+
+        BOOST_TEST("foobar" == moved1);
+        BOOST_TEST("bazqux" == moved2);
+    }
+    {
+        toml::value v1 = toml::table{{"key", "foobar"}};
+        toml::value v2 = toml::table{{"key",42}};
+
+        const char* lit = "bazqux";
+        const auto moved1 = toml::find_or(std::move(v1), "key", lit);
+        const auto moved2 = toml::find_or(std::move(v2), "key", lit);
+
+        BOOST_TEST("foobar" == moved1);
+        BOOST_TEST("bazqux" == moved2);
+    }
+
 }
 
 BOOST_AUTO_TEST_CASE(test_find_or_map)
@@ -426,12 +492,43 @@ BOOST_AUTO_TEST_CASE(test_find_or_map)
         BOOST_TEST(key.at("key") == "value");
     }
     {
-        const toml::value v1{
+        toml::value v1{
             {"key", {{"key", "value"}}}
         };
 
         const auto key  = toml::find_or<map_type>(v1, "key",  map_type{});
         const auto key2 = toml::find_or<map_type>(v1, "key2", map_type{});
+
+        BOOST_TEST(!key.empty());
+        BOOST_TEST(key2.empty());
+
+        BOOST_TEST(key.size()    == 1u);
+        BOOST_TEST(key.at("key") == "value");
+    }
+
+    {
+        toml::value v1{
+            {"key", {{"key", "value"}}}
+        };
+        toml::value v2(v1);
+
+        const auto key  = toml::find_or(std::move(v1), "key",  map_type{});
+        const auto key2 = toml::find_or(std::move(v2), "key2", map_type{});
+
+        BOOST_TEST(!key.empty());
+        BOOST_TEST(key2.empty());
+
+        BOOST_TEST(key.size()    == 1u);
+        BOOST_TEST(key.at("key") == "value");
+    }
+    {
+        toml::value v1{
+            {"key", {{"key", "value"}}}
+        };
+        toml::value v2(v1);
+
+        const auto key  = toml::find_or<map_type>(std::move(v1), "key",  map_type{});
+        const auto key2 = toml::find_or<map_type>(std::move(v2), "key2", map_type{});
 
         BOOST_TEST(!key.empty());
         BOOST_TEST(key2.empty());
