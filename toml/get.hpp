@@ -768,7 +768,7 @@ find_or(basic_value<C, M, V>& v, const toml::key& ky, basic_value<C, M, V>& opt)
     if(!v.is_table()) {return opt;}
     auto& tab = v.as_table();
     if(tab.count(ky) == 0) {return opt;}
-    return tab[ky];
+    return tab.at(ky);
 }
 
 template<typename C,
@@ -779,7 +779,7 @@ find_or(basic_value<C, M, V>&& v, const toml::key& ky, basic_value<C, M, V>&& op
     if(!v.is_table()) {return opt;}
     auto tab = std::move(v).as_table();
     if(tab.count(ky) == 0) {return opt;}
-    return std::move(tab[ky]);
+    return std::move(tab.at(ky));
 }
 
 // ---------------------------------------------------------------------------
@@ -805,7 +805,7 @@ find_or(basic_value<C, M, V>& v, const toml::key& ky, T& opt)
     if(!v.is_table()) {return opt;}
     auto& tab = v.as_table();
     if(tab.count(ky) == 0) {return opt;}
-    return get_or(tab[ky], opt);
+    return get_or(tab.at(ky), opt);
 }
 
 template<typename T, typename C,
@@ -817,7 +817,7 @@ find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
     if(!v.is_table()) {return opt;}
     auto tab = std::move(v).as_table();
     if(tab.count(ky) == 0) {return opt;}
-    return get_or(std::move(tab[ky]), std::forward<T>(opt));
+    return get_or(std::move(tab.at(ky)), std::forward<T>(opt));
 }
 
 // ---------------------------------------------------------------------------
