@@ -608,8 +608,7 @@ get_or(const basic_value<C, M, V>& v, const T& opt)
 {
     try
     {
-        return get<typename std::remove_cv<
-            typename std::remove_reference<T>::type>::type>(v);
+        return get<detail::remove_cvref_t<T>>::type>(v);
     }
     catch(...)
     {
@@ -624,8 +623,7 @@ get_or(basic_value<C, M, V>& v, T& opt)
 {
     try
     {
-        return get<typename std::remove_cv<
-            typename std::remove_reference<T>::type>::type>(v);
+        return get<detail::remove_cvref_t<T>>::type>(v);
     }
     catch(...)
     {
@@ -634,18 +632,17 @@ get_or(basic_value<C, M, V>& v, T& opt)
 }
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-detail::enable_if_t<
-    detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&&
+detail::enable_if_t<detail::is_exact_toml_type<detail::remove_cvref_t<T>,
+    basic_value<C, M, V>>::value, detail::remove_cvref_t<T>>
 get_or(basic_value<C, M, V>&& v, T&& opt)
 {
     try
     {
-        return get<typename std::remove_cv<
-            typename std::remove_reference<T>::type>::type>(v);
+        return get<detail::remove_cvref_t<T>>(std::move(v));
     }
     catch(...)
     {
-        return opt;
+        return detail::remove_cvref_t<T>(std::forward<T>(opt));
     }
 }
 
@@ -654,10 +651,9 @@ get_or(basic_value<C, M, V>&& v, T&& opt)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-detail::enable_if_t<std::is_same<
-    typename std::remove_cv<typename std::remove_reference<T>::type>::type,
-    std::string>::value, std::string> const&
-get_or(const basic_value<C, M, V>& v, T&& opt)
+detail::enable_if_t<std::is_same<detail::remove_cvref_t<T>, std::string>::value,
+    std::string> const&
+get_or(const basic_value<C, M, V>& v, const T& opt)
 {
     try
     {
@@ -684,9 +680,8 @@ get_or(basic_value<C, M, V>& v, T& opt)
 }
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-detail::enable_if_t<std::is_same<
-    typename std::remove_cv<typename std::remove_reference<T>::type>::type,
-    std::string>::value, std::string>
+detail::enable_if_t<
+    std::is_same<detail::remove_cvref_t<T>, std::string>::value, std::string>
 get_or(basic_value<C, M, V>&& v, T&& opt)
 {
     try
@@ -695,7 +690,7 @@ get_or(basic_value<C, M, V>&& v, T&& opt)
     }
     catch(...)
     {
-        return std::forward<T>(opt);
+        return std::string(std::forward<T>(opt));
     }
 }
 
@@ -724,20 +719,17 @@ get_or(const basic_value<C, M, V>& v, T&& opt)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 detail::enable_if_t<detail::conjunction<
-    detail::negation<detail::is_exact_toml_type<
-        typename std::remove_cv<typename std::remove_reference<T>::type>::type,
+    detail::negation<detail::is_exact_toml_type<detail::remove_cvref_t<T>,
         basic_value<C, M, V>>>,
-    detail::negation<std::is_same<std::string,
-        typename std::remove_cv<typename std::remove_reference<T>::type>::type>>,
+    detail::negation<std::is_same<std::string, detail::remove_cvref_t<T>>>,
     detail::negation<detail::is_string_literal<
         typename std::remove_reference<T>::type>>
-    >::value, typename std::remove_reference<T>::type>
+    >::value, detail::remove_cvref_t<T>>
 get_or(const basic_value<C, M, V>& v, T&& opt)
 {
     try
     {
-        return get<typename std::remove_cv<
-            typename std::remove_reference<T>::type>::type>(v);
+        return get<detail::remove_cvref_t<T>>(v);
     }
     catch(...)
     {
@@ -876,15 +868,13 @@ template<typename T, typename C,
 detail::enable_if_t<detail::conjunction<
     // T is not an exact toml type
     detail::negation<detail::is_exact_toml_type<
-        typename std::remove_cv<typename std::remove_reference<T>::type>::type,
-        basic_value<C, M, V>>>,
+        detail::remove_cvref_t<T>, basic_value<C, M, V>>>,
     // T is not std::string
-    detail::negation<std::is_same<std::string,
-        typename std::remove_cv<typename std::remove_reference<T>::type>::type>>,
+    detail::negation<std::is_same<std::string, detail::remove_cvref_t<T>>>,
     // T is not a string literal
     detail::negation<detail::is_string_literal<
         typename std::remove_reference<T>::type>>
-    >::value, typename std::remove_cv<typename std::remove_reference<T>::type>::type>
+    >::value, detail::remove_cvref_t<T>>
 find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
 {
     if(!v.is_table()) {return std::forward<T>(opt);}
