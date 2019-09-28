@@ -803,12 +803,13 @@ find_or(basic_value<C, M, V>& v, const toml::key& ky, T& opt)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 detail::enable_if_t<
-    detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>&&
+    detail::is_exact_toml_type<T, basic_value<C, M, V>>::value,
+    detail::remove_cvref_t<T>>
 find_or(basic_value<C, M, V>&& v, const toml::key& ky, T&& opt)
 {
-    if(!v.is_table()) {return opt;}
+    if(!v.is_table()) {return std::forward<T>(opt);}
     auto tab = std::move(v).as_table();
-    if(tab.count(ky) == 0) {return opt;}
+    if(tab.count(ky) == 0) {return std::forward<T>(opt);}
     return get_or(std::move(tab.at(ky)), std::forward<T>(opt));
 }
 
