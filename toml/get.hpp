@@ -923,21 +923,6 @@ expect(const basic_value<C, M, V>& v, const toml::key& k) noexcept
         return err(e.what());
     }
 }
-template<typename T, typename Table>
-detail::enable_if_t<detail::conjunction<
-    detail::is_map<Table>, detail::is_basic_value<typename Table::mapped_type>
-    >::value, result<T, std::string>>
-expect(const Table& t, const toml::key& k,
-       std::string tablename = "unknown table") noexcept
-{
-    try
-    {
-        return ok(find<T>(t, k, std::move(tablename)));
-    }
-    catch(const std::exception& e)
-    {
-        return err(e.what());
-    }
-}
+
 } // toml
 #endif// TOML11_GET
