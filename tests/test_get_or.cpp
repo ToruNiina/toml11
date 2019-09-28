@@ -363,6 +363,13 @@ BOOST_AUTO_TEST_CASE(test_get_or_integer)
         BOOST_TEST(42u == toml::get_or(v1, 0u));
         BOOST_TEST(0u ==  toml::get_or(v2, 0u));
     }
+    {
+        toml::value v1(42);
+        toml::value v2(3.14);
+        BOOST_TEST(42u == toml::get_or(std::move(v1), 0u));
+        BOOST_TEST(0u ==  toml::get_or(std::move(v2), 0u));
+    }
+
 }
 
 BOOST_AUTO_TEST_CASE(test_get_or_floating)
@@ -372,6 +379,12 @@ BOOST_AUTO_TEST_CASE(test_get_or_floating)
         toml::value v2(3.14);
         BOOST_TEST(2.71f == toml::get_or(v1, 2.71f));
         BOOST_TEST(static_cast<float>(v2.as_floating()) == toml::get_or(v2, 2.71f));
+    }
+    {
+        toml::value v1(42);
+        toml::value v2(3.14);
+        BOOST_TEST(2.71f                    == toml::get_or(std::move(v1), 2.71f));
+        BOOST_TEST(static_cast<float>(3.14) == toml::get_or(std::move(v2), 2.71f));
     }
 }
 
@@ -399,7 +412,16 @@ BOOST_AUTO_TEST_CASE(test_get_or_string)
         BOOST_TEST("foobar" == toml::get_or(v1, std::move(s1)));
         BOOST_TEST("bazqux" == toml::get_or(v2, std::move(s1)));
     }
+    {
+        toml::value v1("foobar");
+        toml::value v2(42);
 
+        std::string       s1("bazqux");
+        const std::string s2("bazqux");
+
+        BOOST_TEST("foobar" == toml::get_or(std::move(v1), s1));
+        BOOST_TEST("bazqux" == toml::get_or(std::move(v2), s1));
+    }
     {
         toml::value v1("foobar");
         toml::value v2(42);
@@ -411,4 +433,20 @@ BOOST_AUTO_TEST_CASE(test_get_or_string)
         BOOST_TEST("foobar" == toml::get_or(v1, lit));
         BOOST_TEST("bazqux" == toml::get_or(v2, lit));
     }
+    {
+        toml::value v1("foobar");
+        toml::value v2(42);
+
+        BOOST_TEST("foobar" == toml::get_or(std::move(v1), "bazqux"));
+        BOOST_TEST("bazqux" == toml::get_or(std::move(v2), "bazqux"));
+    }
+    {
+        toml::value v1("foobar");
+        toml::value v2(42);
+
+        const char* lit = "bazqux";
+        BOOST_TEST("foobar" == toml::get_or(v1, lit));
+        BOOST_TEST("bazqux" == toml::get_or(v2, lit));
+    }
+
 }
