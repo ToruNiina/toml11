@@ -90,7 +90,7 @@ inline detail::enable_if_t<detail::conjunction<
     >::value, T>
 get(const basic_value<C, M, V>& v)
 {
-    return static_cast<T>(v.template cast<value_t::integer>());
+    return static_cast<T>(v.as_integer());
 }
 
 // ============================================================================
@@ -105,7 +105,7 @@ inline detail::enable_if_t<detail::conjunction<
     >::value, T>
 get(const basic_value<C, M, V>& v)
 {
-    return static_cast<T>(v.template cast<value_t::floating>());
+    return static_cast<T>(v.as_floating());
 }
 
 // ============================================================================
@@ -117,7 +117,7 @@ template<typename T, typename C,
 inline detail::enable_if_t<std::is_same<T, std::string>::value, std::string>&
 get(basic_value<C, M, V>& v)
 {
-    return v.template cast<value_t::string>().str;
+    return v.as_string().str;
 }
 
 template<typename T, typename C,
@@ -125,7 +125,7 @@ template<typename T, typename C,
 inline detail::enable_if_t<std::is_same<T, std::string>::value, std::string> const&
 get(const basic_value<C, M, V>& v)
 {
-    return v.template cast<value_t::string>().str;
+    return v.as_string().str;
 }
 
 template<typename T, typename C,
@@ -133,7 +133,7 @@ template<typename T, typename C,
 inline detail::enable_if_t<std::is_same<T, std::string>::value, std::string>&&
 get(basic_value<C, M, V>&& v)
 {
-    return std::move(v.template cast<value_t::string>().str);
+    return std::move(v.as_string().str);
 }
 
 // ============================================================================
@@ -145,7 +145,7 @@ template<typename T, typename C,
 inline detail::enable_if_t<std::is_same<T, std::string_view>::value, std::string_view>
 get(const basic_value<C, M, V>& v)
 {
-    return std::string_view(v.template cast<value_t::string>().str);
+    return std::string_view(v.as_string().str);
 }
 #endif
 
@@ -158,7 +158,7 @@ inline detail::enable_if_t<detail::is_chrono_duration<T>::value, T>
 get(const basic_value<C, M, V>& v)
 {
     return std::chrono::duration_cast<T>(
-            std::chrono::nanoseconds(v.template cast<value_t::local_time>()));
+            std::chrono::nanoseconds(v.as_local_time()));
 }
 
 // ============================================================================
@@ -174,18 +174,15 @@ get(const basic_value<C, M, V>& v)
     {
         case value_t::local_date:
         {
-            return std::chrono::system_clock::time_point(
-                    v.template cast<value_t::local_date>());
+            return std::chrono::system_clock::time_point(v.as_local_date());
         }
         case value_t::local_datetime:
         {
-            return std::chrono::system_clock::time_point(
-                    v.template cast<value_t::local_datetime>());
+            return std::chrono::system_clock::time_point(v.as_local_datetime());
         }
         case value_t::offset_datetime:
         {
-            return std::chrono::system_clock::time_point(
-                    v.template cast<value_t::offset_datetime>());
+            return std::chrono::system_clock::time_point(v.as_offset_datetime());
         }
         default:
         {
@@ -276,7 +273,7 @@ detail::enable_if_t<detail::conjunction<
 get(const basic_value<C, M, V>& v)
 {
     using value_type = typename T::value_type;
-    const auto& ar = v.template cast<value_t::array>();
+    const auto& ar = v.as_array();
     T container;
     container.resize(ar.size());
     std::transform(ar.cbegin(), ar.cend(), container.begin(),
@@ -298,7 +295,7 @@ detail::enable_if_t<detail::conjunction<
 get(const basic_value<C, M, V>& v)
 {
     using value_type = typename T::value_type;
-    const auto& ar = v.template cast<value_t::array>();
+    const auto& ar = v.as_array();
 
     T container;
     if(ar.size() != container.size())
@@ -325,7 +322,7 @@ get(const basic_value<C, M, V>& v)
     using first_type  = typename T::first_type;
     using second_type = typename T::second_type;
 
-    const auto& ar = v.template cast<value_t::array>();
+    const auto& ar = v.as_array();
     if(ar.size() != 2)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -356,7 +353,7 @@ template<typename T, typename C,
 detail::enable_if_t<detail::is_std_tuple<T>::value, T>
 get(const basic_value<C, M, V>& v)
 {
-    const auto& ar = v.template cast<value_t::array>();
+    const auto& ar = v.as_array();
     if(ar.size() != std::tuple_size<T>::value)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -388,7 +385,7 @@ get(const basic_value<C, M, V>& v)
                   "toml::get only supports map type of which key_type is "
                   "convertible from std::string.");
     T map;
-    for(const auto& kv : v.template cast<value_t::table>())
+    for(const auto& kv : v.as_table())
     {
         map[key_type(kv.first)] = ::toml::get<mapped_type>(kv.second);
     }
@@ -421,7 +418,7 @@ T get(const basic_value<C, M, V>& v)
 }
 
 // ============================================================================
-// find and get
+// find
 
 // ----------------------------------------------------------------------------
 // these overloads do not require to set T. and returns value itself.
@@ -429,7 +426,7 @@ template<typename C,
          template<typename ...> class M, template<typename ...> class V>
 basic_value<C, M, V> const& find(const basic_value<C, M, V>& v, const key& ky)
 {
-    const auto& tab = v.template cast<value_t::table>();
+    const auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -443,7 +440,7 @@ template<typename C,
          template<typename ...> class M, template<typename ...> class V>
 basic_value<C, M, V>& find(basic_value<C, M, V>& v, const key& ky)
 {
-    auto& tab = v.template cast<value_t::table>();
+    auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -457,7 +454,7 @@ template<typename C,
          template<typename ...> class M, template<typename ...> class V>
 basic_value<C, M, V>&& find(basic_value<C, M, V>&& v, const key& ky)
 {
-    auto& tab = v.template cast<value_t::table>();
+    auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -476,7 +473,7 @@ template<typename T, typename C,
 decltype(::toml::get<T>(std::declval<basic_value<C, M, V> const&>()))
 find(const basic_value<C, M, V>& v, const key& ky)
 {
-    const auto& tab = v.template cast<value_t::table>();
+    const auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -492,7 +489,7 @@ template<typename T, typename C,
 decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&>()))
 find(basic_value<C, M, V>& v, const key& ky)
 {
-    auto& tab = v.template cast<value_t::table>();
+    auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -508,7 +505,7 @@ template<typename T, typename C,
 decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&&>()))
 find(basic_value<C, M, V>&& v, const key& ky)
 {
-    auto& tab = v.template cast<value_t::table>();
+    auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -657,7 +654,7 @@ get_or(const basic_value<C, M, V>& v, const T& opt)
 {
     try
     {
-        return v.template cast<value_t::string>().str;
+        return v.as_string().str;
     }
     catch(...)
     {
@@ -671,7 +668,7 @@ get_or(basic_value<C, M, V>& v, T& opt)
 {
     try
     {
-        return v.template cast<value_t::string>().str;
+        return v.as_string().str;
     }
     catch(...)
     {
@@ -686,7 +683,7 @@ get_or(basic_value<C, M, V>&& v, T&& opt)
 {
     try
     {
-        return std::move(v.template cast<value_t::string>().str);
+        return std::move(v.as_string().str);
     }
     catch(...)
     {
@@ -705,7 +702,7 @@ get_or(const basic_value<C, M, V>& v, T&& opt)
 {
     try
     {
-        return std::move(v.template cast<value_t::string>().str);
+        return std::move(v.as_string().str);
     }
     catch(...)
     {
