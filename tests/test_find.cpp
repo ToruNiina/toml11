@@ -27,6 +27,32 @@ using test_value_types = std::tuple<
 
 BOOST_AUTO_TEST_CASE(test_find_throws)
 {
+    // -----------------------------------------------------------------------
+    // const-reference version
+    {
+        // value is not a table
+        const toml::value v(true);
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(v, "key"), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not the expected type
+        const toml::value v{{"key", 42}};
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(v, "key"), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not found
+        const toml::value v{{"key", 42}};
+        BOOST_CHECK_THROW(toml::find<toml::integer>(v, "different_key"),
+                          std::out_of_range);
+    }
+    {
+        // the positive control.
+        const toml::value v{{"key", 42}};
+        BOOST_TEST(42 == toml::find<int>(v, "key"));
+    }
+
+    // -----------------------------------------------------------------------
+    // reference version
     {
         // value is not a table
         toml::value v(true);
@@ -49,6 +75,9 @@ BOOST_AUTO_TEST_CASE(test_find_throws)
         BOOST_TEST(42 == toml::find<int>(v, "key"));
     }
 
+    // -----------------------------------------------------------------------
+    // move version
+
     {
         // value is not a table
         toml::value v(true);
@@ -70,7 +99,6 @@ BOOST_AUTO_TEST_CASE(test_find_throws)
         toml::value v{{"key", 42}};
         BOOST_TEST(42 == toml::find<int>(std::move(v), "key"));
     }
-
 }
 
 BOOST_AUTO_TEST_CASE(test_find_recursive)
