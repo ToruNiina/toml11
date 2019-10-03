@@ -31,10 +31,10 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-detail::enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T> &&
+detail::enable_if_t<detail::is_exact_toml_type<T, basic_value<C, M, V>>::value, T>
 get(basic_value<C, M, V>&& v)
 {
-    return std::move(v).template cast<detail::type_to_enum<T, basic_value<C, M, V>>::value>();
+    return T(std::move(v).template cast<detail::type_to_enum<T, basic_value<C, M, V>>::value>());
 }
 
 // ============================================================================
@@ -58,10 +58,10 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline detail::enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T> &&
+inline detail::enable_if_t<std::is_same<T, basic_value<C, M, V>>::value, T>
 get(basic_value<C, M, V>&& v)
 {
-    return std::move(v);
+    return basic_value<C, M, V>(std::move(v));
 }
 
 // ============================================================================
@@ -130,10 +130,10 @@ get(const basic_value<C, M, V>& v)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
-inline detail::enable_if_t<std::is_same<T, std::string>::value, std::string>&&
+inline detail::enable_if_t<std::is_same<T, std::string>::value, std::string>
 get(basic_value<C, M, V>&& v)
 {
-    return std::move(v.as_string().str);
+    return std::string(std::move(v.as_string().str));
 }
 
 // ============================================================================
@@ -452,9 +452,9 @@ basic_value<C, M, V>& find(basic_value<C, M, V>& v, const key& ky)
 }
 template<typename C,
          template<typename ...> class M, template<typename ...> class V>
-basic_value<C, M, V>&& find(basic_value<C, M, V>&& v, const key& ky)
+basic_value<C, M, V> find(basic_value<C, M, V>&& v, const key& ky)
 {
-    auto& tab = v.as_table();
+    typename basic_value<C, M, V>::table_type tab = std::move(v).as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -462,7 +462,7 @@ basic_value<C, M, V>&& find(basic_value<C, M, V>&& v, const key& ky)
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }
-    return std::move(tab.at(ky));
+    return basic_value<C, M, V>(std::move(tab.at(ky)));
 }
 
 // ----------------------------------------------------------------------------
@@ -505,7 +505,7 @@ template<typename T, typename C,
 decltype(::toml::get<T>(std::declval<basic_value<C, M, V>&&>()))
 find(basic_value<C, M, V>&& v, const key& ky)
 {
-    auto& tab = v.as_table();
+    typename basic_value<C, M, V>::table_type tab = std::move(v).as_table();
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
@@ -538,7 +538,7 @@ find(basic_value<C, M, V>& v, const ::toml::key& ky, Ts&& ... keys)
 template<typename C,
          template<typename ...> class M, template<typename ...> class V,
          typename ... Ts>
-basic_value<C, M, V>&&
+basic_value<C, M, V>
 find(basic_value<C, M, V>&& v, const ::toml::key& ky, Ts&& ... keys)
 {
     return ::toml::find(::toml::find(std::move(v), ky), std::forward<Ts>(keys)...);
@@ -706,7 +706,7 @@ get_or(const basic_value<C, M, V>& v, T&& opt)
     }
     catch(...)
     {
-        return std::string(opt);
+        return std::string(std::forward<T>(opt));
     }
 }
 
@@ -730,7 +730,7 @@ get_or(const basic_value<C, M, V>& v, T&& opt)
     }
     catch(...)
     {
-        return std::forward<T>(opt);
+        return detail::remove_cvref_t<T>(std::forward<T>(opt));
     }
 }
 
@@ -768,7 +768,7 @@ find_or(basic_value<C, M, V>&& v, const toml::key& ky, basic_value<C, M, V>&& op
     if(!v.is_table()) {return opt;}
     auto tab = std::move(v).as_table();
     if(tab.count(ky) == 0) {return opt;}
-    return std::move(tab.at(ky));
+    return basic_value<C, M, V>(std::move(tab.at(ky)));
 }
 
 // ---------------------------------------------------------------------------
