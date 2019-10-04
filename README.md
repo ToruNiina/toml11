@@ -1091,7 +1091,7 @@ namespace toml
 template<>
 struct from<ext::foo>
 {
-    ext::foo from_toml(const value& v)
+    static ext::foo from_toml(const value& v)
     {
         ext::foo f;
         f.a = find<int        >(v, "a");
@@ -1131,7 +1131,7 @@ template<>
 struct from<ext::foo>
 {
     template<typename C, template<typename ...> class M, template<typename ...> class A>
-    ext::foo from_toml(const basic_value<C, M, A>& v)
+    static ext::foo from_toml(const basic_value<C, M, A>& v)
     {
         ext::foo f;
         f.a = find<int        >(v, "a");
@@ -1187,7 +1187,7 @@ namespace toml
 template<>
 struct into<ext::foo>
 {
-    toml::table into_toml(const ext::foo& f)
+    static toml::table into_toml(const ext::foo& f)
     {
         return toml::table{{"a", f.a}, {"b", f.b}, {"c", f.c}};
     }
