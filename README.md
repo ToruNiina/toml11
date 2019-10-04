@@ -1492,6 +1492,8 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fixed warnings while type conversion
 - @KerstinKeller
   - Added installation script to CMake
+- J.C. Moyer (@jcmoyer)
+  - Fixed an example code in the documentation
 
 ## Licensing terms
 
