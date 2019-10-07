@@ -256,7 +256,7 @@ get(const basic_value<C, M, V>&);
 // toml::from<T>::from_toml(v)
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V,
-         std::size_t S = sizeof(::toml::into<T>)>
+         std::size_t S = sizeof(::toml::from<T>)>
 T get(const basic_value<C, M, V>&);
 
 // ============================================================================

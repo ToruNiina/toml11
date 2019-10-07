@@ -33,6 +33,17 @@ struct bar
         return toml::table{{"a", this->a}, {"b", this->b}};
     }
 };
+
+struct baz
+{
+    int a;
+    std::string b;
+};
+struct qux
+{
+    int a;
+    std::string b;
+};
 } // extlib
 
 namespace toml
@@ -50,6 +61,24 @@ template<>
 struct into<extlib::foo>
 {
     static toml::table into_toml(const extlib::foo& f)
+    {
+        return toml::table{{"a", f.a}, {"b", f.b}};
+    }
+};
+
+template<>
+struct from<extlib::baz>
+{
+    static extlib::baz from_toml(const toml::value& v)
+    {
+        return extlib::baz{toml::find<int>(v, "a"), toml::find<std::string>(v, "b")};
+    }
+};
+
+template<>
+struct into<extlib::qux>
+{
+    static toml::table into_toml(const extlib::qux& f)
     {
         return toml::table{{"a", f.a}, {"b", f.b}};
     }
@@ -83,6 +112,16 @@ struct bar
         return toml::table{{"a", this->a}, {"b", this->b}};
     }
 };
+struct baz
+{
+    int a;
+    std::string b;
+};
+struct qux
+{
+    int a;
+    std::string b;
+};
 } // extlib2
 
 namespace toml
@@ -103,6 +142,28 @@ struct into<extlib2::foo>
     static toml::table into_toml(const extlib2::foo& f)
     {
         return toml::table{{"a", f.a}, {"b", f.b}};
+    }
+};
+
+template<>
+struct from<extlib2::baz>
+{
+    template<typename C, template<typename ...> class M, template<typename ...> class A>
+    static extlib2::baz from_toml(const toml::basic_value<C, M, A>& v)
+    {
+        return extlib2::baz{toml::find<int>(v, "a"), toml::find<std::string>(v, "b")};
+    }
+};
+
+template<>
+struct into<extlib2::qux>
+{
+    static toml::basic_value<toml::preserve_comments, std::map>
+    into_toml(const extlib2::qux& f)
+    {
+        return toml::basic_value<toml::preserve_comments, std::map>{
+            {"a", f.a}, {"b", f.b}
+        };
     }
 };
 } // toml
@@ -185,6 +246,41 @@ BOOST_AUTO_TEST_CASE(test_conversion_by_specialization)
             v2(bar);
 
         BOOST_TEST(v == v2);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_conversion_one_way)
+{
+    {
+        const toml::value v{{"a", 42}, {"b", "baz"}};
+
+        const auto baz = toml::get<extlib::baz>(v);
+        BOOST_TEST(baz.a == 42);
+        BOOST_TEST(baz.b == "baz");
+    }
+    {
+        const extlib::qux q{42, "qux"};
+        const toml::value v(q);
+
+        BOOST_TEST(toml::find<int>(v, "a")         == 42);
+        BOOST_TEST(toml::find<std::string>(v, "b") == "qux");
+    }
+
+    {
+        const toml::basic_value<toml::discard_comments, std::map> v{
+            {"a", 42}, {"b", "baz"}
+        };
+
+        const auto baz = toml::get<extlib2::baz>(v);
+        BOOST_TEST(baz.a == 42);
+        BOOST_TEST(baz.b == "baz");
+    }
+    {
+        const extlib::qux q{42, "qux"};
+        const toml::basic_value<toml::preserve_comments, std::map> v(q);
+
+        BOOST_TEST(toml::find<int>(v, "a")         == 42);
+        BOOST_TEST(toml::find<std::string>(v, "b") == "qux");
     }
 }
 
