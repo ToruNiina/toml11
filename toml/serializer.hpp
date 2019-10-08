@@ -118,8 +118,14 @@ struct serializer
         {
             return token; // there is no exponent part. just return it.
         }
-
-        // zero-prefix in an exponent is NOT allowed in TOML.
+#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
+        // Although currently it is not released yet, TOML will allow
+        // zero-prefix in an exponent part such as 1.234e+01.
+        // The following code removes the zero prefixes.
+        // If the feature is activated, the following codes can be skipped.
+        return token;
+#endif
+        // zero-prefix in an exponent is NOT allowed in TOML v0.5.0.
         // remove it if it exists.
         bool        sign_exists = false;
         std::size_t zero_prefix = 0;
