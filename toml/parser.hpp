@@ -1384,9 +1384,10 @@ parse_inline_table(location<Container>& loc)
         {
             return err(kv_r.unwrap_err());
         }
-        const std::vector<key>&  keys    = kv_r.unwrap().first.first;
-        const region<Container>& key_reg = kv_r.unwrap().first.second;
-        const value_type&        val     = kv_r.unwrap().second;
+        const auto&              kvpair  = kv_r.unwrap();
+        const std::vector<key>&  keys    = kvpair.first.first;
+        const region<Container>& key_reg = kvpair.first.second;
+        const value_type&        val     = kvpair.second;
 
         const auto inserted =
             insert_nested_key(retval, val, keys.begin(), keys.end(), key_reg);
@@ -1771,9 +1772,10 @@ parse_ml_table(location<Container>& loc)
 
         if(const auto kv = parse_key_value_pair<value_type>(loc))
         {
-            const std::vector<key>&  keys    = kv.unwrap().first.first;
-            const region<Container>& key_reg = kv.unwrap().first.second;
-            const value_type&        val     = kv.unwrap().second;
+            const auto&              kvpair  = kv.unwrap();
+            const std::vector<key>&  keys    = kvpair.first.first;
+            const region<Container>& key_reg = kvpair.first.second;
+            const value_type&        val     = kvpair.second;
             const auto inserted =
                 insert_nested_key(tab, val, keys.begin(), keys.end(), key_reg);
             if(!inserted)
@@ -1889,8 +1891,9 @@ result<Value, std::string> parse_toml_file(location<Container>& loc)
             const auto tab = parse_ml_table<value_type>(loc);
             if(!tab){return err(tab.unwrap_err());}
 
-            const auto& keys = tabkey.unwrap().first;
-            const auto& reg  = tabkey.unwrap().second;
+            const auto& tk   = tabkey.unwrap();
+            const auto& keys = tk.first;
+            const auto& reg  = tk.second;
 
             const auto inserted = insert_nested_key(data,
                     value_type(tab.unwrap(), reg),
@@ -1905,8 +1908,9 @@ result<Value, std::string> parse_toml_file(location<Container>& loc)
             const auto tab = parse_ml_table<value_type>(loc);
             if(!tab){return err(tab.unwrap_err());}
 
-            const auto& keys = tabkey.unwrap().first;
-            const auto& reg  = tabkey.unwrap().second;
+            const auto& tk   = tabkey.unwrap();
+            const auto& keys = tk.first;
+            const auto& reg  = tk.second;
 
             const auto inserted = insert_nested_key(data,
                 value_type(tab.unwrap(), reg), keys.begin(), keys.end(), reg);
