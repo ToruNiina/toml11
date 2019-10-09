@@ -470,6 +470,10 @@ If an invalid key (integer for a table, string for an array), it throws
 `toml::type_error` for the conversion. If the provided key is out-of-range,
 it throws `std::out_of_range`.
 
+Note that, although `std::string` has `at()` member function, `toml::value::at`
+throws if the contained type is a string. Because `std::string` does not
+contain `toml::value`.
+
 ## Checking value type
 
 You can check the type of a value by `is_xxx` function.
