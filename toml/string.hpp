@@ -2,6 +2,7 @@
 // Distributed under the MIT License.
 #ifndef TOML11_STRING_HPP
 #define TOML11_STRING_HPP
+#include <algorithm>
 #include <string>
 #include <cstdint>
 #if __cplusplus >= 201703L
@@ -45,6 +46,11 @@ struct string
     operator std::string const& () const& noexcept {return str;}
     operator std::string&&      () &&     noexcept {return std::move(str);}
 
+    string& operator+=(const char*        rhs) {str += rhs; return *this;}
+    string& operator+=(const char         rhs) {str += rhs; return *this;}
+    string& operator+=(const std::string& rhs) {str += rhs; return *this;}
+    string& operator+=(const string&      rhs) {str += rhs.str; return *this;}
+
 #if __cplusplus >= 201703L
     explicit string(std::string_view s): kind(string_t::basic), str(s){}
     string(std::string_view s, string_t k): kind(k), str(s){}
@@ -54,6 +60,8 @@ struct string
 
     explicit operator std::string_view() const noexcept
     {return std::string_view(str);}
+
+    string& operator+=(const std::string_view& rhs) {str += rhs; return *this;}
 #endif
 
     string_t    kind;
