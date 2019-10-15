@@ -216,6 +216,12 @@ matrix:
     language: cpp
     compiler: clang
     env: CXX_STANDARD=11
+    addons:
+      homebrew:
+        update: true
+        packages:
+        - cmake
+        - boost
 
 script:
 - |
@@ -224,8 +230,6 @@ script:
     travis_retry wget "https://github.com/Kitware/CMake/releases/download/v3.14.5/cmake-3.14.5-Linux-x86_64.tar.gz"
     tar xf cmake-3.14.5-Linux-x86_64.tar.gz -C cmake --strip-components=1
     export PATH=${TRAVIS_BUILD_DIR}/cmake/bin:${PATH}
-  else
-    brew upgrade cmake boost
   fi
 - cmake --version
 - mkdir build
