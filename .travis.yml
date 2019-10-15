@@ -216,6 +216,9 @@ matrix:
     language: cpp
     compiler: clang
     env: CXX_STANDARD=11
+    cache:
+      directories:
+        - $HOME/Library/Caches/Homebrew
     addons:
       homebrew:
         update: true
@@ -238,3 +241,10 @@ script:
 - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DTOML11_USE_UNRELEASED_TOML_FEATURES=${TOML_HEAD} ..
 - make
 - ctest --output-on-failure
+
+# https://stackoverflow.com/a/53331571
+before_cache:
+- |
+  if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
+    brew cleanup
+  fi
