@@ -1949,7 +1949,7 @@ parse(std::istream& is, const std::string& fname = "unknown file")
     std::vector<char> letters(static_cast<std::size_t>(fsize));
     is.read(letters.data(), fsize);
 
-    if(letters.back() == '\0')
+    if(!letters.empty() && letters.back() == '\0')
     {
         letters.pop_back();
     }
