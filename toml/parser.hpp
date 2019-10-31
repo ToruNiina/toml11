@@ -29,7 +29,7 @@ parse_boolean(location<Container>& loc)
         else if(reg.str() == "false") {return ok(std::make_pair(false, reg));}
         else // internal error.
         {
-            throw toml::internal_error(format_underline(
+            throw internal_error(format_underline(
                 "[error] toml::parse_boolean: internal error",
                 {{std::addressof(reg), "invalid token"}}));
         }
@@ -56,7 +56,7 @@ parse_binary_integer(location<Container>& loc)
             else if(*i == '_'){/* do nothing. */}
             else // internal error.
             {
-                throw toml::internal_error(format_underline(
+                throw internal_error(format_underline(
                     "[error] toml::parse_integer: internal error",
                     {{std::addressof(token.unwrap()), "invalid token"}}));
             }
