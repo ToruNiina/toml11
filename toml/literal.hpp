@@ -76,7 +76,8 @@ inline ::toml::value operator"" _toml(const char* str, std::size_t len)
     }
     else // none of them.
     {
-        throw ::toml::syntax_error(data.unwrap_err());
+        throw ::toml::syntax_error(data.unwrap_err(),
+                                   source_location(std::addressof(loc)));
     }
 }
 

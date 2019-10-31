@@ -190,7 +190,7 @@ get(const basic_value<C, M, V>& v)
                 "bad_cast to std::chrono::system_clock::time_point", {
                     {std::addressof(detail::get_region(v)),
                      concat_to_string("the actual type is ", v.type())}
-                }));
+                }), v.location());
         }
     }
 }
