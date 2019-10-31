@@ -278,7 +278,7 @@ std::string read_utf8_codepoint(const region<Container>& reg,
                 "toml::read_utf8_codepoint: codepoints in the range "
                 "[0xD800, 0xDFFF] are not valid UTF-8.", {{
                     std::addressof(loc), "not a valid UTF-8 codepoint"
-                }}));
+                }}), source_location(std::addressof(loc)));
         }
         assert(codepoint < 0xD800 || 0xDFFF < codepoint);
         // 1110yyyy 10yxxxxx 10xxxxxx
@@ -298,7 +298,8 @@ std::string read_utf8_codepoint(const region<Container>& reg,
     {
         throw syntax_error(format_underline("[error] toml::read_utf8_codepoint:"
             " input codepoint is too large.",
-            {{std::addressof(loc), "should be in [0x00..0x10FFFF]"}}));
+            {{std::addressof(loc), "should be in [0x00..0x10FFFF]"}}),
+            source_location(std::addressof(loc)));
     }
     return character;
 }
@@ -929,7 +930,7 @@ parse_array(location<Container>& loc)
                             std::addressof(get_region(val.unwrap())),
                             "value has different type, " + stringize(val.unwrap().type())
                         }
-                    }));
+                    }), source_location(std::addressof(loc)));
             }
             retval.push_back(std::move(val.unwrap()));
         }
@@ -942,7 +943,7 @@ parse_array(location<Container>& loc)
                 "value having invalid format appeared in an array", {
                     {std::addressof(array_start_loc), "array starts here"},
                     {std::addressof(loc), "it is not a valid value."}
-                }));
+                }), source_location(std::addressof(loc)));
         }
 
         using lex_array_separator = sequence<maybe<lex_ws>, character<','>>;
@@ -965,14 +966,15 @@ parse_array(location<Container>& loc)
                     " missing array separator `,` after a value", {
                         {std::addressof(array_start_loc), "array starts here"},
                         {std::addressof(loc),             "should be `,`"}
-                    }));
+                    }), source_location(std::addressof(loc)));
             }
         }
     }
     loc.reset(first);
     throw syntax_error(format_underline("[error] toml::parse_array: "
             "array did not closed by `]`",
-            {{std::addressof(loc), "should be closed"}}));
+            {{std::addressof(loc), "should be closed"}}),
+            source_location(std::addressof(loc)));
 }
 
 template<typename Value, typename Container>
@@ -1175,7 +1177,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                                  "table already defined"},
                                 {std::addressof(get_region(v)),
                                  "this conflicts with the previous table"}
-                            }));
+                            }), v.location());
                     }
                     else if(!(tab->at(k).is_array()))
                     {
@@ -1188,7 +1190,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                                                   " value already exists")},
                                 {std::addressof(get_region(v)),
                                  "while inserting this array-of-tables"}
-                            }));
+                            }), v.location());
                     }
                     // the above if-else-if checks tab->at(k) is an array
                     auto& a = tab->at(k).as_array();
@@ -1203,7 +1205,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                                                   " value already exists")},
                                 {std::addressof(get_region(v)),
                                  "while inserting this array-of-tables"}
-                            }));
+                            }), v.location());
                     }
                     // avoid conflicting array of table like the following.
                     // ```toml
@@ -1231,7 +1233,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                                                   " value has static size")},
                                 {std::addressof(get_region(v)),
                                  "appending it to the statically sized array"}
-                            }));
+                            }), v.location());
                     }
                     a.push_back(v);
                     return ok(true);
@@ -1259,7 +1261,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                                  "table already exists here"},
                                 {std::addressof(get_region(v)),
                                  "table defined twice"}
-                            }));
+                            }), v.location());
                     }
                     // to allow the following toml file.
                     // [a.b.c]
@@ -1286,7 +1288,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                              "array of tables defined here"},
                             {std::addressof(get_region(v)),
                             "table conflicts with the previous array of table"}
-                        }));
+                        }), v.location());
                 }
                 else
                 {
@@ -1297,7 +1299,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                              "value already exists here"},
                             {std::addressof(get_region(v)),
                              "value defined twice"}
-                        }));
+                        }), v.location());
                 }
             }
             tab->insert(std::make_pair(k, v));
@@ -1333,7 +1335,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                             {std::addressof(get_region(a.back())),
                              concat_to_string("actual type is ", a.back().type())},
                             {std::addressof(get_region(v)), "inserting this"}
-                        }));
+                        }), v.location());
                 }
                 tab = std::addressof(a.back().as_table());
             }
@@ -1346,7 +1348,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                         {std::addressof(get_region(tab->at(k))),
                          concat_to_string("actual type is ", tab->at(k).type())},
                         {std::addressof(get_region(v)), "inserting this"}
-                    }));
+                    }), v.location());
             }
         }
     }
@@ -1412,20 +1414,23 @@ parse_inline_table(location<Container>& loc)
             {
                 throw syntax_error(format_underline("[error] "
                     "toml::parse_inline_table: missing curly brace `}`",
-                    {{std::addressof(loc), "should be `}`"}}));
+                    {{std::addressof(loc), "should be `}`"}}),
+                    source_location(std::addressof(loc)));
             }
             else
             {
                 throw syntax_error(format_underline("[error] "
                     "toml::parse_inline_table: missing table separator `,` ",
-                    {{std::addressof(loc), "should be `,`"}}));
+                    {{std::addressof(loc), "should be `,`"}}),
+                    source_location(std::addressof(loc)));
             }
         }
     }
     loc.reset(first);
     throw syntax_error(format_underline("[error] toml::parse_inline_table: "
             "inline table did not closed by `}`",
-            {{std::addressof(loc), "should be closed"}}));
+            {{std::addressof(loc), "should be closed"}}),
+            source_location(std::addressof(loc)));
 }
 
 template<typename Container>
@@ -1668,7 +1673,8 @@ parse_table_key(location<Container>& loc)
             {
                 throw syntax_error(format_underline("[error] "
                     "toml::parse_table_key: newline required after [table.key]",
-                    {{std::addressof(loc), "expected newline"}}));
+                    {{std::addressof(loc), "expected newline"}}),
+                    source_location(std::addressof(loc)));
             }
         }
         return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
@@ -1722,7 +1728,8 @@ parse_array_table_key(location<Container>& loc)
             {
                 throw syntax_error(format_underline("[error] toml::"
                     "parse_array_table_key: newline required after [[table.key]]",
-                    {{std::addressof(loc), "expected newline"}}));
+                    {{std::addressof(loc), "expected newline"}}),
+                    source_location(std::addressof(loc)));
             }
         }
         return ok(std::make_pair(keys.unwrap().first, token.unwrap()));
@@ -1976,7 +1983,7 @@ parse(std::istream& is, const std::string& fname = "unknown file")
     const auto data = detail::parse_toml_file<value_type>(loc);
     if(!data)
     {
-        throw syntax_error(data.unwrap_err());
+        throw syntax_error(data.unwrap_err(), source_location(std::addressof(loc)));
     }
     return data.unwrap();
 }

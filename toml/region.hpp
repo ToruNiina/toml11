@@ -2,7 +2,6 @@
 // Distributed under the MIT License.
 #ifndef TOML11_REGION_HPP
 #define TOML11_REGION_HPP
-#include "exception.hpp"
 #include <memory>
 #include <vector>
 #include <algorithm>
@@ -231,11 +230,10 @@ struct region final : public region_base
 
     region& operator+=(const region& other)
     {
-        if(this->begin() != other.begin() || this->end() != other.end() ||
-           this->last_  != other.first_)
-        {
-            throw internal_error("invalid region concatenation");
-        }
+        // different regions cannot be concatenated
+        assert(this->begin() == other.begin() && this->end() == other.end() &&
+               this->last_   == other.first_);
+
         this->last_ = other.last_;
         return *this;
     }

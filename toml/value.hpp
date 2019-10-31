@@ -35,7 +35,7 @@ throw_bad_cast(value_t actual, const ::toml::basic_value<C, T, A>& v)
         "[error] toml::value bad_cast to ", Expected), {
             {std::addressof(get_region(v)),
              concat_to_string("the actual type is ", actual)}
-        }));
+        }), v.location());
 }
 
 // switch by `value_t` and call the corresponding `value::as_xxx()`. {{{
