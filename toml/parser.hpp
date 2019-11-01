@@ -414,7 +414,7 @@ parse_ml_basic_string(location<Container>& loc)
     {
         loc.reset(first);
         return err(format_underline("[error] toml::parse_ml_basic_string: "
-                   "the next token is not a multiline string",
+                   "the next token is not a valid multiline string",
                    {{std::addressof(loc), "here"}}));
     }
 }
@@ -454,7 +454,7 @@ parse_basic_string(location<Container>& loc)
             if(inner_loc.iter() == inner_loc.end())
             {
                 throw internal_error(format_underline("[error] "
-                    "parse_ml_basic_string: unexpected end of region",
+                    "parse_basic_string: unexpected end of region",
                     {{std::addressof(inner_loc), "not sufficient token"}}));
             }
             quot = lex_quotation_mark::invoke(inner_loc);
@@ -465,7 +465,7 @@ parse_basic_string(location<Container>& loc)
     {
         loc.reset(first); // rollback
         return err(format_underline("[error] toml::parse_basic_string: "
-                   "the next token is not a string",
+                   "the next token is not a valid string",
                    {{std::addressof(loc), "here"}}));
     }
 }
@@ -506,7 +506,7 @@ parse_ml_literal_string(location<Container>& loc)
     {
         loc.reset(first); // rollback
         return err(format_underline("[error] toml::parse_ml_literal_string: "
-                   "the next token is not a multiline literal string",
+                   "the next token is not a valid multiline literal string",
                    {{std::addressof(loc), "here"}}));
     }
 }
@@ -545,7 +545,7 @@ parse_literal_string(location<Container>& loc)
     {
         loc.reset(first); // rollback
         return err(format_underline("[error] toml::parse_literal_string: "
-                   "the next token is not a literal string",
+                   "the next token is not a valid literal string",
                    {{std::addressof(loc), "here"}}));
     }
 }
