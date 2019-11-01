@@ -1836,12 +1836,12 @@ result<Value, std::string> parse_toml_file(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return ok(value_type(table_type{}));
+        return ok(value_type(table_type{}, /* empty file has no region ...*/));
     }
 
     // put the first line as a region of a file
-    const region<Container> file(loc, loc.iter(),
-            std::find(loc.iter(), loc.end(), '\n'));
+    // Here first != loc.end(), so taking std::next is okay
+    const region<Container> file(loc, first, std::next(loc.iter()));
 
     // The first successive comments that are separated from the first value
     // by an empty line are for a file itself.
