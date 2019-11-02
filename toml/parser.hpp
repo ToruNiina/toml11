@@ -1867,7 +1867,7 @@ result<Value, std::string> parse_toml_file(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return ok(value_type(table_type{}/* empty file has no region ...*/));
+        return ok(value_type(table_type{} /*, empty file has no region ...*/));
     }
 
     // put the first line as a region of a file
