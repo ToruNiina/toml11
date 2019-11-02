@@ -68,6 +68,8 @@ int main()
 - [TOML literal](#toml-literal)
 - [Conversion between toml value and arbitrary types](#conversion-between-toml-value-and-arbitrary-types)
 - [Formatting user-defined error messages](#formatting-user-defined-error-messages)
+- [Obtaining location information](#obtaining-location-information)
+- [Exceptions](#exceptions)
 - [Serializing TOML data](#serializing-toml-data)
 - [Underlying types](#underlying-types)
 - [Unreleased TOML features](#unreleased-toml-features)
@@ -350,6 +352,7 @@ The above code works with the following toml file.
 # equivalent to {"physical.color": "orange"},
 # NOT {"physical": {"color": "orange"}}.
 ```
+
 
 ## Casting a toml value
 
@@ -1258,7 +1261,7 @@ you will get an error message like this.
    |       ~~ maximum number here
 ```
 
-### Obtaining location information
+## Obtaining location information
 
 You can also format error messages in your own way by using `source_location`.
 
@@ -1282,6 +1285,35 @@ You can get this by
 const toml::value           v   = /*...*/;
 const toml::source_location loc = v.location();
 ```
+
+## Exceptions
+
+All the exceptions thrown by toml11 inherits `toml::exception` that inherits
+`std::exception`.
+
+```cpp
+namespace toml {
+struct exception      : public std::exception  {/**/};
+struct syntax_error   : public toml::exception {/**/};
+struct type_error     : public toml::exception {/**/};
+struct internal_error : public toml::exception {/**/};
+} // toml
+```
+
+`toml::exception` has `toml::exception::location()` member function that returns
+`toml::source_location`, in addition to `what()`.
+
+```cpp
+namespace toml {
+struct exception : public std::exception
+{
+    // ...
+    source_location const& location() const noexcept;
+};
+} // toml
+```
+
+It represents where the error occurs.
 
 ## Serializing TOML data
 
