@@ -357,8 +357,8 @@ get(const basic_value<C, M, V>& v)
     if(ar.size() != std::tuple_size<T>::value)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[erorr] toml::get specified std::tuple with ",
-            std::tuple_size<T>::value, "elements, but there are ", ar.size(),
+            "[error] toml::get specified std::tuple with ",
+            std::tuple_size<T>::value, " elements, but there are ", ar.size(),
             " elements in toml array."), {
                 {std::addressof(detail::get_region(v)), "here"}
             }));
