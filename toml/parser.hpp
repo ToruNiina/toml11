@@ -938,6 +938,7 @@ parse_array(location<Container>& loc)
 
         if(auto val = parse_value<value_type>(loc))
         {
+#ifndef TOML11_USE_UNRELEASED_TOML_FEATURES
             if(!retval.empty() && retval.front().type() != val.as_ok().type())
             {
                 auto array_start_loc = loc;
@@ -956,6 +957,7 @@ parse_array(location<Container>& loc)
                         }
                     }), source_location(std::addressof(loc)));
             }
+#endif
             retval.push_back(std::move(val.unwrap()));
         }
         else
