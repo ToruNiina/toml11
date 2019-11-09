@@ -1455,9 +1455,77 @@ There are some unreleased features in toml-lang/toml:master.
 Currently, the following features are available after defining
 `TOML11_USE_UNRELEASED_TOML_FEATURES` macro flag.
 
+To use those features, `#define` `TOML11_USE_UNRELEASED_TOML_FEATURES` before
+including `toml.hpp` or pass `-DTOML11_USE_UNRELEASED_TOML_FEATURES` to your
+compiler.
+
 - Leading zeroes in exponent parts of floats are permitted.
   - e.g. `1.0e+01`, `5e+05`
+  - [toml-lang/toml/PR/656](https://github.com/toml-lang/toml/pull/656)
 - Allow raw tab characters in basic strings and multi-line basic strings.
+  - [toml-lang/toml/PR/627](https://github.com/toml-lang/toml/pull/627)
+- Allow heterogeneous arrays
+  - [toml-lang/toml/PR/676](https://github.com/toml-lang/toml/pull/676)
+
+### Note about heterogeneous arrays
+
+Although `toml::parse` allows heterogeneous arrays, constructor of `toml::value`
+does not.
+
+```cpp
+// this won't be compiled
+toml::value v{
+    "foo", 3.14, 42, {1,2,3,4,5}, {{"key", "value"}}
+}
+```
+
+There is a workaround for this issue. By explicitly converting values into
+`toml::value`, you can initialize `toml::value` with a heterogeneous array.
+
+```cpp
+// OK!
+toml::value v{
+    toml::value("foo"), toml::value(3.14), toml::value(42),
+    toml::value{1,2,3,4,5}, toml::value{{"key", "value"}}
+}
+```
+
+The reason why the first example is not allowed is the following.
+Let's assume that you are initializing a `toml::value` with a table.
+
+```cpp
+                    // # expecting TOML table.
+toml::value v{      // [v]
+    {"answer", 42}, // answer = 42
+    {"pi",   3.14}, // pi = 3.14
+    {"foo", "bar"}  // foo = "bar"
+};
+```
+
+This is indistinguishable from a (heterogeneous) TOML array definition.
+
+```toml
+v = [
+    ["answer", 42],
+    ["pi",   3.14],
+    ["foo", "bar"],
+]
+```
+
+This means that the above C++ code makes constructor's overload resolution
+ambiguous. So a constructor that allows both "table as an initializer-list" and
+"heterogeneous array as an initializer-list" cannot be implemented.
+
+Thus, although it is painful, you need to explicitly cast values into
+`toml::value` when you initialize heterogeneous array in C++ code.
+
+```cpp
+// You need to do this when you want to initialize hetero array.
+toml::value v{
+    toml::value("foo"), toml::value(3.14), toml::value(42),
+    toml::value{1,2,3,4,5}, toml::value{{"key", "value"}}
+}
+```
 
 ## Breaking Changes from v2
 
