@@ -9,6 +9,7 @@
 #include <iterator>
 #include <iomanip>
 #include <cassert>
+#include "color.hpp"
 
 namespace toml
 {
@@ -432,7 +433,13 @@ inline std::string format_underline(const std::string& message,
     )->first->line_num().size());
 
     std::ostringstream retval;
-    retval << message << '\n';
+
+#ifdef TOML11_COLORIZE_ERROR_MESSAGE
+    retval << color::colorize; // turn on ANSI color
+#endif
+
+    retval << color::bold << color::red << "[error] " << color::reset
+           << color::bold << message << color::reset << '\n';
 
     for(auto iter = reg_com.begin(); iter != reg_com.end(); ++iter)
     {
@@ -440,34 +447,41 @@ inline std::string format_underline(const std::string& message,
         if(iter != reg_com.begin() &&
            std::prev(iter)->first->name() == iter->first->name())
         {
-            retval << "\n ...\n";
+            retval << color::bold << color::blue << "\n ...\n" << color::reset;
         }
         else // if filename differs, print " --> filename.toml"
         {
             if(iter != reg_com.begin()) {retval << '\n';}
-            retval << " --> " << iter->first->name() << '\n';
+            retval << color::bold << color::blue << " --> " << color::reset
+                   << iter->first->name() << '\n';
+            // add one almost-empty line for readability
+            retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ')
+                   << color::bold << color::blue << " | "  << color::reset << '\n';
         }
         const region_base* const reg = iter->first;
         const std::string&   comment = iter->second;
 
-        retval << ' ' << std::setw(line_num_width) << reg->line_num();
-        retval << " | " << reg->line() << '\n';
-        retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ');
-        retval << " | " << make_string(reg->before(), ' ');
+        retval << ' ' << std::setw(line_num_width) << color::bold << color::blue
+               << reg->line_num() << " | "  << color::reset << reg->line() << '\n';
+
+        retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ')
+               << color::bold << color::blue << " | " << color::reset
+               << make_string(reg->before(), ' ');
 
         if(reg->size() == 1)
         {
             // invalid
             // ^------
-            retval << '^';
-            retval << make_string(reg->after(), '-');
+            retval << color::bold << color::red
+                   << '^' << make_string(reg->after(), '-') << color::reset;
         }
         else
         {
             // invalid
             // ~~~~~~~
             const auto underline_len = std::min(reg->size(), reg->line().size());
-            retval << make_string(underline_len, '~');
+            retval << color::bold << color::red
+                   << make_string(underline_len, '~') << color::reset;
         }
         retval << ' ';
         retval << comment;
@@ -477,10 +491,10 @@ inline std::string format_underline(const std::string& message,
     {
         retval << '\n';
         retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ');
-        retval << " | ";
+        retval << color::bold << color::blue << " | " << color::reset;
         for(const auto help : helps)
         {
-            retval << "\nHint: ";
+            retval << color::bold << "\nHint: " << color::reset;
             retval << help;
         }
     }
