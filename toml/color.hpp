@@ -57,28 +57,8 @@ inline std::ostream& white  (std::ostream& os)
 {if(os.iword(detail::colorize_index()) == 1) {os << "\033[37m";} return os;}
 } // color_ansi
 
-// do nothing.
-namespace nocolor
-{
-inline std::ostream& colorize  (std::ostream& os) noexcept {return os;}
-inline std::ostream& nocolorize(std::ostream& os) noexcept {return os;}
-inline std::ostream& reset     (std::ostream& os) noexcept {return os;}
-inline std::ostream& bold      (std::ostream& os) noexcept {return os;}
-inline std::ostream& grey      (std::ostream& os) noexcept {return os;}
-inline std::ostream& red       (std::ostream& os) noexcept {return os;}
-inline std::ostream& green     (std::ostream& os) noexcept {return os;}
-inline std::ostream& yellow    (std::ostream& os) noexcept {return os;}
-inline std::ostream& blue      (std::ostream& os) noexcept {return os;}
-inline std::ostream& magenta   (std::ostream& os) noexcept {return os;}
-inline std::ostream& cyan      (std::ostream& os) noexcept {return os;}
-inline std::ostream& white     (std::ostream& os) noexcept {return os;}
-} // nocolor
-
-#ifdef TOML11_COLORIZE_ERROR_MESSAGE
+// ANSI escape sequence is the only and default colorization method currently
 namespace color = color_ansi;
-#else
-namespace color = nocolor;
-#endif
 
 } // toml
 #endif// TOML11_COLOR_HPP
