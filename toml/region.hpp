@@ -440,8 +440,21 @@ inline std::string format_underline(const std::string& message,
         retval << color::colorize; // turn on ANSI color
     }
 
-    retval << color::bold << color::red << "[error] " << color::reset
-           << color::bold << message << color::reset << '\n';
+    // XXX
+    // Here, before `colorize` support, it does not output `[error] ` prefix
+    // automatically. So some user may output it manually and this change may
+    // duplicate the prefix. To avoid it, check the first 8 characters and
+    // if it is "[error] ", it removes that part from the message shown.
+    if(message.size() > 8 && message.substr(0, 8) == "[error] ")
+    {
+        retval << color::bold << color::red << "[error] " << color::reset
+               << color::bold << message.substr(8) << color::reset << '\n';
+    }
+    else
+    {
+        retval << color::bold << color::red << "[error] " << color::reset
+               << color::bold << message << color::reset << '\n';
+    }
 
     for(auto iter = reg_com.begin(); iter != reg_com.end(); ++iter)
     {
