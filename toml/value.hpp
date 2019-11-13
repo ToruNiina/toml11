@@ -1843,25 +1843,27 @@ operator>=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 template<typename C, template<typename ...> class T, template<typename ...> class A>
 inline std::string format_error(const std::string& err_msg,
         const basic_value<C, T, A>& v, const std::string& comment,
-        std::vector<std::string> hints = {})
+        std::vector<std::string> hints = {},
+        const bool colorize = TOML11_COLORED_MESSAGE_ACTIVATED)
 {
     return detail::format_underline(err_msg,
         std::vector<std::pair<detail::region_base const*, std::string>>{
             {std::addressof(detail::get_region(v)), comment}
-        }, std::move(hints));
+        }, std::move(hints), colorize);
 }
 
 template<typename C, template<typename ...> class T, template<typename ...> class A>
 inline std::string format_error(const std::string& err_msg,
         const toml::basic_value<C, T, A>& v1, const std::string& comment1,
         const toml::basic_value<C, T, A>& v2, const std::string& comment2,
-        std::vector<std::string> hints = {})
+        std::vector<std::string> hints = {},
+        const bool colorize = TOML11_COLORED_MESSAGE_ACTIVATED)
 {
     return detail::format_underline(err_msg,
         std::vector<std::pair<detail::region_base const*, std::string>>{
             {std::addressof(detail::get_region(v1)), comment1},
             {std::addressof(detail::get_region(v2)), comment2}
-        }, std::move(hints));
+        }, std::move(hints), colorize);
 }
 
 template<typename C, template<typename ...> class T, template<typename ...> class A>
@@ -1869,14 +1871,15 @@ inline std::string format_error(const std::string& err_msg,
         const toml::basic_value<C, T, A>& v1, const std::string& comment1,
         const toml::basic_value<C, T, A>& v2, const std::string& comment2,
         const toml::basic_value<C, T, A>& v3, const std::string& comment3,
-        std::vector<std::string> hints = {})
+        std::vector<std::string> hints = {},
+        const bool colorize = TOML11_COLORED_MESSAGE_ACTIVATED)
 {
     return detail::format_underline(err_msg,
         std::vector<std::pair<detail::region_base const*, std::string>>{
             {std::addressof(detail::get_region(v1)), comment1},
             {std::addressof(detail::get_region(v2)), comment2},
             {std::addressof(detail::get_region(v3)), comment3}
-        }, std::move(hints));
+        }, std::move(hints), colorize);
 }
 
 template<typename Visitor, typename C,
