@@ -441,13 +441,13 @@ inline std::string format_underline(const std::string& message,
     }
 
     // XXX
-    // Here, before `colorize` support, it does not output `[error] ` prefix
+    // Here, before `colorize` support, it does not output `[error]` prefix
     // automatically. So some user may output it manually and this change may
-    // duplicate the prefix. To avoid it, check the first 8 characters and
-    // if it is "[error] ", it removes that part from the message shown.
-    if(message.size() > 8 && message.substr(0, 8) == "[error] ")
+    // duplicate the prefix. To avoid it, check the first 7 characters and
+    // if it is "[error]", it removes that part from the message shown.
+    if(message.size() > 7 && message.substr(0, 7) == "[error]")
     {
-        retval << color::bold << color::red << "[error] " << color::reset
+        retval << color::bold << color::red << "[error]" << color::reset
                << color::bold << message.substr(8) << color::reset << '\n';
     }
     else
