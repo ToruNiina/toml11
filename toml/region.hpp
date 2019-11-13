@@ -419,7 +419,8 @@ struct region final : public region_base
 // to show a better error message.
 inline std::string format_underline(const std::string& message,
         const std::vector<std::pair<region_base const*, std::string>>& reg_com,
-        const std::vector<std::string>& helps = {})
+        const std::vector<std::string>& helps = {},
+        const bool colorize = TOML11_COLORED_MESSAGE_ACTIVATED)
 {
     assert(!reg_com.empty());
 
@@ -434,9 +435,10 @@ inline std::string format_underline(const std::string& message,
 
     std::ostringstream retval;
 
-#ifdef TOML11_COLORIZE_ERROR_MESSAGE
-    retval << color::colorize; // turn on ANSI color
-#endif
+    if(colorize)
+    {
+        retval << color::colorize; // turn on ANSI color
+    }
 
     retval << color::bold << color::red << "[error] " << color::reset
            << color::bold << message << color::reset << '\n';
