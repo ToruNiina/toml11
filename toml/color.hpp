@@ -3,6 +3,12 @@
 #include <ostream>
 #include <cstdint>
 
+#ifdef TOML11_COLORIZE_ERROR_MESSAGE
+#define TOML11_COLORED_MESSAGE_ACTIVATED true
+#else
+#define TOML11_COLORED_MESSAGE_ACTIVATED false
+#endif
+
 namespace toml
 {
 
