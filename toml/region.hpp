@@ -448,7 +448,7 @@ inline std::string format_underline(const std::string& message,
     if(message.size() > 7 && message.substr(0, 7) == "[error]")
     {
         retval << color::bold << color::red << "[error]" << color::reset
-               << color::bold << message.substr(8) << color::reset << '\n';
+               << color::bold << message.substr(7) << color::reset << '\n';
     }
     else
     {
