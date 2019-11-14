@@ -312,7 +312,7 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
     const auto first = loc.iter();
     if(first == loc.end() || *first != '\\')
     {
-        return err(format_underline("[error]: toml::parse_escape_sequence: ", {{
+        return err(format_underline("toml::parse_escape_sequence: ", {{
             std::addressof(loc), "the next token is not a backslash \"\\\""}}));
     }
     loc.advance();
@@ -604,7 +604,7 @@ parse_local_date(location<Container>& loc)
         const auto y = lex_date_fullyear::invoke(inner_loc);
         if(!y || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != '-')
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_inner_local_date: invalid year format",
                 {{std::addressof(inner_loc), "should be `-`"}}),
                 source_location(std::addressof(inner_loc)));
@@ -613,7 +613,7 @@ parse_local_date(location<Container>& loc)
         const auto m = lex_date_month::invoke(inner_loc);
         if(!m || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != '-')
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_local_date: invalid month format",
                 {{std::addressof(inner_loc), "should be `-`"}}),
                 source_location(std::addressof(inner_loc)));
@@ -622,7 +622,7 @@ parse_local_date(location<Container>& loc)
         const auto d = lex_date_mday::invoke(inner_loc);
         if(!d)
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_local_date: invalid day format",
                 {{std::addressof(inner_loc), "here"}}),
                 source_location(std::addressof(inner_loc)));
@@ -637,7 +637,7 @@ parse_local_date(location<Container>& loc)
     else
     {
         loc.reset(first);
-        return err(format_underline("[error]: toml::parse_local_date: ",
+        return err(format_underline("toml::parse_local_date: ",
             {{std::addressof(loc), "the next token is not a local_date"}}));
     }
 }
@@ -654,7 +654,7 @@ parse_local_time(location<Container>& loc)
         const auto h = lex_time_hour::invoke(inner_loc);
         if(!h || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != ':')
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_local_time: invalid year format",
                 {{std::addressof(inner_loc), "should be `:`"}}),
                 source_location(std::addressof(inner_loc)));
@@ -663,7 +663,7 @@ parse_local_time(location<Container>& loc)
         const auto m = lex_time_minute::invoke(inner_loc);
         if(!m || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != ':')
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_local_time: invalid month format",
                 {{std::addressof(inner_loc), "should be `:`"}}),
                 source_location(std::addressof(inner_loc)));
@@ -672,7 +672,7 @@ parse_local_time(location<Container>& loc)
         const auto s = lex_time_second::invoke(inner_loc);
         if(!s)
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_local_time: invalid second format",
                 {{std::addressof(inner_loc), "here"}}),
                 source_location(std::addressof(inner_loc)));
@@ -709,7 +709,7 @@ parse_local_time(location<Container>& loc)
         {
             if(before_secfrac != inner_loc.iter())
             {
-                throw internal_error(format_underline("[error]: "
+                throw internal_error(format_underline(
                     "toml::parse_local_time: invalid subsecond format",
                     {{std::addressof(inner_loc), "here"}}),
                 source_location(std::addressof(inner_loc)));
@@ -720,7 +720,7 @@ parse_local_time(location<Container>& loc)
     else
     {
         loc.reset(first);
-        return err(format_underline("[error]: toml::parse_local_time: ",
+        return err(format_underline("toml::parse_local_time: ",
             {{std::addressof(loc), "the next token is not a local_time"}}));
     }
 }
@@ -736,7 +736,7 @@ parse_local_datetime(location<Container>& loc)
         const auto date = parse_local_date(inner_loc);
         if(!date || inner_loc.iter() == inner_loc.end())
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_local_datetime: invalid datetime format",
                 {{std::addressof(inner_loc), "date, not datetime"}}),
                 source_location(std::addressof(inner_loc)));
@@ -744,7 +744,7 @@ parse_local_datetime(location<Container>& loc)
         const char delim = *(inner_loc.iter());
         if(delim != 'T' && delim != 't' && delim != ' ')
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_local_datetime: invalid datetime format",
                 {{std::addressof(inner_loc), "should be `T` or ` ` (space)"}}),
                 source_location(std::addressof(inner_loc)));
@@ -753,7 +753,7 @@ parse_local_datetime(location<Container>& loc)
         const auto time = parse_local_time(inner_loc);
         if(!time)
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_local_datetime: invalid datetime format",
                 {{std::addressof(inner_loc), "invalid time fomrat"}}),
                 source_location(std::addressof(inner_loc)));
@@ -765,7 +765,7 @@ parse_local_datetime(location<Container>& loc)
     else
     {
         loc.reset(first);
-        return err(format_underline("[error]: toml::parse_local_datetime: ",
+        return err(format_underline("toml::parse_local_datetime: ",
             {{std::addressof(loc), "the next token is not a local_datetime"}}));
     }
 }
@@ -781,7 +781,7 @@ parse_offset_datetime(location<Container>& loc)
         const auto datetime = parse_local_datetime(inner_loc);
         if(!datetime || inner_loc.iter() == inner_loc.end())
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_offset_datetime: invalid datetime format",
                 {{std::addressof(inner_loc), "date, not datetime"}}),
                 source_location(std::addressof(inner_loc)));
@@ -803,7 +803,7 @@ parse_offset_datetime(location<Container>& loc)
         }
         else if(*inner_loc.iter() != 'Z' && *inner_loc.iter() != 'z')
         {
-            throw internal_error(format_underline("[error]: "
+            throw internal_error(format_underline(
                 "toml::parse_offset_datetime: invalid datetime format",
                 {{std::addressof(inner_loc), "should be `Z` or `+HH:MM`"}}),
                 source_location(std::addressof(inner_loc)));
@@ -814,7 +814,7 @@ parse_offset_datetime(location<Container>& loc)
     else
     {
         loc.reset(first);
-        return err(format_underline("[error]: toml::parse_offset_datetime: ",
+        return err(format_underline("toml::parse_offset_datetime: ",
             {{std::addressof(loc), "the next token is not a offset_datetime"}}));
     }
 }
@@ -1958,7 +1958,7 @@ result<Value, std::string> parse_toml_file(location<Container>& loc)
 
             continue;
         }
-        return err(format_underline("[error]: toml::parse_toml_file: "
+        return err(format_underline("toml::parse_toml_file: "
             "unknown line appeared", {{std::addressof(loc), "unknown format"}}));
     }
 
