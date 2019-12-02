@@ -70,6 +70,7 @@ int main()
 - [Formatting user-defined error messages](#formatting-user-defined-error-messages)
 - [Obtaining location information](#obtaining-location-information)
 - [Exceptions](#exceptions)
+- [Colorize Error Messages](#colorize-error-messages)
 - [Serializing TOML data](#serializing-toml-data)
 - [Underlying types](#underlying-types)
 - [Unreleased TOML features](#unreleased-toml-features)
@@ -1314,6 +1315,14 @@ struct exception : public std::exception
 ```
 
 It represents where the error occurs.
+
+## Colorize Error Messages
+
+By `#define TOML11_COLORIZE_ERROR_MESSAGE`, the error messages from
+`toml::parse` and `toml::find|get` will be colorized.
+
+Note that it is hard to see when the message is written in a file, not terminal,
+because it uses [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code).
 
 ## Serializing TOML data
 
