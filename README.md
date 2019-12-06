@@ -699,6 +699,7 @@ date information, but it can be converted to `std::chrono::duration` that
 represents a duration from the beginning of the day, `00:00:00.000`.
 
 ```toml
+# sample.toml
 date = 2018-12-23
 time = 12:30:00
 l_dt = 2018-12-23T12:30:00
@@ -715,8 +716,12 @@ const auto o_dt = toml::get<std::chrono::system_clock::time_point>(data.at("o_dt
 const auto time = toml::get<std::chrono::minutes>(data.at("time")); // 12 * 60 + 30 min
 ```
 
-toml11 defines its own datetime classes.
-You can see the definitions in [toml/datetime.hpp](toml/datetime.hpp).
+`local_date` and `local_datetime` are assumed to be in the local timezone when
+they are converted into `time_point`. On the other hand, `offset_datetime` only
+uses the offset part of the data and it does not take local timezone into account.
+
+To contain datetime data, toml11 defines its own datetime types.
+For more detail, you can see the definitions in [toml/datetime.hpp](toml/datetime.hpp).
 
 ## Getting with a fallback
 
@@ -1446,8 +1451,6 @@ This feature is introduced to make it easy to write a custom serializer.
 `Datetime` variants are `struct` that are defined in this library.
 Because `std::chrono::system_clock::time_point` is a __time point__,
 not capable of representing a Local Time independent from a specific day.
-
-It is recommended to get `datetime`s as `std::chrono` classes through `toml::get`.
 
 ## Unreleased TOML features
 
