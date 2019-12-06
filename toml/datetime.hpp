@@ -470,37 +470,64 @@ struct offset_datetime
         : date(ld.date), time(ld.time), offset(get_local_offset())
     {}
     explicit offset_datetime(const std::chrono::system_clock::time_point& tp)
-        : offset_datetime(local_datetime(tp))
-    {}
+        : offset(0, 0) // use gmtime
+    {
+        const auto timet = std::chrono::system_clock::to_time_t(tp);
+        const auto tm    = detail::gmtime_s(&timet);
+        this->date = local_date(tm);
+        this->time = local_time(tm);
+    }
     explicit offset_datetime(const std::time_t& t)
-        : offset_datetime(local_datetime(t))
-    {}
+        : offset(0, 0) // use gmtime
+    {
+        const auto tm    = detail::gmtime_s(&t);
+        this->date = local_date(tm);
+        this->time = local_time(tm);
+    }
     explicit offset_datetime(const std::tm& t)
-        : offset_datetime(local_datetime(t))
-    {}
+        : offset(0, 0) // assume gmtime
+    {
+        this->date = local_date(t);
+        this->time = local_time(t);
+    }
 
     operator std::chrono::system_clock::time_point() const
     {
         // get date-time
         using internal_duration =
             typename std::chrono::system_clock::time_point::duration;
-        std::chrono::system_clock::time_point tp =
-            std::chrono::system_clock::time_point(this->date) +
-            std::chrono::duration_cast<internal_duration>(
-                   std::chrono::nanoseconds(this->time));
 
-        // get date-time in UTC. let's say we are in +09:00 (JPN).
-        // writing 12:00:00 in +09:00 means 03:00:00Z. to represent
-        // 12:00:00Z, first we need to add +09:00.
+        // std::mktime returns date as **local** time zone.
+        std::tm t;
+        t.tm_sec   = 0;
+        t.tm_min   = 0;
+        t.tm_hour  = 0;
+        t.tm_mday  = static_cast<int>(this->date.day);
+        t.tm_mon   = static_cast<int>(this->date.month);
+        t.tm_year  = static_cast<int>(this->date.year) - 1900;
+        t.tm_wday  = 0; // the value will be ignored
+        t.tm_yday  = 0; // the value will be ignored
+        t.tm_isdst = 0; // do not consider DST; explicitly turn it off.
+        // all the offset info, including DST, should be in the offset part.
+
+        std::chrono::system_clock::time_point tp =
+            std::chrono::system_clock::from_time_t(std::mktime(&t)) +
+            std::chrono::duration_cast<internal_duration>(
+                    std::chrono::nanoseconds(this->time));
+
+        // get date-time in UTC.
+        // Since mktime uses local time zone, it should be corrected.
+        // `12:00:00+09:00` means `03:00:00Z`. So mktime returns `03:00:00Z` if
+        // we are in `+09:00` timezone. To represent `12:00:00Z` there, we need
+        // to add `+09:00` to `03:00:00Z`.
         const auto ofs = get_local_offset();
         tp += std::chrono::hours  (ofs.hour);
         tp += std::chrono::minutes(ofs.minute);
 
-        // here, tp represents 12:00:00 in UTC but we have offset information.
-        // we need to subtract it. For example, let's say the input is
-        // 12:00:00-08:00. now we have tp = 12:00:00Z as a result of the above
-        // conversion. But the actual time we need to return is 20:00:00Z
-        // because of -08:00.
+        // We got `12:00:00Z` by correcting local timezone applied by mktime.
+        // Then we will apply the offset. Let's say `12:00:00-08:00` is given.
+        // And now, we have `12:00:00Z`. `12:00:00-08:00` means `20:00:00Z`.
+        // So we need to subtract the offset.
         tp -= std::chrono::minutes(this->offset);
         return tp;
     }
