@@ -28,6 +28,13 @@ inline std::tm localtime_s(const std::time_t* src)
     if (!result) { throw std::runtime_error("localtime_r failed."); }
     return dst;
 }
+inline std::tm gmtime_s(const std::time_t* src)
+{
+    std::tm dst;
+    const auto result = ::gmtime_r(src, &dst);
+    if (!result) { throw std::runtime_error("gmtime_r failed."); }
+    return dst;
+}
 #elif _MSC_VER
 inline std::tm localtime_s(const std::time_t* src)
 {
@@ -36,11 +43,24 @@ inline std::tm localtime_s(const std::time_t* src)
     if (result) { throw std::runtime_error("localtime_s failed."); }
     return dst;
 }
-#else
+inline std::tm gmtime_s(const std::time_t* src)
+{
+    std::tm dst;
+    const auto result = ::gmtime_s(&dst, src);
+    if (result) { throw std::runtime_error("gmtime_s failed."); }
+    return dst;
+}
+#else // fallback. not threadsafe
 inline std::tm localtime_s(const std::time_t* src)
 {
     const auto result = std::localtime(src);
     if (!result) { throw std::runtime_error("localtime failed."); }
+    return *result;
+}
+inline std::tm gmtime_s(const std::time_t* src)
+{
+    const auto result = std::gmtime(src);
+    if (!result) { throw std::runtime_error("gmtime failed."); }
     return *result;
 }
 #endif
