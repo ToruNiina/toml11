@@ -398,10 +398,31 @@ struct local_datetime
     {
         using internal_duration =
             typename std::chrono::system_clock::time_point::duration;
+
+        // Normally DST begins at A.M. 3 or 4. If we re-use conversion operator
+        // of local_date and local_time independently, the conversion fails if
+        // it is the day when DST begins or ends. Since local_date considers the
+        // time is 00:00 A.M. and local_time does not consider DST because it
+        // does not have any date information. We need to consider both date and
+        // time information at the same time to convert it correctly.
+
+        std::tm t;
+        t.tm_sec   = static_cast<int>(this->time.second);
+        t.tm_min   = static_cast<int>(this->time.minute);
+        t.tm_hour  = static_cast<int>(this->time.hour);
+        t.tm_mday  = static_cast<int>(this->date.day);
+        t.tm_mon   = static_cast<int>(this->date.month);
+        t.tm_year  = static_cast<int>(this->date.year) - 1900;
+        t.tm_wday  = 0; // the value will be ignored
+        t.tm_yday  = 0; // the value will be ignored
+        t.tm_isdst = -1;
+
         // std::mktime returns date as local time zone. no conversion needed
-        auto dt = std::chrono::system_clock::time_point(this->date);
+        auto dt = std::chrono::system_clock::from_time_t(std::mktime(&t));
         dt += std::chrono::duration_cast<internal_duration>(
-                   std::chrono::nanoseconds(this->time));
+                std::chrono::milliseconds(this->time.millisecond) +
+                std::chrono::microseconds(this->time.microsecond) +
+                std::chrono::nanoseconds (this->time.nanosecond));
         return dt;
     }
 
