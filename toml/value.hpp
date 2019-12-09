@@ -1579,6 +1579,14 @@ class basic_value
     {
         return this->as_table().at(k);
     }
+    value_type&       operator[](const key& k)
+    {
+        if(this->is_uninitialized())
+        {
+            *this = table_type{};
+        }
+        return this->as_table()[k];
+    }
 
     value_type&       at(const std::size_t idx)
     {
@@ -1587,6 +1595,15 @@ class basic_value
     value_type const& at(const std::size_t idx) const
     {
         return this->as_array().at(idx);
+    }
+
+    value_type&       operator[](const std::size_t idx) noexcept
+    {
+        return this->as_array(std::nothrow)[idx];
+    }
+    value_type const& operator[](const std::size_t idx) const noexcept
+    {
+        return this->as_array(std::nothrow)[idx];
     }
 
     source_location location() const
