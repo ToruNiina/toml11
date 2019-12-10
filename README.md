@@ -477,6 +477,40 @@ Note that, although `std::string` has `at()` member function, `toml::value::at`
 throws if the contained type is a string. Because `std::string` does not
 contain `toml::value`.
 
+### `operator[]`
+
+You can also access to the element of a table and an array by
+`toml::basic_value::operator[]`.
+
+```cpp
+const toml::value v{1,2,3,4,5};
+std::cout << v[2].as_integer() << std::endl; // 3
+
+const toml::value v{{"foo", 42}, {"bar", 3.14}};
+std::cout << v["foo"].as_integer() << std::endl; // 42
+```
+
+When you access to a `toml::value` that is not initialized yet via
+`operator[](const std::string&)`, the `toml::value` will be a table,
+just like the `std::map`.
+
+```cpp
+toml::value v; // not initialized as a table.
+v["foo"] = 42; // OK. `v` will be a table.
+```
+
+Contrary, if you access to a `toml::value` that contains an array via `operator[]`,
+it does not check anything. It converts `toml::value` without type check and then
+access to the n-th element without boundary check, just like the `std::vector::operator[]`.
+
+```cpp
+toml::value v; // not initialized as an array
+v[2] = 42;     // error! UB
+```
+
+Please make sure that the `toml::value` has an array inside when you access to
+its element via `operator[]`.
+
 ## Checking value type
 
 You can check the type of a value by `is_xxx` function.
