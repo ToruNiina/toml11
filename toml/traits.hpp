@@ -105,7 +105,7 @@ struct has_into_toml_method
 : decltype(has_into_toml_method_impl::check<T>(nullptr)){};
 
 #ifdef __INTEL_COMPILER
-#undef decltype(...)
+#undef decltype
 #endif
 
 // ---------------------------------------------------------------------------
