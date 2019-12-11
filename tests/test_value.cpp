@@ -934,3 +934,35 @@ BOOST_AUTO_TEST_CASE(test_value_at)
         BOOST_CHECK_THROW(v1.at(5),     std::out_of_range);
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_value_bracket)
+{
+    {
+        toml::value v1{{"foo", 42}, {"bar", 3.14}, {"baz", "qux"}};
+
+        BOOST_TEST(v1["foo"].as_integer()  == 42);
+        BOOST_TEST(v1["bar"].as_floating() == 3.14);
+        BOOST_TEST(v1["baz"].as_string()   == "qux");
+
+        v1["qux"] = 54;
+        BOOST_TEST(v1["qux"].as_integer()  == 54);
+    }
+    {
+        toml::value v1;
+        v1["foo"] = 42;
+
+        BOOST_TEST(v1.is_table());
+        BOOST_TEST(v1["foo"].as_integer()  == 42);
+    }
+    {
+        toml::value v1{1,2,3,4,5};
+
+        BOOST_TEST(v1[0].as_integer() == 1);
+        BOOST_TEST(v1[1].as_integer() == 2);
+        BOOST_TEST(v1[2].as_integer() == 3);
+        BOOST_TEST(v1[3].as_integer() == 4);
+        BOOST_TEST(v1[4].as_integer() == 5);
+
+        BOOST_CHECK_THROW(v1["foo"], toml::type_error);
+    }
+}

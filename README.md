@@ -478,6 +478,40 @@ Note that, although `std::string` has `at()` member function, `toml::value::at`
 throws if the contained type is a string. Because `std::string` does not
 contain `toml::value`.
 
+### `operator[]`
+
+You can also access to the element of a table and an array by
+`toml::basic_value::operator[]`.
+
+```cpp
+const toml::value v{1,2,3,4,5};
+std::cout << v[2].as_integer() << std::endl; // 3
+
+const toml::value v{{"foo", 42}, {"bar", 3.14}};
+std::cout << v["foo"].as_integer() << std::endl; // 42
+```
+
+When you access to a `toml::value` that is not initialized yet via
+`operator[](const std::string&)`, the `toml::value` will be a table,
+just like the `std::map`.
+
+```cpp
+toml::value v; // not initialized as a table.
+v["foo"] = 42; // OK. `v` will be a table.
+```
+
+Contrary, if you access to a `toml::value` that contains an array via `operator[]`,
+it does not check anything. It converts `toml::value` without type check and then
+access to the n-th element without boundary check, just like the `std::vector::operator[]`.
+
+```cpp
+toml::value v; // not initialized as an array
+v[2] = 42;     // error! UB
+```
+
+Please make sure that the `toml::value` has an array inside when you access to
+its element via `operator[]`.
+
 ## Checking value type
 
 You can check the type of a value by `is_xxx` function.
@@ -700,6 +734,7 @@ date information, but it can be converted to `std::chrono::duration` that
 represents a duration from the beginning of the day, `00:00:00.000`.
 
 ```toml
+# sample.toml
 date = 2018-12-23
 time = 12:30:00
 l_dt = 2018-12-23T12:30:00
@@ -716,8 +751,12 @@ const auto o_dt = toml::get<std::chrono::system_clock::time_point>(data.at("o_dt
 const auto time = toml::get<std::chrono::minutes>(data.at("time")); // 12 * 60 + 30 min
 ```
 
-toml11 defines its own datetime classes.
-You can see the definitions in [toml/datetime.hpp](toml/datetime.hpp).
+`local_date` and `local_datetime` are assumed to be in the local timezone when
+they are converted into `time_point`. On the other hand, `offset_datetime` only
+uses the offset part of the data and it does not take local timezone into account.
+
+To contain datetime data, toml11 defines its own datetime types.
+For more detail, you can see the definitions in [toml/datetime.hpp](toml/datetime.hpp).
 
 ## Getting with a fallback
 
@@ -1455,8 +1494,6 @@ This feature is introduced to make it easy to write a custom serializer.
 `Datetime` variants are `struct` that are defined in this library.
 Because `std::chrono::system_clock::time_point` is a __time point__,
 not capable of representing a Local Time independent from a specific day.
-
-It is recommended to get `datetime`s as `std::chrono` classes through `toml::get`.
 
 ## Unreleased TOML features
 
