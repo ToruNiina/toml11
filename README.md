@@ -1300,6 +1300,27 @@ you will get an error message like this.
    |       ~~ maximum number here
 ```
 
+You can print hints at the end of the message.
+
+```cpp
+std::vector<std::string> hints;
+hints.push_back("positive number means n >= 0.");
+hints.push_back("negative number is not positive.");
+std::cerr << toml::format_error("[error] value should be positive",
+                                data.at("num"), "positive number required", hints)
+          << std::endl;
+```
+
+```console
+[error] value should be positive
+ --> example.toml
+ 2 | num = 42
+   |       ~~ positive number required
+   |
+Hint: positive number means n >= 0.
+Hint: negative number is not positive.
+```
+
 ## Obtaining location information
 
 You can also format error messages in your own way by using `source_location`.
