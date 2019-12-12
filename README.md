@@ -1635,6 +1635,11 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Added installation script to CMake
 - J.C. Moyer (@jcmoyer)
   - Fixed an example code in the documentation
+- Jt Freeman (@blockparty-sh)
+  - Fixed feature test macro around `localtime_s`
+  - Suppress warnings in Debug mode
+- OGAWA Kenichi (@kenichiice)
+  - Suppress warnings on intel compiler
 
 ## Licensing terms
 
