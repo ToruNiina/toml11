@@ -1361,8 +1361,23 @@ By defining `TOML11_COLORIZE_ERROR_MESSAGE`, the error messages from
 `toml::parse` and `toml::find|get` will be colorized. By default, this feature
 is turned off.
 
-Note that the message would be messy when it is written to a file, not a terminal
-because it uses [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code).
+The message would be messy when it is written to a file, not a terminal because
+it uses [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code).
+
+Without `TOML11_COLORIZE_ERROR_MESSAGE`, you can still colorize user-defined
+error message by passing `true` to the `toml::format_error` function.
+If you define `TOML11_COLORIZE_ERROR_MESSAGE`, the value is `true` by default.
+If not, the defalut value would be `false`.
+
+```cpp
+std::cerr << toml::format_error("[error] value should be positive",
+                                data.at("num"), "positive number required",
+                                hints, /*colorize = */ true) << std::endl;
+```
+
+Note: It colorize `[error]` in red. That means that it detects `[error]` prefix
+at the front of the error message. If there is no `[error]` prefix,
+`format_error` adds it to the error message.
 
 ## Serializing TOML data
 
