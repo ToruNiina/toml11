@@ -420,7 +420,7 @@ struct region final : public region_base
 inline std::string format_underline(const std::string& message,
         const std::vector<std::pair<region_base const*, std::string>>& reg_com,
         const std::vector<std::string>& helps = {},
-        const bool colorize = TOML11_COLORED_MESSAGE_ACTIVATED)
+        const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
     assert(!reg_com.empty());
 

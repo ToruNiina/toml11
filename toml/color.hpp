@@ -4,9 +4,9 @@
 #include <cstdint>
 
 #ifdef TOML11_COLORIZE_ERROR_MESSAGE
-#define TOML11_COLORED_MESSAGE_ACTIVATED true
+#define TOML11_ERROR_MESSAGE_COLORIZED true
 #else
-#define TOML11_COLORED_MESSAGE_ACTIVATED false
+#define TOML11_ERROR_MESSAGE_COLORIZED false
 #endif
 
 namespace toml
