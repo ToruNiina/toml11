@@ -1357,10 +1357,11 @@ It represents where the error occurs.
 
 ## Colorize Error Messages
 
-By `#define TOML11_COLORIZE_ERROR_MESSAGE`, the error messages from
-`toml::parse` and `toml::find|get` will be colorized.
+By defining `TOML11_COLORIZE_ERROR_MESSAGE`, the error messages from
+`toml::parse` and `toml::find|get` will be colorized. By default, this feature
+is turned off.
 
-Note that it is hard to see when the message is written in a file, not terminal,
+Note that the message would be messy when it is written to a file, not a terminal
 because it uses [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code).
 
 ## Serializing TOML data
