@@ -70,6 +70,7 @@ int main()
 - [Formatting user-defined error messages](#formatting-user-defined-error-messages)
 - [Obtaining location information](#obtaining-location-information)
 - [Exceptions](#exceptions)
+- [Colorize Error Messages](#colorize-error-messages)
 - [Serializing TOML data](#serializing-toml-data)
 - [Underlying types](#underlying-types)
 - [Unreleased TOML features](#unreleased-toml-features)
@@ -1374,6 +1375,63 @@ struct exception : public std::exception
 ```
 
 It represents where the error occurs.
+
+## Colorize Error Messages
+
+By defining `TOML11_COLORIZE_ERROR_MESSAGE`, the error messages from
+`toml::parse` and `toml::find|get` will be colorized. By default, this feature
+is turned off.
+
+With the following toml file taken from `toml-lang/toml/tests/hard_example.toml`,
+
+```toml
+[error]
+array = [
+         "This might most likely happen in multiline arrays",
+         Like here,
+         "or here,
+         and here"
+        ]     End of array comment, forgot the #
+```
+
+the error message would be like this.
+
+![error-message-1](https://github.com/ToruNiina/toml11/blob/misc/misc/toml11-err-msg-1.png)
+
+With the following,
+
+```toml
+[error]
+# array = [
+#          "This might most likely happen in multiline arrays",
+#          Like here,
+#          "or here,
+#          and here"
+#         ]     End of array comment, forgot the #
+number = 3.14  pi <--again forgot the #
+```
+
+the error message would be like this.
+
+![error-message-2](https://github.com/ToruNiina/toml11/blob/misc/misc/toml11-err-msg-2.png)
+
+The message would be messy when it is written to a file, not a terminal because
+it uses [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code).
+
+Without `TOML11_COLORIZE_ERROR_MESSAGE`, you can still colorize user-defined
+error message by passing `true` to the `toml::format_error` function.
+If you define `TOML11_COLORIZE_ERROR_MESSAGE`, the value is `true` by default.
+If not, the defalut value would be `false`.
+
+```cpp
+std::cerr << toml::format_error("[error] value should be positive",
+                                data.at("num"), "positive number required",
+                                hints, /*colorize = */ true) << std::endl;
+```
+
+Note: It colorize `[error]` in red. That means that it detects `[error]` prefix
+at the front of the error message. If there is no `[error]` prefix,
+`format_error` adds it to the error message.
 
 ## Serializing TOML data
 
