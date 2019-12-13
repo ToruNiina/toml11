@@ -1361,6 +1361,39 @@ By defining `TOML11_COLORIZE_ERROR_MESSAGE`, the error messages from
 `toml::parse` and `toml::find|get` will be colorized. By default, this feature
 is turned off.
 
+With the following toml file taken from `toml-lang/toml/tests/hard_example.toml`,
+
+```toml
+[error]
+array = [
+         "This might most likely happen in multiline arrays",
+         Like here,
+         "or here,
+         and here"
+        ]     End of array comment, forgot the #
+```
+
+the error message would be like this.
+
+![error-message-1](https://github.com/ToruNiina/toml11/blob/misc/misc/toml11-err-msg-1.png)
+
+With the following,
+
+```toml
+[error]
+# array = [
+#          "This might most likely happen in multiline arrays",
+#          Like here,
+#          "or here,
+#          and here"
+#         ]     End of array comment, forgot the #
+number = 3.14  pi <--again forgot the #
+```
+
+the error message would be like this.
+
+![error-message-2](https://github.com/ToruNiina/toml11/blob/misc/misc/toml11-err-msg-2.png)
+
 The message would be messy when it is written to a file, not a terminal because
 it uses [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code).
 
