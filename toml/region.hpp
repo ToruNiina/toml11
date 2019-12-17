@@ -476,8 +476,9 @@ inline std::string format_underline(const std::string& message,
         const region_base* const reg = iter->first;
         const std::string&   comment = iter->second;
 
-        retval << ' ' << std::setw(line_num_width) << color::bold << color::blue
-               << reg->line_num() << " | "  << color::reset << reg->line() << '\n';
+        retval << ' ' << color::bold << color::blue << std::setw(line_num_width)
+               << std::right << reg->line_num() << " | "  << color::reset
+               << reg->line() << '\n';
 
         retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ')
                << color::bold << color::blue << " | " << color::reset
