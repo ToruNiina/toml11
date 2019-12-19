@@ -282,7 +282,7 @@ using enable_if_t = typename std::enable_if<B, T>::type;
 // ---------------------------------------------------------------------------
 // return_type_of_t
 
-#if __cplusplus >= 201703L
+#if __cplusplus >= 201703L && defined(__cpp_lib_is_invocable) && __cpp_lib_is_invokable>=201710
 
 template<typename F, typename ... Args>
 using return_type_of_t = std::invoke_result_t<F, Args...>;
