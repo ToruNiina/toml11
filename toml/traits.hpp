@@ -209,7 +209,9 @@ struct is_container : conjunction<
     negation<is_map<T>>,                         // not a map
     negation<std::is_same<T, std::string>>,      // not a std::string
 #if __cplusplus >= 201703L
+#if __has_include(<string_view>)
     negation<std::is_same<T, std::string_view>>, // not a std::string_view
+#endif // has_include(<string_view>)
 #endif
     has_iterator<T>,                             // has T::iterator
     has_value_type<T>                            // has T::value_type
