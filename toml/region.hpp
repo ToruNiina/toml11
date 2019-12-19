@@ -41,6 +41,7 @@ struct region_base
     region_base& operator=(region_base&&     ) = default;
 
     virtual bool is_ok()           const noexcept {return false;}
+    virtual char front()           const noexcept {return '\0';}
 
     virtual std::string str()      const {return std::string("unknown region");}
     virtual std::string name()     const {return std::string("unknown file");}
@@ -89,6 +90,7 @@ struct location final : public region_base
     ~location() = default;
 
     bool is_ok() const noexcept override {return static_cast<bool>(source_);}
+    char front() const noexcept override {return *iter_;}
 
     // this const prohibits codes like `++(loc.iter())`.
     const const_iterator iter()  const noexcept {return iter_;}
@@ -240,6 +242,7 @@ struct region final : public region_base
     }
 
     bool is_ok() const noexcept override {return static_cast<bool>(source_);}
+    char front() const noexcept override {return *first_;}
 
     std::string str()  const override {return make_string(first_, last_);}
     std::string line() const override
