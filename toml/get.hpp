@@ -140,7 +140,7 @@ get(basic_value<C, M, V>&& v)
 // ============================================================================
 // std::string_view
 
-#if __cplusplus >= 201703L
+#if defined(TOML11_USING_STRING_VIEW) && TOML11_USING_STRING_VIEW>0
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 inline detail::enable_if_t<std::is_same<T, std::string_view>::value, std::string_view>

@@ -624,7 +624,7 @@ class basic_value
         assigner(this->string_, toml::string(std::string(s), kind));
     }
 
-#if __cplusplus >= 201703L
+#if defined(TOML11_USING_STRING_VIEW) && TOML11_USING_STRING_VIEW>0
     basic_value(std::string_view s)
         : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{}))
