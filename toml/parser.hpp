@@ -1356,7 +1356,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                 {
                     // here, if the value is a (multi-line) table, the region
                     // should be something like `[table-name]`.
-                    if(get_region(tab->at(k)).str().front() == '{')
+                    if(get_region(tab->at(k)).front() == '{')
                     {
                         throw syntax_error(format_underline(concat_to_string(
                             "toml::insert_value: inserting to an inline table (",
