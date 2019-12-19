@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 enable_testing()
+if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
+    project(toml11 VERSION 3.2.0)
+else()
+   project(toml11)
 
 project(toml11 VERSION 3.7.0)
 
