@@ -46,3 +46,19 @@ BOOST_AUTO_TEST_CASE(test_inline_table_value)
         TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "{type.name = \"pug\"}", value(t));
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_inline_table_immutability)
+{
+    {
+        std::istringstream stream(std::string(
+                "a = {b = 1}\n"
+                "a.c = 2\n"));
+        BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
+    }
+    {
+        std::istringstream stream(std::string(
+                "a = {b = {c = 1}}\n"
+                "a.b.d = 2\n"));
+        BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
+    }
+}
