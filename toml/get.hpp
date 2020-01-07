@@ -476,7 +476,7 @@ find(const basic_value<C, M, V>& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] index ", idx, " is out of range"), {
+            "index ", idx, " is out of range"), {
                 {std::addressof(detail::get_region(v)), "in this array"}
             }));
     }
@@ -490,7 +490,7 @@ basic_value<C, M, V>& find(basic_value<C, M, V>& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] index ", idx, " is out of range"), {
+            "index ", idx, " is out of range"), {
                 {std::addressof(detail::get_region(v)), "in this array"}
             }));
     }
@@ -500,11 +500,11 @@ template<typename C,
          template<typename ...> class M, template<typename ...> class V>
 basic_value<C, M, V> find(basic_value<C, M, V>&& v, const std::size_t idx)
 {
-    typename basic_value<C, M, V>::array_type ary = std::move(v).as_array();
+    auto& ary = v.as_array();
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] index ", idx, " is out of range"), {
+            "index ", idx, " is out of range"), {
                 {std::addressof(detail::get_region(v)), "in this array"}
             }));
     }
@@ -573,7 +573,7 @@ find(const basic_value<C, M, V>& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] index ", idx, " is out of range"), {
+            "index ", idx, " is out of range"), {
                 {std::addressof(detail::get_region(v)), "in this array"}
             }));
     }
@@ -588,7 +588,7 @@ find(basic_value<C, M, V>& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] index ", idx, " is out of range"), {
+            "index ", idx, " is out of range"), {
                 {std::addressof(detail::get_region(v)), "in this array"}
             }));
     }
@@ -603,7 +603,7 @@ find(basic_value<C, M, V>&& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] index ", idx, " is out of range"), {
+            "index ", idx, " is out of range"), {
                 {std::addressof(detail::get_region(v)), "in this array"}
             }));
     }
