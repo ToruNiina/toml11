@@ -186,11 +186,11 @@ get(const basic_value<C, M, V>& v)
         }
         default:
         {
-            throw type_error(detail::format_underline("[error] toml::value "
+            throw type_error(detail::format_underline("toml::value: "
                 "bad_cast to std::chrono::system_clock::time_point", {
                     {std::addressof(detail::get_region(v)),
                      concat_to_string("the actual type is ", v.type())}
-                }));
+                }), v.location());
         }
     }
 }
@@ -301,7 +301,7 @@ get(const basic_value<C, M, V>& v)
     if(ar.size() != container.size())
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[erorr] toml::get specified container size is ", container.size(),
+            "toml::get: specified container size is ", container.size(),
             " but there are ", ar.size(), " elements in toml array."), {
                 {std::addressof(detail::get_region(v)), "here"}
             }));
@@ -326,7 +326,7 @@ get(const basic_value<C, M, V>& v)
     if(ar.size() != 2)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[erorr] toml::get specified std::pair but there are ", ar.size(),
+            "toml::get: specified std::pair but there are ", ar.size(),
             " elements in toml array."), {
                 {std::addressof(detail::get_region(v)), "here"}
             }));
@@ -357,8 +357,8 @@ get(const basic_value<C, M, V>& v)
     if(ar.size() != std::tuple_size<T>::value)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[erorr] toml::get specified std::tuple with ",
-            std::tuple_size<T>::value, "elements, but there are ", ar.size(),
+            "toml::get: specified std::tuple with ",
+            std::tuple_size<T>::value, " elements, but there are ", ar.size(),
             " elements in toml array."), {
                 {std::addressof(detail::get_region(v)), "here"}
             }));
@@ -430,7 +430,7 @@ basic_value<C, M, V> const& find(const basic_value<C, M, V>& v, const key& ky)
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] key \"", ky, "\" not found"), {
+            "key \"", ky, "\" not found"), {
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }
@@ -444,7 +444,7 @@ basic_value<C, M, V>& find(basic_value<C, M, V>& v, const key& ky)
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] key \"", ky, "\" not found"), {
+            "key \"", ky, "\" not found"), {
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }
@@ -458,7 +458,7 @@ basic_value<C, M, V> find(basic_value<C, M, V>&& v, const key& ky)
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] key \"", ky, "\" not found"), {
+            "key \"", ky, "\" not found"), {
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }
@@ -523,7 +523,7 @@ find(const basic_value<C, M, V>& v, const key& ky)
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] key \"", ky, "\" not found"), {
+            "key \"", ky, "\" not found"), {
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }
@@ -539,7 +539,7 @@ find(basic_value<C, M, V>& v, const key& ky)
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] key \"", ky, "\" not found"), {
+            "key \"", ky, "\" not found"), {
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }
@@ -555,7 +555,7 @@ find(basic_value<C, M, V>&& v, const key& ky)
     if(tab.count(ky) == 0)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "[error] key \"", ky, "\" not found"), {
+            "key \"", ky, "\" not found"), {
                 {std::addressof(detail::get_region(v)), "in this table"}
             }));
     }

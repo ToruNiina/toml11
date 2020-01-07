@@ -20,12 +20,19 @@ namespace toml
 namespace detail
 {
 // TODO: find more sophisticated way to handle this
-#if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _BSD_SOURCE || _SVID_SOURCE || _POSIX_SOURCE
+#if _POSIX_C_SOURCE >= 1 || defined(_XOPEN_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || defined(_POSIX_SOURCE)
 inline std::tm localtime_s(const std::time_t* src)
 {
     std::tm dst;
     const auto result = ::localtime_r(src, &dst);
     if (!result) { throw std::runtime_error("localtime_r failed."); }
+    return dst;
+}
+inline std::tm gmtime_s(const std::time_t* src)
+{
+    std::tm dst;
+    const auto result = ::gmtime_r(src, &dst);
+    if (!result) { throw std::runtime_error("gmtime_r failed."); }
     return dst;
 }
 #elif _MSC_VER
@@ -36,11 +43,24 @@ inline std::tm localtime_s(const std::time_t* src)
     if (result) { throw std::runtime_error("localtime_s failed."); }
     return dst;
 }
-#else
+inline std::tm gmtime_s(const std::time_t* src)
+{
+    std::tm dst;
+    const auto result = ::gmtime_s(&dst, src);
+    if (result) { throw std::runtime_error("gmtime_s failed."); }
+    return dst;
+}
+#else // fallback. not threadsafe
 inline std::tm localtime_s(const std::time_t* src)
 {
     const auto result = std::localtime(src);
     if (!result) { throw std::runtime_error("localtime failed."); }
+    return *result;
+}
+inline std::tm gmtime_s(const std::time_t* src)
+{
+    const auto result = std::gmtime(src);
+    if (!result) { throw std::runtime_error("gmtime failed."); }
     return *result;
 }
 #endif
@@ -378,10 +398,31 @@ struct local_datetime
     {
         using internal_duration =
             typename std::chrono::system_clock::time_point::duration;
+
+        // Normally DST begins at A.M. 3 or 4. If we re-use conversion operator
+        // of local_date and local_time independently, the conversion fails if
+        // it is the day when DST begins or ends. Since local_date considers the
+        // time is 00:00 A.M. and local_time does not consider DST because it
+        // does not have any date information. We need to consider both date and
+        // time information at the same time to convert it correctly.
+
+        std::tm t;
+        t.tm_sec   = static_cast<int>(this->time.second);
+        t.tm_min   = static_cast<int>(this->time.minute);
+        t.tm_hour  = static_cast<int>(this->time.hour);
+        t.tm_mday  = static_cast<int>(this->date.day);
+        t.tm_mon   = static_cast<int>(this->date.month);
+        t.tm_year  = static_cast<int>(this->date.year) - 1900;
+        t.tm_wday  = 0; // the value will be ignored
+        t.tm_yday  = 0; // the value will be ignored
+        t.tm_isdst = -1;
+
         // std::mktime returns date as local time zone. no conversion needed
-        auto dt = std::chrono::system_clock::time_point(this->date);
+        auto dt = std::chrono::system_clock::from_time_t(std::mktime(&t));
         dt += std::chrono::duration_cast<internal_duration>(
-                   std::chrono::nanoseconds(this->time));
+                std::chrono::milliseconds(this->time.millisecond) +
+                std::chrono::microseconds(this->time.microsecond) +
+                std::chrono::nanoseconds (this->time.nanosecond));
         return dt;
     }
 
@@ -447,40 +488,71 @@ struct offset_datetime
         : date(dt.date), time(dt.time), offset(o)
     {}
     explicit offset_datetime(const local_datetime& ld)
-        : date(ld.date), time(ld.time), offset(get_local_offset())
+        : date(ld.date), time(ld.time), offset(get_local_offset(nullptr))
+          // use the current local timezone offset
     {}
     explicit offset_datetime(const std::chrono::system_clock::time_point& tp)
-        : offset_datetime(local_datetime(tp))
-    {}
+        : offset(0, 0) // use gmtime
+    {
+        const auto timet = std::chrono::system_clock::to_time_t(tp);
+        const auto tm    = detail::gmtime_s(&timet);
+        this->date = local_date(tm);
+        this->time = local_time(tm);
+    }
     explicit offset_datetime(const std::time_t& t)
-        : offset_datetime(local_datetime(t))
-    {}
+        : offset(0, 0) // use gmtime
+    {
+        const auto tm    = detail::gmtime_s(&t);
+        this->date = local_date(tm);
+        this->time = local_time(tm);
+    }
     explicit offset_datetime(const std::tm& t)
-        : offset_datetime(local_datetime(t))
-    {}
+        : offset(0, 0) // assume gmtime
+    {
+        this->date = local_date(t);
+        this->time = local_time(t);
+    }
 
     operator std::chrono::system_clock::time_point() const
     {
         // get date-time
         using internal_duration =
             typename std::chrono::system_clock::time_point::duration;
-        std::chrono::system_clock::time_point tp =
-            std::chrono::system_clock::time_point(this->date) +
-            std::chrono::duration_cast<internal_duration>(
-                   std::chrono::nanoseconds(this->time));
 
-        // get date-time in UTC. let's say we are in +09:00 (JPN).
-        // writing 12:00:00 in +09:00 means 03:00:00Z. to represent
-        // 12:00:00Z, first we need to add +09:00.
-        const auto ofs = get_local_offset();
+        // first, convert it to local date-time information in the same way as
+        // local_datetime does. later we will use time_t to adjust time offset.
+        std::tm t;
+        t.tm_sec   = static_cast<int>(this->time.second);
+        t.tm_min   = static_cast<int>(this->time.minute);
+        t.tm_hour  = static_cast<int>(this->time.hour);
+        t.tm_mday  = static_cast<int>(this->date.day);
+        t.tm_mon   = static_cast<int>(this->date.month);
+        t.tm_year  = static_cast<int>(this->date.year) - 1900;
+        t.tm_wday  = 0; // the value will be ignored
+        t.tm_yday  = 0; // the value will be ignored
+        t.tm_isdst = -1;
+        const std::time_t tp_loc = std::mktime(std::addressof(t));
+
+        auto tp = std::chrono::system_clock::from_time_t(tp_loc);
+        tp += std::chrono::duration_cast<internal_duration>(
+                std::chrono::milliseconds(this->time.millisecond) +
+                std::chrono::microseconds(this->time.microsecond) +
+                std::chrono::nanoseconds (this->time.nanosecond));
+
+        // Since mktime uses local time zone, it should be corrected.
+        // `12:00:00+09:00` means `03:00:00Z`. So mktime returns `03:00:00Z` if
+        // we are in `+09:00` timezone. To represent `12:00:00Z` there, we need
+        // to add `+09:00` to `03:00:00Z`.
+        //    Here, it uses the time_t converted from date-time info to handle
+        // daylight saving time.
+        const auto ofs = get_local_offset(std::addressof(tp_loc));
         tp += std::chrono::hours  (ofs.hour);
         tp += std::chrono::minutes(ofs.minute);
 
-        // here, tp represents 12:00:00 in UTC but we have offset information.
-        // we need to subtract it. For example, let's say the input is
-        // 12:00:00-08:00. now we have tp = 12:00:00Z as a result of the above
-        // conversion. But the actual time we need to return is 20:00:00Z
-        // because of -08:00.
+        // We got `12:00:00Z` by correcting local timezone applied by mktime.
+        // Then we will apply the offset. Let's say `12:00:00-08:00` is given.
+        // And now, we have `12:00:00Z`. `12:00:00-08:00` means `20:00:00Z`.
+        // So we need to subtract the offset.
         tp -= std::chrono::minutes(this->offset);
         return tp;
     }
@@ -500,11 +572,10 @@ struct offset_datetime
 
   private:
 
-    static time_offset get_local_offset()
+    static time_offset get_local_offset(const std::time_t* tp)
     {
-         // get current timezone
-        const auto tmp1 = std::time(nullptr);
-        const auto t    = detail::localtime_s(&tmp1);
+        // get local timezone with the same date-time information as mktime
+        const auto t = detail::localtime_s(tp);
 
         std::array<char, 6> buf;
         const auto result = std::strftime(buf.data(), 6, "%z", &t); // +hhmm\0

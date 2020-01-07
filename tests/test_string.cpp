@@ -111,3 +111,44 @@ BOOST_AUTO_TEST_CASE(test_literal_ml_string)
     }
 }
 
+BOOST_AUTO_TEST_CASE(test_string_add_assign)
+{
+    // string literal
+    {
+        toml::string str("foo");
+        str += "bar";
+        BOOST_TEST(str.str == "foobar");
+    }
+    // std::string
+    {
+        toml::string str("foo");
+        std::string str2("bar");
+        str += str2;
+        BOOST_TEST(str.str == "foobar");
+    }
+    // toml::string
+    {
+        toml::string str("foo");
+        toml::string str2("bar");
+        str += str2;
+        BOOST_TEST(str.str == "foobar");
+    }
+#if __cplusplus >= 201703L
+    // std::string_view
+    {
+        toml::string str("foo");
+        str += std::string_view("bar");
+        BOOST_TEST(str == "foobar");
+    }
+#endif
+    // std::string += toml::string
+    {
+        std::string  str("foo");
+        toml::string str2("bar");
+        str += str2;
+        BOOST_TEST(str == "foobar");
+    }
+
+
+}
+

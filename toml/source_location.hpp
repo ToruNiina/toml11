@@ -48,7 +48,11 @@ struct source_location
     {
         if(reg)
         {
-            line_num_    = static_cast<std::uint_least32_t>(std::stoul(reg->line_num()));
+            if(reg->line_num() != detail::region_base().line_num())
+            {
+                line_num_ = static_cast<std::uint_least32_t>(
+                        std::stoul(reg->line_num()));
+            }
             column_num_  = static_cast<std::uint_least32_t>(reg->before() + 1);
             region_size_ = static_cast<std::uint_least32_t>(reg->size());
             file_name_   = reg->name();

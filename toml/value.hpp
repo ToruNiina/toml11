@@ -32,10 +32,10 @@ template<value_t Expected,
 throw_bad_cast(value_t actual, const ::toml::basic_value<C, T, A>& v)
 {
     throw type_error(detail::format_underline(concat_to_string(
-        "[error] toml::value bad_cast to ", Expected), {
+        "toml::value: bad_cast to ", Expected), {
             {std::addressof(get_region(v)),
              concat_to_string("the actual type is ", actual)}
-        }));
+        }), v.location());
 }
 
 // switch by `value_t` and call the corresponding `value::as_xxx()`. {{{
@@ -1579,6 +1579,14 @@ class basic_value
     {
         return this->as_table().at(k);
     }
+    value_type&       operator[](const key& k)
+    {
+        if(this->is_uninitialized())
+        {
+            *this = table_type{};
+        }
+        return this->as_table()[k];
+    }
 
     value_type&       at(const std::size_t idx)
     {
@@ -1587,6 +1595,15 @@ class basic_value
     value_type const& at(const std::size_t idx) const
     {
         return this->as_array().at(idx);
+    }
+
+    value_type&       operator[](const std::size_t idx) noexcept
+    {
+        return this->as_array(std::nothrow)[idx];
+    }
+    value_type const& operator[](const std::size_t idx) const noexcept
+    {
+        return this->as_array(std::nothrow)[idx];
     }
 
     source_location location() const
@@ -1843,25 +1860,27 @@ operator>=(const basic_value<C, T, A>& lhs, const basic_value<C, T, A>& rhs)
 template<typename C, template<typename ...> class T, template<typename ...> class A>
 inline std::string format_error(const std::string& err_msg,
         const basic_value<C, T, A>& v, const std::string& comment,
-        std::vector<std::string> hints = {})
+        std::vector<std::string> hints = {},
+        const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
     return detail::format_underline(err_msg,
         std::vector<std::pair<detail::region_base const*, std::string>>{
             {std::addressof(detail::get_region(v)), comment}
-        }, std::move(hints));
+        }, std::move(hints), colorize);
 }
 
 template<typename C, template<typename ...> class T, template<typename ...> class A>
 inline std::string format_error(const std::string& err_msg,
         const toml::basic_value<C, T, A>& v1, const std::string& comment1,
         const toml::basic_value<C, T, A>& v2, const std::string& comment2,
-        std::vector<std::string> hints = {})
+        std::vector<std::string> hints = {},
+        const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
     return detail::format_underline(err_msg,
         std::vector<std::pair<detail::region_base const*, std::string>>{
             {std::addressof(detail::get_region(v1)), comment1},
             {std::addressof(detail::get_region(v2)), comment2}
-        }, std::move(hints));
+        }, std::move(hints), colorize);
 }
 
 template<typename C, template<typename ...> class T, template<typename ...> class A>
@@ -1869,14 +1888,15 @@ inline std::string format_error(const std::string& err_msg,
         const toml::basic_value<C, T, A>& v1, const std::string& comment1,
         const toml::basic_value<C, T, A>& v2, const std::string& comment2,
         const toml::basic_value<C, T, A>& v3, const std::string& comment3,
-        std::vector<std::string> hints = {})
+        std::vector<std::string> hints = {},
+        const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
     return detail::format_underline(err_msg,
         std::vector<std::pair<detail::region_base const*, std::string>>{
             {std::addressof(detail::get_region(v1)), comment1},
             {std::addressof(detail::get_region(v2)), comment2},
             {std::addressof(detail::get_region(v3)), comment3}
-        }, std::move(hints));
+        }, std::move(hints), colorize);
 }
 
 template<typename Visitor, typename C,

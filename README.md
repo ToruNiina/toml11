@@ -68,6 +68,9 @@ int main()
 - [TOML literal](#toml-literal)
 - [Conversion between toml value and arbitrary types](#conversion-between-toml-value-and-arbitrary-types)
 - [Formatting user-defined error messages](#formatting-user-defined-error-messages)
+- [Obtaining location information](#obtaining-location-information)
+- [Exceptions](#exceptions)
+- [Colorize Error Messages](#colorize-error-messages)
 - [Serializing TOML data](#serializing-toml-data)
 - [Underlying types](#underlying-types)
 - [Unreleased TOML features](#unreleased-toml-features)
@@ -351,6 +354,7 @@ The above code works with the following toml file.
 # NOT {"physical": {"color": "orange"}}.
 ```
 
+
 ## Casting a toml value
 
 ### `toml::get`
@@ -469,6 +473,44 @@ std::cout << v.at("foo").as_integer() << std::endl; // 42
 If an invalid key (integer for a table, string for an array), it throws
 `toml::type_error` for the conversion. If the provided key is out-of-range,
 it throws `std::out_of_range`.
+
+Note that, although `std::string` has `at()` member function, `toml::value::at`
+throws if the contained type is a string. Because `std::string` does not
+contain `toml::value`.
+
+### `operator[]`
+
+You can also access to the element of a table and an array by
+`toml::basic_value::operator[]`.
+
+```cpp
+const toml::value v{1,2,3,4,5};
+std::cout << v[2].as_integer() << std::endl; // 3
+
+const toml::value v{{"foo", 42}, {"bar", 3.14}};
+std::cout << v["foo"].as_integer() << std::endl; // 42
+```
+
+When you access to a `toml::value` that is not initialized yet via
+`operator[](const std::string&)`, the `toml::value` will be a table,
+just like the `std::map`.
+
+```cpp
+toml::value v; // not initialized as a table.
+v["foo"] = 42; // OK. `v` will be a table.
+```
+
+Contrary, if you access to a `toml::value` that contains an array via `operator[]`,
+it does not check anything. It converts `toml::value` without type check and then
+access to the n-th element without boundary check, just like the `std::vector::operator[]`.
+
+```cpp
+toml::value v; // not initialized as an array
+v[2] = 42;     // error! UB
+```
+
+Please make sure that the `toml::value` has an array inside when you access to
+its element via `operator[]`.
 
 ## Checking value type
 
@@ -692,6 +734,7 @@ date information, but it can be converted to `std::chrono::duration` that
 represents a duration from the beginning of the day, `00:00:00.000`.
 
 ```toml
+# sample.toml
 date = 2018-12-23
 time = 12:30:00
 l_dt = 2018-12-23T12:30:00
@@ -708,8 +751,12 @@ const auto o_dt = toml::get<std::chrono::system_clock::time_point>(data.at("o_dt
 const auto time = toml::get<std::chrono::minutes>(data.at("time")); // 12 * 60 + 30 min
 ```
 
-toml11 defines its own datetime classes.
-You can see the definitions in [toml/datetime.hpp](toml/datetime.hpp).
+`local_date` and `local_datetime` are assumed to be in the local timezone when
+they are converted into `time_point`. On the other hand, `offset_datetime` only
+uses the offset part of the data and it does not take local timezone into account.
+
+To contain datetime data, toml11 defines its own datetime types.
+For more detail, you can see the definitions in [toml/datetime.hpp](toml/datetime.hpp).
 
 ## Getting with a fallback
 
@@ -1254,7 +1301,28 @@ you will get an error message like this.
    |       ~~ maximum number here
 ```
 
-### Obtaining location information
+You can print hints at the end of the message.
+
+```cpp
+std::vector<std::string> hints;
+hints.push_back("positive number means n >= 0.");
+hints.push_back("negative number is not positive.");
+std::cerr << toml::format_error("[error] value should be positive",
+                                data.at("num"), "positive number required", hints)
+          << std::endl;
+```
+
+```console
+[error] value should be positive
+ --> example.toml
+ 2 | num = 42
+   |       ~~ positive number required
+   |
+Hint: positive number means n >= 0.
+Hint: negative number is not positive.
+```
+
+## Obtaining location information
 
 You can also format error messages in your own way by using `source_location`.
 
@@ -1278,6 +1346,92 @@ You can get this by
 const toml::value           v   = /*...*/;
 const toml::source_location loc = v.location();
 ```
+
+## Exceptions
+
+All the exceptions thrown by toml11 inherits `toml::exception` that inherits
+`std::exception`.
+
+```cpp
+namespace toml {
+struct exception      : public std::exception  {/**/};
+struct syntax_error   : public toml::exception {/**/};
+struct type_error     : public toml::exception {/**/};
+struct internal_error : public toml::exception {/**/};
+} // toml
+```
+
+`toml::exception` has `toml::exception::location()` member function that returns
+`toml::source_location`, in addition to `what()`.
+
+```cpp
+namespace toml {
+struct exception : public std::exception
+{
+    // ...
+    source_location const& location() const noexcept;
+};
+} // toml
+```
+
+It represents where the error occurs.
+
+## Colorize Error Messages
+
+By defining `TOML11_COLORIZE_ERROR_MESSAGE`, the error messages from
+`toml::parse` and `toml::find|get` will be colorized. By default, this feature
+is turned off.
+
+With the following toml file taken from `toml-lang/toml/tests/hard_example.toml`,
+
+```toml
+[error]
+array = [
+         "This might most likely happen in multiline arrays",
+         Like here,
+         "or here,
+         and here"
+        ]     End of array comment, forgot the #
+```
+
+the error message would be like this.
+
+![error-message-1](https://github.com/ToruNiina/toml11/blob/misc/misc/toml11-err-msg-1.png)
+
+With the following,
+
+```toml
+[error]
+# array = [
+#          "This might most likely happen in multiline arrays",
+#          Like here,
+#          "or here,
+#          and here"
+#         ]     End of array comment, forgot the #
+number = 3.14  pi <--again forgot the #
+```
+
+the error message would be like this.
+
+![error-message-2](https://github.com/ToruNiina/toml11/blob/misc/misc/toml11-err-msg-2.png)
+
+The message would be messy when it is written to a file, not a terminal because
+it uses [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code).
+
+Without `TOML11_COLORIZE_ERROR_MESSAGE`, you can still colorize user-defined
+error message by passing `true` to the `toml::format_error` function.
+If you define `TOML11_COLORIZE_ERROR_MESSAGE`, the value is `true` by default.
+If not, the defalut value would be `false`.
+
+```cpp
+std::cerr << toml::format_error("[error] value should be positive",
+                                data.at("num"), "positive number required",
+                                hints, /*colorize = */ true) << std::endl;
+```
+
+Note: It colorize `[error]` in red. That means that it detects `[error]` prefix
+at the front of the error message. If there is no `[error]` prefix,
+`format_error` adds it to the error message.
 
 ## Serializing TOML data
 
@@ -1411,17 +1565,83 @@ This feature is introduced to make it easy to write a custom serializer.
 Because `std::chrono::system_clock::time_point` is a __time point__,
 not capable of representing a Local Time independent from a specific day.
 
-It is recommended to get `datetime`s as `std::chrono` classes through `toml::get`.
-
 ## Unreleased TOML features
 
 There are some unreleased features in toml-lang/toml:master.
 Currently, the following features are available after defining
 `TOML11_USE_UNRELEASED_TOML_FEATURES` macro flag.
 
+To use those features, `#define` `TOML11_USE_UNRELEASED_TOML_FEATURES` before
+including `toml.hpp` or pass `-DTOML11_USE_UNRELEASED_TOML_FEATURES` to your
+compiler.
+
 - Leading zeroes in exponent parts of floats are permitted.
   - e.g. `1.0e+01`, `5e+05`
+  - [toml-lang/toml/PR/656](https://github.com/toml-lang/toml/pull/656)
 - Allow raw tab characters in basic strings and multi-line basic strings.
+  - [toml-lang/toml/PR/627](https://github.com/toml-lang/toml/pull/627)
+- Allow heterogeneous arrays
+  - [toml-lang/toml/PR/676](https://github.com/toml-lang/toml/pull/676)
+
+### Note about heterogeneous arrays
+
+Although `toml::parse` allows heterogeneous arrays, constructor of `toml::value`
+does not.
+
+```cpp
+// this won't be compiled
+toml::value v{
+    "foo", 3.14, 42, {1,2,3,4,5}, {{"key", "value"}}
+}
+```
+
+There is a workaround for this issue. By explicitly converting values into
+`toml::value`, you can initialize `toml::value` with a heterogeneous array.
+
+```cpp
+// OK!
+toml::value v{
+    toml::value("foo"), toml::value(3.14), toml::value(42),
+    toml::value{1,2,3,4,5}, toml::value{{"key", "value"}}
+}
+```
+
+The reason why the first example is not allowed is the following.
+Let's assume that you are initializing a `toml::value` with a table.
+
+```cpp
+                    // # expecting TOML table.
+toml::value v{      // [v]
+    {"answer", 42}, // answer = 42
+    {"pi",   3.14}, // pi = 3.14
+    {"foo", "bar"}  // foo = "bar"
+};
+```
+
+This is indistinguishable from a (heterogeneous) TOML array definition.
+
+```toml
+v = [
+    ["answer", 42],
+    ["pi",   3.14],
+    ["foo", "bar"],
+]
+```
+
+This means that the above C++ code makes constructor's overload resolution
+ambiguous. So a constructor that allows both "table as an initializer-list" and
+"heterogeneous array as an initializer-list" cannot be implemented.
+
+Thus, although it is painful, you need to explicitly cast values into
+`toml::value` when you initialize heterogeneous array in C++ code.
+
+```cpp
+// You need to do this when you want to initialize hetero array.
+toml::value v{
+    toml::value("foo"), toml::value(3.14), toml::value(42),
+    toml::value{1,2,3,4,5}, toml::value{{"key", "value"}}
+}
+```
 
 ## Breaking Changes from v2
 
@@ -1494,6 +1714,11 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Added installation script to CMake
 - J.C. Moyer (@jcmoyer)
   - Fixed an example code in the documentation
+- Jt Freeman (@blockparty-sh)
+  - Fixed feature test macro around `localtime_s`
+  - Suppress warnings in Debug mode
+- OGAWA Kenichi (@kenichiice)
+  - Suppress warnings on intel compiler
 
 ## Licensing terms
 
