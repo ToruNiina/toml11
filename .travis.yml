@@ -5,7 +5,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-5" CXX_STANDARD=11 TOML_HEAD=OFF
+    env: COMPILER="g++-5" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -17,7 +17,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-6" CXX_STANDARD=11 TOML_HEAD=OFF
+    env: COMPILER="g++-6" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -29,7 +29,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-7" CXX_STANDARD=11 TOML_HEAD=OFF
+    env: COMPILER="g++-7" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -41,7 +41,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-8" CXX_STANDARD=11 TOML_HEAD=OFF
+    env: COMPILER="g++-8" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -65,7 +65,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-8" CXX_STANDARD=17 TOML_HEAD=OFF
+    env: COMPILER="g++-8" CXX_STANDARD=17
     addons:
       apt:
         sources:
@@ -89,7 +89,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-3.9" CXX_STANDARD=11 TOML_HEAD=OFF
+    env: COMPILER="clang++-3.9" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -103,7 +103,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-4.0" CXX_STANDARD=11 TOML_HEAD=OFF
+    env: COMPILER="clang++-4.0" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -117,7 +117,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-5.0" CXX_STANDARD=11 TOML_HEAD=OFF
+    env: COMPILER="clang++-5.0" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -131,7 +131,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-6.0" CXX_STANDARD=11 TOML_HEAD=OFF
+    env: COMPILER="clang++-6.0" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -145,7 +145,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-7" CXX_STANDARD=11 TOML_HEAD=OFF
+    env: COMPILER="clang++-7" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -159,7 +159,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-8" CXX_STANDARD=11 TOML_HEAD=OFF
+    env: COMPILER="clang++-8" CXX_STANDARD=11
     addons:
       apt:
         sources:
@@ -187,7 +187,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-8" CXX_STANDARD=17 TOML_HEAD=OFF
+    env: COMPILER="clang++-8" CXX_STANDARD=17
     addons:
       apt:
         sources:
@@ -202,6 +202,34 @@ matrix:
     language: cpp
     compiler: clang
     env: COMPILER="clang++-8" CXX_STANDARD=17 TOML_HEAD=ON
+    addons:
+      apt:
+        sources:
+        - sourceline: 'ppa:ubuntu-toolchain-r/test'
+        - sourceline: 'ppa:mhier/libboost-latest'
+        - llvm-toolchain-trusty-8
+        packages:
+        - clang-8
+        - g++-8
+        - boost1.70
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-8" CXX_STANDARD=11 WITH_ASAN=ON
+    addons:
+      apt:
+        sources:
+        - sourceline: 'ppa:ubuntu-toolchain-r/test'
+        - sourceline: 'ppa:mhier/libboost-latest'
+        - llvm-toolchain-trusty-8
+        packages:
+        - clang-8
+        - g++-8
+        - boost1.70
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-8" CXX_STANDARD=11 WITH_UBSAN=ON
     addons:
       apt:
         sources:
@@ -234,11 +262,26 @@ script:
     tar xf cmake-3.14.5-Linux-x86_64.tar.gz -C cmake --strip-components=1
     export PATH=${TRAVIS_BUILD_DIR}/cmake/bin:${PATH}
   fi
+- |
+  if [[ "${TOML_HEAD}" != "ON" ]]; then
+    export TOML_HEAD="OFF"
+  fi
+- echo "TOML_HEAD = ${TOML_HEAD}"
+- |
+  if [[ "${WITH_ASAN}" != "ON" ]]; then
+    export WITH_ASAN="OFF"
+  fi
+- echo "WITH_ASAN = ${WITH_ASAN}"
+- |
+  if [[ "${WITH_UBSAN}" != "ON" ]]; then
+    export WITH_UBSAN="OFF"
+  fi
+- echo "WITH_UBSAN = ${WITH_UBSAN}"
 - cmake --version
 - mkdir build
 - cd build
 - git clone https://github.com/toml-lang/toml.git
-- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DTOML11_USE_UNRELEASED_TOML_FEATURES=${TOML_HEAD} ..
+- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DTOML11_USE_UNRELEASED_TOML_FEATURES=${TOML_HEAD} -Dtoml11_TEST_WITH_ASAN=${WITH_ASAN} -Dtoml11_TEST_WITH_UBSAN=${WITH_UBSAN} ..
 - make
 - ctest --output-on-failure
 
