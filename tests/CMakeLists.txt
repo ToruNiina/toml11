@@ -104,6 +104,19 @@ foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
     target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} toml11::toml11)
     target_include_directories(${TEST_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
+
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        if(toml11_TEST_WITH_ASAN)
+            set_target_properties(${TEST_NAME} PROPERTIES
+                COMPILE_FLAGS "-fsanitize=address -fno-omit-frame-pointer"
+                LINK_FLAGS    "-fsanitize=address -fno-omit-frame-pointer")
+        elseif(toml11_TEST_WITH_UBSAN)
+            set_target_properties(${TEST_NAME} PROPERTIES
+                COMPILE_FLAGS "-fsanitize=undefined"
+                LINK_FLAGS    "-fsanitize=undefined")
+        endif()
+    endif()
+
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 
     # Set the PATH to be able to find Boost DLL

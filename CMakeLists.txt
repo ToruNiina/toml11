@@ -11,6 +11,8 @@ set(toml11_VERSION
 )
 
 option(toml11_BUILD_TEST "Build toml tests" ON)
+option(toml11_TEST_WITH_ASAN  "use LLVM address sanitizer" OFF)
+option(toml11_TEST_WITH_UBSAN "use LLVM undefined behavior sanitizer" OFF)
 
 include(CheckCXXCompilerFlag)
 if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
