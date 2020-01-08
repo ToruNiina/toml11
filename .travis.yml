@@ -212,6 +212,34 @@ matrix:
         - clang-8
         - g++-8
         - boost1.70
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-8" CXX_STANDARD=11 WITH_ASAN=ON
+    addons:
+      apt:
+        sources:
+        - sourceline: 'ppa:ubuntu-toolchain-r/test'
+        - sourceline: 'ppa:mhier/libboost-latest'
+        - llvm-toolchain-trusty-8
+        packages:
+        - clang-8
+        - g++-8
+        - boost1.70
+  - os: linux
+    language: cpp
+    compiler: clang
+    env: COMPILER="clang++-8" CXX_STANDARD=11 WITH_UBSAN=ON
+    addons:
+      apt:
+        sources:
+        - sourceline: 'ppa:ubuntu-toolchain-r/test'
+        - sourceline: 'ppa:mhier/libboost-latest'
+        - llvm-toolchain-trusty-8
+        packages:
+        - clang-8
+        - g++-8
+        - boost1.70
   - os: osx
     language: cpp
     compiler: clang
@@ -239,11 +267,21 @@ script:
     export TOML_HEAD="OFF"
   fi
 - echo "TOML_HEAD = ${TOML_HEAD}"
+- |
+  if [[ "${WITH_ASAN}" != "ON" ]]; then
+    export WITH_ASAN="OFF"
+  fi
+- echo "WITH_ASAN = ${WITH_ASAN}"
+- |
+  if [[ "${WITH_UBSAN}" != "ON" ]]; then
+    export WITH_UBSAN="OFF"
+  fi
+- echo "WITH_UBSAN = ${WITH_UBSAN}"
 - cmake --version
 - mkdir build
 - cd build
 - git clone https://github.com/toml-lang/toml.git
-- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DTOML11_USE_UNRELEASED_TOML_FEATURES=${TOML_HEAD} ..
+- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DTOML11_USE_UNRELEASED_TOML_FEATURES=${TOML_HEAD} -Dtoml11_TEST_WITH_ASAN=${WITH_ASAN} -Dtoml11_TEST_WITH_UBSAN=${WITH_UBSAN} ..
 - make
 - ctest --output-on-failure
 
