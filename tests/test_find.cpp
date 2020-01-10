@@ -101,6 +101,78 @@ BOOST_AUTO_TEST_CASE(test_find_throws)
     }
 }
 
+BOOST_AUTO_TEST_CASE(test_find_array_throws)
+{
+    // -----------------------------------------------------------------------
+    // const-reference version
+    {
+        // value is not an array
+        const toml::value v(true);
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(v, 0), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not the expected type
+        const toml::value v{1, 2, 3, 4, 5};
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(v, 0), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not found
+        const toml::value v{1, 2, 3, 4, 5};
+        BOOST_CHECK_THROW(toml::find<toml::integer>(v, 6), std::out_of_range);
+    }
+    {
+        // the positive control.
+        const toml::value v{1, 2, 3, 4, 5};
+        BOOST_TEST(3 == toml::find<int>(v, 2));
+    }
+
+    // -----------------------------------------------------------------------
+    // non-const reference version
+    {
+        // value is not an array
+        toml::value v(true);
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(v, 0), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not the expected type
+        toml::value v{1, 2, 3, 4, 5};
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(v, 0), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not found
+        toml::value v{1, 2, 3, 4, 5};
+        BOOST_CHECK_THROW(toml::find<toml::integer>(v, 6), std::out_of_range);
+    }
+    {
+        // the positive control.
+        toml::value v{1, 2, 3, 4, 5};
+        BOOST_TEST(3 == toml::find<int>(v, 2));
+    }
+
+    // -----------------------------------------------------------------------
+    // move version
+    {
+        // value is not an array
+        toml::value v(true);
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(std::move(v), 0), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not the expected type
+        toml::value v{1, 2, 3, 4, 5};
+        BOOST_CHECK_THROW(toml::find<toml::boolean>(std::move(v), 0), toml::type_error);
+    }
+    {
+        // the value corresponding to the key is not found
+        toml::value v{1, 2, 3, 4, 5};
+        BOOST_CHECK_THROW(toml::find<toml::integer>(std::move(v), 6), std::out_of_range);
+    }
+    {
+        // the positive control.
+        toml::value v{1, 2, 3, 4, 5};
+        BOOST_TEST(3 == toml::find<int>(std::move(v), 2));
+    }
+}
+
 BOOST_AUTO_TEST_CASE(test_find_recursive)
 {
     // recursively search tables
@@ -128,6 +200,53 @@ BOOST_AUTO_TEST_CASE(test_find_recursive)
 
         auto num3 = toml::find<toml::integer>(std::move(v), a, b, c, d);
         BOOST_TEST(42 == num3);
+    }
+    // recursively search arrays
+    {
+        toml::value v{
+            toml::array{"array", "of", "string"},
+            toml::array{toml::array{1, 2, 3}, toml::array{3.14, 2.71}}
+        };
+        BOOST_TEST("array"  == toml::find<std::string>(v, 0, 0));
+        BOOST_TEST("of"     == toml::find<std::string>(v, 0, 1));
+        BOOST_TEST("string" == toml::find<std::string>(v, 0, 2));
+
+        BOOST_TEST(1 == toml::find<int>(v, 1, 0, 0));
+        BOOST_TEST(2 == toml::find<int>(v, 1, 0, 1));
+        BOOST_TEST(3 == toml::find<int>(v, 1, 0, 2));
+
+        BOOST_TEST(3.14 == toml::find<double>(v, 1, 1, 0));
+        BOOST_TEST(2.71 == toml::find<double>(v, 1, 1, 1));
+
+        // reference that can be used to modify the content
+        auto& num = toml::find<toml::integer>(v, 1, 0, 2);
+        num = 42;
+        BOOST_TEST( 1 == toml::find<int>(v, 1, 0, 0));
+        BOOST_TEST( 2 == toml::find<int>(v, 1, 0, 1));
+        BOOST_TEST(42 == toml::find<int>(v, 1, 0, 2));
+
+        // move value
+        auto num2 = toml::find<toml::integer>(std::move(v), 1, 0, 2);
+        BOOST_TEST(42 == num2);
+    }
+    // recursively search mixtures
+    {
+        toml::value v = toml::table{{"array", toml::array{
+                toml::array{1,   2,   3},
+                toml::array{
+                    toml::table{{"foo", "bar"}, {"baz", "qux"}},
+                    toml::table{{"pi",   3.14}, {"e",    2.71}}
+                }}
+            }};
+        BOOST_TEST(1 == toml::find<int>(v, "array", 0, 0));
+        BOOST_TEST(2 == toml::find<int>(v, "array", 0, 1));
+        BOOST_TEST(3 == toml::find<int>(v, "array", 0, 2));
+
+        BOOST_TEST("bar" == toml::find<std::string>(v, "array", 1, 0, "foo"));
+        BOOST_TEST("qux" == toml::find<std::string>(v, "array", 1, 0, "baz"));
+
+        BOOST_TEST(3.14 == toml::find<double>(v, "array", 1, 1, "pi"));
+        BOOST_TEST(2.71 == toml::find<double>(v, "array", 1, 1, "e"));
     }
 }
 
