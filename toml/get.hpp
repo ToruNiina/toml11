@@ -259,6 +259,15 @@ template<typename T, typename C,
          std::size_t S = sizeof(::toml::from<T>)>
 T get(const basic_value<C, M, V>&);
 
+// T(const toml::value&) and T is not toml::basic_value
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+detail::enable_if_t<detail::conjunction<
+    detail::negation<detail::is_basic_value<T>>,
+    std::is_constructible<T, const basic_value<C, M, V>&>
+    >::value, T>
+get(const basic_value<C, M, V>&);
+
 // ============================================================================
 // array-like types; most likely STL container, like std::vector, etc.
 
@@ -415,6 +424,17 @@ template<typename T, typename C,
 T get(const basic_value<C, M, V>& v)
 {
     return ::toml::from<T>::from_toml(v);
+}
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+detail::enable_if_t<detail::conjunction<
+    detail::negation<detail::is_basic_value<T>>,
+    std::is_constructible<T, const basic_value<C, M, V>&>
+    >::value, T>
+get(const basic_value<C, M, V>& v)
+{
+    return T(v);
 }
 
 // ============================================================================
