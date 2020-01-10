@@ -44,6 +44,18 @@ struct qux
     int a;
     std::string b;
 };
+
+struct foobar
+{
+    foobar() = default; // later we use std::vector<foobar>, default ctor is required.
+
+    // via constructor
+    explicit foobar(const toml::value& v)
+        : a(toml::find<int>(v, "a")), b(toml::find<std::string>(v, "b"))
+    {}
+    int a;
+    std::string b;
+};
 } // extlib
 
 namespace toml
@@ -122,6 +134,19 @@ struct qux
     int a;
     std::string b;
 };
+
+struct foobar
+{
+    foobar() = default; // later we use std::vector<foobar>, default ctor is required.
+
+    template<typename C, template<typename ...> class M, template<typename ...> class A>
+    explicit foobar(const toml::basic_value<C, M, A>& v)
+        : a(toml::find<int>(v, "a")), b(toml::find<std::string>(v, "b"))
+    {}
+    int a;
+    std::string b;
+};
+
 } // extlib2
 
 namespace toml
@@ -284,6 +309,27 @@ BOOST_AUTO_TEST_CASE(test_conversion_one_way)
     }
 }
 
+BOOST_AUTO_TEST_CASE(test_conversion_via_constructor)
+{
+    {
+        const toml::value v{{"a", 42}, {"b", "foobar"}};
+
+        const auto foobar = toml::get<extlib::foobar>(v);
+        BOOST_TEST(foobar.a == 42);
+        BOOST_TEST(foobar.b == "foobar");
+    }
+
+    {
+        const toml::basic_value<toml::discard_comments, std::map> v{
+            {"a", 42}, {"b", "foobar"}
+        };
+
+        const auto foobar = toml::get<extlib2::foobar>(v);
+        BOOST_TEST(foobar.a == 42);
+        BOOST_TEST(foobar.b == "foobar");
+    }
+}
+
 BOOST_AUTO_TEST_CASE(test_recursive_conversion)
 {
     {
@@ -383,6 +429,64 @@ BOOST_AUTO_TEST_CASE(test_recursive_conversion)
         BOOST_TEST(bars.at(1).b == "qux");
         BOOST_TEST(bars.at(2).b == "quux");
         BOOST_TEST(bars.at(3).b == "foobar");
+    }
+
+    // via constructor
+    {
+        const toml::value v{
+                toml::table{{"a", 42}, {"b", "baz"}},
+                toml::table{{"a", 43}, {"b", "qux"}},
+                toml::table{{"a", 44}, {"b", "quux"}},
+                toml::table{{"a", 45}, {"b", "foobar"}}
+            };
+
+        {
+            const auto foobars = toml::get<std::vector<extlib::foobar>>(v);
+            BOOST_TEST(foobars.size()  == 4ul);
+            BOOST_TEST(foobars.at(0).a == 42);
+            BOOST_TEST(foobars.at(1).a == 43);
+            BOOST_TEST(foobars.at(2).a == 44);
+            BOOST_TEST(foobars.at(3).a == 45);
+
+            BOOST_TEST(foobars.at(0).b == "baz");
+            BOOST_TEST(foobars.at(1).b == "qux");
+            BOOST_TEST(foobars.at(2).b == "quux");
+            BOOST_TEST(foobars.at(3).b == "foobar");
+        }
+        {
+            const auto foobars = toml::get<std::vector<extlib2::foobar>>(v);
+            BOOST_TEST(foobars.size()  == 4ul);
+            BOOST_TEST(foobars.at(0).a == 42);
+            BOOST_TEST(foobars.at(1).a == 43);
+            BOOST_TEST(foobars.at(2).a == 44);
+            BOOST_TEST(foobars.at(3).a == 45);
+
+            BOOST_TEST(foobars.at(0).b == "baz");
+            BOOST_TEST(foobars.at(1).b == "qux");
+            BOOST_TEST(foobars.at(2).b == "quux");
+            BOOST_TEST(foobars.at(3).b == "foobar");
+        }
+    }
+    {
+        const toml::basic_value<toml::discard_comments, std::map, std::deque>
+            v{
+                toml::table{{"a", 42}, {"b", "baz"}},
+                toml::table{{"a", 43}, {"b", "qux"}},
+                toml::table{{"a", 44}, {"b", "quux"}},
+                toml::table{{"a", 45}, {"b", "foobar"}}
+            };
+
+        const auto foobars = toml::get<std::vector<extlib2::foobar>>(v);
+        BOOST_TEST(foobars.size()  == 4ul);
+        BOOST_TEST(foobars.at(0).a == 42);
+        BOOST_TEST(foobars.at(1).a == 43);
+        BOOST_TEST(foobars.at(2).a == 44);
+        BOOST_TEST(foobars.at(3).a == 45);
+
+        BOOST_TEST(foobars.at(0).b == "baz");
+        BOOST_TEST(foobars.at(1).b == "qux");
+        BOOST_TEST(foobars.at(2).b == "quux");
+        BOOST_TEST(foobars.at(3).b == "foobar");
     }
 }
 
