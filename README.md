@@ -1093,7 +1093,7 @@ const auto data = toml::parse("example.toml");
 const foo f = toml::find<ext::foo>(data, "foo");
 ```
 
-There are 2 ways to use `toml::get` with the types that you defined.
+There are 3 ways to use `toml::get` with the types that you defined.
 
 The first one is to implement `from_toml(const toml::value&)` member function.
 
@@ -1120,7 +1120,31 @@ struct foo
 In this way, because `toml::get` first constructs `foo` without arguments,
 the type should be default-constructible.
 
-The second is to implement specialization of `toml::from` for your type.
+The second is to implement `constructor(const toml::value&)`.
+
+```cpp
+namespace ext
+{
+struct foo
+{
+    explicit foo(const toml::value& v)
+        : a(toml::find<int>(v, "a")), b(toml::find<double>(v, "b")),
+          c(toml::find<std::string>(v, "c"))
+    {}
+
+    int         a;
+    double      b;
+    std::string c;
+};
+} // ext
+```
+
+Note that implicit default constructor declaration will be suppressed
+when a constructor is defined. If you want to use the struct (here, `foo`)
+in a container (e.g. `std::vector<foo>`), you may need to define default
+constructor explicitly.
+
+The third is to implement specialization of `toml::from` for your type.
 
 ```cpp
 namespace ext
