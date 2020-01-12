@@ -76,10 +76,10 @@ std::string concat_to_string(Ts&& ... args)
     return detail::concat_to_string_impl(oss, std::forward<Ts>(args) ...);
 }
 
-template<typename T, typename U>
-T from_string(const std::string& str, U&& opt)
+template<typename T>
+T from_string(const std::string& str, T opt)
 {
-    T v(static_cast<T>(std::forward<U>(opt)));
+    T v(opt);
     std::istringstream iss(str);
     iss >> v;
     return v;
