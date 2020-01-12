@@ -198,8 +198,11 @@ BOOST_AUTO_TEST_CASE(test_find_recursive)
         num2 = 42;
         BOOST_TEST(42 == toml::find<int>(v, a, b, c, d));
 
-        auto num3 = toml::find<toml::integer>(std::move(v), a, b, c, d);
+        auto num3 = toml::find<toml::integer>(v, a, "b", c, "d");
         BOOST_TEST(42 == num3);
+
+        auto num4 = toml::find<toml::integer>(std::move(v), a, b, c, d);
+        BOOST_TEST(42 == num4);
     }
     // recursively search arrays
     {
@@ -238,6 +241,7 @@ BOOST_AUTO_TEST_CASE(test_find_recursive)
                     toml::table{{"pi",   3.14}, {"e",    2.71}}
                 }}
             }};
+
         BOOST_TEST(1 == toml::find<int>(v, "array", 0, 0));
         BOOST_TEST(2 == toml::find<int>(v, "array", 0, 1));
         BOOST_TEST(3 == toml::find<int>(v, "array", 0, 2));
@@ -247,6 +251,23 @@ BOOST_AUTO_TEST_CASE(test_find_recursive)
 
         BOOST_TEST(3.14 == toml::find<double>(v, "array", 1, 1, "pi"));
         BOOST_TEST(2.71 == toml::find<double>(v, "array", 1, 1, "e"));
+
+        const std::string ar("array");
+        const auto ar_c = "array";
+
+        const std::string pi("pi");
+        const auto pi_c = "pi";
+
+        BOOST_TEST(3.14 == toml::find<double>(v, ar, 1, 1, "pi"));
+        BOOST_TEST(3.14 == toml::find<double>(v, ar, 1, 1, pi));
+        BOOST_TEST(3.14 == toml::find<double>(v, ar, 1, 1, pi_c));
+
+        BOOST_TEST(3.14 == toml::find<double>(v, ar_c, 1, 1, "pi"));
+        BOOST_TEST(3.14 == toml::find<double>(v, ar_c, 1, 1, pi));
+        BOOST_TEST(3.14 == toml::find<double>(v, ar_c, 1, 1, pi_c));
+
+        BOOST_TEST(3.14 == toml::find<double>(v, "array", 1, 1, pi));
+        BOOST_TEST(3.14 == toml::find<double>(v, "array", 1, 1, pi_c));
     }
 }
 
