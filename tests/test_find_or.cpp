@@ -375,7 +375,8 @@ BOOST_AUTO_TEST_CASE(test_find_or_floating)
         toml::value v1{{"key", 42}};
         toml::value v2{{"key", 3.14}};
         BOOST_TEST(2.71f == toml::find_or(v1, "key", 2.71f));
-        BOOST_TEST(static_cast<float>(double(3.14)) == toml::find_or(v2, "key", 2.71f));
+        const double ref(3.14);
+        BOOST_TEST(static_cast<float>(ref) == toml::find_or(v2, "key", 2.71f));
     }
     {
         toml::value v1{{"key", 42}};
@@ -383,7 +384,8 @@ BOOST_AUTO_TEST_CASE(test_find_or_floating)
         const auto moved1 = toml::find_or(std::move(v1), "key", 2.71f);
         const auto moved2 = toml::find_or(std::move(v2), "key", 2.71f);
         BOOST_TEST(2.71f == moved1);
-        BOOST_TEST(static_cast<float>(double(3.14)) == moved2);
+        const double ref(3.14);
+        BOOST_TEST(static_cast<float>(ref) == moved2);
     }
 }
 

@@ -449,10 +449,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_floating_type, value_type, test_value_ty
 {
     {
         value_type v{{"key", 3.14}};
-        BOOST_TEST(static_cast<float      >(3.14) == toml::find<float      >(v, "key"));
-        BOOST_TEST(static_cast<double     >(3.14) == toml::find<double     >(v, "key"));
-        BOOST_TEST(static_cast<long double>(3.14) == toml::find<long double>(v, "key"));
-        BOOST_TEST(static_cast<float      >(3.14) == toml::find<float      >(std::move(v), "key"));
+        const double ref(3.14);
+        BOOST_TEST(static_cast<float      >(ref) == toml::find<float      >(v, "key"));
+        BOOST_TEST(                         ref  == toml::find<double     >(v, "key"));
+        BOOST_TEST(static_cast<long double>(ref) == toml::find<long double>(v, "key"));
+        BOOST_TEST(static_cast<float      >(ref) == toml::find<float      >(std::move(v), "key"));
     }
 }
 
@@ -513,14 +514,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_toml_array, value_type, test_value_types
     BOOST_TEST(static_cast<std::int64_t>(72) == deq.at(3));
 
     std::array<int, 4> ary = toml::find<std::array<int, 4>>(v, "key");
-    BOOST_TEST(static_cast<int>(42) == ary.at(0));
-    BOOST_TEST(static_cast<int>(54) == ary.at(1));
-    BOOST_TEST(static_cast<int>(69) == ary.at(2));
-    BOOST_TEST(static_cast<int>(72) == ary.at(3));
+    BOOST_TEST(42 == ary.at(0));
+    BOOST_TEST(54 == ary.at(1));
+    BOOST_TEST(69 == ary.at(2));
+    BOOST_TEST(72 == ary.at(3));
 
     std::tuple<int, short, unsigned, long> tpl =
         toml::find<std::tuple<int, short, unsigned, long>>(v, "key");
-    BOOST_TEST(static_cast<int     >(42) == std::get<0>(tpl));
+    BOOST_TEST(                      42  == std::get<0>(tpl));
     BOOST_TEST(static_cast<short   >(54) == std::get<1>(tpl));
     BOOST_TEST(static_cast<unsigned>(69) == std::get<2>(tpl));
     BOOST_TEST(static_cast<long    >(72) == std::get<3>(tpl));
@@ -560,14 +561,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_move_toml_array, value_type, test_value_
     BOOST_TEST(static_cast<std::int64_t>(72) == deq.at(3));
 
     std::array<int, 4> ary = toml::find<std::array<int, 4>>(std::move(v4), "key");
-    BOOST_TEST(static_cast<int>(42) == ary.at(0));
-    BOOST_TEST(static_cast<int>(54) == ary.at(1));
-    BOOST_TEST(static_cast<int>(69) == ary.at(2));
-    BOOST_TEST(static_cast<int>(72) == ary.at(3));
+    BOOST_TEST(42 == ary.at(0));
+    BOOST_TEST(54 == ary.at(1));
+    BOOST_TEST(69 == ary.at(2));
+    BOOST_TEST(72 == ary.at(3));
 
     std::tuple<int, short, unsigned, long> tpl =
         toml::find<std::tuple<int, short, unsigned, long>>(std::move(v5), "key");
-    BOOST_TEST(static_cast<int     >(42) == std::get<0>(tpl));
+    BOOST_TEST(                      42  == std::get<0>(tpl));
     BOOST_TEST(static_cast<short   >(54) == std::get<1>(tpl));
     BOOST_TEST(static_cast<unsigned>(69) == std::get<2>(tpl));
     BOOST_TEST(static_cast<long    >(72) == std::get<3>(tpl));
