@@ -256,7 +256,7 @@ std::string read_utf8_codepoint(const region<Container>& reg,
     std::istringstream iss(str);
     iss >> std::hex >> codepoint;
 
-    const auto to_char = [](const int i) noexcept -> char {
+    const auto to_char = [](const std::uint_least32_t i) noexcept -> char {
         const auto uc = static_cast<unsigned char>(i);
         return *reinterpret_cast<const char*>(std::addressof(uc));
     };
