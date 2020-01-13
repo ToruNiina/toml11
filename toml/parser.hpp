@@ -792,13 +792,13 @@ parse_offset_datetime(location<Container>& loc)
             const auto str = ofs.unwrap().str();
             if(str.front() == '+')
             {
-                offset.hour   = static_cast<std::int8_t>(from_string<int>(str.substr(1,2), 0));
-                offset.minute = static_cast<std::int8_t>(from_string<int>(str.substr(4,2), 0));
+                offset = time_offset(from_string<int>(str.substr(1,2), 0),
+                                     from_string<int>(str.substr(4,2), 0));
             }
             else
             {
-                offset.hour   = -static_cast<std::int8_t>(from_string<int>(str.substr(1,2), 0));
-                offset.minute = -static_cast<std::int8_t>(from_string<int>(str.substr(4,2), 0));
+                offset = time_offset(-from_string<int>(str.substr(1,2), 0),
+                                     -from_string<int>(str.substr(4,2), 0));
             }
         }
         else if(*inner_loc.iter() != 'Z' && *inner_loc.iter() != 'z')
