@@ -172,9 +172,9 @@ template<typename charT, typename traits>
 std::basic_ostream<charT, traits>&
 operator<<(std::basic_ostream<charT, traits>& os, const local_date& date)
 {
-    os << std::setfill('0') << std::setw(4) << static_cast<int>(date.year     ) << '-';
-    os << std::setfill('0') << std::setw(2) << static_cast<int>(date.month + 1) << '-';
-    os << std::setfill('0') << std::setw(2) << static_cast<int>(date.day      );
+    os << std::setfill('0') << std::setw(4) << static_cast<int>(date.year )     << '-';
+    os << std::setfill('0') << std::setw(2) << static_cast<int>(date.month) + 1 << '-';
+    os << std::setfill('0') << std::setw(2) << static_cast<int>(date.day  )    ;
     return os;
 }
 
