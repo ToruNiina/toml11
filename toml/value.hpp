@@ -1606,6 +1606,101 @@ class basic_value
         return this->as_array(std::nothrow)[idx];
     }
 
+    void push_back(const value_type& x)
+    {
+        if(this->type_ != value_t::array)
+        {
+            throw type_error(detail::format_underline(
+                "toml::value::push_back(value): bad_cast to array type", {
+                    {this->region_info_.get(),
+                     concat_to_string("the actual type is ", this->type_)}
+                }), this->location());
+        }
+        this->as_array(std::nothrow).push_back(x);
+        return;
+    }
+    void push_back(value_type&& x)
+    {
+        if(this->type_ != value_t::array)
+        {
+            throw type_error(detail::format_underline(
+                "toml::value::push_back(value): bad_cast to array type", {
+                    {this->region_info_.get(),
+                     concat_to_string("the actual type is ", this->type_)}
+                }), this->location());
+        }
+        this->as_array(std::nothrow).push_back(std::move(x));
+        return;
+    }
+
+    template<typename ... Ts>
+    value_type& emplace_back(Ts&& ... args)
+    {
+        if(this->type_ != value_t::array)
+        {
+            throw type_error(detail::format_underline(
+                "toml::value::emplace_back(value): bad_cast to array type", {
+                    {this->region_info_.get(),
+                     concat_to_string("the actual type is ", this->type_)}
+                }), this->location());
+        }
+        this->as_array(std::nothrow).emplace_back(std::forward<Ts>(args) ...);
+        return this->as_array(std::nothrow).back();
+    }
+
+    std::size_t size() const
+    {
+        switch(this->type_)
+        {
+            case value_t::array:
+            {
+                return this->as_array().size();
+            }
+            case value_t::table:
+            {
+                return this->as_table().size();
+            }
+            case value_t::string:
+            {
+                return this->as_string().str.size();
+            }
+            default:
+            {
+                throw type_error(detail::format_underline(
+                    "toml::value::size(): bad_cast to container types", {
+                        {this->region_info_.get(),
+                         concat_to_string("the actual type is ", this->type_)}
+                    }), this->location());
+            }
+        }
+    }
+
+    std::size_t count(const key_type& k) const
+    {
+        if(this->type_ != value_t::table)
+        {
+            throw type_error(detail::format_underline(
+                "toml::value::count(key): bad_cast to table type", {
+                    {this->region_info_.get(),
+                     concat_to_string("the actual type is ", this->type_)}
+                }), this->location());
+        }
+        return this->as_table().count(k);
+    }
+
+    bool contains(const key_type& k) const
+    {
+        if(this->type_ != value_t::table)
+        {
+            throw type_error(detail::format_underline(
+                "toml::value::contains(key): bad_cast to table type", {
+                    {this->region_info_.get(),
+                     concat_to_string("the actual type is ", this->type_)}
+                }), this->location());
+        }
+        return (this->as_table().count(k) != 0);
+    }
+
     source_location location() const
     {
         return source_location(this->region_info_.get());
