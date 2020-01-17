@@ -295,6 +295,19 @@ const auto data = toml::parse("fruit.toml");
 const auto bar  = toml::find<std::string>(data, "values", 1);
 ```
 
+Before calling `toml::find`, you can check if a value corresponding to a key
+exists. You can use both `bool toml::value::contains(const key&) const` and
+`std::size_t toml::value::count(const key&) const`. Those behaves like the
+`std::map::contains` and `std::map::count`.
+
+```cpp
+const auto data = toml::parse("fruit.toml");
+if(data.contains("fruit") && data.at("fruit").count("physical") != 0)
+{
+    // ...
+}
+```
+
 ### In case of error
 
 If the value does not exist, `toml::find` throws `std::out_of_range` with the
@@ -885,14 +898,25 @@ toml::value v(toml::local_time(std::chrono::hours(10)));
 ```
 
 You can construct an array object not only from `initializer_list`, but also
-from STL containers.
+from STL containers. In that case, the element type must be convertible to
+`toml::value`.
 
 ```cpp
 std::vector<int> vec{1,2,3,4,5};
-toml::value v = vec;
+toml::value v(vec);
 ```
 
-All the elements of `initializer_list` should be convertible into `toml::value`.
+When you construct an array value, all the elements of `initializer_list`
+must be convertible into `toml::value`.
+
+If a `toml::value` has an array, you can `push_back` an element in it.
+
+```cpp
+toml::value v{1,2,3,4,5};
+v.push_back(6);
+```
+
+`emplace_back` also works.
 
 ## Preserving comments
 
