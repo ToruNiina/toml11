@@ -149,6 +149,8 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4820")
     # pragma warning(pop): likely mismatch, popping warning state pushed in different file
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5031")
+	# pragma warning(pop): spectre warnings in tests
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5045")
 endif()
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)

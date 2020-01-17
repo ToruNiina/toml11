@@ -8,7 +8,7 @@ option(toml11_TEST_WITH_ASAN  "use LLVM address sanitizer" OFF)
 option(toml11_TEST_WITH_UBSAN "use LLVM undefined behavior sanitizer" OFF)
 
 include(CheckCXXCompilerFlag)
-if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
+if(CMAKE_VERSION VERSION_GREATER 3.1)
     set(CMAKE_CXX_STANDARD 11 CACHE STRING "The C++ standard whose features are requested to build all targets.")
     set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Boolean describing whether the value of CXX_STANDARD is a requirement.")
     set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Boolean specifying whether compiler specific extensions are requested.")
