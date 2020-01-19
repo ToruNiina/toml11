@@ -1248,7 +1248,7 @@ class basic_value
     bool is_array()           const noexcept {return this->is(value_t::array          );}
     bool is_table()           const noexcept {return this->is(value_t::table          );}
 
-    value_t type() const {return type_;}
+    value_t type() const noexcept {return type_;}
 
     template<value_t T>
     typename detail::enum_to_type<T, value_type>::type&       cast() &
