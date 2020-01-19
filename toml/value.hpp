@@ -529,14 +529,6 @@ class basic_value
         assigner(this->boolean_, b);
         return *this;
     }
-    template<typename Container>
-    basic_value(boolean b, detail::region<Container> reg)
-        : type_(value_t::boolean),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
-          comments_(region_info_->comments())
-    {
-        assigner(this->boolean_, b);
-    }
     basic_value(boolean b, std::vector<std::string> comments)
         : type_(value_t::boolean),
           region_info_(std::make_shared<region_base>(region_base{})),
@@ -553,19 +545,6 @@ class basic_value
     basic_value(T i)
         : type_(value_t::integer),
           region_info_(std::make_shared<region_base>(region_base{}))
-    {
-        assigner(this->integer_, static_cast<integer>(i));
-    }
-
-    template<typename T, typename Container, typename std::enable_if<
-        detail::conjunction<
-            std::is_integral<T>,
-            detail::negation<std::is_same<T, boolean>>
-        >::value, std::nullptr_t>::type = nullptr>
-    basic_value(T i, detail::region<Container> reg)
-        : type_(value_t::integer),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
-          comments_(region_info_->comments())
     {
         assigner(this->integer_, static_cast<integer>(i));
     }
@@ -604,15 +583,6 @@ class basic_value
         assigner(this->floating_, static_cast<floating>(f));
     }
 
-    template<typename T, typename Container, typename std::enable_if<
-        std::is_floating_point<T>::value, std::nullptr_t>::type = nullptr>
-    basic_value(T f, detail::region<Container> reg)
-        : type_(value_t::floating),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
-          comments_(region_info_->comments())
-    {
-        assigner(this->floating_, static_cast<floating>(f));
-    }
 
     template<typename T, typename std::enable_if<
         std::is_floating_point<T>::value, std::nullptr_t>::type = nullptr>
@@ -640,14 +610,6 @@ class basic_value
     basic_value(toml::string s)
         : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{}))
-    {
-        assigner(this->string_, std::move(s));
-    }
-    template<typename Container>
-    basic_value(toml::string s, detail::region<Container> reg)
-        : type_(value_t::string),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
-          comments_(region_info_->comments())
     {
         assigner(this->string_, std::move(s));
     }
@@ -782,14 +744,6 @@ class basic_value
     {
         assigner(this->local_date_, ld);
     }
-    template<typename Container>
-    basic_value(const local_date& ld, detail::region<Container> reg)
-        : type_(value_t::local_date),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
-          comments_(region_info_->comments())
-    {
-        assigner(this->local_date_, ld);
-    }
     basic_value& operator=(const local_date& ld)
     {
         this->cleanup();
@@ -811,14 +765,6 @@ class basic_value
     basic_value(const local_time& lt)
         : type_(value_t::local_time),
           region_info_(std::make_shared<region_base>(region_base{}))
-    {
-        assigner(this->local_time_, lt);
-    }
-    template<typename Container>
-    basic_value(const local_time& lt, detail::region<Container> reg)
-        : type_(value_t::local_time),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
-          comments_(region_info_->comments())
     {
         assigner(this->local_time_, lt);
     }
@@ -872,14 +818,6 @@ class basic_value
     {
         assigner(this->local_datetime_, ldt);
     }
-    template<typename Container>
-    basic_value(const local_datetime& ldt, detail::region<Container> reg)
-        : type_(value_t::local_datetime),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
-          comments_(region_info_->comments())
-    {
-        assigner(this->local_datetime_, ldt);
-    }
     basic_value(const local_datetime& ldt, std::vector<std::string> comments)
         : type_(value_t::local_datetime),
           region_info_(std::make_shared<region_base>(region_base{})),
@@ -901,14 +839,6 @@ class basic_value
     basic_value(const offset_datetime& odt)
         : type_(value_t::offset_datetime),
           region_info_(std::make_shared<region_base>(region_base{}))
-    {
-        assigner(this->offset_datetime_, odt);
-    }
-    template<typename Container>
-    basic_value(const offset_datetime& odt, detail::region<Container> reg)
-        : type_(value_t::offset_datetime),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
-          comments_(region_info_->comments())
     {
         assigner(this->offset_datetime_, odt);
     }
@@ -955,14 +885,6 @@ class basic_value
     basic_value(const array_type& ary)
         : type_(value_t::array),
           region_info_(std::make_shared<region_base>(region_base{}))
-    {
-        assigner(this->array_, ary);
-    }
-    template<typename Container>
-    basic_value(const array_type& ary, detail::region<Container> reg)
-        : type_(value_t::array),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
-          comments_(region_info_->comments())
     {
         assigner(this->array_, ary);
     }
@@ -1076,14 +998,6 @@ class basic_value
     basic_value(const table_type& tab)
         : type_(value_t::table),
           region_info_(std::make_shared<region_base>(region_base{}))
-    {
-        assigner(this->table_, tab);
-    }
-    template<typename Container>
-    basic_value(const table_type& tab, detail::region<Container> reg)
-        : type_(value_t::table),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
-          comments_(region_info_->comments())
     {
         assigner(this->table_, tab);
     }
@@ -1216,6 +1130,93 @@ class basic_value
     }
 
     // for internal use ------------------------------------------------------
+    //
+    // Those constructors take detail::region that contains parse result.
+
+    template<typename Container>
+    basic_value(boolean b, detail::region<Container> reg)
+        : type_(value_t::boolean),
+          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          comments_(region_info_->comments())
+    {
+        assigner(this->boolean_, b);
+    }
+    template<typename T, typename Container, typename std::enable_if<
+        detail::conjunction<
+            std::is_integral<T>, detail::negation<std::is_same<T, boolean>>
+        >::value, std::nullptr_t>::type = nullptr>
+    basic_value(T i, detail::region<Container> reg)
+        : type_(value_t::integer),
+          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          comments_(region_info_->comments())
+    {
+        assigner(this->integer_, static_cast<integer>(i));
+    }
+    template<typename T, typename Container, typename std::enable_if<
+        std::is_floating_point<T>::value, std::nullptr_t>::type = nullptr>
+    basic_value(T f, detail::region<Container> reg)
+        : type_(value_t::floating),
+          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          comments_(region_info_->comments())
+    {
+        assigner(this->floating_, static_cast<floating>(f));
+    }
+    template<typename Container>
+    basic_value(toml::string s, detail::region<Container> reg)
+        : type_(value_t::string),
+          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          comments_(region_info_->comments())
+    {
+        assigner(this->string_, std::move(s));
+    }
+    template<typename Container>
+    basic_value(const local_date& ld, detail::region<Container> reg)
+        : type_(value_t::local_date),
+          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          comments_(region_info_->comments())
+    {
+        assigner(this->local_date_, ld);
+    }
+    template<typename Container>
+    basic_value(const local_time& lt, detail::region<Container> reg)
+        : type_(value_t::local_time),
+          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          comments_(region_info_->comments())
+    {
+        assigner(this->local_time_, lt);
+    }
+    template<typename Container>
+    basic_value(const local_datetime& ldt, detail::region<Container> reg)
+        : type_(value_t::local_datetime),
+          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          comments_(region_info_->comments())
+    {
+        assigner(this->local_datetime_, ldt);
+    }
+    template<typename Container>
+    basic_value(const offset_datetime& odt, detail::region<Container> reg)
+        : type_(value_t::offset_datetime),
+          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          comments_(region_info_->comments())
+    {
+        assigner(this->offset_datetime_, odt);
+    }
+    template<typename Container>
+    basic_value(const array_type& ary, detail::region<Container> reg)
+        : type_(value_t::array),
+          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          comments_(region_info_->comments())
+    {
+        assigner(this->array_, ary);
+    }
+    template<typename Container>
+    basic_value(const table_type& tab, detail::region<Container> reg)
+        : type_(value_t::table),
+          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          comments_(region_info_->comments())
+    {
+        assigner(this->table_, tab);
+    }
 
     template<typename T, typename Container, typename std::enable_if<
         detail::is_exact_toml_type<T, value_type>::value,
