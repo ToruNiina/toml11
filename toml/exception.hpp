@@ -12,7 +12,7 @@ namespace toml
 struct exception : public std::exception
 {
   public:
-    exception(const source_location& loc): loc_(loc) {}
+    explicit exception(const source_location& loc): loc_(loc) {}
     virtual ~exception() noexcept override = default;
     virtual const char* what() const noexcept override {return "";}
     virtual source_location const& location() const noexcept {return loc_;}
