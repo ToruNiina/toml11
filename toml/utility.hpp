@@ -20,11 +20,19 @@
 namespace toml
 {
 
+#if __cplusplus >= 201402L
+
+using std::make_unique;
+
+#else
+
 template<typename T, typename ... Ts>
 inline std::unique_ptr<T> make_unique(Ts&& ... args)
 {
     return std::unique_ptr<T>(new T(std::forward<Ts>(args)...));
 }
+
+#endif // __cplusplus >= 2014
 
 namespace detail
 {

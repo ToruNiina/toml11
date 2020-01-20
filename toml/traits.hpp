@@ -111,6 +111,14 @@ struct has_into_toml_method
 // ---------------------------------------------------------------------------
 // C++17 and/or/not
 
+#if __cplusplus >= 201703L
+
+using std::conjunction;
+using std::disjunction;
+using std::negation;
+
+#else
+
 template<typename ...> struct conjunction : std::true_type{};
 template<typename T>   struct conjunction<T> : T{};
 template<typename T, typename ... Ts>
@@ -127,6 +135,8 @@ struct disjunction<T, Ts...> :
 
 template<typename T>
 struct negation : std::integral_constant<bool, !static_cast<bool>(T::value)>{};
+
+#endif
 
 // ---------------------------------------------------------------------------
 // type checkers
@@ -182,6 +192,13 @@ struct is_basic_value<::toml::basic_value<C, M, V>>: std::true_type{};
 // ---------------------------------------------------------------------------
 // C++14 index_sequence
 
+#if __cplusplus >= 201402L
+
+using std::index_sequence;
+using std::make_index_sequence;
+
+#else
+
 template<std::size_t ... Ns> struct index_sequence{};
 
 template<typename IS, std::size_t N> struct push_back_index_sequence{};
@@ -205,10 +222,21 @@ struct index_sequence_maker<0>
 template<std::size_t N>
 using make_index_sequence = typename index_sequence_maker<N-1>::type;
 
+#endif // __cplusplus >= 2014
+
 // ---------------------------------------------------------------------------
 // C++14 enable_if_t
+
+#if __cplusplus >= 201402L
+
+using std::enable_if_t;
+
+#else
+
 template<bool B, typename T>
 using enable_if_t = typename std::enable_if<B, T>::type;
+
+#endif // __cplusplus >= 2014
 
 // ---------------------------------------------------------------------------
 // return_type_of_t
