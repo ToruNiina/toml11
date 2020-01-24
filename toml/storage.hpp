@@ -16,10 +16,9 @@ struct storage
 {
     using value_type = T;
 
-    storage(value_type const& v): ptr(toml::make_unique<T>(v)) {}
-    storage(value_type&&      v): ptr(toml::make_unique<T>(std::move(v))) {}
+    explicit storage(value_type const& v): ptr(toml::make_unique<T>(v)) {}
+    explicit storage(value_type&&      v): ptr(toml::make_unique<T>(std::move(v))) {}
     ~storage() = default;
-
     storage(const storage& rhs): ptr(toml::make_unique<T>(*rhs.ptr)) {}
     storage& operator=(const storage& rhs)
     {
