@@ -154,12 +154,53 @@ using lex_basic_string = sequence<lex_quotation_mark,
                                   repeat<lex_basic_char, unlimited>,
                                   lex_quotation_mark>;
 
+// After toml post-v0.5.0, it is explicitly clarified how quotes in ml-strings
+// are allowed to be used.
+// After this, the following strings are *explicitly* allowed.
+// - One or two `"`s in a multi-line basic string is allowed wherever it is.
+// - Three consecutive `"`s in a multi-line basic string is considered as a delimiter.
+// - One or two `"`s can appear just before or after the delimiter.
+// ```toml
+// str4 = """Here are two quotation marks: "". Simple enough."""
+// str5 = """Here are three quotation marks: ""\"."""
+// str6 = """Here are fifteen quotation marks: ""\"""\"""\"""\"""\"."""
+// str7 = """"This," she said, "is just a pointless statement.""""
+// ```
+// In the current implementation (v3.3.0), it is difficult to parse `str7` in
+// the above example. It is difficult to recognize `"` at the end of string body
+// collectly. It will be misunderstood as a `"""` delimiter and an additional,
+// invalid `"`. Like this:
+// ```console
+//   what():  [error] toml::parse_table: invalid line format
+//  --> hoge.toml
+//     |
+//  13 | str7 = """"This," she said, "is just a pointless statement.""""
+//     |                                                               ^- expected newline, but got '"'.
+// ```
+// As a quick workaround for this problem, `lex_ml_basic_string_delim` was
+// splitted into two, `lex_ml_basic_string_open` and `lex_ml_basic_string_close`.
+// `lex_ml_basic_string_open` allows only `"""`. `_close` allows 3-5 `"`s.
+// In parse_ml_basic_string() function, the trailing `"`s will be attached to
+// the string body.
+//
+// Note: This feature is a "clarification". Therefore this change is considered
+//       as a spec that has been defined since the time when the multi-line
+//       basic string was introduced. Although it is a post-v0.5.0 changes,
+//       this change will be activated regardless of the flag,
+//       `TOML11_USE_UNRELEASED_TOML_FEATURES`.
+//
 using lex_ml_basic_string_delim = repeat<lex_quotation_mark, exactly<3>>;
+using lex_ml_basic_string_open  = lex_ml_basic_string_delim;
+using lex_ml_basic_string_close = sequence<
+        repeat<lex_quotation_mark, exactly<3>>,
+        maybe<lex_quotation_mark>, maybe<lex_quotation_mark>
+    >;
+
 #ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
 using lex_ml_basic_unescaped    = exclude<either<in_range<0x00, 0x08>, // 0x09
                                                  in_range<0x0a, 0x1F>, // is tab
-                                                 character<0x5C>,
-                                                 character<0x7F>,
+                                                 character<0x5C>, // backslash
+                                                 character<0x7F>, // DEL
                                                  lex_ml_basic_string_delim>>;
 #else // TOML v0.5.0
 using lex_ml_basic_unescaped    = exclude<either<in_range<0x00,0x1F>,
@@ -176,9 +217,9 @@ using lex_ml_basic_char = either<lex_ml_basic_unescaped, lex_escaped>;
 using lex_ml_basic_body = repeat<either<lex_ml_basic_char, lex_newline,
                                         lex_ml_basic_escaped_newline>,
                                  unlimited>;
-using lex_ml_basic_string = sequence<lex_ml_basic_string_delim,
+using lex_ml_basic_string = sequence<lex_ml_basic_string_open,
                                      lex_ml_basic_body,
-                                     lex_ml_basic_string_delim>;
+                                     lex_ml_basic_string_close>;
 
 using lex_literal_char = exclude<either<in_range<0x00, 0x08>,
                                         in_range<0x10, 0x19>, character<0x27>>>;
@@ -187,7 +228,13 @@ using lex_literal_string = sequence<lex_apostrophe,
                                     repeat<lex_literal_char, unlimited>,
                                     lex_apostrophe>;
 
+// the same reason as above.
 using lex_ml_literal_string_delim = repeat<lex_apostrophe, exactly<3>>;
+using lex_ml_literal_string_open  = lex_ml_literal_string_delim;
+using lex_ml_literal_string_close = sequence<
+        repeat<lex_apostrophe, exactly<3>>,
+        maybe<lex_apostrophe>, maybe<lex_apostrophe>
+    >;
 
 using lex_ml_literal_char = exclude<either<in_range<0x00, 0x08>,
                                            in_range<0x10, 0x1F>,
@@ -195,9 +242,9 @@ using lex_ml_literal_char = exclude<either<in_range<0x00, 0x08>,
                                            lex_ml_literal_string_delim>>;
 using lex_ml_literal_body = repeat<either<lex_ml_literal_char, lex_newline>,
                                    unlimited>;
-using lex_ml_literal_string = sequence<lex_ml_literal_string_delim,
+using lex_ml_literal_string = sequence<lex_ml_literal_string_open,
                                        lex_ml_literal_body,
-                                       lex_ml_literal_string_delim>;
+                                       lex_ml_literal_string_close>;
 
 using lex_string = either<lex_ml_basic_string,   lex_basic_string,
                           lex_ml_literal_string, lex_literal_string>;

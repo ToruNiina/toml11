@@ -375,7 +375,7 @@ parse_ml_basic_string(location<Container>& loc)
         std::string retval;
         retval.reserve(token.unwrap().size());
 
-        auto delim = lex_ml_basic_string_delim::invoke(inner_loc);
+        auto delim = lex_ml_basic_string_open::invoke(inner_loc);
         if(!delim)
         {
             throw internal_error(format_underline(
@@ -410,7 +410,26 @@ parse_ml_basic_string(location<Container>& loc)
                     {{std::addressof(inner_loc), "not sufficient token"}}),
                     source_location(std::addressof(inner_loc)));
             }
-            delim = lex_ml_basic_string_delim::invoke(inner_loc);
+            delim = lex_ml_basic_string_close::invoke(inner_loc);
+        }
+        // `lex_ml_basic_string_close` allows 3 to 5 `"`s to allow 1 or 2 `"`s
+        // at just before the delimiter. Here, we need to attach `"`s at the
+        // end of the string body, if it exists.
+        // For detail, see the definition of `lex_ml_basic_string_close`.
+        assert(std::all_of(delim.unwrap().first(), delim.unwrap().last(),
+                           [](const char c) noexcept {return c == '\"';}));
+        switch(delim.unwrap().size())
+        {
+            case 3: {break;}
+            case 4: {retval += "\"";  break;}
+            case 5: {retval += "\"\""; break;}
+            default:
+            {
+                throw internal_error(format_underline(
+                    "parse_ml_basic_string: closing delimiter has invalid length",
+                    {{std::addressof(inner_loc), "end of this"}}),
+                    source_location(std::addressof(inner_loc)));
+            }
         }
         return ok(std::make_pair(toml::string(retval), token.unwrap()));
     }
@@ -485,7 +504,7 @@ parse_ml_literal_string(location<Container>& loc)
     {
         location<std::string> inner_loc(loc.name(), token.unwrap().str());
 
-        const auto open = lex_ml_literal_string_delim::invoke(inner_loc);
+        const auto open = lex_ml_literal_string_open::invoke(inner_loc);
         if(!open)
         {
             throw internal_error(format_underline(
@@ -498,7 +517,7 @@ parse_ml_literal_string(location<Container>& loc)
 
         const auto body = lex_ml_literal_body::invoke(inner_loc);
 
-        const auto close = lex_ml_literal_string_delim::invoke(inner_loc);
+        const auto close = lex_ml_literal_string_close::invoke(inner_loc);
         if(!close)
         {
             throw internal_error(format_underline(
@@ -506,9 +525,29 @@ parse_ml_literal_string(location<Container>& loc)
                 {{std::addressof(inner_loc), "should be '''"}}),
                 source_location(std::addressof(inner_loc)));
         }
-        return ok(std::make_pair(
-                  toml::string(body.unwrap().str(), toml::string_t::literal),
-                  token.unwrap()));
+        // `lex_ml_literal_string_close` allows 3 to 5 `'`s to allow 1 or 2 `'`s
+        // at just before the delimiter. Here, we need to attach `'`s at the
+        // end of the string body, if it exists.
+        // For detail, see the definition of `lex_ml_basic_string_close`.
+
+        std::string retval = body.unwrap().str();
+        assert(std::all_of(close.unwrap().first(), close.unwrap().last(),
+                           [](const char c) noexcept {return c == '\'';}));
+        switch(close.unwrap().size())
+        {
+            case 3: {break;}
+            case 4: {retval += "'";  break;}
+            case 5: {retval += "''"; break;}
+            default:
+            {
+                throw internal_error(format_underline(
+                    "parse_ml_literal_string: closing delimiter has invalid length",
+                    {{std::addressof(inner_loc), "end of this"}}),
+                    source_location(std::addressof(inner_loc)));
+            }
+        }
+        return ok(std::make_pair(toml::string(retval, toml::string_t::literal),
+                                 token.unwrap()));
     }
     else
     {
