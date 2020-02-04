@@ -119,12 +119,17 @@ struct serializer
             return token; // there is no exponent part. just return it.
         }
 #ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
-        // Although currently it is not released yet, TOML will allow
-        // zero-prefix in an exponent part such as 1.234e+01.
-        // The following code removes the zero prefixes.
-        // If the feature is activated, the following codes can be skipped.
+        // Although currently it is not released yet as a tagged version,
+        // TOML will allow zero-prefix in an exponent part, such as `1.234e+01`.
+        // ```toml
+        // num1 = 1.234e+1  # OK in TOML v0.5.0
+        // num2 = 1.234e+01 # error in TOML v0.5.0 but will be allowed soon
+        // ```
+        // To avoid `e+01`, the following `else` section removes the zero
+        // prefixes in the exponent part.
+        // If the feature is activated, it can be skipped.
         return token;
-#endif
+#else
         // zero-prefix in an exponent is NOT allowed in TOML v0.5.0.
         // remove it if it exists.
         bool        sign_exists = false;
@@ -143,6 +148,7 @@ struct serializer
                         zero_prefix);
         }
         return token;
+#endif
     }
     std::string operator()(const string_type& s) const
     {
