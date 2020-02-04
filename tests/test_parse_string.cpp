@@ -29,16 +29,16 @@ BOOST_AUTO_TEST_CASE(test_string)
 
 BOOST_AUTO_TEST_CASE(test_string_value)
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "\"The quick brown fox jumps over the lazy dog\"",
         toml::value("The quick brown fox jumps over the lazy dog", string_t::basic));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "\'The quick brown fox jumps over the lazy dog\'",
         toml::value("The quick brown fox jumps over the lazy dog", string_t::literal));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "\"\"\"The quick brown fox \\\njumps over the lazy dog\"\"\"",
         toml::value("The quick brown fox jumps over the lazy dog", string_t::basic));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "'''The quick brown fox \njumps over the lazy dog'''",
         toml::value("The quick brown fox \njumps over the lazy dog", string_t::literal));
 }
@@ -73,10 +73,10 @@ BOOST_AUTO_TEST_CASE(test_basic_string)
 
 BOOST_AUTO_TEST_CASE(test_basic_string_value)
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "\"GitHub Cofounder & CEO\\nLikes tater tots and beer.\"",
         value("GitHub Cofounder & CEO\nLikes tater tots and beer.", string_t::basic));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "\"192.168.1.1\"",
         value("192.168.1.1", string_t::basic));
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
@@ -84,14 +84,14 @@ BOOST_AUTO_TEST_CASE(test_basic_string_value)
         "\"\xE4\xB8\xAD\xE5\x9B\xBD\"",
         value("\xE4\xB8\xAD\xE5\x9B\xBD", string_t::basic));
 #else
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "\"中国\"",
         value("中国", string_t::basic));
 #endif
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "\"You'll hate me after this - #\"",
         value("You'll hate me after this - #", string_t::basic));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "\" And when \\\"'s are in the along with # \\\"\"",
         value(" And when \"'s are in the along with # \"", string_t::basic));
 }
@@ -108,10 +108,10 @@ BOOST_AUTO_TEST_CASE(test_ml_basic_string)
 
 BOOST_AUTO_TEST_CASE(test_ml_basic_string_value)
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "\"\"\"\nThe quick brown \\\n\n  fox jumps over \\\n  the lazy dog.\"\"\"",
         value("The quick brown fox jumps over the lazy dog.", string_t::basic));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "\"\"\"\\\n  The quick brown \\\n\n  fox jumps over \\\n  the lazy dog.\\\n  \"\"\"",
         value("The quick brown fox jumps over the lazy dog.", string_t::basic));
 }
@@ -134,16 +134,16 @@ BOOST_AUTO_TEST_CASE(test_literal_string)
 
 BOOST_AUTO_TEST_CASE(test_literal_string_value)
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "'C:\\Users\\nodejs\\templates'",
         value("C:\\Users\\nodejs\\templates", string_t::literal));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "'\\\\ServerX\\admin$\\system32\\'",
         value("\\\\ServerX\\admin$\\system32\\", string_t::literal));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "'Tom \"Dubs\" Preston-Werner'",
         value("Tom \"Dubs\" Preston-Werner", string_t::literal));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "'<\\i\\c*\\s*>'",
         value("<\\i\\c*\\s*>", string_t::literal));
 }
@@ -160,10 +160,10 @@ BOOST_AUTO_TEST_CASE(test_ml_literal_string)
 
 BOOST_AUTO_TEST_CASE(test_ml_literal_string_value)
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "'''I [dw]on't need \\d{2} apples'''",
         value("I [dw]on't need \\d{2} apples", string_t::literal));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, 
+    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
         "'''\nThe first newline is\ntrimmed in raw strings.\n   All other whitespace\n   is preserved.\n'''",
         value("The first newline is\ntrimmed in raw strings.\n   All other whitespace\n   is preserved.\n", string_t::literal));
 }
