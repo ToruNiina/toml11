@@ -57,6 +57,22 @@ BOOST_AUTO_TEST_CASE(test_ml_basic_string)
     TOML11_TEST_LEX_ACCEPT(lex_string,
         "\"\"\"\\\n  The quick brown \\\n\n  fox jumps over \\\n  the lazy dog.\\\n  \"\"\"",
         "\"\"\"\\\n  The quick brown \\\n\n  fox jumps over \\\n  the lazy dog.\\\n  \"\"\"");
+
+    TOML11_TEST_LEX_ACCEPT(lex_string,
+        "\"\"\"Here are two quotation marks: \"\". Simple enough.\"\"\"",
+        "\"\"\"Here are two quotation marks: \"\". Simple enough.\"\"\"");
+
+    TOML11_TEST_LEX_ACCEPT(lex_string,
+        "\"\"\"Here are three quotation marks: \"\"\\\".\"\"\"",
+        "\"\"\"Here are three quotation marks: \"\"\\\".\"\"\"");
+
+    TOML11_TEST_LEX_ACCEPT(lex_string,
+        "\"\"\"Here are fifteen quotation marks: \"\"\\\"\"\"\\\"\"\"\\\"\"\"\\\"\"\"\\\".\"\"\"",
+        "\"\"\"Here are fifteen quotation marks: \"\"\\\"\"\"\\\"\"\"\\\"\"\"\\\"\"\"\\\".\"\"\"");
+
+    TOML11_TEST_LEX_ACCEPT(lex_string,
+        "\"\"\"\"This,\" she said, \"is just a pointless statement.\"\"\"\"",
+        "\"\"\"\"This,\" she said, \"is just a pointless statement.\"\"\"\"");
 }
 
 BOOST_AUTO_TEST_CASE(test_literal_string)
@@ -83,4 +99,16 @@ BOOST_AUTO_TEST_CASE(test_ml_literal_string)
     TOML11_TEST_LEX_ACCEPT(lex_string,
         "'''\nThe first newline is\ntrimmed in raw strings.\n   All other whitespace\n   is preserved.\n'''",
         "'''\nThe first newline is\ntrimmed in raw strings.\n   All other whitespace\n   is preserved.\n'''");
+
+    TOML11_TEST_LEX_ACCEPT(lex_string,
+        "''''That's still pointless', she said.'''",
+        "''''That's still pointless', she said.'''");
+
+    TOML11_TEST_LEX_ACCEPT(lex_string,
+        "'''Here are fifteen quotation marks: \"\"\"\"\"\"\"\"\"\"\"\"\"\"\".'''",
+        "'''Here are fifteen quotation marks: \"\"\"\"\"\"\"\"\"\"\"\"\"\"\".'''");
+
+    TOML11_TEST_LEX_ACCEPT(lex_string,
+        "''''This,' she said, 'is just a pointless statement.''''",
+        "''''This,' she said, 'is just a pointless statement.''''");
 }
