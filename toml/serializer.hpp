@@ -154,12 +154,23 @@ struct serializer
     {
         if(s.kind == string_t::basic)
         {
-            if(std::find(s.str.cbegin(), s.str.cend(), '\n') != s.str.cend())
+            if(std::find(s.str.cbegin(), s.str.cend(), '\n') != s.str.cend() ||
+               std::find(s.str.cbegin(), s.str.cend(), '\"') != s.str.cend())
             {
-                // if linefeed is contained, make it multiline-string.
-                const std::string open("\"\"\"\n");
-                const std::string close("\\\n\"\"\"");
-                return open + this->escape_ml_basic_string(s.str) + close;
+                // if linefeed or double-quote is contained,
+                // make it multiline basic string.
+                const auto escaped = this->escape_ml_basic_string(s.str);
+                std::string open("\"\"\"");
+                std::string close("\"\"\"");
+                if(escaped.find('\n') != std::string::npos ||
+                   this->width_ < escaped.size() + 6)
+                {
+                    // if the string body contains newline or is enough long,
+                    // add newlines after and before delimiters.
+                    open += "\n";
+                    close = std::string("\\\n") + close;
+                }
+                return open + escaped + close;
             }
 
             // no linefeed. try to make it oneline-string.
@@ -499,7 +510,9 @@ struct serializer
             switch(*i)
             {
                 case '\\': {retval += "\\\\"; break;}
-                case '\"': {retval += "\\\""; break;}
+                // One or two consecutive "s are allowed.
+                // Later we will check there are no three consecutive "s.
+                //   case '\"': {retval += "\\\""; break;}
                 case '\b': {retval += "\\b";  break;}
                 case '\t': {retval += "\\t";  break;}
                 case '\f': {retval += "\\f";  break;}
@@ -519,6 +532,23 @@ struct serializer
                 }
                 default: {retval += *i; break;}
             }
+        }
+        // Only 1 or 2 consecutive `"`s are allowed in multiline basic string.
+        // 3 consecutive `"`s are considered as a closing delimiter.
+        // We need to check if there are 3 or more consecutive `"`s and insert
+        // backslash to break them down into several short `"`s like the `str6`
+        // in the following example.
+        // ```toml
+        // str4 = """Here are two quotation marks: "". Simple enough."""
+        // # str5 = """Here are three quotation marks: """."""  # INVALID
+        // str5 = """Here are three quotation marks: ""\"."""
+        // str6 = """Here are fifteen quotation marks: ""\"""\"""\"""\"""\"."""
+        // ```
+        auto found_3_quotes = retval.find("\"\"\"");
+        while(found_3_quotes != std::string::npos)
+        {
+            retval.replace(found_3_quotes, 3, "\"\"\\\"");
+            found_3_quotes = retval.find("\"\"\"");
         }
         return retval;
     }
