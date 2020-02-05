@@ -84,9 +84,7 @@ struct json_serializer
         {
             if(!is_first) {std::cout << ", ";}
             is_first = false;
-            std::cout << toml::format(toml::value(elem.first),
-                    std::numeric_limits<std::size_t>::max());
-            std::cout << ':';
+            std::cout << this->format_key(elem.first) << ':';
             toml::visit(*this, elem.second);
         }
         std::cout << '}';
@@ -111,6 +109,12 @@ struct json_serializer
             }
         }
         return retval;
+    }
+
+    std::string format_key(const std::string& s) const
+    {
+        const auto quote("\"");
+        return quote + escape_string(s) + quote;
     }
 };
 
