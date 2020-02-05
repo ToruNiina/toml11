@@ -200,7 +200,11 @@ struct serializer
             if(std::find(s.str.cbegin(), s.str.cend(), '\n') != s.str.cend() ||
                std::find(s.str.cbegin(), s.str.cend(), '\'') != s.str.cend() )
             {
-                const std::string open("'''\n");
+                std::string open("'''");
+                if(this->width_ + 6 < s.str.size())
+                {
+                    open += '\n'; // the first newline is ignored by TOML spec
+                }
                 const std::string close("'''");
                 return open + s.str + close;
             }
