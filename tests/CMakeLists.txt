@@ -34,6 +34,7 @@ set(TEST_NAMES
     test_error_detection
     test_format_error
     test_extended_conversions
+    test_visit
 )
 
 CHECK_CXX_COMPILER_FLAG("-Wall"      COMPILER_SUPPORTS_WALL)
