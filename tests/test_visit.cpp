@@ -7,7 +7,8 @@
 #endif
 
 #include <toml.hpp>
-
+#include <map>
+#include <deque>
 
 using test_value_types = std::tuple<
     toml::value,
