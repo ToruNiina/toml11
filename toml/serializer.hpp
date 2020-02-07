@@ -4,6 +4,7 @@
 #define TOML11_SERIALIZER_HPP
 #include "value.hpp"
 #include "lexer.hpp"
+#include "visit.hpp"
 #include <limits>
 #include <cstdio>
 

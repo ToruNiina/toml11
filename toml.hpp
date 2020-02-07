@@ -37,6 +37,5 @@
 #include "toml/literal.hpp"
 #include "toml/serializer.hpp"
 #include "toml/get.hpp"
-#include "toml/visit.hpp"
 
 #endif// TOML_FOR_MODERN_CPP
