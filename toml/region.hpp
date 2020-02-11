@@ -511,7 +511,7 @@ inline std::string format_underline(const std::string& message,
         retval << '\n';
         retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ');
         retval << color::bold << color::blue << " | " << color::reset;
-        for(const auto help : helps)
+        for(const auto& help : helps)
         {
             retval << color::bold << "\nHint: " << color::reset;
             retval << help;

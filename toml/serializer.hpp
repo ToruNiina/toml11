@@ -619,7 +619,7 @@ struct serializer
 
         // print non-table stuff first. because after printing [foo.bar], the
         // remaining non-table values will be assigned into [foo.bar], not [foo]
-        for(const auto kv : v)
+        for(const auto& kv : v)
         {
             if(kv.second.is_table() || is_array_of_tables(kv.second))
             {
