@@ -20,7 +20,7 @@ namespace toml
 namespace detail
 {
 // TODO: find more sophisticated way to handle this
-#if _POSIX_C_SOURCE >= 1 || defined(_XOPEN_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || defined(_POSIX_SOURCE)
+#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 1) || defined(_XOPEN_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || defined(_POSIX_SOURCE)
 inline std::tm localtime_s(const std::time_t* src)
 {
     std::tm dst;
@@ -35,7 +35,7 @@ inline std::tm gmtime_s(const std::time_t* src)
     if (!result) { throw std::runtime_error("gmtime_r failed."); }
     return dst;
 }
-#elif _MSC_VER
+#elif defined(_MSC_VER)
 inline std::tm localtime_s(const std::time_t* src)
 {
     std::tm dst;
