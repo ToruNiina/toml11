@@ -1783,6 +1783,10 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Suppress warnings in Debug mode
 - OGAWA Kenichi (@kenichiice)
   - Suppress warnings on intel compiler
+- Jordan Williams (@jwillikers)
+  - Fixed clang range-loop-analysis warnings
+  - Fixed feature test macro to suppress -Wundef
+  - Use cache variables in CMakeLists.txt
 
 ## Licensing terms
 
