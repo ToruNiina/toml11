@@ -1,0 +1,26 @@
+//     Copyright Toru Niina 2020.
+// Distributed under the MIT License.
+#ifndef TOML11_TEST_PATHS_HPP
+#define TOML11_TEST_PATHS_HPP
+
+namespace toml {
+
+namespace test {
+
+namespace file {
+
+constexpr char example[]{"@toml_SOURCE_DIR@/tests/example.toml"};
+
+constexpr char fruit[]{"@toml_SOURCE_DIR@/tests/fruit.toml"};
+
+constexpr char hard_example[]{"@toml_SOURCE_DIR@/tests/hard_example.toml"};
+
+constexpr char hard_example_unicode[]{"@toml_SOURCE_DIR@/tests/hard_example_unicode.toml"};
+
+}
+
+}
+
+} // toml
+
+#endif// TOML11_TEST_PATHS_HPP
