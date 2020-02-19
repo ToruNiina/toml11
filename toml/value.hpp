@@ -20,11 +20,24 @@ namespace detail
 {
 
 // to show error messages. not recommended for users.
-template<typename C, template<typename ...> class T, template<typename ...> class A>
-region_base const& get_region(const basic_value<C, T, A>&);
-template<typename Region,
-         typename C, template<typename ...> class T, template<typename ...> class A>
-void change_region(basic_value<C, T, A>&, Region&&);
+template<typename Value>
+inline region_base const& get_region(const Value& v)
+{
+    return *(v.region_info_);
+}
+
+template<typename Value, typename Region>
+void change_region(Value& v, Region&& reg)
+{
+    using region_type = typename std::remove_reference<
+        typename std::remove_cv<Region>::type
+        >::type;
+
+    std::shared_ptr<region_base> new_reg =
+        std::make_shared<region_type>(std::forward<region_type>(reg));
+    v.region_info_ = new_reg;
+    return;
+}
 
 template<value_t Expected,
          typename C, template<typename ...> class T, template<typename ...> class A>
@@ -1724,13 +1737,11 @@ class basic_value
     }
 
     // for error messages
-    template<typename C,
-             template<typename ...> class T, template<typename ...> class A>
-    friend region_base const& detail::get_region(const basic_value<C, T, A>&);
+    template<typename Value>
+    friend region_base const& detail::get_region(const Value& v);
 
-    template<typename Region, typename C,
-             template<typename ...> class T, template<typename ...> class A>
-    friend void detail::change_region(basic_value<C, T, A>&, Region&&);
+    template<typename Value, typename Region>
+    friend void detail::change_region(Value& v, Region&& reg);
 
   private:
 
@@ -1759,30 +1770,6 @@ class basic_value
 using value = basic_value<discard_comments, std::unordered_map, std::vector>;
 using array = typename value::array_type;
 using table = typename value::table_type;
-
-namespace detail
-{
-template<typename C,
-         template<typename ...> class T, template<typename ...> class A>
-inline region_base const& get_region(const basic_value<C, T, A>& v)
-{
-    return *(v.region_info_);
-}
-
-template<typename Region, typename C,
-         template<typename ...> class T, template<typename ...> class A>
-void change_region(basic_value<C, T, A>& v, Region&& reg)
-{
-    using region_type = typename std::remove_reference<
-        typename std::remove_cv<Region>::type
-        >::type;
-
-    std::shared_ptr<region_base> new_reg =
-        std::make_shared<region_type>(std::forward<region_type>(reg));
-    v.region_info_ = new_reg;
-    return;
-}
-}// detail
 
 template<typename C, template<typename ...> class T, template<typename ...> class A>
 inline bool
