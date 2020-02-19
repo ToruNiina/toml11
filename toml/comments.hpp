@@ -88,7 +88,7 @@ struct preserve_comments
     // `std::vector::iterator` instead of `std::vector::const_iterator`.
     // Because of the const-correctness, we cannot convert a `const_iterator` to
     // an `iterator`. It causes compilation error in GCC 4.8.5.
-#if defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
+#if defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__) && !defined(__clang__)
 #  if (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) <= 40805
 #    define TOML11_WORKAROUND_GCC_4_8_X_STANDARD_LIBRARY_IMPLEMENTATION
 #  endif
