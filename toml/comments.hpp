@@ -81,6 +81,54 @@ struct preserve_comments
     void assign(std::initializer_list<std::string> ini)  {comments.assign(ini);}
     void assign(size_type n, const std::string& val)     {comments.assign(n, val);}
 
+    // Related to the issue #97.
+    //
+    // It is known that `std::vector::insert` and `std::vector::erase` in
+    // the standard library implementation included in GCC 4.8.5 takes
+    // `std::vector::iterator` instead of `std::vector::const_iterator`.
+    // Because of the const-correctness, we cannot convert a `const_iterator` to
+    // an `iterator`. It causes compilation error in GCC 4.8.5.
+#if defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__) && !defined(__clang__)
+#  if (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) <= 40805
+#    define TOML11_WORKAROUND_GCC_4_8_X_STANDARD_LIBRARY_IMPLEMENTATION
+#  endif
+#endif
+
+#ifdef TOML11_WORKAROUND_GCC_4_8_X_STANDARD_LIBRARY_IMPLEMENTATION
+    iterator insert(iterator p, const std::string& x)
+    {
+        return comments.insert(p, x);
+    }
+    iterator insert(iterator p, std::string&&      x)
+    {
+        return comments.insert(p, std::move(x));
+    }
+    void insert(iterator p, size_type n, const std::string& x)
+    {
+        return comments.insert(p, n, x);
+    }
+    template<typename InputIterator>
+    void insert(iterator p, InputIterator first, InputIterator last)
+    {
+        return comments.insert(p, first, last);
+    }
+    void insert(iterator p, std::initializer_list<std::string> ini)
+    {
+        return comments.insert(p, ini);
+    }
+
+    template<typename ... Ts>
+    iterator emplace(iterator p, Ts&& ... args)
+    {
+        return comments.emplace(p, std::forward<Ts>(args)...);
+    }
+
+    iterator erase(iterator pos) {return comments.erase(pos);}
+    iterator erase(iterator first, iterator last)
+    {
+        return comments.erase(first, last);
+    }
+#else
     iterator insert(const_iterator p, const std::string& x)
     {
         return comments.insert(p, x);
@@ -114,6 +162,7 @@ struct preserve_comments
     {
         return comments.erase(first, last);
     }
+#endif
 
     void swap(preserve_comments& other) {comments.swap(other.comments);}
 
