@@ -10,11 +10,10 @@
 #include <fstream>
 #include <map>
 #include <deque>
-#include <toml11/test/files.hpp>
 
 BOOST_AUTO_TEST_CASE(test_example)
 {
-    const auto data = toml::parse(toml::test::file::example);
+    const auto data = toml::parse("toml/tests/example.toml");
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
     const auto& owner = toml::find(data, "owner");
@@ -77,7 +76,7 @@ BOOST_AUTO_TEST_CASE(test_example)
 
 BOOST_AUTO_TEST_CASE(test_example_stream)
 {
-    std::ifstream ifs(toml::test::file::example);
+    std::ifstream ifs("toml/tests/example.toml");
     const auto data = toml::parse(ifs);
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
@@ -145,7 +144,7 @@ BOOST_AUTO_TEST_CASE(test_example_stream)
 
 BOOST_AUTO_TEST_CASE(test_fruit)
 {
-    const auto data = toml::parse(toml::test::file::fruit);
+    const auto data = toml::parse("toml/tests/fruit.toml");
     const auto blah = toml::find<toml::array>(toml::find(data, "fruit"), "blah");
     BOOST_TEST(toml::find<std::string>(blah.at(0), "name") == "apple");
     BOOST_TEST(toml::find<std::string>(blah.at(1), "name") == "banana");
@@ -163,7 +162,7 @@ BOOST_AUTO_TEST_CASE(test_fruit)
 
 BOOST_AUTO_TEST_CASE(test_hard_example)
 {
-    const auto data = toml::parse(toml::test::file::hard_example);
+    const auto data = toml::parse("toml/tests/hard_example.toml");
     const auto the = toml::find(data, "the");
     BOOST_TEST(toml::find<std::string>(the, "test_string") ==
                       "You'll hate me after this - #");
@@ -190,7 +189,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example)
 }
 BOOST_AUTO_TEST_CASE(test_hard_example_comment)
 {
-    const auto data = toml::parse<toml::preserve_comments>(toml::test::file::hard_example);
+    const auto data = toml::parse<toml::preserve_comments>("toml/tests/hard_example.toml");
     const auto the = toml::find(data, "the");
     BOOST_TEST(toml::find<std::string>(the, "test_string") ==
                       "You'll hate me after this - #");
@@ -219,7 +218,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example_comment)
 
 BOOST_AUTO_TEST_CASE(test_example_preserve_comment)
 {
-    const auto data = toml::parse<toml::preserve_comments>(toml::test::file::example);
+    const auto data = toml::parse<toml::preserve_comments>("toml/tests/example.toml");
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
     const auto& owner = toml::find(data, "owner");
@@ -302,7 +301,7 @@ BOOST_AUTO_TEST_CASE(test_example_preserve_comment)
 BOOST_AUTO_TEST_CASE(test_example_preserve_stdmap_stddeque)
 {
     const auto data = toml::parse<toml::preserve_comments, std::map, std::deque
-          >(toml::test::file::example);
+          >("toml/tests/example.toml");
 
     static_assert(std::is_same<typename decltype(data)::table_type,
             std::map<toml::key, typename std::remove_cv<decltype(data)>::type>

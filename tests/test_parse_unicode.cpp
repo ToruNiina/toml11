@@ -8,12 +8,11 @@
 #include <toml.hpp>
 #include <iostream>
 #include <fstream>
-#include <toml11/test/files.hpp>
 
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
 {
-    const auto data = toml::parse(toml::test::file::hard_example_unicode);
+    const auto data = toml::parse("toml/tests/hard_example_unicode.toml");
 
     const auto the = toml::find<toml::table>(data, "the");
     BOOST_TEST(toml::get<std::string>(the.at("test_string")) ==
@@ -44,7 +43,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
 #else
 BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
 {
-    const auto data = toml::parse(toml::test::file::hard_example_unicode);
+    const auto data = toml::parse("toml/tests/hard_example_unicode.toml");
 
     const auto the = toml::find<toml::table>(data, "the");
     BOOST_TEST(toml::get<std::string>(the.at("test_string")) ==

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 2.8)
 enable_testing()
 
 project(toml11)
@@ -51,8 +51,6 @@ set(toml11_install_include_dir       ${CMAKE_INSTALL_INCLUDEDIR})
 set(toml11_config_dir                ${CMAKE_CURRENT_BINARY_DIR}/cmake/)
 set(toml11_config                    ${toml11_config_dir}/toml11Config.cmake)
 set(toml11_config_version            ${toml11_config_dir}/toml11ConfigVersion.cmake)
-
-add_subdirectory(dependencies)
 
 add_library(toml11 INTERFACE)
 target_include_directories(toml11 INTERFACE

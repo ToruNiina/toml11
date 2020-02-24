@@ -1,10 +1,3 @@
-include(FetchContent)
-FetchContent_GetProperties(toml)
-configure_file(include/toml11/test/files.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/include/toml11/test/files.hpp @ONLY)
-add_library(toml11_test_files INTERFACE)
-add_library(toml11::test_files ALIAS toml11_test_files)
-target_include_directories(toml11_test_files INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/include)
-
 set(TEST_NAMES
     test_datetime
     test_string
@@ -150,7 +143,7 @@ add_definitions(-DUNITTEST_FRAMEWORK_LIBRARY_EXIST)
 
 foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
-    target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} toml11::toml11 toml11::test_files)
+    target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} toml11::toml11)
     target_include_directories(${TEST_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
