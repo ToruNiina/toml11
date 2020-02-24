@@ -17,8 +17,9 @@ build_script:
   - cd C:\toml11
   - mkdir build
   - cd build
+  - git clone https://github.com/toml-lang/toml.git
+  - file --mime-encoding toml/tests/hard_example_unicode.toml
   - cmake -G"%generator%" -DBOOST_ROOT=C:/Libraries/boost_1_69_0 ..
-  - file --mime-encoding _deps/toml-src/tests/hard_example_unicode.toml
   - cmake --build . --config "%configuration%"
 
 test_script:
