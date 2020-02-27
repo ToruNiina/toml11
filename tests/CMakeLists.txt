@@ -1,3 +1,12 @@
+include(ExternalProject)
+ExternalProject_Add(toml
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/toml
+        GIT_REPOSITORY https://github.com/toml-lang/toml
+        GIT_TAG v0.5.0
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND "")
+
 set(TEST_NAMES
     test_datetime
     test_string
@@ -158,7 +167,7 @@ foreach(TEST_NAME ${TEST_NAMES})
         endif()
     endif()
 
-    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
     # Set the PATH to be able to find Boost DLL
     if(WIN32)

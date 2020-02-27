@@ -330,7 +330,6 @@ script:
 - cmake --version
 - mkdir build
 - cd build
-- git clone https://github.com/toml-lang/toml.git
 - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DTOML11_USE_UNRELEASED_TOML_FEATURES=${TOML_HEAD} -Dtoml11_TEST_WITH_ASAN=${WITH_ASAN} -Dtoml11_TEST_WITH_UBSAN=${WITH_UBSAN} ..
 - make
 - ctest --output-on-failure
