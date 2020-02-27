@@ -1743,13 +1743,12 @@ Such a big change will not happen in the coming years.
 
 ## Running Tests
 
-To run test codes, you need to clone toml-lang/toml repository under `build/` directory
-because some of the test codes read a file in the repository.
+After cloning this repository, run the following command (thank you @jwillikers
+for automating test set fetching!).
 
 ```sh
 $ mkdir build
 $ cd build
-$ git clone https://github.com/toml-lang/toml.git
 $ cmake ..
 $ make
 $ make test
@@ -1787,6 +1786,7 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fixed clang range-loop-analysis warnings
   - Fixed feature test macro to suppress -Wundef
   - Use cache variables in CMakeLists.txt
+  - Automate test set fetching, update and refactor CMakeLists.txt
 
 ## Licensing terms
 
