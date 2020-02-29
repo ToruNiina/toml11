@@ -9,6 +9,20 @@
 
 namespace toml
 {
+namespace detail
+{
+// Throw from `toml::find`, generating an error message
+template<typename C,
+         template<typename ...> class M, template<typename ...> class V>
+[[noreturn]] void
+throw_key_not_found_error(const basic_value<C, M, V>& v, const key& ky)
+{
+    throw std::out_of_range(format_underline(concat_to_string(
+        "key \"", ky, "\" not found"), {
+            {std::addressof(get_region(v)), "in this table"}
+        }));
+}
+} // detail
 
 // ============================================================================
 // exact toml::* type
@@ -449,10 +463,7 @@ basic_value<C, M, V> const& find(const basic_value<C, M, V>& v, const key& ky)
     const auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(detail::format_underline(concat_to_string(
-            "key \"", ky, "\" not found"), {
-                {std::addressof(detail::get_region(v)), "in this table"}
-            }));
+        detail::throw_key_not_found_error(v, ky);
     }
     return tab.at(ky);
 }
@@ -463,10 +474,7 @@ basic_value<C, M, V>& find(basic_value<C, M, V>& v, const key& ky)
     auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(detail::format_underline(concat_to_string(
-            "key \"", ky, "\" not found"), {
-                {std::addressof(detail::get_region(v)), "in this table"}
-            }));
+        detail::throw_key_not_found_error(v, ky);
     }
     return tab.at(ky);
 }
@@ -477,10 +485,7 @@ basic_value<C, M, V> find(basic_value<C, M, V>&& v, const key& ky)
     typename basic_value<C, M, V>::table_type tab = std::move(v).as_table();
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(detail::format_underline(concat_to_string(
-            "key \"", ky, "\" not found"), {
-                {std::addressof(detail::get_region(v)), "in this table"}
-            }));
+        detail::throw_key_not_found_error(v, ky);
     }
     return basic_value<C, M, V>(std::move(tab.at(ky)));
 }
@@ -542,10 +547,7 @@ find(const basic_value<C, M, V>& v, const key& ky)
     const auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(detail::format_underline(concat_to_string(
-            "key \"", ky, "\" not found"), {
-                {std::addressof(detail::get_region(v)), "in this table"}
-            }));
+        detail::throw_key_not_found_error(v, ky);
     }
     return ::toml::get<T>(tab.at(ky));
 }
@@ -558,10 +560,7 @@ find(basic_value<C, M, V>& v, const key& ky)
     auto& tab = v.as_table();
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(detail::format_underline(concat_to_string(
-            "key \"", ky, "\" not found"), {
-                {std::addressof(detail::get_region(v)), "in this table"}
-            }));
+        detail::throw_key_not_found_error(v, ky);
     }
     return ::toml::get<T>(tab.at(ky));
 }
@@ -574,10 +573,7 @@ find(basic_value<C, M, V>&& v, const key& ky)
     typename basic_value<C, M, V>::table_type tab = std::move(v).as_table();
     if(tab.count(ky) == 0)
     {
-        throw std::out_of_range(detail::format_underline(concat_to_string(
-            "key \"", ky, "\" not found"), {
-                {std::addressof(detail::get_region(v)), "in this table"}
-            }));
+        detail::throw_key_not_found_error(v, ky);
     }
     return ::toml::get<T>(std::move(tab.at(ky)));
 }
