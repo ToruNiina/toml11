@@ -55,7 +55,7 @@ struct region_base
     // number of characters in the line after the region
     virtual std::size_t after()    const noexcept {return 0;}
 
-    virtual std::vector<std::string> comments()const {return {};}
+    virtual std::vector<std::string> comments() const {return {};}
     // ```toml
     // # comment_before
     // key = "value" # comment_inline
