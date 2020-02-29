@@ -11,16 +11,77 @@ namespace toml
 {
 namespace detail
 {
-// Throw from `toml::find`, generating an error message
+// Throw out_of_range from `toml::find` after generating an error message.
+//
+// The implementation is a bit complicated and there are many edge-cases.
+// If you are not interested in the error message generation, just skip this.
 template<typename C,
          template<typename ...> class M, template<typename ...> class V>
 [[noreturn]] void
 throw_key_not_found_error(const basic_value<C, M, V>& v, const key& ky)
 {
-    throw std::out_of_range(format_underline(concat_to_string(
-        "key \"", ky, "\" not found"), {
-            {std::addressof(get_region(v)), "in this table"}
-        }));
+    // The top-level table has its region at the first character of the file.
+    // That means that, in the case when a key is not found in the top-level
+    // table, the error message points to the first character. If the file has
+    // its first table at the first line, the error message would be like this.
+    // ```console
+    // [error] key "a" not found
+    //  --> example.toml
+    //    |
+    //  1 | [table]
+    //    | ^------ in this table
+    // ```
+    // It actually points to the top-level table at the first character,
+    // not `[table]`. But it is too confusing. To avoid the confusion, the error
+    // message should explicitly say "key not found in the top-level table".
+    const auto& reg = get_region(v);
+    if(reg.line_num() == "1" && reg.size() == 1)
+    {
+        // Here it assumes that top-level table starts at the first character.
+        // The region corresponds to the top-level table will be generated at
+        // `parse_toml_file` function.
+        //     It also assumes that the top-level table size is just one and
+        // the line number is `1`. It is always satisfied. And those conditions
+        // are satisfied only if the table is the top-level table.
+        //
+        // 1. one-character dot-key at the first line
+        // ```toml
+        // a.b = "c"
+        // ```
+        // toml11 counts whole key as the table key. Here, `a.b` is the region
+        // of the table "a". It could be counter intuitive, but it works.
+        // The size of the region is 3, not 1. The above example is the shortest
+        // dot-key example. The size cannot be 1.
+        //
+        // 2. one-character inline-table at the first line
+        // ```toml
+        // a = {b = "c"}
+        // ```
+        // toml11 consideres the inline table body as the table region. Here,
+        // `{b = "c"}` is the region of the table "a". The size of the region
+        // is 9, not 1. The shotest inline table still has two characters, `{`
+        // and `}`. The size cannot be 1.
+        //
+        // 3. one-character table declaration at the first line
+        // ```toml
+        // [a]
+        // ```
+        // toml11 consideres the whole table key as the table region. Here,
+        // `[a]` is the table region. The size is 3, not 1.
+        //
+        throw std::out_of_range(format_underline(concat_to_string(
+            "key \"", ky, "\" not found in the top-level table"), {
+                {std::addressof(reg), "the top-level table starts here"}
+            }));
+    }
+    else
+    {
+        // normal table.
+        throw std::out_of_range(format_underline(concat_to_string(
+            "key \"", ky, "\" not found"), {
+                {std::addressof(reg), "in this table"}
+            }));
+    }
 }
 } // detail
 
