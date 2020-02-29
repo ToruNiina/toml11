@@ -8,16 +8,17 @@ toml11
 [![License](https://img.shields.io/github/license/ToruNiina/toml11.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1209136.svg)](https://doi.org/10.5281/zenodo.1209136)
 
-toml11 is a C++11 header-only toml parser/encoder depending only on C++ standard library.
+toml11 is a C++11 (or later) header-only toml parser/encoder depending only on C++ standard library.
 
-compatible to the latest version of
-[TOML v0.5.0](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v0.5.0.md)
-after version 2.0.0.
-
-It passes [the language agnostic test suite for TOML parsers by BurntSushi](https://github.com/BurntSushi/toml-test).
-Not only the test suite itself, a TOML reader/encoder also runs on [CircleCI](https://circleci.com/gh/ToruNiina/toml11).
-You can see the error messages about invalid files and serialization results of valid files at
-[CircleCI](https://circleci.com/gh/ToruNiina/toml11).
+- It is compatible to the latest version of [TOML v0.5.0](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v0.5.0.md).
+- It optionally supports the [unreleased features](#unreleased-toml-features) in the master branch of toml-lang/toml.
+- It is one of the most TOML standard compliant libraries, tested with [the language agnostic test suite for TOML parsers by BurntSushi](https://github.com/BurntSushi/toml-test).
+- It shows highly informative error messages. You can see the error messages about invalid files at [CircleCI](https://circleci.com/gh/ToruNiina/toml11).
+- It has configurable container. You can use any random-access containers and key-value maps as backend containers.
+- It optionally preserves comments without any overhead.
+- It has configurable serializer that supports comments, inline tables, literal strings and multiline strings.
+- It supports user-defined type conversion from/into toml values.
+- It correctly handles UTF-8 sequences, with or without BOM, both on posix and Windows.
 
 ## Example
 
@@ -27,15 +28,25 @@ You can see the error messages about invalid files and serialization results of 
 
 int main()
 {
-    const auto data = toml::parse("example.toml");
+    auto data = toml::parse("example.toml");
 
-    // title = "an example toml file"
+    // find a value with the specified type from a table
     std::string title = toml::find<std::string>(data, "title");
-    std::cout << "the title is " << title << std::endl;
 
-    // nums = [1, 2, 3, 4, 5]
-    std::vector<int> nums  = toml::find<std::vector<int>>(data, "nums");
-    std::cout << "the length of `nums` is" << nums.size() << std::endl;
+    // convert the whole array into any container automatically
+    std::vector<int> nums = toml::find<std::vector<int>>(data, "nums");
+
+    // access with STL-like manner
+    if(not data.at("a").contains("b"))
+    {
+        data["a"]["b"] = "c";
+    }
+
+    // pass a fallback
+    std::string name = toml::find_or<std::string>(data, "name", "not found");
+
+    // width-dependent formatting
+    std::cout << std::setw(80) << data << std::endl;
 
     return 0;
 }
