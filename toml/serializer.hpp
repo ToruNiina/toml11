@@ -49,12 +49,14 @@ inline std::string format_key(const toml::key& key)
     return token;
 }
 
-template<typename Comment,
-         template<typename ...> class Table,
-         template<typename ...> class Array>
+template<typename Value>
 struct serializer
 {
-    using value_type           = basic_value<Comment, Table, Array>;
+    static_assert(detail::is_basic_value<Value>::value,
+                  "toml::serializer is for toml::value and its variants, "
+                  "toml::basic_value<...>.");
+
+    using value_type           = Value;
     using key_type             = typename value_type::key_type            ;
     using comment_type         = typename value_type::comment_type        ;
     using boolean_type         = typename value_type::boolean_type        ;
@@ -717,6 +719,7 @@ format(const basic_value<C, M, V>& v, std::size_t w = 80u,
        int fprec = std::numeric_limits<toml::floating>::max_digits10,
        bool no_comment = false, bool force_inline = false)
 {
+    using value_type = basic_value<C, M, V>;
     // if value is a table, it is considered to be a root object.
     // the root object can't be an inline table.
     if(v.is_table())
@@ -727,10 +730,10 @@ format(const basic_value<C, M, V>& v, std::size_t w = 80u,
             oss << v.comments();
             oss << '\n'; // to split the file comment from the first element
         }
-        oss << visit(serializer<C, M, V>(w, fprec, no_comment, false), v);
+        oss << visit(serializer<value_type>(w, fprec, no_comment, false), v);
         return oss.str();
     }
-    return visit(serializer<C, M, V>(w, fprec, force_inline), v);
+    return visit(serializer<value_type>(w, fprec, force_inline), v);
 }
 
 namespace detail
@@ -766,6 +769,8 @@ template<typename charT, typename traits, typename C,
 std::basic_ostream<charT, traits>&
 operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
 {
+    using value_type = basic_value<C, M, V>;
+
     // get status of std::setw().
     const auto w     = static_cast<std::size_t>(os.width());
     const int  fprec = static_cast<int>(os.precision());
@@ -781,7 +786,7 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
         os << '\n'; // to split the file comment from the first element
     }
     // the root object can't be an inline table. so pass `false`.
-    os << visit(serializer<C, M, V>(w, fprec, false, no_comment), v);
+    os << visit(serializer<value_type>(w, fprec, false, no_comment), v);
 
     // if v is a non-table value, and has only one comment, then
     // put a comment just after a value. in the following way.
