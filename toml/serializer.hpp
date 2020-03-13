@@ -22,31 +22,52 @@ namespace toml
 // Since toml restricts characters available in a bare key, generally a string
 // should be escaped. But checking whether a string needs to be surrounded by
 // a `"` and escaping some special character is boring.
-inline std::string format_key(const toml::key& key)
+template<typename charT, typename traits, typename Alloc>
+std::basic_string<charT, traits, Alloc>
+format_key(const std::basic_string<charT, traits, Alloc>& key)
 {
+    // check the key can be a bare (unquoted) key
     detail::location<toml::key> loc(key, key);
     detail::lex_unquoted_key::invoke(loc);
     if(loc.iter() == loc.end())
     {
         return key; // all the tokens are consumed. the key is unquoted-key.
     }
-    std::string token("\"");
+
+    //if it includes special characters, then format it in a "quoted" key.
+    std::basic_string<charT, traits, Alloc> serialized("\"");
     for(const char c : key)
     {
         switch(c)
         {
-            case '\\': {token += "\\\\"; break;}
-            case '\"': {token += "\\\""; break;}
-            case '\b': {token += "\\b";  break;}
-            case '\t': {token += "\\t";  break;}
-            case '\f': {token += "\\f";  break;}
-            case '\n': {token += "\\n";  break;}
-            case '\r': {token += "\\r";  break;}
-            default  : {token += c;      break;}
+            case '\\': {serialized += "\\\\"; break;}
+            case '\"': {serialized += "\\\""; break;}
+            case '\b': {serialized += "\\b";  break;}
+            case '\t': {serialized += "\\t";  break;}
+            case '\f': {serialized += "\\f";  break;}
+            case '\n': {serialized += "\\n";  break;}
+            case '\r': {serialized += "\\r";  break;}
+            default  : {serialized += c;      break;}
         }
     }
-    token += "\"";
-    return token;
+    serialized += "\"";
+    return serialized;
+}
+
+template<typename charT, typename traits, typename Alloc>
+std::basic_string<charT, traits, Alloc>
+format_keys(const std::vector<std::basic_string<charT, traits, Alloc>>& keys)
+{
+    std::basic_string<charT, traits, Alloc> serialized;
+    if(keys.empty()) {return serialized;}
+
+    for(const auto& ky : keys)
+    {
+        serialized += format_key(ky);
+        serialized += charT('.');
+    }
+    serialized.pop_back(); // remove the last dot '.'
+    return serialized;
 }
 
 template<typename Value>
@@ -272,7 +293,7 @@ struct serializer
                 std::string token;
                 if(!keys_.empty())
                 {
-                    token += this->serialize_key(keys_.back());
+                    token += format_key(keys_.back());
                     token += " = ";
                 }
                 bool failed = false;
@@ -328,7 +349,7 @@ struct serializer
                     }
                 }
                 token += "[[";
-                token += this->serialize_dotted_key(keys_);
+                token += format_keys(keys_);
                 token += "]]\n";
                 token += this->make_multiline_table(item.as_table());
             }
@@ -440,7 +461,7 @@ struct serializer
             std::string token;
             if(!this->keys_.empty())
             {
-                token += this->serialize_key(this->keys_.back());
+                token += format_key(this->keys_.back());
                 token += " = ";
             }
             token += this->make_inline_table(v);
@@ -455,7 +476,7 @@ struct serializer
         if(!keys_.empty())
         {
             token += '[';
-            token += this->serialize_dotted_key(keys_);
+            token += format_keys(keys_);
             token += "]\n";
         }
         token += this->make_multiline_table(v);
@@ -463,25 +484,6 @@ struct serializer
     }
 
   private:
-
-    std::string serialize_key(const toml::key& key) const
-    {
-        return ::toml::format_key(key);
-    }
-
-    std::string serialize_dotted_key(const std::vector<toml::key>& keys) const
-    {
-        std::string token;
-        if(keys.empty()){return token;}
-
-        for(const auto& k : keys)
-        {
-            token += this->serialize_key(k);
-            token += '.';
-        }
-        token.erase(token.size() - 1, 1); // remove trailing `.`
-        return token;
-    }
 
     std::string escape_basic_string(const std::string& s) const
     {
@@ -606,7 +608,7 @@ struct serializer
         {
             // in inline tables, trailing comma is not allowed (toml-lang #569).
             if(is_first) {is_first = false;} else {token += ',';}
-            token += this->serialize_key(kv.first);
+            token += format_key(kv.first);
             token += '=';
             token += visit(serializer(std::numeric_limits<std::size_t>::max(),
                                       this->float_prec_, true), kv.second);
@@ -637,7 +639,7 @@ struct serializer
                     token += '\n';
                 }
             }
-            const auto key_and_sep    = this->serialize_key(kv.first) + " = ";
+            const auto key_and_sep    = format_key(kv.first) + " = ";
             const auto residual_width = (this->width_ > key_and_sep.size()) ?
                                         this->width_ - key_and_sep.size() : 0;
             token += key_and_sep;
