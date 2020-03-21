@@ -1691,10 +1691,28 @@ class basic_value
     //
     value_type&       at(const key& k)
     {
+        if(!this->is_table())
+        {
+            detail::throw_bad_cast<value_t::table>(
+                "toml::value::at(key): ", this->type_, *this);
+        }
+        if(this->as_table().count(k) == 0)
+        {
+            detail::throw_key_not_found_error(*this, k);
+        }
         return this->as_table().at(k);
     }
     value_type const& at(const key& k) const
     {
+        if(!this->is_table())
+        {
+            detail::throw_bad_cast<value_t::table>(
+                "toml::value::at(key): ", this->type_, *this);
+        }
+        if(this->as_table().count(k) == 0)
+        {
+            detail::throw_key_not_found_error(*this, k);
+        }
         return this->as_table().at(k);
     }
     value_type&       operator[](const key& k)
@@ -1703,24 +1721,59 @@ class basic_value
         {
             *this = table_type{};
         }
+        else if(!this->is_table()) // initialized, but not a table
+        {
+            detail::throw_bad_cast<value_t::table>(
+                "toml::value::operator[](key): ", this->type_, *this);
+        }
         return this->as_table()[k];
     }
 
     value_type&       at(const std::size_t idx)
     {
+        if(!this->is_array())
+        {
+            detail::throw_bad_cast<value_t::array>(
+                "toml::value::at(idx): ", this->type_, *this);
+        }
+        if(this->as_array().size() <= idx)
+        {
+            throw std::out_of_range(detail::format_underline(
+                "toml::value::at(idx): no element corresponding to the index", {
+                    {this->region_info_.get(),
+                     concat_to_string("the length is ", this->as_array().size(),
+                                      ", and the specified index is ", idx)}
+                }));
+        }
         return this->as_array().at(idx);
     }
     value_type const& at(const std::size_t idx) const
     {
+        if(!this->is_array())
+        {
+            detail::throw_bad_cast<value_t::array>(
+                "toml::value::at(idx): ", this->type_, *this);
+        }
+        if(this->as_array().size() <= idx)
+        {
+            throw std::out_of_range(detail::format_underline(
+                "toml::value::at(idx): no element corresponding to the index", {
+                    {this->region_info_.get(),
+                     concat_to_string("the length is ", this->as_array().size(),
+                                      ", and the specified index is ", idx)}
+                }));
+        }
         return this->as_array().at(idx);
     }
 
     value_type&       operator[](const std::size_t idx) noexcept
     {
+        // no check...
         return this->as_array(std::nothrow)[idx];
     }
     value_type const& operator[](const std::size_t idx) const noexcept
     {
+        // no check...
         return this->as_array(std::nothrow)[idx];
     }
 
