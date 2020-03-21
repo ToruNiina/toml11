@@ -39,13 +39,12 @@ void change_region(Value& v, Region&& reg)
     return;
 }
 
-template<value_t Expected,
-         typename C, template<typename ...> class T, template<typename ...> class A>
+template<value_t Expected, typename Value>
 [[noreturn]] inline void
-throw_bad_cast(value_t actual, const ::toml::basic_value<C, T, A>& v)
+throw_bad_cast(const std::string& funcname, value_t actual, const Value& v)
 {
-    throw type_error(detail::format_underline(concat_to_string(
-        "toml::value: bad_cast to ", Expected), {
+    throw type_error(detail::format_underline(
+        concat_to_string(funcname, "bad_cast to ", Expected), {
             {std::addressof(get_region(v)),
              concat_to_string("the actual type is ", actual)}
         }), v.location());
@@ -1341,7 +1340,7 @@ class basic_value
     {
         if(this->type_ != T)
         {
-            detail::throw_bad_cast<T>(this->type_, *this);
+            detail::throw_bad_cast<T>("toml::value::cast: ", this->type_, *this);
         }
         return detail::switch_cast<T>::invoke(*this);
     }
@@ -1350,7 +1349,7 @@ class basic_value
     {
         if(this->type_ != T)
         {
-            detail::throw_bad_cast<T>(this->type_, *this);
+            detail::throw_bad_cast<T>("toml::value::cast: ", this->type_, *this);
         }
         return detail::switch_cast<T>::invoke(*this);
     }
@@ -1359,7 +1358,7 @@ class basic_value
     {
         if(this->type_ != T)
         {
-            detail::throw_bad_cast<T>(this->type_, *this);
+            detail::throw_bad_cast<T>("toml::value::cast: ", this->type_, *this);
         }
         return detail::switch_cast<T>::invoke(std::move(*this));
     }
@@ -1403,13 +1402,14 @@ class basic_value
     // ========================================================================
     // throw version
     // ------------------------------------------------------------------------
-    // const reference
+    // const reference {{{
 
     boolean const& as_boolean() const&
     {
         if(this->type_ != value_t::boolean)
         {
-            detail::throw_bad_cast<value_t::boolean>(this->type_, *this);
+            detail::throw_bad_cast<value_t::boolean>(
+                    "toml::value::as_boolean(): ", this->type_, *this);
         }
         return this->boolean_;
     }
@@ -1417,7 +1417,8 @@ class basic_value
     {
         if(this->type_ != value_t::integer)
         {
-            detail::throw_bad_cast<value_t::integer>(this->type_, *this);
+            detail::throw_bad_cast<value_t::integer>(
+                    "toml::value::as_integer(): ", this->type_, *this);
         }
         return this->integer_;
     }
@@ -1425,7 +1426,8 @@ class basic_value
     {
         if(this->type_ != value_t::floating)
         {
-            detail::throw_bad_cast<value_t::floating>(this->type_, *this);
+            detail::throw_bad_cast<value_t::floating>(
+                    "toml::value::as_floating(): ", this->type_, *this);
         }
         return this->floating_;
     }
@@ -1433,7 +1435,8 @@ class basic_value
     {
         if(this->type_ != value_t::string)
         {
-            detail::throw_bad_cast<value_t::string>(this->type_, *this);
+            detail::throw_bad_cast<value_t::string>(
+                    "toml::value::as_string(): ", this->type_, *this);
         }
         return this->string_;
     }
@@ -1441,7 +1444,8 @@ class basic_value
     {
         if(this->type_ != value_t::offset_datetime)
         {
-            detail::throw_bad_cast<value_t::offset_datetime>(this->type_, *this);
+            detail::throw_bad_cast<value_t::offset_datetime>(
+                    "toml::value::as_offset_datetime(): ", this->type_, *this);
         }
         return this->offset_datetime_;
     }
@@ -1449,7 +1453,8 @@ class basic_value
     {
         if(this->type_ != value_t::local_datetime)
         {
-            detail::throw_bad_cast<value_t::local_datetime>(this->type_, *this);
+            detail::throw_bad_cast<value_t::local_datetime>(
+                    "toml::value::as_local_datetime(): ", this->type_, *this);
         }
         return this->local_datetime_;
     }
@@ -1457,7 +1462,8 @@ class basic_value
     {
         if(this->type_ != value_t::local_date)
         {
-            detail::throw_bad_cast<value_t::local_date>(this->type_, *this);
+            detail::throw_bad_cast<value_t::local_date>(
+                    "toml::value::as_local_date(): ", this->type_, *this);
         }
         return this->local_date_;
     }
@@ -1465,7 +1471,8 @@ class basic_value
     {
         if(this->type_ != value_t::local_time)
         {
-            detail::throw_bad_cast<value_t::local_time>(this->type_, *this);
+            detail::throw_bad_cast<value_t::local_time>(
+                    "toml::value::as_local_time(): ", this->type_, *this);
         }
         return this->local_time_;
     }
@@ -1473,7 +1480,8 @@ class basic_value
     {
         if(this->type_ != value_t::array)
         {
-            detail::throw_bad_cast<value_t::array>(this->type_, *this);
+            detail::throw_bad_cast<value_t::array>(
+                    "toml::value::as_array(): ", this->type_, *this);
         }
         return this->array_.value();
     }
@@ -1481,19 +1489,21 @@ class basic_value
     {
         if(this->type_ != value_t::table)
         {
-            detail::throw_bad_cast<value_t::table>(this->type_, *this);
+            detail::throw_bad_cast<value_t::table>(
+                    "toml::value::as_table(): ", this->type_, *this);
         }
         return this->table_.value();
     }
-
+    // }}}
     // ------------------------------------------------------------------------
-    // nonconst reference
+    // nonconst reference {{{
 
     boolean & as_boolean() &
     {
         if(this->type_ != value_t::boolean)
         {
-            detail::throw_bad_cast<value_t::boolean>(this->type_, *this);
+            detail::throw_bad_cast<value_t::boolean>(
+                    "toml::value::as_boolean(): ", this->type_, *this);
         }
         return this->boolean_;
     }
@@ -1501,7 +1511,8 @@ class basic_value
     {
         if(this->type_ != value_t::integer)
         {
-            detail::throw_bad_cast<value_t::integer>(this->type_, *this);
+            detail::throw_bad_cast<value_t::integer>(
+                    "toml::value::as_integer(): ", this->type_, *this);
         }
         return this->integer_;
     }
@@ -1509,7 +1520,8 @@ class basic_value
     {
         if(this->type_ != value_t::floating)
         {
-            detail::throw_bad_cast<value_t::floating>(this->type_, *this);
+            detail::throw_bad_cast<value_t::floating>(
+                    "toml::value::as_floating(): ", this->type_, *this);
         }
         return this->floating_;
     }
@@ -1517,7 +1529,8 @@ class basic_value
     {
         if(this->type_ != value_t::string)
         {
-            detail::throw_bad_cast<value_t::string>(this->type_, *this);
+            detail::throw_bad_cast<value_t::string>(
+                    "toml::value::as_string(): ", this->type_, *this);
         }
         return this->string_;
     }
@@ -1525,7 +1538,8 @@ class basic_value
     {
         if(this->type_ != value_t::offset_datetime)
         {
-            detail::throw_bad_cast<value_t::offset_datetime>(this->type_, *this);
+            detail::throw_bad_cast<value_t::offset_datetime>(
+                    "toml::value::as_offset_datetime(): ", this->type_, *this);
         }
         return this->offset_datetime_;
     }
@@ -1533,7 +1547,8 @@ class basic_value
     {
         if(this->type_ != value_t::local_datetime)
         {
-            detail::throw_bad_cast<value_t::local_datetime>(this->type_, *this);
+            detail::throw_bad_cast<value_t::local_datetime>(
+                    "toml::value::as_local_datetime(): ", this->type_, *this);
         }
         return this->local_datetime_;
     }
@@ -1541,7 +1556,8 @@ class basic_value
     {
         if(this->type_ != value_t::local_date)
         {
-            detail::throw_bad_cast<value_t::local_date>(this->type_, *this);
+            detail::throw_bad_cast<value_t::local_date>(
+                    "toml::value::as_local_date(): ", this->type_, *this);
         }
         return this->local_date_;
     }
@@ -1549,7 +1565,8 @@ class basic_value
     {
         if(this->type_ != value_t::local_time)
         {
-            detail::throw_bad_cast<value_t::local_time>(this->type_, *this);
+            detail::throw_bad_cast<value_t::local_time>(
+                    "toml::value::as_local_time(): ", this->type_, *this);
         }
         return this->local_time_;
     }
@@ -1557,7 +1574,8 @@ class basic_value
     {
         if(this->type_ != value_t::array)
         {
-            detail::throw_bad_cast<value_t::array>(this->type_, *this);
+            detail::throw_bad_cast<value_t::array>(
+                    "toml::value::as_array(): ", this->type_, *this);
         }
         return this->array_.value();
     }
@@ -1565,19 +1583,22 @@ class basic_value
     {
         if(this->type_ != value_t::table)
         {
-            detail::throw_bad_cast<value_t::table>(this->type_, *this);
+            detail::throw_bad_cast<value_t::table>(
+                    "toml::value::as_table(): ", this->type_, *this);
         }
         return this->table_.value();
     }
 
+    // }}}
     // ------------------------------------------------------------------------
-    // rvalue reference
+    // rvalue reference {{{
 
     boolean && as_boolean() &&
     {
         if(this->type_ != value_t::boolean)
         {
-            detail::throw_bad_cast<value_t::boolean>(this->type_, *this);
+            detail::throw_bad_cast<value_t::boolean>(
+                    "toml::value::as_boolean(): ", this->type_, *this);
         }
         return std::move(this->boolean_);
     }
@@ -1585,7 +1606,8 @@ class basic_value
     {
         if(this->type_ != value_t::integer)
         {
-            detail::throw_bad_cast<value_t::integer>(this->type_, *this);
+            detail::throw_bad_cast<value_t::integer>(
+                    "toml::value::as_integer(): ", this->type_, *this);
         }
         return std::move(this->integer_);
     }
@@ -1593,7 +1615,8 @@ class basic_value
     {
         if(this->type_ != value_t::floating)
         {
-            detail::throw_bad_cast<value_t::floating>(this->type_, *this);
+            detail::throw_bad_cast<value_t::floating>(
+                    "toml::value::as_floating(): ", this->type_, *this);
         }
         return std::move(this->floating_);
     }
@@ -1601,7 +1624,8 @@ class basic_value
     {
         if(this->type_ != value_t::string)
         {
-            detail::throw_bad_cast<value_t::string>(this->type_, *this);
+            detail::throw_bad_cast<value_t::string>(
+                    "toml::value::as_string(): ", this->type_, *this);
         }
         return std::move(this->string_);
     }
@@ -1609,7 +1633,8 @@ class basic_value
     {
         if(this->type_ != value_t::offset_datetime)
         {
-            detail::throw_bad_cast<value_t::offset_datetime>(this->type_, *this);
+            detail::throw_bad_cast<value_t::offset_datetime>(
+                    "toml::value::as_offset_datetime(): ", this->type_, *this);
         }
         return std::move(this->offset_datetime_);
     }
@@ -1617,7 +1642,8 @@ class basic_value
     {
         if(this->type_ != value_t::local_datetime)
         {
-            detail::throw_bad_cast<value_t::local_datetime>(this->type_, *this);
+            detail::throw_bad_cast<value_t::local_datetime>(
+                    "toml::value::as_local_datetime(): ", this->type_, *this);
         }
         return std::move(this->local_datetime_);
     }
@@ -1625,7 +1651,8 @@ class basic_value
     {
         if(this->type_ != value_t::local_date)
         {
-            detail::throw_bad_cast<value_t::local_date>(this->type_, *this);
+            detail::throw_bad_cast<value_t::local_date>(
+                    "toml::value::as_local_date(): ", this->type_, *this);
         }
         return std::move(this->local_date_);
     }
@@ -1633,7 +1660,8 @@ class basic_value
     {
         if(this->type_ != value_t::local_time)
         {
-            detail::throw_bad_cast<value_t::local_time>(this->type_, *this);
+            detail::throw_bad_cast<value_t::local_time>(
+                    "toml::value::as_local_time(): ", this->type_, *this);
         }
         return std::move(this->local_time_);
     }
@@ -1641,7 +1669,8 @@ class basic_value
     {
         if(this->type_ != value_t::array)
         {
-            detail::throw_bad_cast<value_t::array>(this->type_, *this);
+            detail::throw_bad_cast<value_t::array>(
+                    "toml::value::as_array(): ", this->type_, *this);
         }
         return std::move(this->array_.value());
     }
@@ -1649,10 +1678,12 @@ class basic_value
     {
         if(this->type_ != value_t::table)
         {
-            detail::throw_bad_cast<value_t::table>(this->type_, *this);
+            detail::throw_bad_cast<value_t::table>(
+                    "toml::value::as_table(): ", this->type_, *this);
         }
         return std::move(this->table_.value());
     }
+    // }}}
 
     // accessors =============================================================
     //
