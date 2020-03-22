@@ -293,16 +293,6 @@ matrix:
   - os: osx
     language: cpp
     compiler: clang
-    env: CXX_STANDARD=11
-    cache:
-      directories:
-        - $HOME/Library/Caches/Homebrew
-    addons:
-      homebrew:
-        update: true
-        packages:
-        - cmake
-        - boost
 
 script:
 - |
@@ -311,6 +301,10 @@ script:
     travis_retry wget "https://github.com/Kitware/CMake/releases/download/v3.14.5/cmake-3.14.5-Linux-x86_64.tar.gz"
     tar xf cmake-3.14.5-Linux-x86_64.tar.gz -C cmake --strip-components=1
     export PATH=${TRAVIS_BUILD_DIR}/cmake/bin:${PATH}
+  fi
+- |
+  if [[ "${CXX_STANDARD}" == "" ]]; then
+      export CXX_STANDARD="11"
   fi
 - |
   if [[ "${TOML_HEAD}" != "ON" ]]; then
@@ -330,13 +324,8 @@ script:
 - cmake --version
 - mkdir build
 - cd build
+- echo "COMPILER     = ${COMPILER}"
+- echo "CXX_STANDARD = ${CXX_STANDARD}"
 - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DTOML11_USE_UNRELEASED_TOML_FEATURES=${TOML_HEAD} -Dtoml11_TEST_WITH_ASAN=${WITH_ASAN} -Dtoml11_TEST_WITH_UBSAN=${WITH_UBSAN} ..
 - make
 - ctest --output-on-failure
-
-# https://stackoverflow.com/a/53331571
-before_cache:
-- |
-  if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
-    brew cleanup
-  fi
