@@ -1424,7 +1424,7 @@ const toml::source_location loc = v.location();
 
 ## Exceptions
 
-All the exceptions thrown by toml11 inherits `toml::exception` that inherits
+The following `exception` classes inherits `toml::exception` that inherits
 `std::exception`.
 
 ```cpp
@@ -1450,6 +1450,16 @@ struct exception : public std::exception
 ```
 
 It represents where the error occurs.
+
+`syntax_error` will be thrown from `toml::parse` and `_toml` literal.
+`type_error` will be thrown from `toml::get/find`, `toml::value::as_xxx()`, and
+other functions that takes a content inside of `toml::value`.
+
+Note that, currently, from `toml::value::at()` and `toml::find(value, key)`
+may throw an `std::out_of_range` that does not inherits `toml::exception`.
+
+Also, in some cases, most likely in the file open error, it will throw an
+`std::runtime_error`.
 
 ## Colorize Error Messages
 
