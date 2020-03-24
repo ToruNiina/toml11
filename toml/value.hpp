@@ -123,205 +123,42 @@ throw_key_not_found_error(const Value& v, const key& ky)
     }
 }
 
-// switch by `value_t` and call the corresponding `value::as_xxx()`. {{{
+// switch by `value_t` at the compile time.
 template<value_t T>
 struct switch_cast {};
-template<>
-struct switch_cast<value_t::boolean>
-{
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::boolean& invoke(basic_value<C, T, A>& v) noexcept
-    {
-        return v.as_boolean();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::boolean const& invoke(basic_value<C, T, A> const& v) noexcept
-    {
-        return v.as_boolean();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::boolean&& invoke(basic_value<C, T, A>&& v) noexcept
-    {
-        return std::move(v).as_boolean();
-    }
-};
-template<>
-struct switch_cast<value_t::integer>
-{
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::integer& invoke(basic_value<C, T, A>& v) noexcept
-    {
-        return v.as_integer();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::integer const& invoke(basic_value<C, T, A> const& v) noexcept
-    {
-        return v.as_integer();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::integer&& invoke(basic_value<C, T, A>&& v) noexcept
-    {
-        return std::move(v).as_integer();
-    }
-};
-template<>
-struct switch_cast<value_t::floating>
-{
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::floating& invoke(basic_value<C, T, A>& v) noexcept
-    {
-        return v.as_floating();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::floating const& invoke(basic_value<C, T, A> const& v) noexcept
-    {
-        return v.as_floating();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::floating&& invoke(basic_value<C, T, A>&& v) noexcept
-    {
-        return std::move(v).as_floating();
-    }
-};
-template<>
-struct switch_cast<value_t::string>
-{
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::string& invoke(basic_value<C, T, A>& v) noexcept
-    {
-        return v.as_string();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::string const& invoke(basic_value<C, T, A> const& v) noexcept
-    {
-        return v.as_string();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::string&& invoke(basic_value<C, T, A>&& v) noexcept
-    {
-        return std::move(v).as_string();
-    }
-};
-template<>
-struct switch_cast<value_t::offset_datetime>
-{
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::offset_datetime& invoke(basic_value<C, T, A>& v) noexcept
-    {
-        return v.as_offset_datetime();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::offset_datetime const& invoke(basic_value<C, T, A> const& v) noexcept
-    {
-        return v.as_offset_datetime();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::offset_datetime&& invoke(basic_value<C, T, A>&& v) noexcept
-    {
-        return std::move(v).as_offset_datetime();
-    }
-};
-template<>
-struct switch_cast<value_t::local_datetime>
-{
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::local_datetime& invoke(basic_value<C, T, A>& v) noexcept
-    {
-        return v.as_local_datetime();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::local_datetime const& invoke(basic_value<C, T, A> const& v) noexcept
-    {
-        return v.as_local_datetime();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::local_datetime&& invoke(basic_value<C, T, A>&& v) noexcept
-    {
-        return std::move(v).as_local_datetime();
-    }
-};
-template<>
-struct switch_cast<value_t::local_date>
-{
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::local_date& invoke(basic_value<C, T, A>& v) noexcept
-    {
-        return v.as_local_date();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::local_date const& invoke(basic_value<C, T, A> const& v) noexcept
-    {
-        return v.as_local_date();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::local_date&& invoke(basic_value<C, T, A>&& v) noexcept
-    {
-        return std::move(v).as_local_date();
-    }
-};
-template<>
-struct switch_cast<value_t::local_time>
-{
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::local_time& invoke(basic_value<C, T, A>& v) noexcept
-    {
-        return v.as_local_time();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::local_time const& invoke(basic_value<C, T, A> const& v) noexcept
-    {
-        return v.as_local_time();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static ::toml::local_time&& invoke(basic_value<C, T, A>&& v) noexcept
-    {
-        return std::move(v).as_local_time();
-    }
-};
-template<>
-struct switch_cast<value_t::array>
-{
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static typename basic_value<C, T, A>::array_type&
-    invoke(basic_value<C, T, A>& v) noexcept
-    {
-        return v.as_array();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static typename basic_value<C, T, A>::array_type const&
-    invoke(basic_value<C, T, A> const& v) noexcept
-    {
-        return v.as_array();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static typename basic_value<C, T, A>::array_type &&
-    invoke(basic_value<C, T, A>&& v) noexcept
-    {
-        return std::move(v).as_array();
-    }
-};
-template<>
-struct switch_cast<value_t::table>
-{
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static typename basic_value<C, T, A>::table_type&
-    invoke(basic_value<C, T, A>& v) noexcept
-    {
-        return v.as_table();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static typename basic_value<C, T, A>::table_type const&
-    invoke(basic_value<C, T, A> const& v) noexcept
-    {
-        return v.as_table();
-    }
-    template<typename C, template<typename ...> class T, template<typename ...> class A>
-    static typename basic_value<C, T, A>::table_type &&
-    invoke(basic_value<C, T, A>&& v) noexcept
-    {
-        return std::move(v).as_table();
-    }
-}; // }}}
+#define TOML11_GENERATE_SWITCH_CASTER(TYPE) \
+    template<>                                                           \
+    struct switch_cast<value_t::TYPE>                                    \
+    {                                                                    \
+        template<typename Value>                                         \
+        static typename Value::TYPE##_type& invoke(Value& v)             \
+        {                                                                \
+            return v.as_##TYPE();                                        \
+        }                                                                \
+        template<typename Value>                                         \
+        static typename Value::TYPE##_type const& invoke(const Value& v) \
+        {                                                                \
+            return v.as_##TYPE();                                        \
+        }                                                                \
+        template<typename Value>                                         \
+        static typename Value::TYPE##_type&& invoke(Value&& v)           \
+        {                                                                \
+            return std::move(v).as_##TYPE();                             \
+        }                                                                \
+    };                                                                   \
+    /**/
+TOML11_GENERATE_SWITCH_CASTER(boolean)
+TOML11_GENERATE_SWITCH_CASTER(integer)
+TOML11_GENERATE_SWITCH_CASTER(floating)
+TOML11_GENERATE_SWITCH_CASTER(string)
+TOML11_GENERATE_SWITCH_CASTER(offset_datetime)
+TOML11_GENERATE_SWITCH_CASTER(local_datetime)
+TOML11_GENERATE_SWITCH_CASTER(local_date)
+TOML11_GENERATE_SWITCH_CASTER(local_time)
+TOML11_GENERATE_SWITCH_CASTER(array)
+TOML11_GENERATE_SWITCH_CASTER(table)
+
+#undef TOML11_GENERATE_SWITCH_CASTER
 
 }// detail
 
