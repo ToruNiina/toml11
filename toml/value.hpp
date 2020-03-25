@@ -1533,11 +1533,11 @@ class basic_value
             detail::throw_bad_cast<value_t::table>(
                 "toml::value::at(key): ", this->type_, *this);
         }
-        if(this->as_table().count(k) == 0)
+        if(this->as_table(std::nothrow).count(k) == 0)
         {
             detail::throw_key_not_found_error(*this, k);
         }
-        return this->as_table().at(k);
+        return this->as_table(std::nothrow).at(k);
     }
     value_type const& at(const key& k) const
     {
@@ -1546,11 +1546,11 @@ class basic_value
             detail::throw_bad_cast<value_t::table>(
                 "toml::value::at(key): ", this->type_, *this);
         }
-        if(this->as_table().count(k) == 0)
+        if(this->as_table(std::nothrow).count(k) == 0)
         {
             detail::throw_key_not_found_error(*this, k);
         }
-        return this->as_table().at(k);
+        return this->as_table(std::nothrow).at(k);
     }
     value_type&       operator[](const key& k)
     {
@@ -1563,7 +1563,7 @@ class basic_value
             detail::throw_bad_cast<value_t::table>(
                 "toml::value::operator[](key): ", this->type_, *this);
         }
-        return this->as_table()[k];
+        return this->as_table(std::nothrow)[k];
     }
 
     value_type&       at(const std::size_t idx)
@@ -1573,12 +1573,12 @@ class basic_value
             detail::throw_bad_cast<value_t::array>(
                 "toml::value::at(idx): ", this->type_, *this);
         }
-        if(this->as_array().size() <= idx)
+        if(this->as_array(std::nothrow).size() <= idx)
         {
             throw std::out_of_range(detail::format_underline(
                 "toml::value::at(idx): no element corresponding to the index", {
                     {this->region_info_.get(),
-                     concat_to_string("the length is ", this->as_array().size(),
+                     concat_to_string("the length is ", this->as_array(std::nothrow).size(),
                                       ", and the specified index is ", idx)}
                 }));
         }
@@ -1591,16 +1591,16 @@ class basic_value
             detail::throw_bad_cast<value_t::array>(
                 "toml::value::at(idx): ", this->type_, *this);
         }
-        if(this->as_array().size() <= idx)
+        if(this->as_array(std::nothrow).size() <= idx)
         {
             throw std::out_of_range(detail::format_underline(
                 "toml::value::at(idx): no element corresponding to the index", {
                     {this->region_info_.get(),
-                     concat_to_string("the length is ", this->as_array().size(),
+                     concat_to_string("the length is ", this->as_array(std::nothrow).size(),
                                       ", and the specified index is ", idx)}
                 }));
         }
-        return this->as_array().at(idx);
+        return this->as_array(std::nothrow).at(idx);
     }
 
     value_type&       operator[](const std::size_t idx) noexcept
@@ -1616,7 +1616,7 @@ class basic_value
 
     void push_back(const value_type& x)
     {
-        if(this->type_ != value_t::array)
+        if(!this->is_array())
         {
             detail::throw_bad_cast<value_t::array>(
                 "toml::value::push_back(value): ", this->type_, *this);
@@ -1626,7 +1626,7 @@ class basic_value
     }
     void push_back(value_type&& x)
     {
-        if(this->type_ != value_t::array)
+        if(!this->is_array())
         {
             detail::throw_bad_cast<value_t::array>(
                 "toml::value::push_back(value): ", this->type_, *this);
@@ -1638,7 +1638,7 @@ class basic_value
     template<typename ... Ts>
     value_type& emplace_back(Ts&& ... args)
     {
-        if(this->type_ != value_t::array)
+        if(!this->is_array())
         {
             detail::throw_bad_cast<value_t::array>(
                 "toml::value::emplace_back(...): ", this->type_, *this);
@@ -1653,15 +1653,15 @@ class basic_value
         {
             case value_t::array:
             {
-                return this->as_array().size();
+                return this->as_array(std::nothrow).size();
             }
             case value_t::table:
             {
-                return this->as_table().size();
+                return this->as_table(std::nothrow).size();
             }
             case value_t::string:
             {
-                return this->as_string().str.size();
+                return this->as_string(std::nothrow).str.size();
             }
             default:
             {
