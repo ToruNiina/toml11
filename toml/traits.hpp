@@ -7,6 +7,7 @@
 #include <chrono>
 #include <tuple>
 #include <string>
+#include <forward_list>
 #if __cplusplus >= 201703L
 #if __has_include(<string_view>)
 #include <string_view>
@@ -156,6 +157,10 @@ struct is_std_pair<std::pair<T1, T2>> : std::true_type{};
 template<typename T> struct is_std_tuple : std::false_type{};
 template<typename ... Ts>
 struct is_std_tuple<std::tuple<Ts...>> : std::true_type{};
+
+template<typename T> struct is_std_forward_list : std::false_type{};
+template<typename T>
+struct is_std_forward_list<std::forward_list<T>> : std::true_type{};
 
 template<typename T> struct is_chrono_duration: std::false_type{};
 template<typename Rep, typename Period>
