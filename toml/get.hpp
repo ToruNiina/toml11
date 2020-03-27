@@ -198,24 +198,24 @@ get(const basic_value<C, M, V>& v)
 // ============================================================================
 // forward declaration to use this recursively. ignore this and go ahead.
 
-// array-like type with resize(N) method
+// array-like type with push_back(value) method
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 detail::enable_if_t<detail::conjunction<
-    detail::is_container<T>,      // T is container
-    detail::has_resize_method<T>, // T::resize(N) works
-    detail::negation<             // but not toml::array
+    detail::is_container<T>,         // T is a container
+    detail::has_push_back_method<T>, // T::push_back(value) works
+    detail::negation<                // but not toml::array
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>
     >::value, T>
 get(const basic_value<C, M, V>&);
 
-// array-like type with resize(N) method
+// array-like type without push_back(value) method
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 detail::enable_if_t<detail::conjunction<
-    detail::is_container<T>,                        // T is container
-    detail::negation<detail::has_resize_method<T>>, // no T::resize() exists
-    detail::negation<                               // not toml::array
+    detail::is_container<T>,                           // T is a container
+    detail::negation<detail::has_push_back_method<T>>, // w/o push_back(...)
+    detail::negation<                                  // not toml::array
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>
     >::value, T>
 get(const basic_value<C, M, V>&);
@@ -274,31 +274,54 @@ get(const basic_value<C, M, V>&);
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 detail::enable_if_t<detail::conjunction<
-    detail::is_container<T>,      // T is container
-    detail::has_resize_method<T>, // T::resize(N) works
-    detail::negation<             // but not toml::array
+    detail::is_container<T>,         // T is a container
+    detail::has_push_back_method<T>, // container.push_back(elem) works
+    detail::negation<                // but not toml::array
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>
     >::value, T>
 get(const basic_value<C, M, V>& v)
 {
     using value_type = typename T::value_type;
-    const auto& ar = v.as_array();
+    const auto& ary = v.as_array();
+
     T container;
-    container.resize(ar.size());
-    std::transform(ar.cbegin(), ar.cend(), container.begin(),
-                   [](const value& x){return ::toml::get<value_type>(x);});
+    try_reserve(container, ary.size());
+
+    for(const auto& elem : ary)
+    {
+        container.push_back(get<value_type>(elem));
+    }
     return container;
 }
 
 // ============================================================================
-// array-like types; but does not have resize(); most likely std::array.
+// std::forward_list does not have push_back, insert, or emplace.
+// It has insert_after, emplace_after, push_front.
+
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V>
+detail::enable_if_t<detail::is_std_forward_list<T>::value, T>
+get(const basic_value<C, M, V>& v)
+{
+    using value_type = typename T::value_type;
+    T container;
+    for(const auto& elem : v.as_array())
+    {
+        container.push_front(get<value_type>(elem));
+    }
+    container.reverse();
+    return container;
+}
+
+// ============================================================================
+// array-like types, without push_back(). most likely [std|boost]::array.
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V>
 detail::enable_if_t<detail::conjunction<
-    detail::is_container<T>,                        // T is container
-    detail::negation<detail::has_resize_method<T>>, // no T::resize() exists
-    detail::negation<                              // but not toml::array
+    detail::is_container<T>,                           // T is a container
+    detail::negation<detail::has_push_back_method<T>>, // w/o push_back
+    detail::negation<                                  // T is not toml::array
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>
     >::value, T>
 get(const basic_value<C, M, V>& v)
