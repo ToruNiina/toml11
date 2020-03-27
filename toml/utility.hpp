@@ -36,30 +36,25 @@ inline std::unique_ptr<T> make_unique(Ts&& ... args)
 
 namespace detail
 {
-
-template<typename T>
-inline void resize_impl(T& container, std::size_t N, std::true_type)
+template<typename Container>
+void try_reserve_impl(Container& container, std::size_t N, std::true_type)
 {
-    container.resize(N);
-    return ;
+    container.reserve(N);
+    return;
 }
-
-template<typename T>
-inline void resize_impl(T& container, std::size_t N, std::false_type)
+template<typename Container>
+void try_reserve_impl(Container&, std::size_t, std::false_type) noexcept
 {
-    if(container.size() >= N) {return;}
-
-    throw std::invalid_argument("not resizable type");
+    return;
 }
-
 } // detail
 
-template<typename T>
-inline void resize(T& container, std::size_t N)
+template<typename Container>
+void try_reserve(Container& container, std::size_t N)
 {
-    if(container.size() == N) {return;}
-
-    return detail::resize_impl(container, N, detail::has_resize_method<T>());
+    if(N <= container.size()) {return;}
+    detail::try_reserve_impl(container, N, detail::has_reserve_method<Container>{});
+    return;
 }
 
 namespace detail
