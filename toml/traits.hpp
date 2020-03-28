@@ -7,6 +7,7 @@
 #include <chrono>
 #include <tuple>
 #include <string>
+#include <forward_list>
 #if __cplusplus >= 201703L
 #if __has_include(<string_view>)
 #include <string_view>
@@ -43,17 +44,23 @@ struct has_mapped_type_impl
     template<typename T> static std::true_type  check(typename T::mapped_type*);
     template<typename T> static std::false_type check(...);
 };
-struct has_resize_method_impl
+struct has_reserve_method_impl
 {
-    constexpr static std::size_t dummy=0;
-    template<typename T> static std::true_type  check(decltype(std::declval<T>().resize(dummy))*);
     template<typename T> static std::false_type check(...);
+    template<typename T> static std::true_type  check(
+        decltype(std::declval<T>().reserve(std::declval<std::size_t>()))*);
 };
-
+struct has_push_back_method_impl
+{
+    template<typename T> static std::false_type check(...);
+    template<typename T> static std::true_type  check(
+        decltype(std::declval<T>().push_back(std::declval<typename T::value_type>()))*);
+};
 struct is_comparable_impl
 {
-    template<typename T> static std::true_type  check(decltype(std::declval<T>() < std::declval<T>())*);
     template<typename T> static std::false_type check(...);
+    template<typename T> static std::true_type  check(
+        decltype(std::declval<T>() < std::declval<T>())*);
 };
 
 struct has_from_toml_method_impl
@@ -91,7 +98,9 @@ struct has_key_type    : decltype(has_key_type_impl::check<T>(nullptr)){};
 template<typename T>
 struct has_mapped_type : decltype(has_mapped_type_impl::check<T>(nullptr)){};
 template<typename T>
-struct has_resize_method : decltype(has_resize_method_impl::check<T>(nullptr)){};
+struct has_reserve_method : decltype(has_reserve_method_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_push_back_method : decltype(has_push_back_method_impl::check<T>(nullptr)){};
 template<typename T>
 struct is_comparable : decltype(is_comparable_impl::check<T>(nullptr)){};
 
@@ -148,6 +157,10 @@ struct is_std_pair<std::pair<T1, T2>> : std::true_type{};
 template<typename T> struct is_std_tuple : std::false_type{};
 template<typename ... Ts>
 struct is_std_tuple<std::tuple<Ts...>> : std::true_type{};
+
+template<typename T> struct is_std_forward_list : std::false_type{};
+template<typename T>
+struct is_std_forward_list<std::forward_list<T>> : std::true_type{};
 
 template<typename T> struct is_chrono_duration: std::false_type{};
 template<typename Rep, typename Period>

@@ -9,27 +9,24 @@
 #include <vector>
 #include <array>
 
-BOOST_AUTO_TEST_CASE(test_resize)
+BOOST_AUTO_TEST_CASE(test_try_reserve)
 {
     {
-        typedef std::vector<int>  resizable_type;
-        typedef std::array<int,1> non_resizable_type;
-        BOOST_TEST(toml::detail::has_resize_method<resizable_type>::value);
-        BOOST_TEST(!toml::detail::has_resize_method<non_resizable_type>::value);
+        // since BOOST_TEST is a macro, it cannot handle commas correctly.
+        // When toml::detail::has_reserve_method<std::array<int, 1>>::value
+        // is passed to a macro, C preprocessor considers
+        // toml::detail::has_reserve_method<std::array<int as the first argument
+        // and 1>>::value as the second argument. We need an alias to avoid
+        // this problem.
+        using reservable_type    = std::vector<int>  ;
+        using nonreservable_type = std::array<int, 1>;
+        BOOST_TEST( toml::detail::has_reserve_method<reservable_type   >::value);
+        BOOST_TEST(!toml::detail::has_reserve_method<nonreservable_type>::value);
     }
     {
         std::vector<int> v;
-        toml::resize(v, 10);
-        BOOST_TEST(v.size() == 10u);
-    }
-    {
-        std::array<int, 15> a;
-        toml::resize(a, 10);
-        BOOST_TEST(a.size() == 15u);
-    }
-    {
-        std::array<int, 15> a;
-        BOOST_CHECK_THROW(toml::resize(a, 20), std::invalid_argument);
+        toml::try_reserve(v, 100);
+        BOOST_TEST(v.capacity() == 100u);
     }
 }
 
