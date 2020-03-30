@@ -419,7 +419,7 @@ get(const basic_value<C, M, V>& v)
     T map;
     for(const auto& kv : v.as_table())
     {
-        map[key_type(kv.first)] = ::toml::get<mapped_type>(kv.second);
+        map.emplace(key_type(kv.first), get<mapped_type>(kv.second));
     }
     return map;
 }
