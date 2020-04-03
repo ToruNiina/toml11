@@ -69,15 +69,8 @@ using lex_zero_prefixable_int = sequence<lex_digit, repeat<either<lex_digit,
 
 using lex_fractional_part = sequence<character<'.'>, lex_zero_prefixable_int>;
 
-#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
-// use toml-lang/toml HEAD
 using lex_exponent_part   = sequence<either<character<'e'>, character<'E'>>,
         maybe<lex_sign>, lex_zero_prefixable_int>;
-#else
-// strictly TOML v0.5.0
-using lex_exponent_part = sequence<either<character<'e'>, character<'E'>>,
-        lex_dec_int>;
-#endif
 
 using lex_float = either<lex_special_float,
       sequence<lex_dec_int, either<lex_exponent_part,
@@ -125,17 +118,11 @@ using lex_local_time       = lex_partial_time;
 // ===========================================================================
 
 using lex_quotation_mark  = character<'"'>;
-#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
 using lex_basic_unescaped = exclude<either<in_range<0x00, 0x08>, // 0x09 (tab)
                                            in_range<0x0a, 0x1F>, // is allowed
                                            character<0x22>, character<0x5C>,
                                            character<0x7F>>>;
-#else
-using lex_basic_unescaped = exclude<either<in_range<0x00, 0x1F>,
-                                           character<0x22>, character<0x5C>,
-                                           character<0x7F>>>;
 
-#endif
 using lex_escape          = character<'\\'>;
 using lex_escape_unicode_short = sequence<character<'u'>,
                                           repeat<lex_hex_dig, exactly<4>>>;
@@ -183,12 +170,6 @@ using lex_basic_string = sequence<lex_quotation_mark,
 // In parse_ml_basic_string() function, the trailing `"`s will be attached to
 // the string body.
 //
-// Note: This feature is a "clarification". Therefore this change is considered
-//       as a spec that has been defined since the time when the multi-line
-//       basic string was introduced. Although it is a post-v0.5.0 changes,
-//       this change will be activated regardless of the flag,
-//       `TOML11_USE_UNRELEASED_TOML_FEATURES`.
-//
 using lex_ml_basic_string_delim = repeat<lex_quotation_mark, exactly<3>>;
 using lex_ml_basic_string_open  = lex_ml_basic_string_delim;
 using lex_ml_basic_string_close = sequence<
@@ -196,18 +177,11 @@ using lex_ml_basic_string_close = sequence<
         maybe<lex_quotation_mark>, maybe<lex_quotation_mark>
     >;
 
-#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
 using lex_ml_basic_unescaped    = exclude<either<in_range<0x00, 0x08>, // 0x09
                                                  in_range<0x0a, 0x1F>, // is tab
                                                  character<0x5C>, // backslash
                                                  character<0x7F>, // DEL
                                                  lex_ml_basic_string_delim>>;
-#else // TOML v0.5.0
-using lex_ml_basic_unescaped    = exclude<either<in_range<0x00,0x1F>,
-                                                 character<0x5C>,
-                                                 character<0x7F>,
-                                                 lex_ml_basic_string_delim>>;
-#endif
 
 using lex_ml_basic_escaped_newline = sequence<
         lex_escape, maybe<lex_ws>, lex_newline,
