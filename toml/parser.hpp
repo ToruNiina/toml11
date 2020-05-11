@@ -733,7 +733,13 @@ parse_local_time(location<Container>& loc)
                 case 0:  break;
                 default: break;
             }
-            if(sf.size() >= 6)
+            if(sf.size() >= 9)
+            {
+                time.millisecond = from_string<std::uint16_t>(sf.substr(0, 3), 0u);
+                time.microsecond = from_string<std::uint16_t>(sf.substr(3, 3), 0u);
+                time.nanosecond  = from_string<std::uint16_t>(sf.substr(6, 3), 0u);
+            }
+            else if(sf.size() >= 6)
             {
                 time.millisecond = from_string<std::uint16_t>(sf.substr(0, 3), 0u);
                 time.microsecond = from_string<std::uint16_t>(sf.substr(3, 3), 0u);
