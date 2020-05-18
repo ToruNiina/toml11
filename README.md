@@ -176,7 +176,7 @@ what(): [error] bad time: should be HH:MM:SS.subsec
  --> ./datetime-malformed-no-secs.toml
  1 | no-secs = 1987-07-05T17:45Z
    |                     ^------- HH:MM:SS.subsec
-   | 
+   |
 Hint: pass: 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999
 Hint: fail: 1979-05-27T7:32:00, 1979-05-27 17:32
 ```
@@ -266,11 +266,11 @@ shape = "round"
 ``` cpp
 const auto  data  = toml::parse("fruit.toml");
 const auto& fruit = toml::find(data, "fruit");
-const auto  name  = toml::find<std::string>(fruit, "apple");
+const auto  name  = toml::find<std::string>(fruit, "name");
 
 const auto& physical = toml::find(fruit, "physical");
-const auto  color    = toml::find<std::string>(fruit, "color");
-const auto  shape    = toml::find<std::string>(fruit, "shape");
+const auto  color    = toml::find<std::string>(physical, "color");
+const auto  shape    = toml::find<std::string>(physical, "shape");
 ```
 
 Here, variable `fruit` is a `toml::value` and can be used as the first argument
