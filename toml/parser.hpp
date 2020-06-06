@@ -2102,6 +2102,24 @@ basic_value<Comment, Table, Array> parse(const std::string& fname)
 }
 
 #ifdef TOML11_HAS_STD_FILESYSTEM
+// This function just forwards `parse("filename.toml")` to std::string version
+// to avoid the ambiguity in overload resolution.
+//
+// Both std::string and std::filesystem::path are convertible from const char[].
+// Without this, both parse(std::string) and parse(std::filesystem::path)
+// matches to parse("filename.toml"). This breaks the existing code.
+//
+// This function exactly matches to the invokation with string literal.
+// So this function is preferred than others and the ambiguity disappears.
+template<typename                     Comment = ::toml::discard_comments,
+         template<typename ...> class Table   = std::unordered_map,
+         template<typename ...> class Array   = std::vector,
+         std::size_t N>
+basic_value<Comment, Table, Array> parse(const char (&fname)[N])
+{
+    return parse<Comment, Table, Array>(std::string(fname));
+}
+
 template<typename                     Comment = ::toml::discard_comments,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
