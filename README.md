@@ -119,6 +119,9 @@ const std::string fname("sample.toml");
 const toml::value data = toml::parse(fname);
 ```
 
+As required by the TOML specification, the top-level value is always a table.
+You can find a value inside it, cast it into a table explicitly, and insert it as a value into other `toml::value`.
+
 If it encounters an error while opening a file, it will throw `std::runtime_error`.
 
 You can also pass a `std::istream` to the  `toml::parse` function.
