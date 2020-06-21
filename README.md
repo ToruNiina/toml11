@@ -465,6 +465,24 @@ if(answer.is_integer() && answer.as_integer(std::nothrow) == 42)
 
 If `std::nothrow` is passed, the functions are marked as noexcept.
 
+By casting a `toml::value` into an array or a table, you can iterate over the
+elements.
+
+```cpp
+const auto data = toml::parse("example.toml");
+std::cout << "keys in the top-level table are the following: \n";
+for(const auto& [k, v] : data.as_table())
+{
+    std::cout << k << '\n';
+}
+
+const auto& fruits = toml::find(data, "fruits");
+for(const auto& v : fruits.as_array())
+{
+    std::cout << toml::find<std::string>(v, "name") << '\n';
+}
+```
+
 The full list of the functions is below.
 
 ```cpp
