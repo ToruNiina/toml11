@@ -1,7 +1,7 @@
 #ifndef TOML11_COLOR_HPP
 #define TOML11_COLOR_HPP
-#include <ostream>
 #include <cstdint>
+#include <ostream>
 
 #ifdef TOML11_COLORIZE_ERROR_MESSAGE
 #define TOML11_ERROR_MESSAGE_COLORIZED true

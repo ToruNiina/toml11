@@ -2,9 +2,10 @@
 // Distributed under the MIT License.
 #ifndef TOML11_EXCEPTION_HPP
 #define TOML11_EXCEPTION_HPP
-#include "source_location.hpp"
 #include <stdexcept>
 #include <string>
+
+#include "source_location.hpp"
 
 namespace toml
 {

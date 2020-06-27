@@ -2,9 +2,11 @@
 // Distributed under the MIT License.
 #ifndef TOML11_STRING_HPP
 #define TOML11_STRING_HPP
+#include <cstdint>
+
 #include <algorithm>
 #include <string>
-#include <cstdint>
+
 #if __cplusplus >= 201703L
 #if __has_include(<string_view>)
 #include <string_view>

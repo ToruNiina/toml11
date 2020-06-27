@@ -2,12 +2,13 @@
 // Distributed under the MIT License.
 #ifndef TOML11_TYPES_HPP
 #define TOML11_TYPES_HPP
+#include <unordered_map>
+#include <vector>
+
+#include "comments.hpp"
 #include "datetime.hpp"
 #include "string.hpp"
 #include "traits.hpp"
-#include "comments.hpp"
-#include <vector>
-#include <unordered_map>
 
 namespace toml
 {

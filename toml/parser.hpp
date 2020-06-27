@@ -2,15 +2,16 @@
 // Distributed under the MIT License.
 #ifndef TOML11_PARSER_HPP
 #define TOML11_PARSER_HPP
-#include "result.hpp"
-#include "region.hpp"
-#include "combinator.hpp"
-#include "lexer.hpp"
-#include "types.hpp"
-#include "value.hpp"
+#include <cstring>
 #include <fstream>
 #include <sstream>
-#include <cstring>
+
+#include "combinator.hpp"
+#include "lexer.hpp"
+#include "region.hpp"
+#include "result.hpp"
+#include "types.hpp"
+#include "value.hpp"
 
 namespace toml
 {

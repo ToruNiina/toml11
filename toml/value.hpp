@@ -2,16 +2,17 @@
 // Distributed under the MIT License.
 #ifndef TOML11_VALUE_HPP
 #define TOML11_VALUE_HPP
-#include "traits.hpp"
-#include "into.hpp"
-#include "utility.hpp"
-#include "exception.hpp"
-#include "storage.hpp"
-#include "region.hpp"
-#include "types.hpp"
-#include "source_location.hpp"
-#include "comments.hpp"
 #include <cassert>
+
+#include "comments.hpp"
+#include "exception.hpp"
+#include "into.hpp"
+#include "region.hpp"
+#include "source_location.hpp"
+#include "storage.hpp"
+#include "traits.hpp"
+#include "types.hpp"
+#include "utility.hpp"
 
 namespace toml
 {
