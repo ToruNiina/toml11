@@ -697,7 +697,8 @@ format(const basic_value<C, M, V>& v, std::size_t w = 80u,
             oss << v.comments();
             oss << '\n'; // to split the file comment from the first element
         }
-        oss << visit(serializer<value_type>(w, fprec, no_comment, false), v);
+        const auto serialized = visit(serializer<value_type>(w, fprec, no_comment, false), v);
+        oss << serialized;
         return oss.str();
     }
     return visit(serializer<value_type>(w, fprec, force_inline), v);
@@ -753,7 +754,8 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
         os << '\n'; // to split the file comment from the first element
     }
     // the root object can't be an inline table. so pass `false`.
-    os << visit(serializer<value_type>(w, fprec, false, no_comment), v);
+    const auto serialized = visit(serializer<value_type>(w, fprec, no_comment, false), v);
+    os << serialized;
 
     // if v is a non-table value, and has only one comment, then
     // put a comment just after a value. in the following way.
