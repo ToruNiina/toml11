@@ -80,13 +80,13 @@ BOOST_AUTO_TEST_CASE(test_detect_conflicting_value)
 
 BOOST_AUTO_TEST_CASE(test_detect_inhomogeneous_array)
 {
-#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
-    BOOST_TEST_MESSAGE("heterogeneous array will be allowed in the next release");
-#else
+#ifdef TOML11_DISALLOW_HETEROGENEOUS_ARRAYS
     std::istringstream stream(std::string(
             "a = [1, 1.0]\n"
             ));
     BOOST_CHECK_THROW(toml::parse(stream), toml::syntax_error);
+#else
+    BOOST_TEST_MESSAGE("After v1.0.0-rc.1, heterogeneous arrays are allowed");
 #endif
 }
 

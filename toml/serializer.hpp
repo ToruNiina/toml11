@@ -137,43 +137,8 @@ struct serializer
         {
             // the resulting value does not have any float specific part!
             token += ".0";
-            return token;
-        }
-        if(!has_exponent)
-        {
-            return token; // there is no exponent part. just return it.
-        }
-#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
-        // Although currently it is not released yet as a tagged version,
-        // TOML will allow zero-prefix in an exponent part, such as `1.234e+01`.
-        // ```toml
-        // num1 = 1.234e+1  # OK in TOML v0.5.0
-        // num2 = 1.234e+01 # error in TOML v0.5.0 but will be allowed soon
-        // ```
-        // To avoid `e+01`, the following `else` section removes the zero
-        // prefixes in the exponent part.
-        // If the feature is activated, it can be skipped.
-        return token;
-#else
-        // zero-prefix in an exponent is NOT allowed in TOML v0.5.0.
-        // remove it if it exists.
-        bool        sign_exists = false;
-        std::size_t zero_prefix = 0;
-        for(auto iter = std::next(e), iend = token.cend(); iter != iend; ++iter)
-        {
-            if(*iter == '+' || *iter == '-'){sign_exists = true; continue;}
-            if(*iter == '0'){zero_prefix += 1;}
-            else {break;}
-        }
-        if(zero_prefix != 0)
-        {
-            const auto offset = std::distance(token.cbegin(), e) +
-                               (sign_exists ? 2 : 1);
-            token.erase(static_cast<typename std::string::size_type>(offset),
-                        zero_prefix);
         }
         return token;
-#endif
     }
     std::string operator()(const string_type& s) const
     {
@@ -734,7 +699,8 @@ format(const basic_value<C, M, V>& v, std::size_t w = 80u,
             oss << v.comments();
             oss << '\n'; // to split the file comment from the first element
         }
-        oss << visit(serializer<value_type>(w, fprec, no_comment, false), v);
+        const auto serialized = visit(serializer<value_type>(w, fprec, no_comment, false), v);
+        oss << serialized;
         return oss.str();
     }
     return visit(serializer<value_type>(w, fprec, force_inline), v);
@@ -790,7 +756,8 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
         os << '\n'; // to split the file comment from the first element
     }
     // the root object can't be an inline table. so pass `false`.
-    os << visit(serializer<value_type>(w, fprec, false, no_comment), v);
+    const auto serialized = visit(serializer<value_type>(w, fprec, no_comment, false), v);
+    os << serialized;
 
     // if v is a non-table value, and has only one comment, then
     // put a comment just after a value. in the following way.

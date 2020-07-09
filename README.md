@@ -10,8 +10,7 @@ toml11
 
 toml11 is a C++11 (or later) header-only toml parser/encoder depending only on C++ standard library.
 
-- It is compatible to the latest version of [TOML v0.5.0](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v0.5.0.md).
-- It optionally supports the [unreleased features](#unreleased-toml-features) in the master branch of toml-lang/toml.
+- It is compatible to the latest version of [TOML v1.0.0-rc.1](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v1.0.0-rc.1.md).
 - It is one of the most TOML standard compliant libraries, tested with [the language agnostic test suite for TOML parsers by BurntSushi](https://github.com/BurntSushi/toml-test).
 - It shows highly informative error messages. You can see the error messages about invalid files at [CircleCI](https://circleci.com/gh/ToruNiina/toml11).
 - It has configurable container. You can use any random-access containers and key-value maps as backend containers.
@@ -120,6 +119,9 @@ const std::string fname("sample.toml");
 const toml::value data = toml::parse(fname);
 ```
 
+As required by the TOML specification, the top-level value is always a table.
+You can find a value inside it, cast it into a table explicitly, and insert it as a value into other `toml::value`.
+
 If it encounters an error while opening a file, it will throw `std::runtime_error`.
 
 You can also pass a `std::istream` to the  `toml::parse` function.
@@ -177,7 +179,7 @@ what(): [error] bad time: should be HH:MM:SS.subsec
  --> ./datetime-malformed-no-secs.toml
  1 | no-secs = 1987-07-05T17:45Z
    |                     ^------- HH:MM:SS.subsec
-   | 
+   |
 Hint: pass: 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999
 Hint: fail: 1979-05-27T7:32:00, 1979-05-27 17:32
 ```
@@ -267,11 +269,11 @@ shape = "round"
 ``` cpp
 const auto  data  = toml::parse("fruit.toml");
 const auto& fruit = toml::find(data, "fruit");
-const auto  name  = toml::find<std::string>(fruit, "apple");
+const auto  name  = toml::find<std::string>(fruit, "name");
 
 const auto& physical = toml::find(fruit, "physical");
-const auto  color    = toml::find<std::string>(fruit, "color");
-const auto  shape    = toml::find<std::string>(fruit, "shape");
+const auto  color    = toml::find<std::string>(physical, "color");
+const auto  shape    = toml::find<std::string>(physical, "shape");
 ```
 
 Here, variable `fruit` is a `toml::value` and can be used as the first argument
@@ -462,6 +464,24 @@ if(answer.is_integer() && answer.as_integer(std::nothrow) == 42)
 ```
 
 If `std::nothrow` is passed, the functions are marked as noexcept.
+
+By casting a `toml::value` into an array or a table, you can iterate over the
+elements.
+
+```cpp
+const auto data = toml::parse("example.toml");
+std::cout << "keys in the top-level table are the following: \n";
+for(const auto& [k, v] : data.as_table())
+{
+    std::cout << k << '\n';
+}
+
+const auto& fruits = toml::find(data, "fruits");
+for(const auto& v : fruits.as_array())
+{
+    std::cout << toml::find<std::string>(v, "name") << '\n';
+}
+```
 
 The full list of the functions is below.
 
@@ -1652,13 +1672,8 @@ not capable of representing a Local Time independent from a specific day.
 
 ## Unreleased TOML features
 
-There are some unreleased features in toml-lang/toml:master.
-Currently, the following features are available after defining
-`TOML11_USE_UNRELEASED_TOML_FEATURES` macro flag.
-
-To use those features, `#define` `TOML11_USE_UNRELEASED_TOML_FEATURES` before
-including `toml.hpp` or pass `-DTOML11_USE_UNRELEASED_TOML_FEATURES` to your
-compiler.
+Since TOML v1.0.0-rc.1 has been released, those features are now activated by
+default. We no longer need to define `TOML11_USE_UNRELEASED_FEATURES`.
 
 - Leading zeroes in exponent parts of floats are permitted.
   - e.g. `1.0e+01`, `5e+05`
@@ -1668,10 +1683,10 @@ compiler.
 - Allow heterogeneous arrays
   - [toml-lang/toml/PR/676](https://github.com/toml-lang/toml/pull/676)
 
-### Note about heterogeneous arrays
+## Note about heterogeneous arrays
 
 Although `toml::parse` allows heterogeneous arrays, constructor of `toml::value`
-does not.
+does not. Here the reason is explained.
 
 ```cpp
 // this won't be compiled
@@ -1680,8 +1695,10 @@ toml::value v{
 }
 ```
 
-There is a workaround for this issue. By explicitly converting values into
+There is a workaround for this. By explicitly converting values into
 `toml::value`, you can initialize `toml::value` with a heterogeneous array.
+Also, you can first initialize a `toml::value` with an array and then
+`push_back` into it.
 
 ```cpp
 // OK!
@@ -1689,6 +1706,17 @@ toml::value v{
     toml::value("foo"), toml::value(3.14), toml::value(42),
     toml::value{1,2,3,4,5}, toml::value{{"key", "value"}}
 }
+
+// OK!
+toml::value v(toml::array{});
+v.push_back("foo");
+v.push_back(3.14);
+
+// OK!
+toml::array a;
+a.push_back("foo");
+a.push_back(3.14);
+toml::value v(std::move(a));
 ```
 
 The reason why the first example is not allowed is the following.
@@ -1717,15 +1745,14 @@ This means that the above C++ code makes constructor's overload resolution
 ambiguous. So a constructor that allows both "table as an initializer-list" and
 "heterogeneous array as an initializer-list" cannot be implemented.
 
-Thus, although it is painful, you need to explicitly cast values into
-`toml::value` when you initialize heterogeneous array in C++ code.
+Thus, although it is painful, we need to explicitly cast values into
+`toml::value` when you initialize heterogeneous array in a C++ code.
 
 ```cpp
-// You need to do this when you want to initialize hetero array.
 toml::value v{
     toml::value("foo"), toml::value(3.14), toml::value(42),
     toml::value{1,2,3,4,5}, toml::value{{"key", "value"}}
-}
+};
 ```
 
 ## Breaking Changes from v2

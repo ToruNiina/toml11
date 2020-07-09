@@ -13,6 +13,13 @@
 #include "types.hpp"
 #include "value.hpp"
 
+#if __cplusplus >= 201703L
+#if __has_include(<filesystem>)
+#define TOML11_HAS_STD_FILESYSTEM
+#include <filesystem>
+#endif // has_include(<string_view>)
+#endif // cplusplus   >= C++17
+
 namespace toml
 {
 namespace detail
@@ -734,7 +741,13 @@ parse_local_time(location<Container>& loc)
                 case 0:  break;
                 default: break;
             }
-            if(sf.size() >= 6)
+            if(sf.size() >= 9)
+            {
+                time.millisecond = from_string<std::uint16_t>(sf.substr(0, 3), 0u);
+                time.microsecond = from_string<std::uint16_t>(sf.substr(3, 3), 0u);
+                time.nanosecond  = from_string<std::uint16_t>(sf.substr(6, 3), 0u);
+            }
+            else if(sf.size() >= 6)
             {
                 time.millisecond = from_string<std::uint16_t>(sf.substr(0, 3), 0u);
                 time.microsecond = from_string<std::uint16_t>(sf.substr(3, 3), 0u);
@@ -978,7 +991,12 @@ parse_array(location<Container>& loc)
 
         if(auto val = parse_value<value_type>(loc))
         {
-#ifndef TOML11_USE_UNRELEASED_TOML_FEATURES
+            // After TOML v1.0.0-rc.1, array becomes to be able to have values
+            // with different types. So here we will omit this by default.
+            //
+            // But some of the test-suite checks if the parser accepts a hetero-
+            // geneous arrays, so we keep this for a while.
+#ifdef TOML11_DISALLOW_HETEROGENEOUS_ARRAYS
             if(!retval.empty() && retval.front().type() != val.as_ok().type())
             {
                 auto array_start_loc = loc;
@@ -1390,9 +1408,6 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                 // According to toml-lang/toml:36d3091b3 "Clarify that inline
                 // tables are immutable", check if it adds key-value pair to an
                 // inline table.
-                //   This is one of the unreleased (after-0.5.0) toml feature.
-                // But this is marked as "Clarify", so TOML-lang intended that
-                // inline tables are immutable in all version.
                 {
                     // here, if the value is a (multi-line) table, the region
                     // should be something like `[table-name]`.
@@ -2094,6 +2109,40 @@ basic_value<Comment, Table, Array> parse(const std::string& fname)
     }
     return parse<Comment, Table, Array>(ifs, fname);
 }
+
+#ifdef TOML11_HAS_STD_FILESYSTEM
+// This function just forwards `parse("filename.toml")` to std::string version
+// to avoid the ambiguity in overload resolution.
+//
+// Both std::string and std::filesystem::path are convertible from const char[].
+// Without this, both parse(std::string) and parse(std::filesystem::path)
+// matches to parse("filename.toml"). This breaks the existing code.
+//
+// This function exactly matches to the invokation with string literal.
+// So this function is preferred than others and the ambiguity disappears.
+template<typename                     Comment = ::toml::discard_comments,
+         template<typename ...> class Table   = std::unordered_map,
+         template<typename ...> class Array   = std::vector,
+         std::size_t N>
+basic_value<Comment, Table, Array> parse(const char (&fname)[N])
+{
+    return parse<Comment, Table, Array>(std::string(fname));
+}
+
+template<typename                     Comment = ::toml::discard_comments,
+         template<typename ...> class Table   = std::unordered_map,
+         template<typename ...> class Array   = std::vector>
+basic_value<Comment, Table, Array> parse(const std::filesystem::path& fpath)
+{
+    std::ifstream ifs(fpath, std::ios_base::binary);
+    if(!ifs.good())
+    {
+        throw std::runtime_error("toml::parse: file open error -> " +
+                                 fpath.string());
+    }
+    return parse<Comment, Table, Array>(ifs, fpath.string());
+}
+#endif // TOML11_HAS_STD_FILESYSTEM
 
 } // toml
 #endif// TOML11_PARSER_HPP
