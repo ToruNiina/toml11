@@ -183,3 +183,9 @@ add_executable(test_multiple_translation_unit
                test_multiple_translation_unit_1.cpp
                test_multiple_translation_unit_2.cpp)
 target_link_libraries(test_multiple_translation_unit toml11::toml11)
+
+if(WIN32)
+    add_executable(test_windows test_windows.cpp)
+    target_link_libraries(test_windows toml11::toml11)
+endif()
+
