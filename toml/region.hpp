@@ -498,7 +498,7 @@ inline std::string format_underline(const std::string& message,
         {
             // invalid
             // ~~~~~~~
-            const auto underline_len = std::min(reg->size(), reg->line().size());
+            const auto underline_len = (std::min)(reg->size(), reg->line().size());
             retval << color::bold << color::red
                    << make_string(underline_len, '~') << color::reset;
         }

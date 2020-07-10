@@ -555,7 +555,7 @@ struct serializer
         for(const auto& item : v)
         {
             if(is_first) {is_first = false;} else {token += ',';}
-            token += visit(serializer(std::numeric_limits<std::size_t>::max(),
+            token += visit(serializer((std::numeric_limits<std::size_t>::max)(),
                                       this->float_prec_, true), item);
         }
         token += ']';
@@ -575,7 +575,7 @@ struct serializer
             if(is_first) {is_first = false;} else {token += ',';}
             token += format_key(kv.first);
             token += '=';
-            token += visit(serializer(std::numeric_limits<std::size_t>::max(),
+            token += visit(serializer((std::numeric_limits<std::size_t>::max)(),
                                       this->float_prec_, true), kv.second);
         }
         token += '}';
