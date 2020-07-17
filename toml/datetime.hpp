@@ -2,14 +2,15 @@
 // Distributed under the MIT License.
 #ifndef TOML11_DATETIME_HPP
 #define TOML11_DATETIME_HPP
-#include <chrono>
-#include <tuple>
-#include <array>
-#include <ostream>
-#include <iomanip>
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
+
+#include <array>
+#include <chrono>
+#include <iomanip>
+#include <ostream>
+#include <tuple>
 
 namespace toml
 {

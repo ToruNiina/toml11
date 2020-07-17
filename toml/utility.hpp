@@ -2,10 +2,11 @@
 // Distributed under the MIT License.
 #ifndef TOML11_UTILITY_HPP
 #define TOML11_UTILITY_HPP
-#include "traits.hpp"
-#include <utility>
 #include <memory>
 #include <sstream>
+#include <utility>
+
+#include "traits.hpp"
 
 #if __cplusplus >= 201402L
 #  define TOML11_MARK_AS_DEPRECATED(msg) [[deprecated(msg)]]

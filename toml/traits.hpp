@@ -2,12 +2,13 @@
 // Distributed under the MIT License.
 #ifndef TOML11_TRAITS_HPP
 #define TOML11_TRAITS_HPP
+#include <chrono>
+#include <forward_list>
+#include <string>
+#include <tuple>
 #include <type_traits>
 #include <utility>
-#include <chrono>
-#include <tuple>
-#include <string>
-#include <forward_list>
+
 #if __cplusplus >= 201703L
 #if __has_include(<string_view>)
 #include <string_view>

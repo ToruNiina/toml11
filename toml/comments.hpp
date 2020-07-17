@@ -2,12 +2,12 @@
 // Distributed under the MIT License.
 #ifndef TOML11_COMMENTS_HPP
 #define TOML11_COMMENTS_HPP
+#include <initializer_list>
+#include <iterator>
+#include <string>
 #include <type_traits>
 #include <utility>
-#include <iterator>
-#include <initializer_list>
 #include <vector>
-#include <string>
 
 // This file provides mainly two classes, `preserve_comments` and `discard_comments`.
 // Those two are a container that have the same interface as `std::vector<std::string>`

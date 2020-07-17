@@ -2,10 +2,11 @@
 // Distributed under the MIT License.
 #ifndef TOML11_GET_HPP
 #define TOML11_GET_HPP
+#include <algorithm>
+
 #include "from.hpp"
 #include "result.hpp"
 #include "value.hpp"
-#include <algorithm>
 
 namespace toml
 {

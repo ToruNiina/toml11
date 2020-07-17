@@ -2,8 +2,9 @@
 // Distributed under the MIT License.
 #ifndef TOML11_SOURCE_LOCATION_HPP
 #define TOML11_SOURCE_LOCATION_HPP
-#include "region.hpp"
 #include <cstdint>
+
+#include "region.hpp"
 
 namespace toml
 {

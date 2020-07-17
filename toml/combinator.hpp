@@ -2,18 +2,20 @@
 // Distributed under the MIT License.
 #ifndef TOML11_COMBINATOR_HPP
 #define TOML11_COMBINATOR_HPP
-#include "traits.hpp"
-#include "result.hpp"
-#include "utility.hpp"
-#include "region.hpp"
-#include <type_traits>
-#include <iterator>
-#include <limits>
-#include <array>
-#include <iomanip>
-#include <cstdio>
 #include <cassert>
 #include <cctype>
+#include <cstdio>
+
+#include <array>
+#include <iomanip>
+#include <iterator>
+#include <limits>
+#include <type_traits>
+
+#include "region.hpp"
+#include "result.hpp"
+#include "traits.hpp"
+#include "utility.hpp"
 
 // they scans characters and returns region if it matches to the condition.
 // when they fail, it does not change the location.
