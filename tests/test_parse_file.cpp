@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(test_example)
 
 BOOST_AUTO_TEST_CASE(test_example_stream)
 {
-    std::ifstream ifs("toml/tests/example.toml");
+    std::ifstream ifs("toml/tests/example.toml", std::ios::binary);
     const auto data = toml::parse(ifs);
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
