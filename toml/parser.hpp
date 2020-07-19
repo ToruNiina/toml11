@@ -2065,10 +2065,11 @@ parse(std::istream& is, const std::string& fname = "unknown file")
     std::vector<char> letters(static_cast<std::size_t>(fsize));
     is.read(letters.data(), fsize);
 
-    if(!letters.empty() && letters.back() == '\0')
+    while(!letters.empty() && letters.back() == '\0')
     {
         letters.pop_back();
     }
+    assert(letters.empty() || letters.back() != '\0');
 
     detail::location<std::vector<char>>
         loc(std::move(fname), std::move(letters));
