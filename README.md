@@ -1836,6 +1836,12 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fixed feature test macro to suppress -Wundef
   - Use cache variables in CMakeLists.txt
   - Automate test set fetching, update and refactor CMakeLists.txt
+- Scott McCaskill
+  - Parse 9 digits (nanoseconds) of fractional seconds in a `local_time`
+- Shu Wang (@halfelf)
+  - fix "Finding a value in an array" example in README
+- @maass-tv and @SeverinLeonhardt
+  - Fix MSVC warning C4866
 
 ## Licensing terms
 
