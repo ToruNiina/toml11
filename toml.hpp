@@ -33,6 +33,10 @@
 #    error "toml11 requires C++11 or later."
 #endif
 
+#define TOML11_VERSION_MAJOR 3
+#define TOML11_VERSION_MINOR 5
+#define TOML11_VERSION_PATCH 0
+
 #include "toml/parser.hpp"
 #include "toml/literal.hpp"
 #include "toml/serializer.hpp"

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 enable_testing()
 
-project(toml11 VERSION 3.4.0)
+project(toml11 VERSION 3.5.0)
 
 option(toml11_BUILD_TEST "Build toml tests" ON)
 option(toml11_TEST_WITH_ASAN  "use LLVM address sanitizer" OFF)
