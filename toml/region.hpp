@@ -48,6 +48,8 @@ struct region_base
     virtual std::string line()     const {return std::string("unknown line");}
     virtual std::string line_num() const {return std::string("?");}
 
+    virtual std::vector<char> vec() const {return std::vector<char>{};}
+
     // length of the region
     virtual std::size_t size()     const noexcept {return 0;}
     // number of characters in the line before the region
@@ -140,6 +142,8 @@ struct location final : public region_base
 
     std::string str()  const override {return make_string(1, *this->iter());}
     std::string name() const override {return source_name_;}
+
+    std::vector<char> vec() const override {return std::vector<char>{*this->iter()};}
 
     std::string line_num() const override
     {
@@ -258,6 +262,8 @@ struct region final : public region_base
     {
         return std::to_string(1 + std::count(this->begin(), this->first(), '\n'));
     }
+
+    std::vector<char> vec() const override {return std::vector<char>(first_, last_);}
 
     std::size_t size() const noexcept override
     {
