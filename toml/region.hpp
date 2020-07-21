@@ -85,6 +85,12 @@ struct location final : public region_base
       : source_(std::make_shared<Container>(std::move(cont))), line_number_(1),
         source_name_(std::move(name)), iter_(source_->cbegin())
     {}
+
+    location(std::string name, const std::string& cont)
+      : source_(std::make_shared<Container>(cont.begin(), cont.end())),
+        line_number_(1), source_name_(std::move(name)), iter_(source_->cbegin())
+    {}
+
     location(const location&) = default;
     location(location&&)      = default;
     location& operator=(const location&) = default;
