@@ -510,7 +510,7 @@ parse_ml_literal_string(location<Container>& loc)
     const auto first = loc.iter();
     if(const auto token = lex_ml_literal_string::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().vec());
+        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
 
         const auto open = lex_ml_literal_string_open::invoke(inner_loc);
         if(!open)
@@ -573,7 +573,7 @@ parse_literal_string(location<Container>& loc)
     const auto first = loc.iter();
     if(const auto token = lex_literal_string::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().vec());
+        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
 
         const auto open = lex_apostrophe::invoke(inner_loc);
         if(!open)
@@ -646,7 +646,7 @@ parse_local_date(location<Container>& loc)
     const auto first = loc.iter();
     if(const auto token = lex_local_date::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().vec());
+        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
 
         const auto y = lex_date_fullyear::invoke(inner_loc);
         if(!y || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != '-')
@@ -696,7 +696,7 @@ parse_local_time(location<Container>& loc)
     const auto first = loc.iter();
     if(const auto token = lex_local_time::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().vec());
+        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
 
         const auto h = lex_time_hour::invoke(inner_loc);
         if(!h || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != ':')
@@ -785,7 +785,7 @@ parse_local_datetime(location<Container>& loc)
     const auto first = loc.iter();
     if(const auto token = lex_local_date_time::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().vec());
+        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
         const auto date = parse_local_date(inner_loc);
         if(!date || inner_loc.iter() == inner_loc.end())
         {
@@ -830,7 +830,7 @@ parse_offset_datetime(location<Container>& loc)
     const auto first = loc.iter();
     if(const auto token = lex_offset_date_time::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().vec());
+        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
         const auto datetime = parse_local_datetime(inner_loc);
         if(!datetime || inner_loc.iter() == inner_loc.end())
         {
@@ -903,7 +903,7 @@ parse_key(location<Container>& loc)
     if(const auto token = lex_dotted_key::invoke(loc))
     {
         const auto reg = token.unwrap();
-        location<std::vector<char>> inner_loc(loc.name(), reg.vec());
+        location<std::vector<char>> inner_loc(loc.name(), reg.str());
         std::vector<key> keys;
 
         while(inner_loc.iter() != inner_loc.end())
@@ -1182,7 +1182,7 @@ template<typename Value, typename Iterator>
 bool is_valid_forward_table_definition(const Value& fwd,
         Iterator key_first, Iterator key_curr, Iterator key_last)
 {
-    location<std::vector<char>> def("internal", detail::get_region(fwd).vec());
+    location<std::vector<char>> def("internal", detail::get_region(fwd).str());
     if(const auto tabkeys = parse_table_key(def))
     {
         // table keys always contains all the nodes from the root.
@@ -1736,7 +1736,7 @@ parse_table_key(location<Container>& loc)
 {
     if(auto token = lex_std_table::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().vec());
+        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
 
         const auto open = lex_std_table_open::invoke(inner_loc);
         if(!open || inner_loc.iter() == inner_loc.end())
@@ -1798,7 +1798,7 @@ parse_array_table_key(location<Container>& loc)
 {
     if(auto token = lex_array_table::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().vec());
+        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
 
         const auto open = lex_array_table_open::invoke(inner_loc);
         if(!open || inner_loc.iter() == inner_loc.end())
@@ -1970,7 +1970,7 @@ result<Value, std::string> parse_toml_file(location<Container>& loc)
         >;
     if(const auto token = lex_first_comments::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().vec());
+        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
         while(inner_loc.iter() != inner_loc.end())
         {
             maybe<lex_ws>::invoke(inner_loc); // remove ws if exists
