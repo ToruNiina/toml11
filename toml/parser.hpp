@@ -25,7 +25,7 @@ namespace toml
 namespace detail
 {
 
-inline result<std::pair<boolean, region<std::vector<char>>>, std::string>
+inline result<std::pair<boolean, region>, std::string>
 parse_boolean(location& loc)
 {
     const auto first = loc.iter();
@@ -47,7 +47,7 @@ parse_boolean(location& loc)
                {{std::addressof(loc), "the next token is not a boolean"}}));
 }
 
-inline result<std::pair<integer, region<std::vector<char>>>, std::string>
+inline result<std::pair<integer, region>, std::string>
 parse_binary_integer(location& loc)
 {
     const auto first = loc.iter();
@@ -76,7 +76,7 @@ parse_binary_integer(location& loc)
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
 
-inline result<std::pair<integer, region<std::vector<char>>>, std::string>
+inline result<std::pair<integer, region>, std::string>
 parse_octal_integer(location& loc)
 {
     const auto first = loc.iter();
@@ -96,7 +96,7 @@ parse_octal_integer(location& loc)
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
 
-inline result<std::pair<integer, region<std::vector<char>>>, std::string>
+inline result<std::pair<integer, region>, std::string>
 parse_hexadecimal_integer(location& loc)
 {
     const auto first = loc.iter();
@@ -116,7 +116,7 @@ parse_hexadecimal_integer(location& loc)
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
 
-inline result<std::pair<integer, region<std::vector<char>>>, std::string>
+inline result<std::pair<integer, region>, std::string>
 parse_integer(location& loc)
 {
     const auto first = loc.iter();
@@ -125,7 +125,7 @@ parse_integer(location& loc)
         const auto second = std::next(first);
         if(second == loc.end()) // the token is just zero.
         {
-            return ok(std::make_pair(0, region<std::vector<char>>(loc, first, second)));
+            return ok(std::make_pair(0, region(loc, first, second)));
         }
 
         if(*second == 'b') {return parse_binary_integer     (loc);} // 0b1100
@@ -161,7 +161,7 @@ parse_integer(location& loc)
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
 
-inline result<std::pair<floating, region<std::vector<char>>>, std::string>
+inline result<std::pair<floating, region>, std::string>
 parse_floating(location& loc)
 {
     const auto first = loc.iter();
@@ -249,9 +249,7 @@ parse_floating(location& loc)
                {{std::addressof(loc), "the next token is not a float"}}));
 }
 
-template<typename Container>
-std::string read_utf8_codepoint(const region<Container>& reg,
-              /* for err msg */ const location& loc)
+inline std::string read_utf8_codepoint(const region& reg, const location& loc)
 {
     const auto str = reg.str().substr(1);
     std::uint_least32_t codepoint;
@@ -363,7 +361,7 @@ inline result<std::string, std::string> parse_escape_sequence(location& loc)
     return err(msg);
 }
 
-inline result<std::pair<toml::string, region<std::vector<char>>>, std::string>
+inline result<std::pair<toml::string, region>, std::string>
 parse_ml_basic_string(location& loc)
 {
     const auto first = loc.iter();
@@ -442,7 +440,7 @@ parse_ml_basic_string(location& loc)
     }
 }
 
-inline result<std::pair<toml::string, region<std::vector<char>>>, std::string>
+inline result<std::pair<toml::string, region>, std::string>
 parse_basic_string(location& loc)
 {
     const auto first = loc.iter();
@@ -494,7 +492,7 @@ parse_basic_string(location& loc)
     }
 }
 
-inline result<std::pair<toml::string, region<std::vector<char>>>, std::string>
+inline result<std::pair<toml::string, region>, std::string>
 parse_ml_literal_string(location& loc)
 {
     const auto first = loc.iter();
@@ -556,7 +554,7 @@ parse_ml_literal_string(location& loc)
     }
 }
 
-inline result<std::pair<toml::string, region<std::vector<char>>>, std::string>
+inline result<std::pair<toml::string, region>, std::string>
 parse_literal_string(location& loc)
 {
     const auto first = loc.iter();
@@ -596,7 +594,7 @@ parse_literal_string(location& loc)
     }
 }
 
-inline result<std::pair<toml::string, region<std::vector<char>>>, std::string>
+inline result<std::pair<toml::string, region>, std::string>
 parse_string(location& loc)
 {
     if(loc.iter() != loc.end() && *(loc.iter()) == '"')
@@ -627,7 +625,7 @@ parse_string(location& loc)
                 {{std::addressof(loc), "the next token is not a string"}}));
 }
 
-inline result<std::pair<local_date, region<std::vector<char>>>, std::string>
+inline result<std::pair<local_date, region>, std::string>
 parse_local_date(location& loc)
 {
     const auto first = loc.iter();
@@ -676,7 +674,7 @@ parse_local_date(location& loc)
     }
 }
 
-inline result<std::pair<local_time, region<std::vector<char>>>, std::string>
+inline result<std::pair<local_time, region>, std::string>
 parse_local_time(location& loc)
 {
     const auto first = loc.iter();
@@ -764,7 +762,7 @@ parse_local_time(location& loc)
     }
 }
 
-inline result<std::pair<local_datetime, region<std::vector<char>>>, std::string>
+inline result<std::pair<local_datetime, region>, std::string>
 parse_local_datetime(location& loc)
 {
     const auto first = loc.iter();
@@ -808,7 +806,7 @@ parse_local_datetime(location& loc)
     }
 }
 
-inline result<std::pair<offset_datetime, region<std::vector<char>>>, std::string>
+inline result<std::pair<offset_datetime, region>, std::string>
 parse_offset_datetime(location& loc)
 {
     const auto first = loc.iter();
@@ -856,7 +854,7 @@ parse_offset_datetime(location& loc)
     }
 }
 
-inline result<std::pair<key, region<std::vector<char>>>, std::string>
+inline result<std::pair<key, region>, std::string>
 parse_simple_key(location& loc)
 {
     if(const auto bstr = parse_basic_string(loc))
@@ -877,7 +875,7 @@ parse_simple_key(location& loc)
 }
 
 // dotted key become vector of keys
-inline result<std::pair<std::vector<key>, region<std::vector<char>>>, std::string>
+inline result<std::pair<std::vector<key>, region>, std::string>
 parse_key(location& loc)
 {
     const auto first = loc.iter();
@@ -939,7 +937,7 @@ template<typename Value>
 result<Value, std::string> parse_value(location&);
 
 template<typename Value>
-result<std::pair<typename Value::array_type, region<std::vector<char>>>, std::string>
+result<std::pair<typename Value::array_type, region>, std::string>
 parse_array(location& loc)
 {
     using value_type = Value;
@@ -968,7 +966,7 @@ parse_array(location& loc)
         {
             loc.advance(); // skip ']'
             return ok(std::make_pair(retval,
-                      region<std::vector<char>>(loc, first, loc.iter())));
+                      region(loc, first, loc.iter())));
         }
 
         if(auto val = parse_value<value_type>(loc))
@@ -1021,7 +1019,7 @@ parse_array(location& loc)
             {
                 loc.advance(); // skip ']'
                 return ok(std::make_pair(retval,
-                          region<std::vector<char>>(loc, first, loc.iter())));
+                          region(loc, first, loc.iter())));
             }
             else
             {
@@ -1044,7 +1042,7 @@ parse_array(location& loc)
 }
 
 template<typename Value>
-result<std::pair<std::pair<std::vector<key>, region<std::vector<char>>>, Value>, std::string>
+result<std::pair<std::pair<std::vector<key>, region>, Value>, std::string>
 parse_key_value_pair(location& loc)
 {
     using value_type = Value;
@@ -1133,7 +1131,7 @@ std::string format_dotted_keys(InputIterator first, const InputIterator last)
 }
 
 // forward decl for is_valid_forward_table_definition
-result<std::pair<std::vector<key>, region<std::vector<char>>>, std::string>
+result<std::pair<std::vector<key>, region>, std::string>
 parse_table_key(location& loc);
 
 // The following toml file is allowed.
@@ -1205,7 +1203,7 @@ template<typename Value, typename InputIterator>
 result<bool, std::string>
 insert_nested_key(typename Value::table_type& root, const Value& v,
                   InputIterator iter, const InputIterator last,
-                  region<std::vector<char>> key_reg,
+                  region key_reg,
                   const bool is_array_of_table = false)
 {
     static_assert(std::is_same<key,
@@ -1439,7 +1437,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
 }
 
 template<typename Value>
-result<std::pair<typename Value::table_type, region<std::vector<char>>>, std::string>
+result<std::pair<typename Value::table_type, region>, std::string>
 parse_inline_table(location& loc)
 {
     using value_type = Value;
@@ -1461,7 +1459,7 @@ parse_inline_table(location& loc)
         {
             loc.advance(); // skip `}`
             return ok(std::make_pair(retval,
-                        region<std::vector<char>>(loc, first, loc.iter())));
+                        region(loc, first, loc.iter())));
         }
 
         const auto kv_r = parse_key_value_pair<value_type>(loc);
@@ -1492,7 +1490,7 @@ parse_inline_table(location& loc)
             {
                 loc.advance(); // skip `}`
                 return ok(std::make_pair(
-                            retval, region<std::vector<char>>(loc, first, loc.iter())));
+                            retval, region(loc, first, loc.iter())));
             }
             else if(*loc.iter() == '#' || *loc.iter() == '\r' || *loc.iter() == '\n')
             {
@@ -1709,7 +1707,7 @@ result<Value, std::string> parse_value(location& loc)
     }
 }
 
-inline result<std::pair<std::vector<key>, region<std::vector<char>>>, std::string>
+inline result<std::pair<std::vector<key>, region>, std::string>
 parse_table_key(location& loc)
 {
     if(auto token = lex_std_table::invoke(loc))
@@ -1770,7 +1768,7 @@ parse_table_key(location& loc)
     }
 }
 
-inline result<std::pair<std::vector<key>, region<std::vector<char>>>, std::string>
+inline result<std::pair<std::vector<key>, region>, std::string>
 parse_array_table_key(location& loc)
 {
     if(auto token = lex_array_table::invoke(loc))
@@ -1927,7 +1925,7 @@ result<Value, std::string> parse_toml_file(location& loc)
 
     // put the first line as a region of a file
     // Here first != loc.end(), so taking std::next is okay
-    const region<std::vector<char>> file(loc, first, std::next(loc.iter()));
+    const region file(loc, first, std::next(loc.iter()));
 
     // The first successive comments that are separated from the first value
     // by an empty line are for a file itself.

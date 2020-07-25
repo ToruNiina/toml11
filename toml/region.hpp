@@ -194,16 +194,10 @@ struct location final : public region_base
 //
 // it contains pointer to the file content and iterator that points the first
 // and last location.
-template<typename Container>
 struct region final : public region_base
 {
-    using const_iterator = typename Container::const_iterator;
-    using source_ptr     = std::shared_ptr<const Container>;
-
-    static_assert(std::is_same<char, typename Container::value_type>::value,"");
-    static_assert(std::is_same<std::random_access_iterator_tag,
-        typename std::iterator_traits<const_iterator>::iterator_category>::value,
-        "container should be randomly accessible");
+    using const_iterator = typename std::vector<char>::const_iterator;
+    using source_ptr     = std::shared_ptr<const std::vector<char>>;
 
     // delete default constructor. source_ never be null.
     region() = delete;
