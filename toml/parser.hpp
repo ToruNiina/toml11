@@ -25,9 +25,8 @@ namespace toml
 namespace detail
 {
 
-template<typename Container>
-result<std::pair<boolean, region<Container>>, std::string>
-parse_boolean(location<Container>& loc)
+inline result<std::pair<boolean, region<std::vector<char>>>, std::string>
+parse_boolean(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_boolean::invoke(loc))
@@ -48,9 +47,8 @@ parse_boolean(location<Container>& loc)
                {{std::addressof(loc), "the next token is not a boolean"}}));
 }
 
-template<typename Container>
-result<std::pair<integer, region<Container>>, std::string>
-parse_binary_integer(location<Container>& loc)
+inline result<std::pair<integer, region<std::vector<char>>>, std::string>
+parse_binary_integer(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_bin_int::invoke(loc))
@@ -78,9 +76,8 @@ parse_binary_integer(location<Container>& loc)
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
 
-template<typename Container>
-result<std::pair<integer, region<Container>>, std::string>
-parse_octal_integer(location<Container>& loc)
+inline result<std::pair<integer, region<std::vector<char>>>, std::string>
+parse_octal_integer(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_oct_int::invoke(loc))
@@ -99,9 +96,8 @@ parse_octal_integer(location<Container>& loc)
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
 
-template<typename Container>
-result<std::pair<integer, region<Container>>, std::string>
-parse_hexadecimal_integer(location<Container>& loc)
+inline result<std::pair<integer, region<std::vector<char>>>, std::string>
+parse_hexadecimal_integer(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_hex_int::invoke(loc))
@@ -120,9 +116,8 @@ parse_hexadecimal_integer(location<Container>& loc)
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
 
-template<typename Container>
-result<std::pair<integer, region<Container>>, std::string>
-parse_integer(location<Container>& loc)
+inline result<std::pair<integer, region<std::vector<char>>>, std::string>
+parse_integer(location& loc)
 {
     const auto first = loc.iter();
     if(first != loc.end() && *first == '0')
@@ -130,7 +125,7 @@ parse_integer(location<Container>& loc)
         const auto second = std::next(first);
         if(second == loc.end()) // the token is just zero.
         {
-            return ok(std::make_pair(0, region<Container>(loc, first, second)));
+            return ok(std::make_pair(0, region<std::vector<char>>(loc, first, second)));
         }
 
         if(*second == 'b') {return parse_binary_integer     (loc);} // 0b1100
@@ -166,9 +161,8 @@ parse_integer(location<Container>& loc)
                {{std::addressof(loc), "the next token is not an integer"}}));
 }
 
-template<typename Container>
-result<std::pair<floating, region<Container>>, std::string>
-parse_floating(location<Container>& loc)
+inline result<std::pair<floating, region<std::vector<char>>>, std::string>
+parse_floating(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_float::invoke(loc))
@@ -255,9 +249,9 @@ parse_floating(location<Container>& loc)
                {{std::addressof(loc), "the next token is not a float"}}));
 }
 
-template<typename Container, typename Container2>
+template<typename Container>
 std::string read_utf8_codepoint(const region<Container>& reg,
-              /* for err msg */ const location<Container2>& loc)
+              /* for err msg */ const location& loc)
 {
     const auto str = reg.str().substr(1);
     std::uint_least32_t codepoint;
@@ -314,8 +308,7 @@ std::string read_utf8_codepoint(const region<Container>& reg,
     return character;
 }
 
-template<typename Container>
-result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
+inline result<std::string, std::string> parse_escape_sequence(location& loc)
 {
     const auto first = loc.iter();
     if(first == loc.end() || *first != '\\')
@@ -370,9 +363,8 @@ result<std::string, std::string> parse_escape_sequence(location<Container>& loc)
     return err(msg);
 }
 
-template<typename Container>
-result<std::pair<toml::string, region<Container>>, std::string>
-parse_ml_basic_string(location<Container>& loc)
+inline result<std::pair<toml::string, region<std::vector<char>>>, std::string>
+parse_ml_basic_string(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_ml_basic_string::invoke(loc))
@@ -450,9 +442,8 @@ parse_ml_basic_string(location<Container>& loc)
     }
 }
 
-template<typename Container>
-result<std::pair<toml::string, region<Container>>, std::string>
-parse_basic_string(location<Container>& loc)
+inline result<std::pair<toml::string, region<std::vector<char>>>, std::string>
+parse_basic_string(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_basic_string::invoke(loc))
@@ -503,14 +494,13 @@ parse_basic_string(location<Container>& loc)
     }
 }
 
-template<typename Container>
-result<std::pair<toml::string, region<Container>>, std::string>
-parse_ml_literal_string(location<Container>& loc)
+inline result<std::pair<toml::string, region<std::vector<char>>>, std::string>
+parse_ml_literal_string(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_ml_literal_string::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
+        location inner_loc(loc.name(), token.unwrap().str());
 
         const auto open = lex_ml_literal_string_open::invoke(inner_loc);
         if(!open)
@@ -566,14 +556,13 @@ parse_ml_literal_string(location<Container>& loc)
     }
 }
 
-template<typename Container>
-result<std::pair<toml::string, region<Container>>, std::string>
-parse_literal_string(location<Container>& loc)
+inline result<std::pair<toml::string, region<std::vector<char>>>, std::string>
+parse_literal_string(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_literal_string::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
+        location inner_loc(loc.name(), token.unwrap().str());
 
         const auto open = lex_apostrophe::invoke(inner_loc);
         if(!open)
@@ -607,9 +596,8 @@ parse_literal_string(location<Container>& loc)
     }
 }
 
-template<typename Container>
-result<std::pair<toml::string, region<Container>>, std::string>
-parse_string(location<Container>& loc)
+inline result<std::pair<toml::string, region<std::vector<char>>>, std::string>
+parse_string(location& loc)
 {
     if(loc.iter() != loc.end() && *(loc.iter()) == '"')
     {
@@ -639,14 +627,13 @@ parse_string(location<Container>& loc)
                 {{std::addressof(loc), "the next token is not a string"}}));
 }
 
-template<typename Container>
-result<std::pair<local_date, region<Container>>, std::string>
-parse_local_date(location<Container>& loc)
+inline result<std::pair<local_date, region<std::vector<char>>>, std::string>
+parse_local_date(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_local_date::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
+        location inner_loc(loc.name(), token.unwrap().str());
 
         const auto y = lex_date_fullyear::invoke(inner_loc);
         if(!y || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != '-')
@@ -689,14 +676,13 @@ parse_local_date(location<Container>& loc)
     }
 }
 
-template<typename Container>
-result<std::pair<local_time, region<Container>>, std::string>
-parse_local_time(location<Container>& loc)
+inline result<std::pair<local_time, region<std::vector<char>>>, std::string>
+parse_local_time(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_local_time::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
+        location inner_loc(loc.name(), token.unwrap().str());
 
         const auto h = lex_time_hour::invoke(inner_loc);
         if(!h || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != ':')
@@ -778,14 +764,13 @@ parse_local_time(location<Container>& loc)
     }
 }
 
-template<typename Container>
-result<std::pair<local_datetime, region<Container>>, std::string>
-parse_local_datetime(location<Container>& loc)
+inline result<std::pair<local_datetime, region<std::vector<char>>>, std::string>
+parse_local_datetime(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_local_date_time::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
+        location inner_loc(loc.name(), token.unwrap().str());
         const auto date = parse_local_date(inner_loc);
         if(!date || inner_loc.iter() == inner_loc.end())
         {
@@ -823,14 +808,13 @@ parse_local_datetime(location<Container>& loc)
     }
 }
 
-template<typename Container>
-result<std::pair<offset_datetime, region<Container>>, std::string>
-parse_offset_datetime(location<Container>& loc)
+inline result<std::pair<offset_datetime, region<std::vector<char>>>, std::string>
+parse_offset_datetime(location& loc)
 {
     const auto first = loc.iter();
     if(const auto token = lex_offset_date_time::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
+        location inner_loc(loc.name(), token.unwrap().str());
         const auto datetime = parse_local_datetime(inner_loc);
         if(!datetime || inner_loc.iter() == inner_loc.end())
         {
@@ -872,9 +856,8 @@ parse_offset_datetime(location<Container>& loc)
     }
 }
 
-template<typename Container>
-result<std::pair<key, region<Container>>, std::string>
-parse_simple_key(location<Container>& loc)
+inline result<std::pair<key, region<std::vector<char>>>, std::string>
+parse_simple_key(location& loc)
 {
     if(const auto bstr = parse_basic_string(loc))
     {
@@ -894,16 +877,15 @@ parse_simple_key(location<Container>& loc)
 }
 
 // dotted key become vector of keys
-template<typename Container>
-result<std::pair<std::vector<key>, region<Container>>, std::string>
-parse_key(location<Container>& loc)
+inline result<std::pair<std::vector<key>, region<std::vector<char>>>, std::string>
+parse_key(location& loc)
 {
     const auto first = loc.iter();
     // dotted key -> foo.bar.baz whitespaces are allowed
     if(const auto token = lex_dotted_key::invoke(loc))
     {
         const auto reg = token.unwrap();
-        location<std::vector<char>> inner_loc(loc.name(), reg.str());
+        location inner_loc(loc.name(), reg.str());
         std::vector<key> keys;
 
         while(inner_loc.iter() != inner_loc.end())
@@ -953,12 +935,12 @@ parse_key(location<Container>& loc)
 }
 
 // forward-decl to implement parse_array and parse_table
-template<typename Value, typename Container>
-result<Value, std::string> parse_value(location<Container>&);
+template<typename Value>
+result<Value, std::string> parse_value(location&);
 
-template<typename Value, typename Container>
-result<std::pair<typename Value::array_type, region<Container>>, std::string>
-parse_array(location<Container>& loc)
+template<typename Value>
+result<std::pair<typename Value::array_type, region<std::vector<char>>>, std::string>
+parse_array(location& loc)
 {
     using value_type = Value;
     using array_type = typename value_type::array_type;
@@ -986,7 +968,7 @@ parse_array(location<Container>& loc)
         {
             loc.advance(); // skip ']'
             return ok(std::make_pair(retval,
-                      region<Container>(loc, first, loc.iter())));
+                      region<std::vector<char>>(loc, first, loc.iter())));
         }
 
         if(auto val = parse_value<value_type>(loc))
@@ -1039,7 +1021,7 @@ parse_array(location<Container>& loc)
             {
                 loc.advance(); // skip ']'
                 return ok(std::make_pair(retval,
-                          region<Container>(loc, first, loc.iter())));
+                          region<std::vector<char>>(loc, first, loc.iter())));
             }
             else
             {
@@ -1061,9 +1043,9 @@ parse_array(location<Container>& loc)
             source_location(std::addressof(loc)));
 }
 
-template<typename Value, typename Container>
-result<std::pair<std::pair<std::vector<key>, region<Container>>, Value>, std::string>
-parse_key_value_pair(location<Container>& loc)
+template<typename Value>
+result<std::pair<std::pair<std::vector<key>, region<std::vector<char>>>, Value>, std::string>
+parse_key_value_pair(location& loc)
 {
     using value_type = Value;
 
@@ -1151,9 +1133,8 @@ std::string format_dotted_keys(InputIterator first, const InputIterator last)
 }
 
 // forward decl for is_valid_forward_table_definition
-template<typename Container>
-result<std::pair<std::vector<key>, region<Container>>, std::string>
-parse_table_key(location<Container>& loc);
+result<std::pair<std::vector<key>, region<std::vector<char>>>, std::string>
+parse_table_key(location& loc);
 
 // The following toml file is allowed.
 // ```toml
@@ -1182,7 +1163,7 @@ template<typename Value, typename Iterator>
 bool is_valid_forward_table_definition(const Value& fwd,
         Iterator key_first, Iterator key_curr, Iterator key_last)
 {
-    location<std::vector<char>> def("internal", detail::get_region(fwd).str());
+    location def("internal", detail::get_region(fwd).str());
     if(const auto tabkeys = parse_table_key(def))
     {
         // table keys always contains all the nodes from the root.
@@ -1220,11 +1201,11 @@ bool is_valid_forward_table_definition(const Value& fwd,
     return false;
 }
 
-template<typename Value, typename InputIterator, typename Container>
+template<typename Value, typename InputIterator>
 result<bool, std::string>
 insert_nested_key(typename Value::table_type& root, const Value& v,
                   InputIterator iter, const InputIterator last,
-                  region<Container> key_reg,
+                  region<std::vector<char>> key_reg,
                   const bool is_array_of_table = false)
 {
     static_assert(std::is_same<key,
@@ -1457,9 +1438,9 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
     return err(std::string("toml::detail::insert_nested_key: never reach here"));
 }
 
-template<typename Value, typename Container>
-result<std::pair<typename Value::table_type, region<Container>>, std::string>
-parse_inline_table(location<Container>& loc)
+template<typename Value>
+result<std::pair<typename Value::table_type, region<std::vector<char>>>, std::string>
+parse_inline_table(location& loc)
 {
     using value_type = Value;
     using table_type = typename value_type::table_type;
@@ -1479,8 +1460,8 @@ parse_inline_table(location<Container>& loc)
         if(loc.iter() != loc.end() && *loc.iter() == '}')
         {
             loc.advance(); // skip `}`
-            return ok(std::make_pair(
-                        retval, region<Container>(loc, first, loc.iter())));
+            return ok(std::make_pair(retval,
+                        region<std::vector<char>>(loc, first, loc.iter())));
         }
 
         const auto kv_r = parse_key_value_pair<value_type>(loc);
@@ -1490,7 +1471,7 @@ parse_inline_table(location<Container>& loc)
         }
         const auto&              kvpair  = kv_r.unwrap();
         const std::vector<key>&  keys    = kvpair.first.first;
-        const region<Container>& key_reg = kvpair.first.second;
+        const auto&              key_reg = kvpair.first.second;
         const value_type&        val     = kvpair.second;
 
         const auto inserted =
@@ -1511,7 +1492,7 @@ parse_inline_table(location<Container>& loc)
             {
                 loc.advance(); // skip `}`
                 return ok(std::make_pair(
-                            retval, region<Container>(loc, first, loc.iter())));
+                            retval, region<std::vector<char>>(loc, first, loc.iter())));
             }
             else if(*loc.iter() == '#' || *loc.iter() == '\r' || *loc.iter() == '\n')
             {
@@ -1536,8 +1517,7 @@ parse_inline_table(location<Container>& loc)
             source_location(std::addressof(loc)));
 }
 
-template<typename Container>
-result<value_t, std::string> guess_number_type(const location<Container>& l)
+inline result<value_t, std::string> guess_number_type(const location& l)
 {
     // This function tries to find some (common) mistakes by checking characters
     // that follows the last character of a value. But it is often difficult
@@ -1545,7 +1525,7 @@ result<value_t, std::string> guess_number_type(const location<Container>& l)
     // spaces, tabs, commas (in an array or inline table), closing brackets
     // (of an array or inline table), comment-sign (#). Since this function
     // does not parse further, those characters are always allowed to be there.
-    location<Container> loc = l;
+    location loc = l;
 
     if(lex_offset_date_time::invoke(loc)) {return ok(value_t::offset_datetime);}
     loc.reset(l.iter());
@@ -1674,8 +1654,7 @@ result<value_t, std::string> guess_number_type(const location<Container>& l)
                 {{std::addressof(loc), "here"}}));
 }
 
-template<typename Container>
-result<value_t, std::string> guess_value_type(const location<Container>& loc)
+inline result<value_t, std::string> guess_value_type(const location& loc)
 {
     switch(*loc.iter())
     {
@@ -1691,8 +1670,8 @@ result<value_t, std::string> guess_value_type(const location<Container>& loc)
     }
 }
 
-template<typename Value, typename Container>
-result<Value, std::string> parse_value(location<Container>& loc)
+template<typename Value>
+result<Value, std::string> parse_value(location& loc)
 {
     using value_type = Value;
 
@@ -1730,13 +1709,12 @@ result<Value, std::string> parse_value(location<Container>& loc)
     }
 }
 
-template<typename Container>
-result<std::pair<std::vector<key>, region<Container>>, std::string>
-parse_table_key(location<Container>& loc)
+inline result<std::pair<std::vector<key>, region<std::vector<char>>>, std::string>
+parse_table_key(location& loc)
 {
     if(auto token = lex_std_table::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
+        location inner_loc(loc.name(), token.unwrap().str());
 
         const auto open = lex_std_table_open::invoke(inner_loc);
         if(!open || inner_loc.iter() == inner_loc.end())
@@ -1792,13 +1770,12 @@ parse_table_key(location<Container>& loc)
     }
 }
 
-template<typename Container>
-result<std::pair<std::vector<key>, region<Container>>, std::string>
-parse_array_table_key(location<Container>& loc)
+inline result<std::pair<std::vector<key>, region<std::vector<char>>>, std::string>
+parse_array_table_key(location& loc)
 {
     if(auto token = lex_array_table::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
+        location inner_loc(loc.name(), token.unwrap().str());
 
         const auto open = lex_array_table_open::invoke(inner_loc);
         if(!open || inner_loc.iter() == inner_loc.end())
@@ -1851,9 +1828,9 @@ parse_array_table_key(location<Container>& loc)
 }
 
 // parse table body (key-value pairs until the iter hits the next [tablekey])
-template<typename Value, typename Container>
+template<typename Value>
 result<typename Value::table_type, std::string>
-parse_ml_table(location<Container>& loc)
+parse_ml_table(location& loc)
 {
     using value_type = Value;
     using table_type = typename value_type::table_type;
@@ -1890,7 +1867,7 @@ parse_ml_table(location<Container>& loc)
         {
             const auto&              kvpair  = kv.unwrap();
             const std::vector<key>&  keys    = kvpair.first.first;
-            const region<Container>& key_reg = kvpair.first.second;
+            const auto&              key_reg = kvpair.first.second;
             const value_type&        val     = kvpair.second;
             const auto inserted =
                 insert_nested_key(tab, val, keys.begin(), keys.end(), key_reg);
@@ -1936,8 +1913,8 @@ parse_ml_table(location<Container>& loc)
     return ok(tab);
 }
 
-template<typename Value, typename Container>
-result<Value, std::string> parse_toml_file(location<Container>& loc)
+template<typename Value>
+result<Value, std::string> parse_toml_file(location& loc)
 {
     using value_type = Value;
     using table_type = typename value_type::table_type;
@@ -1950,7 +1927,7 @@ result<Value, std::string> parse_toml_file(location<Container>& loc)
 
     // put the first line as a region of a file
     // Here first != loc.end(), so taking std::next is okay
-    const region<Container> file(loc, first, std::next(loc.iter()));
+    const region<std::vector<char>> file(loc, first, std::next(loc.iter()));
 
     // The first successive comments that are separated from the first value
     // by an empty line are for a file itself.
@@ -1970,7 +1947,7 @@ result<Value, std::string> parse_toml_file(location<Container>& loc)
         >;
     if(const auto token = lex_first_comments::invoke(loc))
     {
-        location<std::vector<char>> inner_loc(loc.name(), token.unwrap().str());
+        location inner_loc(loc.name(), token.unwrap().str());
         while(inner_loc.iter() != inner_loc.end())
         {
             maybe<lex_ws>::invoke(inner_loc); // remove ws if exists
@@ -2071,8 +2048,7 @@ parse(std::istream& is, const std::string& fname = "unknown file")
     }
     assert(letters.empty() || letters.back() != '\0');
 
-    detail::location<std::vector<char>>
-        loc(std::move(fname), std::move(letters));
+    detail::location loc(std::move(fname), std::move(letters));
 
     // skip BOM if exists.
     // XXX component of BOM (like 0xEF) exceeds the representable range of

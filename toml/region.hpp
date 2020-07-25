@@ -67,25 +67,18 @@ struct region_base
 //
 // it contains pointer to the file content and iterator that points the current
 // location.
-template<typename Container>
 struct location final : public region_base
 {
-    using const_iterator  = typename Container::const_iterator;
+    using const_iterator  = typename std::vector<char>::const_iterator;
     using difference_type = typename const_iterator::difference_type;
-    using source_ptr      = std::shared_ptr<const Container>;
+    using source_ptr      = std::shared_ptr<const std::vector<char>>;
 
-    static_assert(std::is_same<char, typename Container::value_type>::value,"");
-    static_assert(std::is_same<std::random_access_iterator_tag,
-        typename std::iterator_traits<const_iterator>::iterator_category>::value,
-        "container should be randomly accessible");
-
-    location(std::string name, Container cont)
-      : source_(std::make_shared<Container>(std::move(cont))), line_number_(1),
-        source_name_(std::move(name)), iter_(source_->cbegin())
+    location(std::string name, std::vector<char> cont)
+      : source_(std::make_shared<std::vector<char>>(std::move(cont))),
+        line_number_(1), source_name_(std::move(name)), iter_(source_->cbegin())
     {}
-
     location(std::string name, const std::string& cont)
-      : source_(std::make_shared<Container>(cont.begin(), cont.end())),
+      : source_(std::make_shared<std::vector<char>>(cont.begin(), cont.end())),
         line_number_(1), source_name_(std::move(name)), iter_(source_->cbegin())
     {}
 
@@ -215,19 +208,19 @@ struct region final : public region_base
     // delete default constructor. source_ never be null.
     region() = delete;
 
-    region(const location<Container>& loc)
+    region(const location& loc)
       : source_(loc.source()), source_name_(loc.name()),
         first_(loc.iter()), last_(loc.iter())
     {}
-    region(location<Container>&& loc)
+    region(location&& loc)
       : source_(loc.source()), source_name_(loc.name()),
         first_(loc.iter()), last_(loc.iter())
     {}
 
-    region(const location<Container>& loc, const_iterator f, const_iterator l)
+    region(const location& loc, const_iterator f, const_iterator l)
       : source_(loc.source()), source_name_(loc.name()), first_(f), last_(l)
     {}
-    region(location<Container>&& loc, const_iterator f, const_iterator l)
+    region(location&& loc, const_iterator f, const_iterator l)
       : source_(loc.source()), source_name_(loc.name()), first_(f), last_(l)
     {}
 

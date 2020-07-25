@@ -7,7 +7,7 @@
 #define TOML11_TEST_PARSE_EQUAL(psr, tkn, expct)                               \
 do {                                                                           \
     const std::string token(tkn);                                              \
-    toml::detail::location<std::string> loc("test", token);                    \
+    toml::detail::location loc("test", token);                                 \
     const auto result = psr(loc);                                              \
     BOOST_TEST(result.is_ok());                                                \
     if(result.is_ok()){                                                        \
@@ -23,7 +23,7 @@ do {                                                                           \
 #define TOML11_TEST_PARSE_EQUAL_VALUE(psr, tkn, expct)                         \
 do {                                                                           \
     const std::string token(tkn);                                              \
-    toml::detail::location<std::string> loc("test", token);                    \
+    toml::detail::location loc("test", token);                                 \
     const auto result = psr(loc);                                              \
     BOOST_TEST(result.is_ok());                                                \
     if(result.is_ok()){                                                        \
