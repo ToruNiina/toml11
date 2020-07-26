@@ -202,11 +202,11 @@ struct region final : public region_base
     // delete default constructor. source_ never be null.
     region() = delete;
 
-    region(const location& loc)
+    explicit region(const location& loc)
       : source_(loc.source()), source_name_(loc.name()),
         first_(loc.iter()), last_(loc.iter())
     {}
-    region(location&& loc)
+    explicit region(location&& loc)
       : source_(loc.source()), source_name_(loc.name()),
         first_(loc.iter()), last_(loc.iter())
     {}
