@@ -986,11 +986,11 @@ parse_array(location& loc)
                     "type of elements should be the same each other.", {
                         {std::addressof(array_start_loc), "array starts here"},
                         {
-                            std::addressof(get_region(retval.front())),
+                            get_region(retval.front()),
                             "value has type " + stringize(retval.front().type())
                         },
                         {
-                            std::addressof(get_region(val.unwrap())),
+                            get_region(val.unwrap()),
                             "value has different type, " + stringize(val.unwrap().type())
                         }
                     }), source_location(std::addressof(loc)));
@@ -1161,7 +1161,7 @@ template<typename Value, typename Iterator>
 bool is_valid_forward_table_definition(const Value& fwd,
         Iterator key_first, Iterator key_curr, Iterator key_last)
 {
-    location def("internal", detail::get_region(fwd).str());
+    location def("internal", detail::get_region(fwd)->str());
     if(const auto tabkeys = parse_table_key(def))
     {
         // table keys always contains all the nodes from the root.
@@ -1236,10 +1236,8 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                             "toml::insert_value: array of table (\"",
                             format_dotted_keys(first, last),
                             "\") cannot be defined"), {
-                                {std::addressof(get_region(tab->at(k))),
-                                 "table already defined"},
-                                {std::addressof(get_region(v)),
-                                 "this conflicts with the previous table"}
+                                {get_region(tab->at(k)), "table already defined"},
+                                {get_region(v), "this conflicts with the previous table"}
                             }), v.location());
                     }
                     else if(!(tab->at(k).is_array()))
@@ -1248,10 +1246,10 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                             "toml::insert_value: array of table (\"",
                             format_dotted_keys(first, last), "\") collides with"
                             " existing value"), {
-                                {std::addressof(get_region(tab->at(k))),
+                                {get_region(tab->at(k)),
                                  concat_to_string("this ", tab->at(k).type(),
                                                   " value already exists")},
-                                {std::addressof(get_region(v)),
+                                {get_region(v),
                                  "while inserting this array-of-tables"}
                             }), v.location());
                     }
@@ -1263,10 +1261,10 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                             "toml::insert_value: array of table (\"",
                             format_dotted_keys(first, last), "\") collides with"
                             " existing value"), {
-                                {std::addressof(get_region(tab->at(k))),
+                                {get_region(tab->at(k)),
                                  concat_to_string("this ", tab->at(k).type(),
                                                   " value already exists")},
-                                {std::addressof(get_region(v)),
+                                {get_region(v),
                                  "while inserting this array-of-tables"}
                             }), v.location());
                     }
@@ -1285,16 +1283,16 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                     // that points to the key of the table (e.g. [[a]]). By
                     // comparing the first two letters in key, we can detect
                     // the array-of-table is inline or multiline.
-                    if(detail::get_region(a.front()).str().substr(0,2) != "[[")
+                    if(detail::get_region(a.front())->str().substr(0,2) != "[[")
                     {
                         throw syntax_error(format_underline(concat_to_string(
                             "toml::insert_value: array of table (\"",
                             format_dotted_keys(first, last), "\") collides with"
                             " existing array-of-tables"), {
-                                {std::addressof(get_region(tab->at(k))),
+                                {get_region(tab->at(k)),
                                  concat_to_string("this ", tab->at(k).type(),
                                                   " value has static size")},
-                                {std::addressof(get_region(v)),
+                                {get_region(v),
                                  "appending it to the statically sized array"}
                             }), v.location());
                     }
@@ -1320,10 +1318,8 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                             "toml::insert_value: table (\"",
                             format_dotted_keys(first, last),
                             "\") already exists."), {
-                                {std::addressof(get_region(tab->at(k))),
-                                 "table already exists here"},
-                                {std::addressof(get_region(v)),
-                                 "table defined twice"}
+                                {get_region(tab->at(k)), "table already exists here"},
+                                {get_region(v), "table defined twice"}
                             }), v.location());
                     }
                     // to allow the following toml file.
@@ -1347,10 +1343,8 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                     throw syntax_error(format_underline(concat_to_string(
                         "toml::insert_value: array of tables (\"",
                         format_dotted_keys(first, last), "\") already exists."), {
-                            {std::addressof(get_region(tab->at(k))),
-                             "array of tables defined here"},
-                            {std::addressof(get_region(v)),
-                            "table conflicts with the previous array of table"}
+                            {get_region(tab->at(k)), "array of tables defined here"},
+                            {get_region(v), "table conflicts with the previous array of table"}
                         }), v.location());
                 }
                 else
@@ -1358,10 +1352,8 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                     throw syntax_error(format_underline(concat_to_string(
                         "toml::insert_value: value (\"",
                         format_dotted_keys(first, last), "\") already exists."), {
-                            {std::addressof(get_region(tab->at(k))),
-                             "value already exists here"},
-                            {std::addressof(get_region(v)),
-                             "value defined twice"}
+                            {get_region(tab->at(k)), "value already exists here"},
+                            {get_region(v), "value defined twice"}
                         }), v.location());
                 }
             }
@@ -1390,15 +1382,14 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                 {
                     // here, if the value is a (multi-line) table, the region
                     // should be something like `[table-name]`.
-                    if(get_region(tab->at(k)).front() == '{')
+                    if(get_region(tab->at(k))->front() == '{')
                     {
                         throw syntax_error(format_underline(concat_to_string(
                             "toml::insert_value: inserting to an inline table (",
                             format_dotted_keys(first, std::next(iter)),
                             ") but inline tables are immutable"), {
-                                {std::addressof(get_region(tab->at(k))),
-                                 "inline tables are immutable"},
-                                {std::addressof(get_region(v)), "inserting this"}
+                                {get_region(tab->at(k)), "inline tables are immutable"},
+                                {get_region(v), "inserting this"}
                             }), v.location());
                     }
                 }
@@ -1413,9 +1404,9 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                         "toml::insert_value: target (",
                         format_dotted_keys(first, std::next(iter)),
                         ") is neither table nor an array of tables"), {
-                            {std::addressof(get_region(a.back())),
-                             concat_to_string("actual type is ", a.back().type())},
-                            {std::addressof(get_region(v)), "inserting this"}
+                            {get_region(a.back()), concat_to_string(
+                                    "actual type is ", a.back().type())},
+                            {get_region(v), "inserting this"}
                         }), v.location());
                 }
                 tab = std::addressof(a.back().as_table());
@@ -1426,9 +1417,9 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                     "toml::insert_value: target (",
                     format_dotted_keys(first, std::next(iter)),
                     ") is neither table nor an array of tables"), {
-                        {std::addressof(get_region(tab->at(k))),
-                         concat_to_string("actual type is ", tab->at(k).type())},
-                        {std::addressof(get_region(v)), "inserting this"}
+                        {get_region(tab->at(k)), concat_to_string(
+                                "actual type is ", tab->at(k).type())},
+                        {get_region(v), "inserting this"}
                     }), v.location());
             }
         }

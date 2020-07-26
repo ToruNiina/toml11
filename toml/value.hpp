@@ -22,9 +22,9 @@ namespace detail
 
 // to show error messages. not recommended for users.
 template<typename Value>
-inline region_base const& get_region(const Value& v)
+inline region_base const* get_region(const Value& v)
 {
-    return *(v.region_info_);
+    return v.region_info_.get();
 }
 
 template<typename Value, typename Region>
@@ -46,8 +46,7 @@ throw_bad_cast(const std::string& funcname, value_t actual, const Value& v)
 {
     throw type_error(detail::format_underline(
         concat_to_string(funcname, "bad_cast to ", Expected), {
-            {std::addressof(get_region(v)),
-             concat_to_string("the actual type is ", actual)}
+            {get_region(v), concat_to_string("the actual type is ", actual)}
         }), v.location());
 }
 
@@ -74,8 +73,8 @@ throw_key_not_found_error(const Value& v, const key& ky)
     // It actually points to the top-level table at the first character,
     // not `[table]`. But it is too confusing. To avoid the confusion, the error
     // message should explicitly say "key not found in the top-level table".
-    const auto& reg = get_region(v);
-    if(reg.line_num() == "1" && reg.size() == 1)
+    const auto* reg = get_region(v);
+    if(reg->line_num() == "1" && reg->size() == 1)
     {
         // Here it assumes that top-level table starts at the first character.
         // The region corresponds to the top-level table will be generated at
@@ -111,16 +110,14 @@ throw_key_not_found_error(const Value& v, const key& ky)
         //
         throw std::out_of_range(format_underline(concat_to_string(
             "key \"", ky, "\" not found in the top-level table"), {
-                {std::addressof(reg), "the top-level table starts here"}
+                {reg, "the top-level table starts here"}
             }));
     }
     else
     {
         // normal table.
         throw std::out_of_range(format_underline(concat_to_string(
-            "key \"", ky, "\" not found"), {
-                {std::addressof(reg), "in this table"}
-            }));
+            "key \"", ky, "\" not found"), { {reg, "in this table"} }));
     }
 }
 
@@ -1710,7 +1707,7 @@ class basic_value
 
     // for error messages
     template<typename Value>
-    friend region_base const& detail::get_region(const Value& v);
+    friend region_base const* detail::get_region(const Value& v);
 
     template<typename Value, typename Region>
     friend void detail::change_region(Value& v, Region&& reg);
@@ -1920,7 +1917,7 @@ inline std::string format_error(const std::string& err_msg,
 {
     return detail::format_underline(err_msg,
         std::vector<std::pair<detail::region_base const*, std::string>>{
-            {std::addressof(detail::get_region(v)), comment}
+            {detail::get_region(v), comment}
         }, std::move(hints), colorize);
 }
 
@@ -1933,8 +1930,8 @@ inline std::string format_error(const std::string& err_msg,
 {
     return detail::format_underline(err_msg,
         std::vector<std::pair<detail::region_base const*, std::string>>{
-            {std::addressof(detail::get_region(v1)), comment1},
-            {std::addressof(detail::get_region(v2)), comment2}
+            {detail::get_region(v1), comment1},
+            {detail::get_region(v2), comment2}
         }, std::move(hints), colorize);
 }
 
@@ -1948,9 +1945,9 @@ inline std::string format_error(const std::string& err_msg,
 {
     return detail::format_underline(err_msg,
         std::vector<std::pair<detail::region_base const*, std::string>>{
-            {std::addressof(detail::get_region(v1)), comment1},
-            {std::addressof(detail::get_region(v2)), comment2},
-            {std::addressof(detail::get_region(v3)), comment3}
+            {detail::get_region(v1), comment1},
+            {detail::get_region(v2), comment2},
+            {detail::get_region(v3), comment3}
         }, std::move(hints), colorize);
 }
 
