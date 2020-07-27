@@ -46,8 +46,7 @@ throw_bad_cast(const std::string& funcname, value_t actual, const Value& v)
 {
     throw type_error(detail::format_underline(
         concat_to_string(funcname, "bad_cast to ", Expected), {
-            {source_location(get_region(v)),
-             concat_to_string("the actual type is ", actual)}
+            {v.location(), concat_to_string("the actual type is ", actual)}
         }), v.location());
 }
 
@@ -74,7 +73,7 @@ throw_key_not_found_error(const Value& v, const key& ky)
     // It actually points to the top-level table at the first character,
     // not `[table]`. But it is too confusing. To avoid the confusion, the error
     // message should explicitly say "key not found in the top-level table".
-    const auto loc = source_location(get_region(v));
+    const auto loc = v.location();
     if(loc.line() == 1 && loc.region() == 1)
     {
         // Here it assumes that top-level table starts at the first character.
@@ -1568,9 +1567,9 @@ class basic_value
         {
             throw std::out_of_range(detail::format_underline(
                 "toml::value::at(idx): no element corresponding to the index", {
-                    {source_location(this->region_info_.get()),
-                     concat_to_string("the length is ", this->as_array(std::nothrow).size(),
-                                      ", and the specified index is ", idx)}
+                    {this->location(), concat_to_string("the length is ",
+                        this->as_array(std::nothrow).size(),
+                        ", and the specified index is ", idx)}
                 }));
         }
         return this->as_array().at(idx);
@@ -1586,9 +1585,9 @@ class basic_value
         {
             throw std::out_of_range(detail::format_underline(
                 "toml::value::at(idx): no element corresponding to the index", {
-                    {source_location(this->region_info_.get()),
-                     concat_to_string("the length is ", this->as_array(std::nothrow).size(),
-                                      ", and the specified index is ", idx)}
+                    {this->location(), concat_to_string("the length is ",
+                        this->as_array(std::nothrow).size(),
+                        ", and the specified index is ", idx)}
                 }));
         }
         return this->as_array(std::nothrow).at(idx);
@@ -1658,7 +1657,7 @@ class basic_value
             {
                 throw type_error(detail::format_underline(
                     "toml::value::size(): bad_cast to container types", {
-                        {source_location(this->region_info_.get()),
+                        {this->location(),
                          concat_to_string("the actual type is ", this->type_)}
                     }), this->location());
             }
