@@ -39,7 +39,7 @@ parse_boolean(location& loc)
             throw internal_error(format_underline(
                 "toml::parse_boolean: internal error",
                 {{source_location(reg), "invalid token"}}),
-                source_location(std::addressof(reg)));
+                source_location(reg));
         }
     }
     loc.reset(first); //rollback
@@ -66,7 +66,7 @@ parse_binary_integer(location& loc)
                 throw internal_error(format_underline(
                     "toml::parse_integer: internal error",
                     {{source_location(token.unwrap()), "invalid token"}}),
-                    source_location(std::addressof(loc)));
+                    source_location(loc));
             }
         }
         return ok(std::make_pair(retval, token.unwrap()));
@@ -280,7 +280,7 @@ inline std::string read_utf8_codepoint(const region& reg, const location& loc)
                 "toml::read_utf8_codepoint: codepoints in the range "
                 "[0xD800, 0xDFFF] are not valid UTF-8.", {{
                     source_location(loc), "not a valid UTF-8 codepoint"
-                }}), source_location(std::addressof(loc)));
+                }}), source_location(loc));
         }
         assert(codepoint < 0xD800 || 0xDFFF < codepoint);
         // 1110yyyy 10yxxxxx 10xxxxxx
@@ -301,7 +301,7 @@ inline std::string read_utf8_codepoint(const region& reg, const location& loc)
         throw syntax_error(format_underline("toml::read_utf8_codepoint:"
             " input codepoint is too large.",
             {{source_location(loc), "should be in [0x00..0x10FFFF]"}}),
-            source_location(std::addressof(loc)));
+            source_location(loc));
     }
     return character;
 }
@@ -1007,7 +1007,7 @@ parse_array(location& loc)
                 "value having invalid format appeared in an array", {
                     {source_location(array_start_loc), "array starts here"},
                     {source_location(loc), "it is not a valid value."}
-                }), source_location(std::addressof(loc)));
+                }), source_location(loc));
         }
 
         using lex_array_separator = sequence<maybe<lex_ws>, character<','>>;
@@ -1030,7 +1030,7 @@ parse_array(location& loc)
                     " missing array separator `,` after a value", {
                         {source_location(array_start_loc), "array starts here"},
                         {source_location(loc),             "should be `,`"}
-                    }), source_location(std::addressof(loc)));
+                    }), source_location(loc));
             }
         }
     }
@@ -1038,7 +1038,7 @@ parse_array(location& loc)
     throw syntax_error(format_underline("toml::parse_array: "
             "array did not closed by `]`",
             {{source_location(loc), "should be closed"}}),
-            source_location(std::addressof(loc)));
+            source_location(loc));
 }
 
 template<typename Value>
@@ -1478,7 +1478,7 @@ parse_inline_table(location& loc)
         {
             throw internal_error("toml::parse_inline_table: "
                 "failed to insert value into table: " + inserted.unwrap_err(),
-                source_location(std::addressof(loc)));
+                source_location(loc));
         }
 
         using lex_table_separator = sequence<maybe<lex_ws>, character<','>>;
@@ -2067,7 +2067,7 @@ parse(std::istream& is, const std::string& fname = "unknown file")
     const auto data = detail::parse_toml_file<value_type>(loc);
     if(!data)
     {
-        throw syntax_error(data.unwrap_err(), source_location(std::addressof(loc)));
+        throw syntax_error(data.unwrap_err(), source_location(loc));
     }
     return data.unwrap();
 }
