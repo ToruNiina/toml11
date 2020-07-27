@@ -27,16 +27,10 @@ inline region_base const* get_region(const Value& v)
     return v.region_info_.get();
 }
 
-template<typename Value, typename Region>
-void change_region(Value& v, Region&& reg)
+template<typename Value>
+void change_region(Value& v, region reg)
 {
-    using region_type = typename std::remove_reference<
-        typename std::remove_cv<Region>::type
-        >::type;
-
-    std::shared_ptr<region_base> new_reg =
-        std::make_shared<region_type>(std::forward<region_type>(reg));
-    v.region_info_ = new_reg;
+    v.region_info_ = std::make_shared<region>(std::move(reg));
     return;
 }
 
@@ -1709,8 +1703,8 @@ class basic_value
     template<typename Value>
     friend region_base const* detail::get_region(const Value& v);
 
-    template<typename Value, typename Region>
-    friend void detail::change_region(Value& v, Region&& reg);
+    template<typename Value>
+    friend void detail::change_region(Value& v, region reg);
 
   private:
 
