@@ -1161,7 +1161,12 @@ template<typename Value, typename Iterator>
 bool is_valid_forward_table_definition(const Value& fwd,
         Iterator key_first, Iterator key_curr, Iterator key_last)
 {
-    location def("internal", detail::get_region(fwd)->str());
+    std::string internal = "";
+    if(const auto ptr = detail::get_region(fwd))
+    {
+        internal = ptr->str();
+    }
+    location def("internal", std::move(internal));
     if(const auto tabkeys = parse_table_key(def))
     {
         // table keys always contains all the nodes from the root.
@@ -1283,18 +1288,21 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                     // that points to the key of the table (e.g. [[a]]). By
                     // comparing the first two letters in key, we can detect
                     // the array-of-table is inline or multiline.
-                    if(detail::get_region(a.front())->str().substr(0,2) != "[[")
+                    if(const auto ptr = detail::get_region(a.front()))
                     {
-                        throw syntax_error(format_underline(concat_to_string(
-                            "toml::insert_value: array of table (\"",
-                            format_dotted_keys(first, last), "\") collides with"
-                            " existing array-of-tables"), {
-                                {get_region(tab->at(k)),
-                                 concat_to_string("this ", tab->at(k).type(),
-                                                  " value has static size")},
-                                {get_region(v),
-                                 "appending it to the statically sized array"}
-                            }), v.location());
+                        if(ptr->str().substr(0,2) != "[[")
+                        {
+                            throw syntax_error(format_underline(concat_to_string(
+                                "toml::insert_value: array of table (\"",
+                                format_dotted_keys(first, last), "\") collides "
+                                "with existing array-of-tables"), {
+                                    {get_region(tab->at(k)),
+                                     concat_to_string("this ", tab->at(k).type(),
+                                                      " value has static size")},
+                                    {get_region(v),
+                                     "appending it to the statically sized array"}
+                                }), v.location());
+                        }
                     }
                     a.push_back(v);
                     return ok(true);
@@ -1379,10 +1387,11 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                 // According to toml-lang/toml:36d3091b3 "Clarify that inline
                 // tables are immutable", check if it adds key-value pair to an
                 // inline table.
+                if(const auto* ptr = get_region(tab->at(k)))
                 {
                     // here, if the value is a (multi-line) table, the region
                     // should be something like `[table-name]`.
-                    if(get_region(tab->at(k))->front() == '{')
+                    if(ptr->front() == '{')
                     {
                         throw syntax_error(format_underline(concat_to_string(
                             "toml::insert_value: inserting to an inline table (",
