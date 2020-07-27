@@ -1704,7 +1704,7 @@ class basic_value
     friend region_base const* detail::get_region(const Value& v);
 
     template<typename Value>
-    friend void detail::change_region(Value& v, region reg);
+    friend void detail::change_region(Value& v, detail::region reg);
 
   private:
 
