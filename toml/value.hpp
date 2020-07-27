@@ -46,7 +46,8 @@ throw_bad_cast(const std::string& funcname, value_t actual, const Value& v)
 {
     throw type_error(detail::format_underline(
         concat_to_string(funcname, "bad_cast to ", Expected), {
-            {get_region(v), concat_to_string("the actual type is ", actual)}
+            {source_location(get_region(v)),
+             concat_to_string("the actual type is ", actual)}
         }), v.location());
 }
 
@@ -73,8 +74,8 @@ throw_key_not_found_error(const Value& v, const key& ky)
     // It actually points to the top-level table at the first character,
     // not `[table]`. But it is too confusing. To avoid the confusion, the error
     // message should explicitly say "key not found in the top-level table".
-    const auto* reg = get_region(v);
-    if(reg->line_num() == "1" && reg->size() == 1)
+    const auto loc = source_location(get_region(v));
+    if(loc.line() == 1 && loc.region() == 1)
     {
         // Here it assumes that top-level table starts at the first character.
         // The region corresponds to the top-level table will be generated at
@@ -110,14 +111,14 @@ throw_key_not_found_error(const Value& v, const key& ky)
         //
         throw std::out_of_range(format_underline(concat_to_string(
             "key \"", ky, "\" not found in the top-level table"), {
-                {reg, "the top-level table starts here"}
+                {loc, "the top-level table starts here"}
             }));
     }
     else
     {
         // normal table.
         throw std::out_of_range(format_underline(concat_to_string(
-            "key \"", ky, "\" not found"), { {reg, "in this table"} }));
+            "key \"", ky, "\" not found"), { {loc, "in this table"} }));
     }
 }
 
@@ -1567,7 +1568,7 @@ class basic_value
         {
             throw std::out_of_range(detail::format_underline(
                 "toml::value::at(idx): no element corresponding to the index", {
-                    {this->region_info_.get(),
+                    {source_location(this->region_info_.get()),
                      concat_to_string("the length is ", this->as_array(std::nothrow).size(),
                                       ", and the specified index is ", idx)}
                 }));
@@ -1585,7 +1586,7 @@ class basic_value
         {
             throw std::out_of_range(detail::format_underline(
                 "toml::value::at(idx): no element corresponding to the index", {
-                    {this->region_info_.get(),
+                    {source_location(this->region_info_.get()),
                      concat_to_string("the length is ", this->as_array(std::nothrow).size(),
                                       ", and the specified index is ", idx)}
                 }));
@@ -1657,7 +1658,7 @@ class basic_value
             {
                 throw type_error(detail::format_underline(
                     "toml::value::size(): bad_cast to container types", {
-                        {this->region_info_.get(),
+                        {source_location(this->region_info_.get()),
                          concat_to_string("the actual type is ", this->type_)}
                     }), this->location());
             }
@@ -1915,10 +1916,8 @@ inline std::string format_error(const std::string& err_msg,
         std::vector<std::string> hints = {},
         const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
-    return detail::format_underline(err_msg,
-        std::vector<std::pair<detail::region_base const*, std::string>>{
-            {detail::get_region(v), comment}
-        }, std::move(hints), colorize);
+    return detail::format_underline(err_msg, {{v.location(), comment}},
+                                    std::move(hints), colorize);
 }
 
 template<typename C, template<typename ...> class T, template<typename ...> class A>
@@ -1928,10 +1927,8 @@ inline std::string format_error(const std::string& err_msg,
         std::vector<std::string> hints = {},
         const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
-    return detail::format_underline(err_msg,
-        std::vector<std::pair<detail::region_base const*, std::string>>{
-            {detail::get_region(v1), comment1},
-            {detail::get_region(v2), comment2}
+    return detail::format_underline(err_msg, {
+            {v1.location(), comment1}, {v2.location(), comment2}
         }, std::move(hints), colorize);
 }
 
@@ -1943,11 +1940,8 @@ inline std::string format_error(const std::string& err_msg,
         std::vector<std::string> hints = {},
         const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
-    return detail::format_underline(err_msg,
-        std::vector<std::pair<detail::region_base const*, std::string>>{
-            {detail::get_region(v1), comment1},
-            {detail::get_region(v2), comment2},
-            {detail::get_region(v3), comment3}
+    return detail::format_underline(err_msg, {{v1.location(), comment1},
+            {v2.location(), comment2}, {v3.location(), comment3}
         }, std::move(hints), colorize);
 }
 

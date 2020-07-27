@@ -189,7 +189,7 @@ get(const basic_value<C, M, V>& v)
         {
             throw type_error(detail::format_underline("toml::value: "
                 "bad_cast to std::chrono::system_clock::time_point", {
-                    {detail::get_region(v),
+                    {source_location(detail::get_region(v)),
                      concat_to_string("the actual type is ", v.type())}
                 }), v.location());
         }
@@ -336,7 +336,7 @@ get(const basic_value<C, M, V>& v)
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "toml::get: specified container size is ", container.size(),
             " but there are ", ar.size(), " elements in toml array."), {
-                {detail::get_region(v), "here"}
+                {source_location(detail::get_region(v)), "here"}
             }));
     }
     std::transform(ar.cbegin(), ar.cend(), container.begin(),
@@ -361,7 +361,7 @@ get(const basic_value<C, M, V>& v)
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "toml::get: specified std::pair but there are ", ar.size(),
             " elements in toml array."), {
-                {detail::get_region(v), "here"}
+                {source_location(detail::get_region(v)), "here"}
             }));
     }
     return std::make_pair(::toml::get<first_type >(ar.at(0)),
@@ -393,7 +393,7 @@ get(const basic_value<C, M, V>& v)
             "toml::get: specified std::tuple with ",
             std::tuple_size<T>::value, " elements, but there are ", ar.size(),
             " elements in toml array."), {
-                {detail::get_region(v), "here"}
+                {source_location(detail::get_region(v)), "here"}
             }));
     }
     return detail::get_tuple_impl<T>(ar,
@@ -512,7 +512,7 @@ find(const basic_value<C, M, V>& v, const std::size_t idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "index ", idx, " is out of range"), {
-                {detail::get_region(v), "in this array"}
+                {source_location(detail::get_region(v)), "in this array"}
             }));
     }
     return ary.at(idx);
@@ -526,7 +526,7 @@ basic_value<C, M, V>& find(basic_value<C, M, V>& v, const std::size_t idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "index ", idx, " is out of range"), {
-                {detail::get_region(v), "in this array"}
+                {source_location(detail::get_region(v)), "in this array"}
             }));
     }
     return ary.at(idx);
@@ -540,7 +540,7 @@ basic_value<C, M, V> find(basic_value<C, M, V>&& v, const std::size_t idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "index ", idx, " is out of range"), {
-                {detail::get_region(v), "in this array"}
+                {source_location(detail::get_region(v)), "in this array"}
             }));
     }
     return basic_value<C, M, V>(std::move(ary.at(idx)));
@@ -600,7 +600,7 @@ find(const basic_value<C, M, V>& v, const std::size_t idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "index ", idx, " is out of range"), {
-                {detail::get_region(v), "in this array"}
+                {source_location(detail::get_region(v)), "in this array"}
             }));
     }
     return ::toml::get<T>(ary.at(idx));
@@ -615,7 +615,7 @@ find(basic_value<C, M, V>& v, const std::size_t idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "index ", idx, " is out of range"), {
-                {detail::get_region(v), "in this array"}
+                {source_location(detail::get_region(v)), "in this array"}
             }));
     }
     return ::toml::get<T>(ary.at(idx));
@@ -630,7 +630,7 @@ find(basic_value<C, M, V>&& v, const std::size_t idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "index ", idx, " is out of range"), {
-                {detail::get_region(v), "in this array"}
+                {source_location(detail::get_region(v)), "in this array"}
             }));
     }
     return ::toml::get<T>(std::move(ary.at(idx)));
