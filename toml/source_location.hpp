@@ -107,17 +107,20 @@ inline std::string format_underline(const std::string& message,
         const std::vector<std::string>& helps = {},
         const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
-    assert(!loc_com.empty());
-
-    const auto line_num_width = static_cast<int>(std::to_string(std::max_element(
-        loc_com.begin(), loc_com.end(),
-        [](std::pair<source_location, std::string> const& lhs,
-           std::pair<source_location, std::string> const& rhs)
+    std::size_t line_num_width = 0;
+    for(const auto& lc : loc_com)
+    {
+        std::uint_least32_t line = lc.first.line();
+        std::size_t        digit = 0;
+        while(line != 0)
         {
-            return std::to_string(lhs.first.line()).size() <
-                   std::to_string(rhs.first.line()).size();
+            line  /= 10;
+            digit +=  1;
         }
-    )->first.line()).size());
+        line_num_width = (std::max)(line_num_width, digit);
+    }
+    // 1 is the minimum width
+    line_num_width = std::max<std::size_t>(line_num_width, 1);
 
     std::ostringstream retval;
 
@@ -142,58 +145,78 @@ inline std::string format_underline(const std::string& message,
                << color::bold << message << color::reset << '\n';
     }
 
-    for(auto iter = loc_com.begin(); iter != loc_com.end(); ++iter)
+    const auto format_one_location = [line_num_width]
+        (std::ostringstream& oss,
+         const source_location& loc, const std::string& comment) -> void
+        {
+            oss << ' ' << color::bold << color::blue
+                << std::setw(static_cast<int>(line_num_width))
+                << std::right << loc.line() << " | "  << color::reset
+                << loc.line_str() << '\n';
+
+            oss << make_string(line_num_width + 1, ' ')
+                << color::bold << color::blue << " | " << color::reset
+                << make_string(loc.column()-1 /*1-origin*/, ' ');
+
+            if(loc.region() == 1)
+            {
+                // invalid
+                // ^------
+                oss << color::bold << color::red << "^---" << color::reset;
+            }
+            else
+            {
+                // invalid
+                // ~~~~~~~
+                const auto underline_len = (std::min)(
+                    static_cast<std::size_t>(loc.region()), loc.line_str().size());
+                oss << color::bold << color::red
+                    << make_string(underline_len, '~') << color::reset;
+            }
+            oss << ' ';
+            oss << comment;
+            return;
+        };
+
+    assert(!loc_com.empty());
+
+    // --> example.toml
+    //   |
+    retval << color::bold << color::blue << " --> " << color::reset
+           << loc_com.front().first.file_name() << '\n';
+    retval << make_string(line_num_width + 1, ' ')
+           << color::bold << color::blue << " | "  << color::reset << '\n';
+    // 1 | key value
+    //   |    ^--- missing =
+    format_one_location(retval, loc_com.front().first, loc_com.front().second);
+
+    // process the rest of the locations
+    for(std::size_t i=1; i<loc_com.size(); ++i)
     {
+        const auto& prev = loc_com.at(i-1);
+        const auto& curr = loc_com.at(i);
+
+        retval << '\n';
         // if the filenames are the same, print "..."
-        if(iter != loc_com.begin() &&
-           std::prev(iter)->first.file_name() == iter->first.file_name())
+        if(prev.first.file_name() == curr.first.file_name())
         {
-            retval << color::bold << color::blue << "\n ...\n" << color::reset;
+            retval << color::bold << color::blue << " ...\n" << color::reset;
         }
-        else // if filename differs, print " --> filename.toml"
+        else // if filename differs, print " --> filename.toml" again
         {
-            if(iter != loc_com.begin()) {retval << '\n';}
-
             retval << color::bold << color::blue << " --> " << color::reset
-                   << iter->first.file_name() << '\n';
-            // add one almost-empty line for readability
-            retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ')
-                   << color::bold << color::blue << " | "  << color::reset << '\n';
+                   << curr.first.file_name() << '\n';
+            retval << make_string(line_num_width + 1, ' ')
+                   << color::bold << color::blue << " |\n"  << color::reset;
         }
-        const source_location& loc = iter->first;
-        const std::string& comment = iter->second;
 
-        retval << ' ' << color::bold << color::blue << std::setw(line_num_width)
-               << std::right << loc.line() << " | "  << color::reset
-               << loc.line_str() << '\n';
-
-        retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ')
-               << color::bold << color::blue << " | " << color::reset
-               << make_string(loc.column()-1 /*1-origin*/, ' ');
-
-        if(loc.region() == 1)
-        {
-            // invalid
-            // ^------
-            retval << color::bold << color::red << "^---" << color::reset;
-        }
-        else
-        {
-            // invalid
-            // ~~~~~~~
-            const auto underline_len = (std::min)(
-                static_cast<std::size_t>(loc.region()), loc.line_str().size());
-            retval << color::bold << color::red
-                   << make_string(underline_len, '~') << color::reset;
-        }
-        retval << ' ';
-        retval << comment;
+        format_one_location(retval, curr.first, curr.second);
     }
 
     if(!helps.empty())
     {
         retval << '\n';
-        retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ');
+        retval << make_string(line_num_width + 1, ' ');
         retval << color::bold << color::blue << " | " << color::reset;
         for(const auto& help : helps)
         {
