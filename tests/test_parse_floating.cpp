@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(test_inf)
 {
     {
         const std::string token("inf");
-        toml::detail::location<std::string> loc("test", token);
+        toml::detail::location loc("test", token);
         const auto r = parse_floating(loc);
         BOOST_CHECK(r.is_ok());
         BOOST_CHECK(std::isinf(r.unwrap().first));
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(test_inf)
     }
     {
         const std::string token("+inf");
-        toml::detail::location<std::string> loc("test", token);
+        toml::detail::location loc("test", token);
         const auto r = parse_floating(loc);
         BOOST_CHECK(r.is_ok());
         BOOST_CHECK(std::isinf(r.unwrap().first));
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(test_inf)
     }
     {
         const std::string token("-inf");
-        toml::detail::location<std::string> loc("test", token);
+        toml::detail::location loc("test", token);
         const auto r = parse_floating(loc);
         BOOST_CHECK(r.is_ok());
         BOOST_CHECK(std::isinf(r.unwrap().first));
@@ -156,21 +156,21 @@ BOOST_AUTO_TEST_CASE(test_nan)
 {
     {
         const std::string token("nan");
-        toml::detail::location<std::string> loc("test", token);
+        toml::detail::location loc("test", token);
         const auto r = parse_floating(loc);
         BOOST_CHECK(r.is_ok());
         BOOST_CHECK(std::isnan(r.unwrap().first));
     }
     {
         const std::string token("+nan");
-        toml::detail::location<std::string> loc("test", token);
+        toml::detail::location loc("test", token);
         const auto r = parse_floating(loc);
         BOOST_CHECK(r.is_ok());
         BOOST_CHECK(std::isnan(r.unwrap().first));
     }
     {
         const std::string token("-nan");
-        toml::detail::location<std::string> loc("test", token);
+        toml::detail::location loc("test", token);
         const auto r = parse_floating(loc);
         BOOST_CHECK(r.is_ok());
         BOOST_CHECK(std::isnan(r.unwrap().first));

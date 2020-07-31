@@ -189,8 +189,7 @@ get(const basic_value<C, M, V>& v)
         {
             throw type_error(detail::format_underline("toml::value: "
                 "bad_cast to std::chrono::system_clock::time_point", {
-                    {std::addressof(detail::get_region(v)),
-                     concat_to_string("the actual type is ", v.type())}
+                    {v.location(), concat_to_string("the actual type is ", v.type())}
                 }), v.location());
         }
     }
@@ -336,7 +335,7 @@ get(const basic_value<C, M, V>& v)
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "toml::get: specified container size is ", container.size(),
             " but there are ", ar.size(), " elements in toml array."), {
-                {std::addressof(detail::get_region(v)), "here"}
+                {v.location(), "here"}
             }));
     }
     std::transform(ar.cbegin(), ar.cend(), container.begin(),
@@ -360,9 +359,7 @@ get(const basic_value<C, M, V>& v)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "toml::get: specified std::pair but there are ", ar.size(),
-            " elements in toml array."), {
-                {std::addressof(detail::get_region(v)), "here"}
-            }));
+            " elements in toml array."), {{v.location(), "here"}}));
     }
     return std::make_pair(::toml::get<first_type >(ar.at(0)),
                           ::toml::get<second_type>(ar.at(1)));
@@ -392,9 +389,7 @@ get(const basic_value<C, M, V>& v)
         throw std::out_of_range(detail::format_underline(concat_to_string(
             "toml::get: specified std::tuple with ",
             std::tuple_size<T>::value, " elements, but there are ", ar.size(),
-            " elements in toml array."), {
-                {std::addressof(detail::get_region(v)), "here"}
-            }));
+            " elements in toml array."), {{v.location(), "here"}}));
     }
     return detail::get_tuple_impl<T>(ar,
             detail::make_index_sequence<std::tuple_size<T>::value>{});
@@ -511,9 +506,7 @@ find(const basic_value<C, M, V>& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "index ", idx, " is out of range"), {
-                {std::addressof(detail::get_region(v)), "in this array"}
-            }));
+            "index ", idx, " is out of range"), {{v.location(), "in this array"}}));
     }
     return ary.at(idx);
 }
@@ -525,9 +518,7 @@ basic_value<C, M, V>& find(basic_value<C, M, V>& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "index ", idx, " is out of range"), {
-                {std::addressof(detail::get_region(v)), "in this array"}
-            }));
+            "index ", idx, " is out of range"), {{v.location(), "in this array"}}));
     }
     return ary.at(idx);
 }
@@ -539,9 +530,7 @@ basic_value<C, M, V> find(basic_value<C, M, V>&& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "index ", idx, " is out of range"), {
-                {std::addressof(detail::get_region(v)), "in this array"}
-            }));
+            "index ", idx, " is out of range"), {{v.location(), "in this array"}}));
     }
     return basic_value<C, M, V>(std::move(ary.at(idx)));
 }
@@ -599,9 +588,7 @@ find(const basic_value<C, M, V>& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "index ", idx, " is out of range"), {
-                {std::addressof(detail::get_region(v)), "in this array"}
-            }));
+            "index ", idx, " is out of range"), {{v.location(), "in this array"}}));
     }
     return ::toml::get<T>(ary.at(idx));
 }
@@ -614,9 +601,7 @@ find(basic_value<C, M, V>& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "index ", idx, " is out of range"), {
-                {std::addressof(detail::get_region(v)), "in this array"}
-            }));
+            "index ", idx, " is out of range"), {{v.location(), "in this array"}}));
     }
     return ::toml::get<T>(ary.at(idx));
 }
@@ -629,9 +614,7 @@ find(basic_value<C, M, V>&& v, const std::size_t idx)
     if(ary.size() <= idx)
     {
         throw std::out_of_range(detail::format_underline(concat_to_string(
-            "index ", idx, " is out of range"), {
-                {std::addressof(detail::get_region(v)), "in this array"}
-            }));
+            "index ", idx, " is out of range"), {{v.location(), "in this array"}}));
     }
     return ::toml::get<T>(std::move(ary.at(idx)));
 }

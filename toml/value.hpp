@@ -22,21 +22,15 @@ namespace detail
 
 // to show error messages. not recommended for users.
 template<typename Value>
-inline region_base const& get_region(const Value& v)
+inline region_base const* get_region(const Value& v)
 {
-    return *(v.region_info_);
+    return v.region_info_.get();
 }
 
-template<typename Value, typename Region>
-void change_region(Value& v, Region&& reg)
+template<typename Value>
+void change_region(Value& v, region reg)
 {
-    using region_type = typename std::remove_reference<
-        typename std::remove_cv<Region>::type
-        >::type;
-
-    std::shared_ptr<region_base> new_reg =
-        std::make_shared<region_type>(std::forward<region_type>(reg));
-    v.region_info_ = new_reg;
+    v.region_info_ = std::make_shared<region>(std::move(reg));
     return;
 }
 
@@ -46,8 +40,7 @@ throw_bad_cast(const std::string& funcname, value_t actual, const Value& v)
 {
     throw type_error(detail::format_underline(
         concat_to_string(funcname, "bad_cast to ", Expected), {
-            {std::addressof(get_region(v)),
-             concat_to_string("the actual type is ", actual)}
+            {v.location(), concat_to_string("the actual type is ", actual)}
         }), v.location());
 }
 
@@ -74,8 +67,8 @@ throw_key_not_found_error(const Value& v, const key& ky)
     // It actually points to the top-level table at the first character,
     // not `[table]`. But it is too confusing. To avoid the confusion, the error
     // message should explicitly say "key not found in the top-level table".
-    const auto& reg = get_region(v);
-    if(reg.line_num() == "1" && reg.size() == 1)
+    const auto loc = v.location();
+    if(loc.line() == 1 && loc.region() == 1)
     {
         // Here it assumes that top-level table starts at the first character.
         // The region corresponds to the top-level table will be generated at
@@ -111,16 +104,14 @@ throw_key_not_found_error(const Value& v, const key& ky)
         //
         throw std::out_of_range(format_underline(concat_to_string(
             "key \"", ky, "\" not found in the top-level table"), {
-                {std::addressof(reg), "the top-level table starts here"}
+                {loc, "the top-level table starts here"}
             }));
     }
     else
     {
         // normal table.
         throw std::out_of_range(format_underline(concat_to_string(
-            "key \"", ky, "\" not found"), {
-                {std::addressof(reg), "in this table"}
-            }));
+            "key \"", ky, "\" not found"), { {loc, "in this table"} }));
     }
 }
 
@@ -1056,95 +1047,87 @@ class basic_value
     //
     // Those constructors take detail::region that contains parse result.
 
-    template<typename Container>
-    basic_value(boolean b, detail::region<Container> reg)
+    basic_value(boolean b, detail::region reg)
         : type_(value_t::boolean),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          region_info_(std::make_shared<detail::region>(std::move(reg))),
           comments_(region_info_->comments())
     {
         assigner(this->boolean_, b);
     }
-    template<typename T, typename Container, typename std::enable_if<
+    template<typename T, typename std::enable_if<
         detail::conjunction<
             std::is_integral<T>, detail::negation<std::is_same<T, boolean>>
         >::value, std::nullptr_t>::type = nullptr>
-    basic_value(T i, detail::region<Container> reg)
+    basic_value(T i, detail::region reg)
         : type_(value_t::integer),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          region_info_(std::make_shared<detail::region>(std::move(reg))),
           comments_(region_info_->comments())
     {
         assigner(this->integer_, static_cast<integer>(i));
     }
-    template<typename T, typename Container, typename std::enable_if<
+    template<typename T, typename std::enable_if<
         std::is_floating_point<T>::value, std::nullptr_t>::type = nullptr>
-    basic_value(T f, detail::region<Container> reg)
+    basic_value(T f, detail::region reg)
         : type_(value_t::floating),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          region_info_(std::make_shared<detail::region>(std::move(reg))),
           comments_(region_info_->comments())
     {
         assigner(this->floating_, static_cast<floating>(f));
     }
-    template<typename Container>
-    basic_value(toml::string s, detail::region<Container> reg)
+    basic_value(toml::string s, detail::region reg)
         : type_(value_t::string),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          region_info_(std::make_shared<detail::region>(std::move(reg))),
           comments_(region_info_->comments())
     {
         assigner(this->string_, std::move(s));
     }
-    template<typename Container>
-    basic_value(const local_date& ld, detail::region<Container> reg)
+    basic_value(const local_date& ld, detail::region reg)
         : type_(value_t::local_date),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          region_info_(std::make_shared<detail::region>(std::move(reg))),
           comments_(region_info_->comments())
     {
         assigner(this->local_date_, ld);
     }
-    template<typename Container>
-    basic_value(const local_time& lt, detail::region<Container> reg)
+    basic_value(const local_time& lt, detail::region reg)
         : type_(value_t::local_time),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          region_info_(std::make_shared<detail::region>(std::move(reg))),
           comments_(region_info_->comments())
     {
         assigner(this->local_time_, lt);
     }
-    template<typename Container>
-    basic_value(const local_datetime& ldt, detail::region<Container> reg)
+    basic_value(const local_datetime& ldt, detail::region reg)
         : type_(value_t::local_datetime),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          region_info_(std::make_shared<detail::region>(std::move(reg))),
           comments_(region_info_->comments())
     {
         assigner(this->local_datetime_, ldt);
     }
-    template<typename Container>
-    basic_value(const offset_datetime& odt, detail::region<Container> reg)
+    basic_value(const offset_datetime& odt, detail::region reg)
         : type_(value_t::offset_datetime),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          region_info_(std::make_shared<detail::region>(std::move(reg))),
           comments_(region_info_->comments())
     {
         assigner(this->offset_datetime_, odt);
     }
-    template<typename Container>
-    basic_value(const array_type& ary, detail::region<Container> reg)
+    basic_value(const array_type& ary, detail::region reg)
         : type_(value_t::array),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          region_info_(std::make_shared<detail::region>(std::move(reg))),
           comments_(region_info_->comments())
     {
         assigner(this->array_, ary);
     }
-    template<typename Container>
-    basic_value(const table_type& tab, detail::region<Container> reg)
+    basic_value(const table_type& tab, detail::region reg)
         : type_(value_t::table),
-          region_info_(std::make_shared<detail::region<Container>>(std::move(reg))),
+          region_info_(std::make_shared<detail::region>(std::move(reg))),
           comments_(region_info_->comments())
     {
         assigner(this->table_, tab);
     }
 
-    template<typename T, typename Container, typename std::enable_if<
+    template<typename T, typename std::enable_if<
         detail::is_exact_toml_type<T, value_type>::value,
         std::nullptr_t>::type = nullptr>
-    basic_value(std::pair<T, detail::region<Container>> parse_result)
+    basic_value(std::pair<T, detail::region> parse_result)
         : basic_value(std::move(parse_result.first), std::move(parse_result.second))
     {}
 
@@ -1578,9 +1561,9 @@ class basic_value
         {
             throw std::out_of_range(detail::format_underline(
                 "toml::value::at(idx): no element corresponding to the index", {
-                    {this->region_info_.get(),
-                     concat_to_string("the length is ", this->as_array(std::nothrow).size(),
-                                      ", and the specified index is ", idx)}
+                    {this->location(), concat_to_string("the length is ",
+                        this->as_array(std::nothrow).size(),
+                        ", and the specified index is ", idx)}
                 }));
         }
         return this->as_array().at(idx);
@@ -1596,9 +1579,9 @@ class basic_value
         {
             throw std::out_of_range(detail::format_underline(
                 "toml::value::at(idx): no element corresponding to the index", {
-                    {this->region_info_.get(),
-                     concat_to_string("the length is ", this->as_array(std::nothrow).size(),
-                                      ", and the specified index is ", idx)}
+                    {this->location(), concat_to_string("the length is ",
+                        this->as_array(std::nothrow).size(),
+                        ", and the specified index is ", idx)}
                 }));
         }
         return this->as_array(std::nothrow).at(idx);
@@ -1668,7 +1651,7 @@ class basic_value
             {
                 throw type_error(detail::format_underline(
                     "toml::value::size(): bad_cast to container types", {
-                        {this->region_info_.get(),
+                        {this->location(),
                          concat_to_string("the actual type is ", this->type_)}
                     }), this->location());
             }
@@ -1718,10 +1701,10 @@ class basic_value
 
     // for error messages
     template<typename Value>
-    friend region_base const& detail::get_region(const Value& v);
+    friend region_base const* detail::get_region(const Value& v);
 
-    template<typename Value, typename Region>
-    friend void detail::change_region(Value& v, Region&& reg);
+    template<typename Value>
+    friend void detail::change_region(Value& v, detail::region reg);
 
   private:
 
@@ -1926,10 +1909,8 @@ inline std::string format_error(const std::string& err_msg,
         std::vector<std::string> hints = {},
         const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
-    return detail::format_underline(err_msg,
-        std::vector<std::pair<detail::region_base const*, std::string>>{
-            {std::addressof(detail::get_region(v)), comment}
-        }, std::move(hints), colorize);
+    return detail::format_underline(err_msg, {{v.location(), comment}},
+                                    std::move(hints), colorize);
 }
 
 template<typename C, template<typename ...> class T, template<typename ...> class A>
@@ -1939,10 +1920,8 @@ inline std::string format_error(const std::string& err_msg,
         std::vector<std::string> hints = {},
         const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
-    return detail::format_underline(err_msg,
-        std::vector<std::pair<detail::region_base const*, std::string>>{
-            {std::addressof(detail::get_region(v1)), comment1},
-            {std::addressof(detail::get_region(v2)), comment2}
+    return detail::format_underline(err_msg, {
+            {v1.location(), comment1}, {v2.location(), comment2}
         }, std::move(hints), colorize);
 }
 
@@ -1954,11 +1933,8 @@ inline std::string format_error(const std::string& err_msg,
         std::vector<std::string> hints = {},
         const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
 {
-    return detail::format_underline(err_msg,
-        std::vector<std::pair<detail::region_base const*, std::string>>{
-            {std::addressof(detail::get_region(v1)), comment1},
-            {std::addressof(detail::get_region(v2)), comment2},
-            {std::addressof(detail::get_region(v3)), comment3}
+    return detail::format_underline(err_msg, {{v1.location(), comment1},
+            {v2.location(), comment2}, {v3.location(), comment3}
         }, std::move(hints), colorize);
 }
 

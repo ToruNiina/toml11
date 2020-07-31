@@ -58,13 +58,9 @@ struct character
 {
     static constexpr char target = C;
 
-    template<typename Cont>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc)
+    static result<region, none_t>
+    invoke(location& loc)
     {
-        static_assert(std::is_same<char, typename Cont::value_type>::value,
-                      "internal error: container::value_type should be `char`.");
-
         if(loc.iter() == loc.end()) {return none();}
         const auto first = loc.iter();
 
@@ -75,7 +71,7 @@ struct character
         }
         loc.advance(); // update location
 
-        return ok(region<Cont>(loc, first, loc.iter()));
+        return ok(region(loc, first, loc.iter()));
     }
 };
 template<char C>
@@ -91,13 +87,9 @@ struct in_range
     static constexpr char upper = Up;
     static constexpr char lower = Low;
 
-    template<typename Cont>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc)
+    static result<region, none_t>
+    invoke(location& loc)
     {
-        static_assert(std::is_same<char, typename Cont::value_type>::value,
-                      "internal error: container::value_type should be `char`.");
-
         if(loc.iter() == loc.end()) {return none();}
         const auto first = loc.iter();
 
@@ -108,7 +100,7 @@ struct in_range
         }
 
         loc.advance();
-        return ok(region<Cont>(loc, first, loc.iter()));
+        return ok(region(loc, first, loc.iter()));
     }
 };
 template<char L, char U> constexpr char in_range<L, U>::upper;
@@ -119,13 +111,9 @@ template<char L, char U> constexpr char in_range<L, U>::lower;
 template<typename Combinator>
 struct exclude
 {
-    template<typename Cont>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc)
+    static result<region, none_t>
+    invoke(location& loc)
     {
-        static_assert(std::is_same<char, typename Cont::value_type>::value,
-                      "internal error: container::value_type should be `char`.");
-
         if(loc.iter() == loc.end()) {return none();}
         auto first = loc.iter();
 
@@ -136,7 +124,7 @@ struct exclude
             return none();
         }
         loc.reset(std::next(first)); // XXX maybe loc.advance() is okay but...
-        return ok(region<Cont>(loc, first, loc.iter()));
+        return ok(region(loc, first, loc.iter()));
     }
 };
 
@@ -144,19 +132,15 @@ struct exclude
 template<typename Combinator>
 struct maybe
 {
-    template<typename Cont>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc)
+    static result<region, none_t>
+    invoke(location& loc)
     {
-        static_assert(std::is_same<char, typename Cont::value_type>::value,
-                      "internal error: container::value_type should be `char`.");
-
         const auto rslt = Combinator::invoke(loc);
         if(rslt.is_ok())
         {
             return rslt;
         }
-        return ok(region<Cont>(loc));
+        return ok(region(loc));
     }
 };
 
@@ -166,13 +150,9 @@ struct sequence;
 template<typename Head, typename ... Tail>
 struct sequence<Head, Tail...>
 {
-    template<typename Cont>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc)
+    static result<region, none_t>
+    invoke(location& loc)
     {
-        static_assert(std::is_same<char, typename Cont::value_type>::value,
-                      "internal error: container::value_type should be `char`.");
-
         const auto first = loc.iter();
         const auto rslt = Head::invoke(loc);
         if(rslt.is_err())
@@ -184,9 +164,9 @@ struct sequence<Head, Tail...>
     }
 
     // called from the above function only, recursively.
-    template<typename Cont, typename Iterator>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc, region<Cont> reg, Iterator first)
+    template<typename Iterator>
+    static result<region, none_t>
+    invoke(location& loc, region reg, Iterator first)
     {
         const auto rslt = Head::invoke(loc);
         if(rslt.is_err())
@@ -203,9 +183,9 @@ template<typename Head>
 struct sequence<Head>
 {
     // would be called from sequence<T ...>::invoke only.
-    template<typename Cont, typename Iterator>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc, region<Cont> reg, Iterator first)
+    template<typename Iterator>
+    static result<region, none_t>
+    invoke(location& loc, region reg, Iterator first)
     {
         const auto rslt = Head::invoke(loc);
         if(rslt.is_err())
@@ -224,13 +204,9 @@ struct either;
 template<typename Head, typename ... Tail>
 struct either<Head, Tail...>
 {
-    template<typename Cont>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc)
+    static result<region, none_t>
+    invoke(location& loc)
     {
-        static_assert(std::is_same<char, typename Cont::value_type>::value,
-                      "internal error: container::value_type should be `char`.");
-
         const auto rslt = Head::invoke(loc);
         if(rslt.is_ok()) {return rslt;}
         return either<Tail...>::invoke(loc);
@@ -239,12 +215,9 @@ struct either<Head, Tail...>
 template<typename Head>
 struct either<Head>
 {
-    template<typename Cont>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc)
+    static result<region, none_t>
+    invoke(location& loc)
     {
-        static_assert(std::is_same<char, typename Cont::value_type>::value,
-                      "internal error: container::value_type should be `char`.");
         return Head::invoke(loc);
     }
 };
@@ -259,11 +232,10 @@ struct unlimited{};
 template<typename T, std::size_t N>
 struct repeat<T, exactly<N>>
 {
-    template<typename Cont>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc)
+    static result<region, none_t>
+    invoke(location& loc)
     {
-        region<Cont> retval(loc);
+        region retval(loc);
         const auto first = loc.iter();
         for(std::size_t i=0; i<N; ++i)
         {
@@ -282,11 +254,10 @@ struct repeat<T, exactly<N>>
 template<typename T, std::size_t N>
 struct repeat<T, at_least<N>>
 {
-    template<typename Cont>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc)
+    static result<region, none_t>
+    invoke(location& loc)
     {
-        region<Cont> retval(loc);
+        region retval(loc);
 
         const auto first = loc.iter();
         for(std::size_t i=0; i<N; ++i)
@@ -314,11 +285,10 @@ struct repeat<T, at_least<N>>
 template<typename T>
 struct repeat<T, unlimited>
 {
-    template<typename Cont>
-    static result<region<Cont>, none_t>
-    invoke(location<Cont>& loc)
+    static result<region, none_t>
+    invoke(location& loc)
     {
-        region<Cont> retval(loc);
+        region retval(loc);
         while(true)
         {
             auto rslt = T::invoke(loc);

@@ -67,22 +67,21 @@ struct region_base
 //
 // it contains pointer to the file content and iterator that points the current
 // location.
-template<typename Container>
 struct location final : public region_base
 {
-    using const_iterator  = typename Container::const_iterator;
+    using const_iterator  = typename std::vector<char>::const_iterator;
     using difference_type = typename const_iterator::difference_type;
-    using source_ptr      = std::shared_ptr<const Container>;
+    using source_ptr      = std::shared_ptr<const std::vector<char>>;
 
-    static_assert(std::is_same<char, typename Container::value_type>::value,"");
-    static_assert(std::is_same<std::random_access_iterator_tag,
-        typename std::iterator_traits<const_iterator>::iterator_category>::value,
-        "container should be randomly accessible");
-
-    location(std::string name, Container cont)
-      : source_(std::make_shared<Container>(std::move(cont))), line_number_(1),
-        source_name_(std::move(name)), iter_(source_->cbegin())
+    location(std::string name, std::vector<char> cont)
+      : source_(std::make_shared<std::vector<char>>(std::move(cont))),
+        line_number_(1), source_name_(std::move(name)), iter_(source_->cbegin())
     {}
+    location(std::string name, const std::string& cont)
+      : source_(std::make_shared<std::vector<char>>(cont.begin(), cont.end())),
+        line_number_(1), source_name_(std::move(name)), iter_(source_->cbegin())
+    {}
+
     location(const location&) = default;
     location(location&&)      = default;
     location& operator=(const location&) = default;
@@ -195,33 +194,27 @@ struct location final : public region_base
 //
 // it contains pointer to the file content and iterator that points the first
 // and last location.
-template<typename Container>
 struct region final : public region_base
 {
-    using const_iterator = typename Container::const_iterator;
-    using source_ptr     = std::shared_ptr<const Container>;
-
-    static_assert(std::is_same<char, typename Container::value_type>::value,"");
-    static_assert(std::is_same<std::random_access_iterator_tag,
-        typename std::iterator_traits<const_iterator>::iterator_category>::value,
-        "container should be randomly accessible");
+    using const_iterator = typename std::vector<char>::const_iterator;
+    using source_ptr     = std::shared_ptr<const std::vector<char>>;
 
     // delete default constructor. source_ never be null.
     region() = delete;
 
-    region(const location<Container>& loc)
+    explicit region(const location& loc)
       : source_(loc.source()), source_name_(loc.name()),
         first_(loc.iter()), last_(loc.iter())
     {}
-    region(location<Container>&& loc)
+    explicit region(location&& loc)
       : source_(loc.source()), source_name_(loc.name()),
         first_(loc.iter()), last_(loc.iter())
     {}
 
-    region(const location<Container>& loc, const_iterator f, const_iterator l)
+    region(const location& loc, const_iterator f, const_iterator l)
       : source_(loc.source()), source_name_(loc.name()), first_(f), last_(l)
     {}
-    region(location<Container>&& loc, const_iterator f, const_iterator l)
+    region(location&& loc, const_iterator f, const_iterator l)
       : source_(loc.source()), source_name_(loc.name()), first_(f), last_(l)
     {}
 
@@ -418,107 +411,6 @@ struct region final : public region_base
     std::string    source_name_;
     const_iterator first_, last_;
 };
-
-// to show a better error message.
-inline std::string format_underline(const std::string& message,
-        const std::vector<std::pair<region_base const*, std::string>>& reg_com,
-        const std::vector<std::string>& helps = {},
-        const bool colorize = TOML11_ERROR_MESSAGE_COLORIZED)
-{
-    assert(!reg_com.empty());
-
-    const auto line_num_width = static_cast<int>(std::max_element(
-        reg_com.begin(), reg_com.end(),
-        [](std::pair<region_base const*, std::string> const& lhs,
-           std::pair<region_base const*, std::string> const& rhs)
-        {
-            return lhs.first->line_num().size() < rhs.first->line_num().size();
-        }
-    )->first->line_num().size());
-
-    std::ostringstream retval;
-
-    if(colorize)
-    {
-        retval << color::colorize; // turn on ANSI color
-    }
-
-    // XXX
-    // Here, before `colorize` support, it does not output `[error]` prefix
-    // automatically. So some user may output it manually and this change may
-    // duplicate the prefix. To avoid it, check the first 7 characters and
-    // if it is "[error]", it removes that part from the message shown.
-    if(message.size() > 7 && message.substr(0, 7) == "[error]")
-    {
-        retval << color::bold << color::red << "[error]" << color::reset
-               << color::bold << message.substr(7) << color::reset << '\n';
-    }
-    else
-    {
-        retval << color::bold << color::red << "[error] " << color::reset
-               << color::bold << message << color::reset << '\n';
-    }
-
-    for(auto iter = reg_com.begin(); iter != reg_com.end(); ++iter)
-    {
-        // if the filenames are the same, print "..."
-        if(iter != reg_com.begin() &&
-           std::prev(iter)->first->name() == iter->first->name())
-        {
-            retval << color::bold << color::blue << "\n ...\n" << color::reset;
-        }
-        else // if filename differs, print " --> filename.toml"
-        {
-            if(iter != reg_com.begin()) {retval << '\n';}
-            retval << color::bold << color::blue << " --> " << color::reset
-                   << iter->first->name() << '\n';
-            // add one almost-empty line for readability
-            retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ')
-                   << color::bold << color::blue << " | "  << color::reset << '\n';
-        }
-        const region_base* const reg = iter->first;
-        const std::string&   comment = iter->second;
-
-        retval << ' ' << color::bold << color::blue << std::setw(line_num_width)
-               << std::right << reg->line_num() << " | "  << color::reset
-               << reg->line() << '\n';
-
-        retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ')
-               << color::bold << color::blue << " | " << color::reset
-               << make_string(reg->before(), ' ');
-
-        if(reg->size() == 1)
-        {
-            // invalid
-            // ^------
-            retval << color::bold << color::red
-                   << '^' << make_string(reg->after(), '-') << color::reset;
-        }
-        else
-        {
-            // invalid
-            // ~~~~~~~
-            const auto underline_len = (std::min)(reg->size(), reg->line().size());
-            retval << color::bold << color::red
-                   << make_string(underline_len, '~') << color::reset;
-        }
-        retval << ' ';
-        retval << comment;
-    }
-
-    if(!helps.empty())
-    {
-        retval << '\n';
-        retval << make_string(static_cast<std::size_t>(line_num_width + 1), ' ');
-        retval << color::bold << color::blue << " | " << color::reset;
-        for(const auto& help : helps)
-        {
-            retval << color::bold << "\nHint: " << color::reset;
-            retval << help;
-        }
-    }
-    return retval.str();
-}
 
 } // detail
 } // toml

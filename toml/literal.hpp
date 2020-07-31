@@ -13,7 +13,7 @@ inline namespace toml_literals
 
 inline ::toml::value operator"" _toml(const char* str, std::size_t len)
 {
-    ::toml::detail::location<std::vector<char>>
+    ::toml::detail::location
         loc(/* filename = */ std::string("TOML literal encoded in a C++ code"),
             /* contents = */ std::vector<char>(str, str + len));
 
@@ -76,8 +76,7 @@ inline ::toml::value operator"" _toml(const char* str, std::size_t len)
     }
     else // none of them.
     {
-        throw ::toml::syntax_error(data.unwrap_err(),
-                                   source_location(std::addressof(loc)));
+        throw ::toml::syntax_error(data.unwrap_err(), source_location(loc));
     }
 }
 
