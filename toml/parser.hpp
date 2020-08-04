@@ -2089,17 +2089,16 @@ basic_value<Comment, Table, Array> parse(const std::string& fname)
 // This function just forwards `parse("filename.toml")` to std::string version
 // to avoid the ambiguity in overload resolution.
 //
-// Both std::string and std::filesystem::path are convertible from const char[].
+// Both std::string and std::filesystem::path are convertible from const char*.
 // Without this, both parse(std::string) and parse(std::filesystem::path)
 // matches to parse("filename.toml"). This breaks the existing code.
 //
-// This function exactly matches to the invokation with string literal.
+// This function exactly matches to the invokation with c-string.
 // So this function is preferred than others and the ambiguity disappears.
 template<typename                     Comment = ::toml::discard_comments,
          template<typename ...> class Table   = std::unordered_map,
-         template<typename ...> class Array   = std::vector,
-         std::size_t N>
-basic_value<Comment, Table, Array> parse(const char (&fname)[N])
+         template<typename ...> class Array   = std::vector>
+basic_value<Comment, Table, Array> parse(const char* fname)
 {
     return parse<Comment, Table, Array>(std::string(fname));
 }
