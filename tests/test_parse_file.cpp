@@ -895,14 +895,20 @@ BOOST_AUTO_TEST_CASE(test_parse_function_compiles)
     // toml::parse("");
     const auto string_literal = toml::parse("toml/tests/example.toml");
 
+    BOOST_TEST_MESSAGE("string_literal");
+
     const char* fname_cstring = "toml/tests/example.toml";
     // toml::parse(const char*);
     const auto cstring = toml::parse(fname_cstring);
 
+    BOOST_TEST_MESSAGE("const char*");
+
     // toml::parse(char*);
-    char* fname_char_ptr = new char[24];
-    std::strncpy(fname_char_ptr, fname_cstring, 24u);
-    const auto char_ptr = toml::parse(fname_char_ptr);
+    std::array<char, 24> fname_char_ptr;
+    std::strncpy(fname_char_ptr.data(), fname_cstring, 24);
+    const auto char_ptr = toml::parse(fname_char_ptr.data());
+
+    BOOST_TEST_MESSAGE("char*");
 
     // toml::parse(const std::string&);
     const std::string fname_string("toml/tests/example.toml");
@@ -913,8 +919,11 @@ BOOST_AUTO_TEST_CASE(test_parse_function_compiles)
     // toml::parse(std::string&&);
     const auto string_rref = toml::parse(std::move(fname_string_mut));
 
+    BOOST_TEST_MESSAGE("strings");
+
 #ifdef TOML11_HAS_STD_FILESYSTEM
     const std::filesystem::path fname_path(fname_string.begin(), fname_string.end());
     const auto filesystem_path = toml::parse(fname_path);
+    BOOST_TEST_MESSAGE("path");
 #endif
 }
