@@ -101,7 +101,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-8" CXX_STANDARD=17
+    env: COMPILER="g++-8" CXX_STANDARD=17 REQUIRE_FILESYSTEM_LIBRARY=ON
     addons:
       apt:
         sources:
@@ -113,7 +113,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: gcc
-    env: COMPILER="g++-8" CXX_STANDARD=17 TOML_HEAD=ON
+    env: COMPILER="g++-8" CXX_STANDARD=17 TOML_HEAD=ON REQUIRE_FILESYSTEM_LIBRARY=ON
     addons:
       apt:
         sources:
@@ -237,7 +237,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-8" CXX_STANDARD=17
+    env: COMPILER="clang++-8" CXX_STANDARD=17 REQUIRE_FILESYSTEM_LIBRARY=ON
     addons:
       apt:
         sources:
@@ -251,7 +251,7 @@ matrix:
   - os: linux
     language: cpp
     compiler: clang
-    env: COMPILER="clang++-8" CXX_STANDARD=17 TOML_HEAD=ON
+    env: COMPILER="clang++-8" CXX_STANDARD=17 TOML_HEAD=ON REQUIRE_FILESYSTEM_LIBRARY=ON
     addons:
       apt:
         sources:
@@ -321,11 +321,17 @@ script:
     export WITH_UBSAN="OFF"
   fi
 - echo "WITH_UBSAN = ${WITH_UBSAN}"
+- echo "REQUIRE_FILESYSTEM_LIBRARY = ${REQUIRE_FILESYSTEM_LIBRARY}"
+- |
+  if [[ "${REQUIRE_FILESYSTEM_LIBRARY}" != "ON" ]]; then
+    export REQUIRE_FILESYSTEM_LIBRARY="OFF"
+  fi
+- echo "REQUIRE_FILESYSTEM_LIBRARY = ${REQUIRE_FILESYSTEM_LIBRARY}"
 - cmake --version
 - mkdir build
 - cd build
 - echo "COMPILER     = ${COMPILER}"
 - echo "CXX_STANDARD = ${CXX_STANDARD}"
-- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DTOML11_USE_UNRELEASED_TOML_FEATURES=${TOML_HEAD} -Dtoml11_TEST_WITH_ASAN=${WITH_ASAN} -Dtoml11_TEST_WITH_UBSAN=${WITH_UBSAN} ..
+- cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_CXX_STANDARD=$CXX_STANDARD -DTOML11_REQUIRE_FILESYSTEM_LIBRARY=${REQUIRE_FILESYSTEM_LIBRARY} -DTOML11_USE_UNRELEASED_TOML_FEATURES=${TOML_HEAD} -Dtoml11_TEST_WITH_ASAN=${WITH_ASAN} -Dtoml11_TEST_WITH_UBSAN=${WITH_UBSAN} ..
 - make
 - ctest --output-on-failure
