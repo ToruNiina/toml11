@@ -150,9 +150,46 @@ find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 add_definitions(-DBOOST_TEST_DYN_LINK)
 add_definitions(-DUNITTEST_FRAMEWORK_LIBRARY_EXIST)
 
+# check which standard library implementation is used. If libstdc++ is used,
+# it will fail to compile. It compiles if libc++ is used.
+include(CheckCXXSourceCompiles)
+check_cxx_source_compiles("
+#include <cstddef>
+#ifdef __GLIBCXX__
+    static_assert(false);
+#endif
+int main() {
+    return 0;
+}" TOML11_WITH_LIBCXX_LIBRARY)
+
+# LLVM 8 requires -lc++fs if compiled with libc++ to use <filesystem>.
+# LLVM 9+ does not require any special library.
+# GCC 8 requires -lstdc++fs. GCC 9+ does not require it.
+#
+# Yes, we can check the version of the compiler used in the current build
+# directly in CMake. But, in most cases, clang build uses libstdc++ as the
+# standard library implementation and it makes the condition complicated.
+# In many environment, the default installed C++ compiler is GCC and libstdc++
+# is installed along with it. In most build on such an environment, even if we
+# chose clang as the C++ compiler, still libstdc++ is used. Checking default
+# gcc version makes the condition complicated.
+# The purpose of this file is to compile tests. We know the environment on which
+# the tests run. We can set this option and, I think, it is easier and better.
+option(TOML11_REQUIRE_FILESYSTEM_LIBRARY "need to link -lstdc++fs or -lc++fs" OFF)
+
 foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
     target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} toml11::toml11)
+
+    # to compile tests with <filesystem>...
+    if(TOML11_REQUIRE_FILESYSTEM_LIBRARY AND ${CMAKE_CXX_STANDARD} STREQUAL "17")
+        if(TOML11_WITH_LIBCXX_LIBRARY)
+            target_link_libraries(${TEST_NAME} "c++fs")
+        else()
+            target_link_libraries(${TEST_NAME} "stdc++fs")
+        endif()
+    endif()
+
     target_include_directories(${TEST_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -177,6 +214,7 @@ foreach(TEST_NAME ${TEST_NAMES})
         )
     endif()
 endforeach(TEST_NAME)
+
 
 # this test is to check it compiles. it will not run
 add_executable(test_multiple_translation_unit
