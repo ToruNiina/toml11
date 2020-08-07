@@ -39,12 +39,12 @@ struct source_location
   public:
 
     source_location()
-        : line_num_(0), column_num_(0), region_size_(0),
+        : line_num_(1), column_num_(1), region_size_(1),
           file_name_("unknown file"), line_str_("")
     {}
 
     explicit source_location(const detail::region_base* reg)
-        : line_num_(0), column_num_(0), region_size_(0),
+        : line_num_(1), column_num_(1), region_size_(1),
           file_name_("unknown file"), line_str_("")
     {
         if(reg)
