@@ -185,7 +185,7 @@ inline std::string format_underline(const std::string& message,
     retval << color::bold << color::blue << " --> " << color::reset
            << loc_com.front().first.file_name() << '\n';
     retval << make_string(line_num_width + 1, ' ')
-           << color::bold << color::blue << " | "  << color::reset << '\n';
+           << color::bold << color::blue << " |\n"  << color::reset;
     // 1 | key value
     //   |    ^--- missing =
     format_one_location(retval, loc_com.front().first, loc_com.front().second);
@@ -217,7 +217,7 @@ inline std::string format_underline(const std::string& message,
     {
         retval << '\n';
         retval << make_string(line_num_width + 1, ' ');
-        retval << color::bold << color::blue << " | " << color::reset;
+        retval << color::bold << color::blue << " |" << color::reset;
         for(const auto& help : helps)
         {
             retval << color::bold << "\nHint: " << color::reset;
