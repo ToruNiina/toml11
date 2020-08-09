@@ -879,7 +879,8 @@ inline result<std::pair<std::vector<key>, region>, std::string>
 parse_key(location& loc)
 {
     const auto first = loc.iter();
-    // dotted key -> foo.bar.baz whitespaces are allowed
+    // dotted key -> `foo.bar.baz` where several single keys are chained by
+    // dots. Whitespaces between keys and dots are allowed.
     if(const auto token = lex_dotted_key::invoke(loc))
     {
         const auto reg = token.unwrap();
@@ -922,14 +923,18 @@ parse_key(location& loc)
     }
     loc.reset(first);
 
-    // simple key -> foo
+    // simple_key: a single (basic_string|literal_string|bare key)
     if(const auto smpl = parse_simple_key(loc))
     {
         return ok(std::make_pair(std::vector<key>(1, smpl.unwrap().first),
                                  smpl.unwrap().second));
     }
-    return err(format_underline("toml::parse_key: ",
-                {{source_location(loc), "is not a valid key"}}));
+    return err(format_underline("toml::parse_key: an invalid key appeaed.",
+                {{source_location(loc), "is not a valid key"}}, {
+                "bare keys  : non-empty strings composed only of [A-Za-z0-9_-].",
+                "quoted keys: same as \"basic strings\" or 'literal strings'.",
+                "dotted keys: sequence of bare or quoted keys joined with a dot."
+                }));
 }
 
 // forward-decl to implement parse_array and parse_table
