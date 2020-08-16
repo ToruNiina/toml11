@@ -1015,7 +1015,7 @@ parse_array(location& loc)
                 }), source_location(loc));
         }
 
-        using lex_array_separator = sequence<maybe<lex_ws>, character<','>>;
+        using lex_array_separator = sequence<maybe<lex_ws_comment_newline>, character<','>>;
         const auto sp = lex_array_separator::invoke(loc);
         if(!sp)
         {
