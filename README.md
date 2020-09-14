@@ -1798,7 +1798,7 @@ for automating test set fetching!).
 ```sh
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake .. -Dtoml11_BUILD_TEST=ON
 $ make
 $ make test
 ```
