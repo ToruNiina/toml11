@@ -779,6 +779,22 @@ BOOST_AUTO_TEST_CASE(test_files_end_with_empty_lines)
         BOOST_TEST(toml::find<std::string>(toml::find(data, "table"), "key") == "value");
     }
 
+    // without newline
+    {
+        const std::string table(
+            "key = \"value\"\n"
+            "[table]\n"
+            "key = \"value\"\n"
+            "a = 0"
+            );
+        std::istringstream iss(table);
+        const auto data = toml::parse(iss,
+                "test_files_end_with_newline.toml");
+
+        BOOST_TEST(toml::find<std::string>(data, "key") == "value");
+        BOOST_TEST(toml::find<std::string>(toml::find(data, "table"), "key") == "value");
+    }
+
 
     // CRLF
 
