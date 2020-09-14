@@ -32,9 +32,9 @@ jobs:
         run: |
             mkdir build && cd build
             if [[ "${{ matrix.compiler }}" == "g++-8" && "${{ matrix.standard }}" == "17" ]] ; then
-                cmake .. -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_REQUIRE_FILESYSTEM_LIBRARY=ON
+                cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_REQUIRE_FILESYSTEM_LIBRARY=ON
             else
-                cmake .. -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
+                cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
             fi
       - name: Build
         run: |
@@ -70,7 +70,7 @@ jobs:
       - name: Configure
         run: |
             mkdir build && cd build
-            cmake .. -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
+            cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
       - name: Build
         run: |
             cd build && cmake --build .
@@ -94,7 +94,7 @@ jobs:
         run: |
             mkdir build
             cd build
-            cmake ../ -G "NMake Makefiles" -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DBoost_ADDITIONAL_VERSIONS=1.72.0 -DBoost_USE_MULTITHREADED=ON -DBoost_ARCHITECTURE=-x64 -DBoost_NO_BOOST_CMAKE=ON -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
+            cmake ../ -G "NMake Makefiles" -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DBoost_ADDITIONAL_VERSIONS=1.72.0 -DBoost_USE_MULTITHREADED=ON -DBoost_ARCHITECTURE=-x64 -DBoost_NO_BOOST_CMAKE=ON -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Build
         working-directory: ./build
         run: |
