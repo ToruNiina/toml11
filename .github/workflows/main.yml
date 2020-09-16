@@ -99,6 +99,7 @@ jobs:
       - name: Configure
         shell: cmd
         run: |
+            file --mime-encoding tests/test_literals.cpp
             mkdir build
             cd build
             cmake ../ -G "NMake Makefiles" -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DBoost_ADDITIONAL_VERSIONS=1.72.0 -DBoost_USE_MULTITHREADED=ON -DBoost_ARCHITECTURE=-x64 -DBoost_NO_BOOST_CMAKE=ON -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
@@ -109,6 +110,7 @@ jobs:
       - name: Test
         working-directory: ./build
         run: |
+            ./tests/test_literals --log_level=all
             file --mime-encoding tests/toml/tests/example.toml
             file --mime-encoding tests/toml/tests/fruit.toml
             file --mime-encoding tests/toml/tests/hard_example.toml

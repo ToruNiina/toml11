@@ -37,6 +37,10 @@ else()
     endif()
 endif()
 
+if(MSVC)
+    add_definitions("/Zc:__cplusplus")
+endif()
+
 # Set some common directories
 include(GNUInstallDirs)
 set(toml11_install_cmake_dir         ${CMAKE_INSTALL_LIBDIR}/cmake/toml11)

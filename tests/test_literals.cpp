@@ -264,6 +264,20 @@ BOOST_AUTO_TEST_CASE(test_value_as_u8_literal)
         const toml::value v4 = u8R"('''foo''')"_toml;
         const toml::value v5 = u8R"("ひらがな")"_toml;
 
+        // XXX
+#ifndef __cpp_char8_t
+        {
+            const char* l = u8R"(ひらがな)";
+            BOOST_TEST_MESSAGE(l);
+            while(*l != '\0')
+            {
+                const int tmp(*l);
+                BOOST_TEST_MESSAGE(std::hex << tmp);
+                ++l;
+            }
+        }
+#endif
+
         BOOST_TEST(v1.is_string());
         BOOST_TEST(v2.is_string());
         BOOST_TEST(v3.is_string());
