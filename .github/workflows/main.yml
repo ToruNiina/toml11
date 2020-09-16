@@ -34,7 +34,8 @@ jobs:
       - name: Configure
         run: |
             mkdir build && cd build
-            if [[ "${{ matrix.compiler }}" == "g++-8" && "${{ matrix.standard }}" == "17" ]] ; then
+            if [[ "${{ matrix.compiler }}" == "g++-8" && ( "${{ matrix.standard }}" == "17" || "${{ matrix.standard }}" == "20" ) ]]
+            then
                 cmake .. -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_REQUIRE_FILESYSTEM_LIBRARY=ON
             else
                 cmake .. -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
