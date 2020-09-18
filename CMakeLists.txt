@@ -38,7 +38,8 @@ else()
 endif()
 
 if(MSVC)
-    add_definitions("/Zc:__cplusplus")
+    add_definitions("/Zc:__cplusplus") # define __cplusplus value correctly
+    add_definitions("/utf-8")          # enable to use u8"" literal
 endif()
 
 # Set some common directories
