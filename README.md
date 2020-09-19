@@ -1842,6 +1842,11 @@ I appreciate the help of the contributors who introduced the great feature to th
   - fix "Finding a value in an array" example in README
 - @maass-tv and @SeverinLeonhardt
   - Fix MSVC warning C4866
+- OGAWA KenIchi (@kenichiice)
+  - Fix include path in README
+- Mohammed Alyousef (@MoAlyousef)
+  - Made testing optional in CMake
+
 
 ## Licensing terms
 
