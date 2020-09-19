@@ -172,3 +172,19 @@ BOOST_AUTO_TEST_CASE(test_heterogeneous_array)
     }
 #endif
 }
+
+BOOST_AUTO_TEST_CASE(test_comments_after_comma)
+{
+    {
+        array a;
+        a.push_back("foo");
+        a.push_back("bar");
+        a.push_back("baz");
+        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, R"([
+              "foo" # comment
+            , "bar" # comment
+            , "baz" # comment
+            ]
+        )", toml::value(a));
+    }
+}
