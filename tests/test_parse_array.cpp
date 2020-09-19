@@ -180,11 +180,10 @@ BOOST_AUTO_TEST_CASE(test_comments_after_comma)
         a.push_back("foo");
         a.push_back("bar");
         a.push_back("baz");
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, R"([
-              "foo" # comment
-            , "bar" # comment
-            , "baz" # comment
-            ]
-        )", toml::value(a));
+        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
+            "[ \"foo\" # comment\n"
+            ", \"bar\" # comment\n"
+            ", \"baz\" # comment\n"
+            "]", toml::value(a));
     }
 }
