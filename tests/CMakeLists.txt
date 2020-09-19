@@ -182,7 +182,7 @@ foreach(TEST_NAME ${TEST_NAMES})
     target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} toml11::toml11)
 
     # to compile tests with <filesystem>...
-    if(TOML11_REQUIRE_FILESYSTEM_LIBRARY AND ${CMAKE_CXX_STANDARD} STREQUAL "17")
+    if(TOML11_REQUIRE_FILESYSTEM_LIBRARY)
         if(TOML11_WITH_LIBCXX_LIBRARY)
             target_link_libraries(${TEST_NAME} "c++fs")
         else()

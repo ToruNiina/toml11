@@ -125,6 +125,7 @@ parse_integer(location& loc)
         const auto second = std::next(first);
         if(second == loc.end()) // the token is just zero.
         {
+            loc.advance();
             return ok(std::make_pair(0, region(loc, first, second)));
         }
 

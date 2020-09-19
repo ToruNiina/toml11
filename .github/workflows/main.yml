@@ -9,10 +9,13 @@ jobs:
       matrix:
         # g++-4.8 and 4.9 are tested on Travis.CI.
         compiler: ['g++-9', 'g++-8', 'g++-7', 'g++-6', 'g++-5']
-        standard: ['11', '14', '17']
+        standard: ['11', '14', '17', '20']
         exclude:
             - {compiler: 'g++-5', standard: '17'}
             - {compiler: 'g++-6', standard: '17'}
+            - {compiler: 'g++-5', standard: '20'}
+            - {compiler: 'g++-6', standard: '20'}
+            - {compiler: 'g++-7', standard: '20'}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -31,10 +34,10 @@ jobs:
       - name: Configure
         run: |
             mkdir build && cd build
-            if [[ "${{ matrix.compiler }}" == "g++-8" && "${{ matrix.standard }}" == "17" ]] ; then
-                cmake .. -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_REQUIRE_FILESYSTEM_LIBRARY=ON
+            if [[ "${{ matrix.compiler }}" == "g++-8" && ( "${{ matrix.standard }}" == "17" || "${{ matrix.standard }}" == "20" ) ]] ; then
+                cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_REQUIRE_FILESYSTEM_LIBRARY=ON
             else
-                cmake .. -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
+                cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
             fi
       - name: Build
         run: |
@@ -47,11 +50,14 @@ jobs:
     strategy:
       matrix:
         compiler: ['10', '9', '8', '7', '6.0', '5.0', '4.0', '3.9']
-        standard: ['11', '14', '17']
+        standard: ['11', '14', '17', '20']
         exclude:
             - {compiler: '3.9', standard: '17'}
             - {compiler: '4.0', standard: '17'}
             - {compiler: '5.0', standard: '17'}
+            - {compiler: '3.9', standard: '20'}
+            - {compiler: '4.0', standard: '20'}
+            - {compiler: '5.0', standard: '20'}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -70,7 +76,7 @@ jobs:
       - name: Configure
         run: |
             mkdir build && cd build
-            cmake .. -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
+            cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
       - name: Build
         run: |
             cd build && cmake --build .
@@ -81,7 +87,7 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        standard: ['11', '14', '17']
+        standard: ['11', '14', '17', '20']
         config: ['Release', 'Debug']
     steps:
       - name: Checkout
@@ -92,9 +98,10 @@ jobs:
       - name: Configure
         shell: cmd
         run: |
+            file --mime-encoding tests/test_literals.cpp
             mkdir build
             cd build
-            cmake ../ -G "NMake Makefiles" -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DBoost_ADDITIONAL_VERSIONS=1.72.0 -DBoost_USE_MULTITHREADED=ON -DBoost_ARCHITECTURE=-x64 -DBoost_NO_BOOST_CMAKE=ON -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
+            cmake ../ -G "NMake Makefiles" -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DBoost_ADDITIONAL_VERSIONS=1.72.0 -DBoost_USE_MULTITHREADED=ON -DBoost_ARCHITECTURE=-x64 -DBoost_NO_BOOST_CMAKE=ON -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Build
         working-directory: ./build
         run: |
@@ -102,6 +109,7 @@ jobs:
       - name: Test
         working-directory: ./build
         run: |
+            ./tests/test_literals --log_level=all
             file --mime-encoding tests/toml/tests/example.toml
             file --mime-encoding tests/toml/tests/fruit.toml
             file --mime-encoding tests/toml/tests/hard_example.toml

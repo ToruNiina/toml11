@@ -31,15 +31,9 @@ BOOST_AUTO_TEST_CASE(test_basic_string)
             "\"192.168.1.1\"",
             "\"192.168.1.1\"");
 
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
     TOML11_TEST_LEX_ACCEPT(lex_string,
-            "\"\xE4\xB8\xAD\xE5\x9B\xBD\"",
-            "\"\xE4\xB8\xAD\xE5\x9B\xBD\"");
-#else
-    TOML11_TEST_LEX_ACCEPT(lex_string,
-            u8"\"中国\"",
-            u8"\"中国\"");
-#endif
+            "\"\xE4\xB8\xAD\xE5\x9B\xBD\"",  // UTF-8 string (means "China" in
+            "\"\xE4\xB8\xAD\xE5\x9B\xBD\""); // Chinese characters)
 
     TOML11_TEST_LEX_ACCEPT(lex_string,
             "\"You'll hate me after this - #\"",

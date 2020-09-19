@@ -95,7 +95,7 @@ int main()
 Just include the file after adding it to the include path.
 
 ```cpp
-#include <toml11/toml.hpp> // that's all! now you can use it.
+#include <toml.hpp> // that's all! now you can use it.
 #include <iostream>
 
 int main()
@@ -1798,7 +1798,7 @@ for automating test set fetching!).
 ```sh
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake .. -Dtoml11_BUILD_TEST=ON
 $ make
 $ make test
 ```

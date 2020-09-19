@@ -3,7 +3,7 @@ enable_testing()
 
 project(toml11 VERSION 3.5.0)
 
-option(toml11_BUILD_TEST "Build toml tests" ON)
+option(toml11_BUILD_TEST "Build toml tests" OFF)
 option(toml11_TEST_WITH_ASAN  "use LLVM address sanitizer" OFF)
 option(toml11_TEST_WITH_UBSAN "use LLVM undefined behavior sanitizer" OFF)
 
@@ -35,6 +35,11 @@ else()
             message(SEND_ERROR "The ${CMAKE_CXX_COMPILER} compiler lacks C++11 support. Use another compiler.")
         endif()
     endif()
+endif()
+
+if(MSVC)
+    add_definitions("/Zc:__cplusplus") # define __cplusplus value correctly
+    add_definitions("/utf-8")          # enable to use u8"" literal
 endif()
 
 # Set some common directories

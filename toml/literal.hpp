@@ -11,12 +11,9 @@ inline namespace literals
 inline namespace toml_literals
 {
 
-inline ::toml::value operator"" _toml(const char* str, std::size_t len)
+// implementation
+inline ::toml::value literal_internal_impl(::toml::detail::location loc)
 {
-    ::toml::detail::location
-        loc(/* filename = */ std::string("TOML literal encoded in a C++ code"),
-            /* contents = */ std::vector<char>(str, str + len));
-
     // if there are some comments or empty lines, skip them.
     using skip_line = ::toml::detail::repeat<toml::detail::sequence<
             ::toml::detail::maybe<::toml::detail::lex_ws>,
@@ -78,7 +75,31 @@ inline ::toml::value operator"" _toml(const char* str, std::size_t len)
     {
         throw ::toml::syntax_error(data.unwrap_err(), source_location(loc));
     }
+
 }
+
+inline ::toml::value operator"" _toml(const char* str, std::size_t len)
+{
+    ::toml::detail::location loc(
+            std::string("TOML literal encoded in a C++ code"),
+            std::vector<char>(str, str + len));
+    return literal_internal_impl(std::move(loc));
+}
+
+// value of __cplusplus in C++2a/20 mode is not fixed yet along compilers.
+// So here we use the feature test macro for `char8_t` itself.
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
+// value of u8"" literal has been changed from char to char8_t and char8_t is
+// NOT compatible to char
+inline ::toml::value operator"" _toml(const char8_t* str, std::size_t len)
+{
+    ::toml::detail::location loc(
+            std::string("TOML literal encoded in a C++ code"),
+            std::vector<char>(reinterpret_cast<const char*>(str),
+                              reinterpret_cast<const char*>(str) + len));
+    return literal_internal_impl(std::move(loc));
+}
+#endif
 
 } // toml_literals
 } // literals

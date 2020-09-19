@@ -11,7 +11,7 @@
 BOOST_AUTO_TEST_CASE(test_comment_before)
 {
     {
-        const std::string file = u8R"(
+        const std::string file = R"(
             # comment for a.
             a = 42
             # comment for b.
@@ -24,12 +24,12 @@ BOOST_AUTO_TEST_CASE(test_comment_before)
         const auto& b = toml::find(v, "b");
 
         BOOST_TEST(a.comments().size()  == 1u);
-        BOOST_TEST(a.comments().front() == u8" comment for a.");
+        BOOST_TEST(a.comments().front() == " comment for a.");
         BOOST_TEST(b.comments().size()  == 1u);
-        BOOST_TEST(b.comments().front() == u8" comment for b.");
+        BOOST_TEST(b.comments().front() == " comment for b.");
     }
     {
-        const std::string file = u8R"(
+        const std::string file = R"(
             # comment for a.
             # another comment for a.
             a = 42
@@ -45,18 +45,18 @@ BOOST_AUTO_TEST_CASE(test_comment_before)
         const auto& b = toml::find(v, "b");
 
         BOOST_TEST(a.comments().size()  == 2u);
-        BOOST_TEST(a.comments().front() == u8" comment for a.");
-        BOOST_TEST(a.comments().back()  == u8" another comment for a.");
+        BOOST_TEST(a.comments().front() == " comment for a.");
+        BOOST_TEST(a.comments().back()  == " another comment for a.");
         BOOST_TEST(b.comments().size()  == 2u);
-        BOOST_TEST(b.comments().front() == u8" comment for b.");
-        BOOST_TEST(b.comments().back()  == u8" also comment for b.");
+        BOOST_TEST(b.comments().front() == " comment for b.");
+        BOOST_TEST(b.comments().back()  == " also comment for b.");
     }
 }
 
 BOOST_AUTO_TEST_CASE(test_comment_inline)
 {
     {
-        const std::string file = u8R"(
+        const std::string file = R"(
             a = 42    # comment for a.
             b = "baz" # comment for b.
         )";
@@ -68,12 +68,12 @@ BOOST_AUTO_TEST_CASE(test_comment_inline)
         const auto& b = toml::find(v, "b");
 
         BOOST_TEST(a.comments().size()  == 1u);
-        BOOST_TEST(a.comments().front() == u8" comment for a.");
+        BOOST_TEST(a.comments().front() == " comment for a.");
         BOOST_TEST(b.comments().size()  == 1u);
-        BOOST_TEST(b.comments().front() == u8" comment for b.");
+        BOOST_TEST(b.comments().front() == " comment for b.");
     }
     {
-        const std::string file = u8R"(
+        const std::string file = R"(
             a = [
                 42,
             ] # comment for a.
@@ -90,18 +90,18 @@ BOOST_AUTO_TEST_CASE(test_comment_inline)
         const auto& b0 = b.as_array().at(0);
 
         BOOST_TEST(a.comments().size()   == 1u);
-        BOOST_TEST(a.comments().front()  == u8" comment for a.");
+        BOOST_TEST(a.comments().front()  == " comment for a.");
         BOOST_TEST(b.comments().size()   == 1u);
-        BOOST_TEST(b.comments().front()  == u8" this is a comment for b.");
+        BOOST_TEST(b.comments().front()  == " this is a comment for b.");
         BOOST_TEST(b0.comments().size()  == 1u);
-        BOOST_TEST(b0.comments().front() == u8" this is not a comment for b, but \"bar\"");
+        BOOST_TEST(b0.comments().front() == " this is not a comment for b, but \"bar\"");
     }
 }
 
 BOOST_AUTO_TEST_CASE(test_comment_both)
 {
     {
-        const std::string file = u8R"(
+        const std::string file = R"(
             # comment for a.
             a = 42 # inline comment for a.
             # comment for b.
@@ -122,25 +122,25 @@ BOOST_AUTO_TEST_CASE(test_comment_both)
         const auto& c0 = c.as_array().at(0);
 
         BOOST_TEST(a.comments().size()  == 2u);
-        BOOST_TEST(a.comments().front() == u8" comment for a.");
-        BOOST_TEST(a.comments().back()  == u8" inline comment for a.");
+        BOOST_TEST(a.comments().front() == " comment for a.");
+        BOOST_TEST(a.comments().back()  == " inline comment for a.");
         BOOST_TEST(b.comments().size()  == 2u);
-        BOOST_TEST(b.comments().front() == u8" comment for b.");
-        BOOST_TEST(b.comments().back()  == u8" inline comment for b.");
+        BOOST_TEST(b.comments().front() == " comment for b.");
+        BOOST_TEST(b.comments().back()  == " inline comment for b.");
 
         BOOST_TEST(c.comments().size()  == 2u);
-        BOOST_TEST(c.comments().front() == u8" comment for c.");
-        BOOST_TEST(c.comments().back()  == u8" another comment for c.");
+        BOOST_TEST(c.comments().front() == " comment for c.");
+        BOOST_TEST(c.comments().back()  == " another comment for c.");
 
         BOOST_TEST(c0.comments().size()  == 2u);
-        BOOST_TEST(c0.comments().front() == u8" comment for the first element.");
-        BOOST_TEST(c0.comments().back()  == u8" this also.");
+        BOOST_TEST(c0.comments().front() == " comment for the first element.");
+        BOOST_TEST(c0.comments().back()  == " this also.");
     }
 }
 
 BOOST_AUTO_TEST_CASE(test_discard_comment)
 {
-    const std::string file = u8R"(
+    const std::string file = R"(
         # comment for a.
         a = 42 # inline comment for a.
         # comment for b.
