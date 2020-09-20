@@ -110,6 +110,8 @@ int main()
 The convenient way is to add this repository as a git-submodule or to install
 it in your system by CMake.
 
+Note for MSVC: We recommend to set `/Zc:__cplusplus` to detect C++ version correctly.
+
 ## Decoding a toml file
 
 To parse a toml file, the only thing you have to do is
