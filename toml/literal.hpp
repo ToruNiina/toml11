@@ -12,8 +12,11 @@ inline namespace toml_literals
 {
 
 // implementation
-inline ::toml::value literal_internal_impl(::toml::detail::location loc)
+inline ::toml::basic_value<::toml::discard_comments, std::unordered_map, std::vector>
+literal_internal_impl(::toml::detail::location loc)
 {
+    using value_type = ::toml::basic_value<
+        ::toml::discard_comments, std::unordered_map, std::vector>;
     // if there are some comments or empty lines, skip them.
     using skip_line = ::toml::detail::repeat<toml::detail::sequence<
             ::toml::detail::maybe<::toml::detail::lex_ws>,
@@ -50,7 +53,7 @@ inline ::toml::value literal_internal_impl(::toml::detail::location loc)
     // If it is neither a table-key or a array-of-table-key, it may be a value.
     if(!is_table_key && !is_aots_key)
     {
-        if(auto data = ::toml::detail::parse_value<::toml::value>(loc))
+        if(auto data = ::toml::detail::parse_value<value_type>(loc))
         {
             return data.unwrap();
         }
@@ -67,7 +70,7 @@ inline ::toml::value literal_internal_impl(::toml::detail::location loc)
     // It is a valid toml file.
     // It should be parsed as if we parse a file with this content.
 
-    if(auto data = ::toml::detail::parse_toml_file<::toml::value>(loc))
+    if(auto data = ::toml::detail::parse_toml_file<value_type>(loc))
     {
         return data.unwrap();
     }
@@ -78,7 +81,8 @@ inline ::toml::value literal_internal_impl(::toml::detail::location loc)
 
 }
 
-inline ::toml::value operator"" _toml(const char* str, std::size_t len)
+inline ::toml::basic_value<::toml::discard_comments, std::unordered_map, std::vector>
+operator"" _toml(const char* str, std::size_t len)
 {
     ::toml::detail::location loc(
             std::string("TOML literal encoded in a C++ code"),
@@ -91,7 +95,8 @@ inline ::toml::value operator"" _toml(const char* str, std::size_t len)
 #if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
 // value of u8"" literal has been changed from char to char8_t and char8_t is
 // NOT compatible to char
-inline ::toml::value operator"" _toml(const char8_t* str, std::size_t len)
+inline ::toml::basic_value<::toml::discard_comments, std::unordered_map, std::vector>
+operator"" _toml(const char8_t* str, std::size_t len)
 {
     ::toml::detail::location loc(
             std::string("TOML literal encoded in a C++ code"),
