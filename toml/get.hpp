@@ -338,8 +338,10 @@ get(const basic_value<C, M, V>& v)
                 {v.location(), "here"}
             }));
     }
-    std::transform(ar.cbegin(), ar.cend(), container.begin(),
-        [](const basic_value<C, M, V>& x){return ::toml::get<value_type>(x);});
+    for(std::size_t i=0; i<ar.size(); ++i)
+    {
+        container[i] = ::toml::get<value_type>(ar[i]);
+    }
     return container;
 }
 
