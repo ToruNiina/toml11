@@ -13,12 +13,12 @@
 #include "types.hpp"
 #include "value.hpp"
 
-#if (__cplusplus >= 201703L) && !defined(__MINGW32__) && !defined(__MINGW64__)
+#if (__cplusplus >= 201703L) || (__GNUC__ >= 9)
 #if __has_include(<filesystem>)
 #define TOML11_HAS_STD_FILESYSTEM
 #include <filesystem>
 #endif // has_include(<string_view>)
-#endif // (cplusplus >= C++17) && !mingw32 && !mingw64
+#endif // (cplusplus >= C++17) || (gcc >= 9)
 
 namespace toml
 {
