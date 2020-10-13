@@ -138,6 +138,43 @@ BOOST_AUTO_TEST_CASE(test_comment_both)
     }
 }
 
+BOOST_AUTO_TEST_CASE(test_comments_on_implicit_values)
+{
+    {
+        const std::string file = R"(
+            # comment for the first element of array-of-tables.
+            [[array-of-tables]]
+            foo = "bar"
+        )";
+        std::istringstream iss(file);
+        const auto v = toml::parse<toml::preserve_comments>(iss);
+
+        const auto aot = toml::find(v, "array-of-tables");
+        const auto elm = aot.at(0);
+        BOOST_TEST(aot.comments().empty());
+        BOOST_TEST(elm.comments().size() == 1);
+        BOOST_TEST(elm.comments().front() == " comment for the first element of array-of-tables.");
+    }
+    {
+        const std::string file = R"(
+            # comment for the array itself
+            array-of-tables = [
+                # comment for the first element of array-of-tables.
+                {foo = "bar"}
+            ]
+        )";
+        std::istringstream iss(file);
+        const auto v = toml::parse<toml::preserve_comments>(iss);
+
+        const auto aot = toml::find(v, "array-of-tables");
+        const auto elm = aot.at(0);
+        BOOST_TEST(aot.comments().size() == 1);
+        BOOST_TEST(aot.comments().front() == " comment for the array itself");
+        BOOST_TEST(elm.comments().size() == 1);
+        BOOST_TEST(elm.comments().front() == " comment for the first element of array-of-tables.");
+    }
+}
+
 BOOST_AUTO_TEST_CASE(test_discard_comment)
 {
     const std::string file = R"(
