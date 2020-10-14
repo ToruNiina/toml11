@@ -248,13 +248,7 @@ struct serializer
         {
             return std::string("[]");
         }
-
-        // Since TOML v0.5.0, heterogeneous arrays are allowed. So we need to
-        // check all the element in an array to check if the array is an array
-        // of tables.
-        const bool is_array_of_tables = std::all_of(v.begin(), v.end(),
-                [](const value_type& elem) {return elem.is_table();});
-        if(is_array_of_tables)
+        if(this->is_array_of_tables(v))
         {
             // if it's not inlined, we need to add `[[table.key]]`.
             // but if it can be inlined,
@@ -674,8 +668,16 @@ struct serializer
     bool is_array_of_tables(const value_type& v) const
     {
         if(!v.is_array()) {return false;}
-        const auto& a = v.as_array();
-        return !a.empty() && a.front().is_table();
+        return is_array_of_tables(v.as_array());
+    }
+    bool is_array_of_tables(const array_type& v) const
+    {
+        // Since TOML v0.5.0, heterogeneous arrays are allowed. So we need to
+        // check all the element in an array to check if the array is an array
+        // of tables.
+        return std::all_of(v.begin(), v.end(), [](const value_type& elem) {
+                return elem.is_table();
+            });
     }
 
   private:
