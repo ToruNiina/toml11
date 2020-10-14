@@ -1047,10 +1047,10 @@ class basic_value
     //
     // Those constructors take detail::region that contains parse result.
 
-    basic_value(boolean b, detail::region reg)
+    basic_value(boolean b, detail::region reg, std::vector<std::string> cm)
         : type_(value_t::boolean),
           region_info_(std::make_shared<detail::region>(std::move(reg))),
-          comments_(region_info_->comments())
+          comments_(std::move(cm))
     {
         assigner(this->boolean_, b);
     }
@@ -1058,68 +1058,75 @@ class basic_value
         detail::conjunction<
             std::is_integral<T>, detail::negation<std::is_same<T, boolean>>
         >::value, std::nullptr_t>::type = nullptr>
-    basic_value(T i, detail::region reg)
+    basic_value(T i, detail::region reg, std::vector<std::string> cm)
         : type_(value_t::integer),
           region_info_(std::make_shared<detail::region>(std::move(reg))),
-          comments_(region_info_->comments())
+          comments_(std::move(cm))
     {
         assigner(this->integer_, static_cast<integer>(i));
     }
     template<typename T, typename std::enable_if<
         std::is_floating_point<T>::value, std::nullptr_t>::type = nullptr>
-    basic_value(T f, detail::region reg)
+    basic_value(T f, detail::region reg, std::vector<std::string> cm)
         : type_(value_t::floating),
           region_info_(std::make_shared<detail::region>(std::move(reg))),
-          comments_(region_info_->comments())
+          comments_(std::move(cm))
     {
         assigner(this->floating_, static_cast<floating>(f));
     }
-    basic_value(toml::string s, detail::region reg)
+    basic_value(toml::string s, detail::region reg,
+                std::vector<std::string> cm)
         : type_(value_t::string),
           region_info_(std::make_shared<detail::region>(std::move(reg))),
-          comments_(region_info_->comments())
+          comments_(std::move(cm))
     {
         assigner(this->string_, std::move(s));
     }
-    basic_value(const local_date& ld, detail::region reg)
+    basic_value(const local_date& ld, detail::region reg,
+                std::vector<std::string> cm)
         : type_(value_t::local_date),
           region_info_(std::make_shared<detail::region>(std::move(reg))),
-          comments_(region_info_->comments())
+          comments_(std::move(cm))
     {
         assigner(this->local_date_, ld);
     }
-    basic_value(const local_time& lt, detail::region reg)
+    basic_value(const local_time& lt, detail::region reg,
+                std::vector<std::string> cm)
         : type_(value_t::local_time),
           region_info_(std::make_shared<detail::region>(std::move(reg))),
-          comments_(region_info_->comments())
+          comments_(std::move(cm))
     {
         assigner(this->local_time_, lt);
     }
-    basic_value(const local_datetime& ldt, detail::region reg)
+    basic_value(const local_datetime& ldt, detail::region reg,
+                std::vector<std::string> cm)
         : type_(value_t::local_datetime),
           region_info_(std::make_shared<detail::region>(std::move(reg))),
-          comments_(region_info_->comments())
+          comments_(std::move(cm))
     {
         assigner(this->local_datetime_, ldt);
     }
-    basic_value(const offset_datetime& odt, detail::region reg)
+    basic_value(const offset_datetime& odt, detail::region reg,
+                std::vector<std::string> cm)
         : type_(value_t::offset_datetime),
           region_info_(std::make_shared<detail::region>(std::move(reg))),
-          comments_(region_info_->comments())
+          comments_(std::move(cm))
     {
         assigner(this->offset_datetime_, odt);
     }
-    basic_value(const array_type& ary, detail::region reg)
+    basic_value(const array_type& ary, detail::region reg,
+                std::vector<std::string> cm)
         : type_(value_t::array),
           region_info_(std::make_shared<detail::region>(std::move(reg))),
-          comments_(region_info_->comments())
+          comments_(std::move(cm))
     {
         assigner(this->array_, ary);
     }
-    basic_value(const table_type& tab, detail::region reg)
+    basic_value(const table_type& tab, detail::region reg,
+                std::vector<std::string> cm)
         : type_(value_t::table),
           region_info_(std::make_shared<detail::region>(std::move(reg))),
-          comments_(region_info_->comments())
+          comments_(std::move(cm))
     {
         assigner(this->table_, tab);
     }
@@ -1127,8 +1134,10 @@ class basic_value
     template<typename T, typename std::enable_if<
         detail::is_exact_toml_type<T, value_type>::value,
         std::nullptr_t>::type = nullptr>
-    basic_value(std::pair<T, detail::region> parse_result)
-        : basic_value(std::move(parse_result.first), std::move(parse_result.second))
+    basic_value(std::pair<T, detail::region> parse_result, std::vector<std::string> comments)
+        : basic_value(std::move(parse_result.first),
+                      std::move(parse_result.second),
+                      std::move(comments))
     {}
 
     // type checking and casting ============================================

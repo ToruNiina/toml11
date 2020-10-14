@@ -651,7 +651,7 @@ struct serializer
                 tmp += '\n';
             }
 
-            if(!kv.second.comments().empty() && !no_comment_ && tmp.front() != '#')
+            if(!kv.second.comments().empty() && !no_comment_)
             {
                 for(const auto& c : kv.second.comments())
                 {

@@ -58,6 +58,8 @@ jobs:
             - {compiler: '3.9', standard: '20'}
             - {compiler: '4.0', standard: '20'}
             - {compiler: '5.0', standard: '20'}
+            - {compiler: '6.0', standard: '20'}
+            - {compiler: '7',   standard: '20'}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -76,7 +78,7 @@ jobs:
       - name: Configure
         run: |
             mkdir build && cd build
-            cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
+            cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_C_COMPILER=clang-${{ matrix.compiler }} -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
       - name: Build
         run: |
             cd build && cmake --build .

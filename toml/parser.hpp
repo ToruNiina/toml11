@@ -1315,7 +1315,41 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                 }
                 else // if not, we need to create the array of table
                 {
-                    value_type aot(array_type(1, v), key_reg);
+                    // XXX: Consider the following array of tables.
+                    // ```toml
+                    // # This is a comment.
+                    // [[aot]]
+                    // foo = "bar"
+                    // ```
+                    // Here, the comment is for `aot`. But here, actually two
+                    // values are defined. An array that contains tables, named
+                    // `aot`, and the 0th element of the `aot`, `{foo = "bar"}`.
+                    // Those two are different from each other. But both of them
+                    // points to the same portion of the TOML file, `[[aot]]`,
+                    // so `key_reg.comments()` returns `# This is a comment`.
+                    // If it is assigned as a comment of `aot` defined here, the
+                    // comment will be duplicated. Both the `aot` itself and
+                    // the 0-th element will have the same comment. This causes
+                    // "duplication of the same comments" bug when the data is
+                    // serialized.
+                    //     Next, consider the following.
+                    // ```toml
+                    // # comment 1
+                    // aot = [
+                    //     # coment 2
+                    //     {foo = "bar"},
+                    // ]
+                    // ```
+                    // In this case, we can distinguish those two comments. So
+                    // here we need to add "comment 1" to the `aot` and
+                    // "comment 2" to the 0th element of that.
+                    //     To distinguish those two, we check the key region.
+                    std::vector<std::string> comments{/* empty by default */};
+                    if(key_reg.str().substr(0, 2) != "[[")
+                    {
+                        comments = key_reg.comments();
+                    }
+                    value_type aot(array_type(1, v), key_reg, std::move(comments));
                     tab->insert(std::make_pair(k, aot));
                     return ok(true);
                 }
@@ -1384,7 +1418,8 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
             // [x.y.z]
             if(tab->count(k) == 0)
             {
-                (*tab)[k] = value_type(table_type{}, key_reg);
+                // a table that is defined implicitly doesn't have any comments.
+                (*tab)[k] = value_type(table_type{}, key_reg, {/*no comment*/});
             }
 
             // type checking...
@@ -1674,11 +1709,24 @@ inline result<value_t, std::string> guess_value_type(const location& loc)
     }
 }
 
+template<typename Value, typename T>
+result<Value, std::string>
+parse_value_helper(result<std::pair<T, region>, std::string> rslt)
+{
+    if(rslt.is_ok())
+    {
+        auto comments = rslt.as_ok().second.comments();
+        return ok(Value(std::move(rslt.as_ok()), std::move(comments)));
+    }
+    else
+    {
+        return err(std::move(rslt.as_err()));
+    }
+}
+
 template<typename Value>
 result<Value, std::string> parse_value(location& loc)
 {
-    using value_type = Value;
-
     const auto first = loc.iter();
     if(first == loc.end())
     {
@@ -1691,18 +1739,19 @@ result<Value, std::string> parse_value(location& loc)
     {
         return err(type.unwrap_err());
     }
+
     switch(type.unwrap())
     {
-        case value_t::boolean        : {return parse_boolean(loc);        }
-        case value_t::integer        : {return parse_integer(loc);        }
-        case value_t::floating       : {return parse_floating(loc);       }
-        case value_t::string         : {return parse_string(loc);         }
-        case value_t::offset_datetime: {return parse_offset_datetime(loc);}
-        case value_t::local_datetime : {return parse_local_datetime(loc); }
-        case value_t::local_date     : {return parse_local_date(loc);     }
-        case value_t::local_time     : {return parse_local_time(loc);     }
-        case value_t::array          : {return parse_array<value_type>(loc);       }
-        case value_t::table          : {return parse_inline_table<value_type>(loc);}
+        case value_t::boolean        : {return parse_value_helper<Value>(parse_boolean(loc)            );}
+        case value_t::integer        : {return parse_value_helper<Value>(parse_integer(loc)            );}
+        case value_t::floating       : {return parse_value_helper<Value>(parse_floating(loc)           );}
+        case value_t::string         : {return parse_value_helper<Value>(parse_string(loc)             );}
+        case value_t::offset_datetime: {return parse_value_helper<Value>(parse_offset_datetime(loc)    );}
+        case value_t::local_datetime : {return parse_value_helper<Value>(parse_local_datetime(loc)     );}
+        case value_t::local_date     : {return parse_value_helper<Value>(parse_local_date(loc)         );}
+        case value_t::local_time     : {return parse_value_helper<Value>(parse_local_time(loc)         );}
+        case value_t::array          : {return parse_value_helper<Value>(parse_array<Value>(loc)       );}
+        case value_t::table          : {return parse_value_helper<Value>(parse_inline_table<Value>(loc));}
         default:
         {
             const auto msg = format_underline("toml::parse_value: "
@@ -1993,7 +2042,7 @@ result<Value, std::string> parse_toml_file(location& loc)
             const auto& reg  = tk.second;
 
             const auto inserted = insert_nested_key(data,
-                    value_type(tab.unwrap(), reg),
+                    value_type(tab.unwrap(), reg, reg.comments()),
                     keys.begin(), keys.end(), reg,
                     /*is_array_of_table=*/ true);
             if(!inserted) {return err(inserted.unwrap_err());}
@@ -2010,7 +2059,8 @@ result<Value, std::string> parse_toml_file(location& loc)
             const auto& reg  = tk.second;
 
             const auto inserted = insert_nested_key(data,
-                value_type(tab.unwrap(), reg), keys.begin(), keys.end(), reg);
+                value_type(tab.unwrap(), reg, reg.comments()),
+                keys.begin(), keys.end(), reg);
             if(!inserted) {return err(inserted.unwrap_err());}
 
             continue;
@@ -2019,10 +2069,7 @@ result<Value, std::string> parse_toml_file(location& loc)
             "unknown line appeared", {{source_location(loc), "unknown format"}}));
     }
 
-    Value v(std::move(data), file);
-    v.comments() = comments;
-
-    return ok(std::move(v));
+    return ok(Value(std::move(data), file, comments));
 }
 
 } // detail
