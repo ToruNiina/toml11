@@ -244,7 +244,17 @@ struct serializer
 
     std::string operator()(const array_type& v) const
     {
-        if(!v.empty() && v.front().is_table())// v is an array of tables
+        if(v.empty())
+        {
+            return std::string("[]");
+        }
+
+        // Since TOML v0.5.0, heterogeneous arrays are allowed. So we need to
+        // check all the element in an array to check if the array is an array
+        // of tables.
+        const bool is_array_of_tables = std::all_of(v.begin(), v.end(),
+                [](const value_type& elem) {return elem.is_table();});
+        if(is_array_of_tables)
         {
             // if it's not inlined, we need to add `[[table.key]]`.
             // but if it can be inlined,
@@ -321,10 +331,6 @@ struct serializer
                 token += this->make_multiline_table(item.as_table());
             }
             return token;
-        }
-        if(v.empty())
-        {
-            return std::string("[]");
         }
 
         // not an array of tables. normal array.
