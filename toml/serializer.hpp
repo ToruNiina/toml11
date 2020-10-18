@@ -595,7 +595,9 @@ struct serializer
                 token += format_key(keys_.back());
                 token += " = ";
             }
-            bool failed = false;
+
+            bool exceed_column = false;
+            bool has_comment   = false;
             token += "[\n";
             for(const auto& item : v)
             {
@@ -603,7 +605,7 @@ struct serializer
                 // cannot be inlined.
                 if(this->has_comment_inside(item.as_table()))
                 {
-                    failed = true;
+                    has_comment = true;
                     break;
                 }
                 // write comments for the table itself
@@ -614,13 +616,13 @@ struct serializer
                 if(t.size() + 1 > width_ || // +1 for the last comma {...},
                    std::find(t.cbegin(), t.cend(), '\n') != t.cend())
                 {
-                    failed = true;
+                    exceed_column = true;
                     break;
                 }
                 token += t;
                 token += ",\n";
             }
-            if(!failed)
+            if(!exceed_column && !has_comment)
             {
                 token += "]\n";
                 return token;
