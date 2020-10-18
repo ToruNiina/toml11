@@ -10,6 +10,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 template<typename Comment,
          template<typename ...> class Table,
@@ -302,4 +303,61 @@ BOOST_AUTO_TEST_CASE(test_format_key)
         const toml::key key("special-chars-\\-\"-\b-\f-\r-\n-\t");
         BOOST_TEST("\"special-chars-\\\\-\\\"-\\b-\\f-\\r-\\n-\\t\"" == toml::format_key(key));
     }
+}
+
+// In toml11, an implicitly-defined value does not have any comments.
+// So, in the following file,
+// ```toml
+// # comment
+// [[array-of-tables]]
+// foo = "bar"
+// ```
+// The array named "array-of-tables" does not have the comment, but the first
+// element of the array has. That means that, the above file is equivalent to
+// the following.
+// ```toml
+// array-of-tables = [
+//     # comment
+//     {foo = "bar"},
+// ]
+// ```
+// If the array itself has a comment (value_has_comment_ == true), we should try
+// to make it inline.
+// ```toml
+// # comment about array
+// array-of-tables = [
+//   # comment about table element
+//   {foo = "bar"}
+// ]
+// ```
+// If it is formatted as a multiline table, the two comments becomes
+// indistinguishable.
+// ```toml
+// # comment about array
+// # comment about table element
+// [[array-of-tables]]
+// foo = "bar"
+// ```
+// So we need to try to make it inline, and it force-inlines regardless
+// of the line width limit.
+//     It may fail if the element of a table has comment. In that case,
+// the array-of-tables will be formatted as a multiline table.
+BOOST_AUTO_TEST_CASE(test_distinguish_comment)
+{
+    const std::string str = R"(# comment about array itself
+array_of_table = [
+    # comment about the first element (table)
+    {key = "value"},
+])";
+    std::istringstream iss(str);
+    const auto data = toml::parse<toml::preserve_comments>(iss);
+    const auto serialized = toml::format(data, /*width = */ 0);
+
+    std::istringstream reparse(serialized);
+    const auto parsed = toml::parse<toml::preserve_comments>(reparse);
+
+    BOOST_TEST(parsed.at("array_of_table").comments().size()  == 1u);
+    BOOST_TEST(parsed.at("array_of_table").comments().front() == " comment about array itself");
+    BOOST_TEST(parsed.at("array_of_table").at(0).comments().size()  == 1u);
+    BOOST_TEST(parsed.at("array_of_table").at(0).comments().front() == " comment about the first element (table)");
 }
