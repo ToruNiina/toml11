@@ -523,15 +523,8 @@ struct serializer
                 continue;
             }
 
-            if(!kv.second.comments().empty() && !no_comment_)
-            {
-                for(const auto& c : kv.second.comments())
-                {
-                    token += '#';
-                    token += c;
-                    token += '\n';
-                }
-            }
+            token += write_comments(kv.second);
+
             const auto key_and_sep    = format_key(kv.first) + " = ";
             const auto residual_width = (this->width_ > key_and_sep.size()) ?
                                         this->width_ - key_and_sep.size() : 0;
@@ -577,15 +570,7 @@ struct serializer
                 tmp += '\n';
             }
 
-            if(!kv.second.comments().empty() && !no_comment_)
-            {
-                for(const auto& c : kv.second.comments())
-                {
-                    token += '#';
-                    token += c;
-                    token += '\n';
-                }
-            }
+            token += write_comments(kv.second);
             token += tmp;
         }
         return token;
@@ -621,15 +606,8 @@ struct serializer
                     failed = true;
                     break;
                 }
-                if(!no_comment_)
-                {
-                    for(const auto& c : item.comments())
-                    {
-                        token += '#';
-                        token += c;
-                        token += '\n';
-                    }
-                }
+                // write comments for the table itself
+                token += write_comments(item);
 
                 const auto t = this->make_inline_table(item.as_table());
 
@@ -653,21 +631,27 @@ struct serializer
         std::string token;
         for(const auto& item : v)
         {
-            if(!no_comment_)
-            {
-                for(const auto& c : item.comments())
-                {
-                    token += '#';
-                    token += c;
-                    token += '\n';
-                }
-            }
+            token += write_comments(item);
             token += "[[";
             token += format_keys(keys_);
             token += "]]\n";
             token += this->make_multiline_table(item.as_table());
         }
         return token;
+    }
+
+    std::string write_comments(const value_type& v) const
+    {
+        std::string retval;
+        if(this->no_comment_) {return retval;}
+
+        for(const auto& c : v.comments())
+        {
+            retval += '#';
+            retval += c;
+            retval += '\n';
+        }
+        return retval;
     }
 
     bool is_array_of_tables(const value_type& v) const
