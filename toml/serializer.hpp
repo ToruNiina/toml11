@@ -97,8 +97,10 @@ struct serializer
                const int         float_prec     = std::numeric_limits<toml::floating>::max_digits10,
                const bool        can_be_inlined = false,
                const bool        no_comment     = false,
-               std::vector<toml::key> ks        = {})
+               std::vector<toml::key> ks        = {},
+               const bool     value_has_comment = false)
         : can_be_inlined_(can_be_inlined), no_comment_(no_comment),
+          value_has_comment_(value_has_comment && !no_comment),
           float_prec_(float_prec), width_(w), keys_(std::move(ks))
     {}
     ~serializer() = default;
@@ -483,8 +485,10 @@ struct serializer
         for(const auto& item : v)
         {
             if(is_first) {is_first = false;} else {token += ',';}
-            token += visit(serializer((std::numeric_limits<std::size_t>::max)(),
-                                      this->float_prec_, true), item);
+            token += visit(serializer(
+                (std::numeric_limits<std::size_t>::max)(), this->float_prec_,
+                /* inlined */ true, /*no comment*/ false, /*keys*/ {},
+                /*has_comment*/ !item.comments().empty()), item);
         }
         token += ']';
         return token;
@@ -503,8 +507,10 @@ struct serializer
             if(is_first) {is_first = false;} else {token += ',';}
             token += format_key(kv.first);
             token += '=';
-            token += visit(serializer((std::numeric_limits<std::size_t>::max)(),
-                                      this->float_prec_, true), kv.second);
+            token += visit(serializer(
+                (std::numeric_limits<std::size_t>::max)(), this->float_prec_,
+                /* inlined */ true, /*no comment*/ false, /*keys*/ {},
+                /*has_comment*/ !kv.second.comments().empty()), kv.second);
         }
         token += '}';
         return token;
@@ -514,8 +520,16 @@ struct serializer
     {
         std::string token;
 
-        // print non-table stuff first. because after printing [foo.bar], the
-        // remaining non-table values will be assigned into [foo.bar], not [foo]
+        // print non-table elements first.
+        // ```toml
+        // [foo]         # a table we're writing now here
+        // key = "value" # <- non-table element, "key"
+        // # ...
+        // [foo.bar] # <- table element, "bar"
+        // ```
+        // because after printing [foo.bar], the remaining non-table values will
+        // be assigned into [foo.bar], not [foo]. Those values should be printed
+        // earlier.
         for(const auto& kv : v)
         {
             if(kv.second.is_table() || is_array_of_tables(kv.second))
@@ -529,8 +543,10 @@ struct serializer
             const auto residual_width = (this->width_ > key_and_sep.size()) ?
                                         this->width_ - key_and_sep.size() : 0;
             token += key_and_sep;
-            token += visit(serializer(residual_width, this->float_prec_, true),
-                           kv.second);
+            token += visit(serializer(residual_width, this->float_prec_,
+                /*can be inlined*/ true, /*no comment*/ false, /*keys*/ {},
+                /*has_comment*/ !kv.second.comments().empty()), kv.second);
+
             if(token.back() != '\n')
             {
                 token += '\n';
@@ -556,8 +572,8 @@ struct serializer
             ks.push_back(kv.first);
 
             auto tmp = visit(serializer(this->width_, this->float_prec_,
-                !multiline_table_printed, this->no_comment_, ks),
-                kv.second);
+                !multiline_table_printed, this->no_comment_, ks,
+                /*has_comment*/ !kv.second.comments().empty()), kv.second);
 
             if((!multiline_table_printed) &&
                std::find(tmp.cbegin(), tmp.cend(), '\n') != tmp.cend())
@@ -579,7 +595,7 @@ struct serializer
     std::string make_array_of_tables(const array_type& v) const
     {
         // if it's not inlined, we need to add `[[table.key]]`.
-        // but if it can be inlined,
+        // but if it can be inlined, we can format it as the following.
         // ```
         // table.key = [
         //   {...},
@@ -587,7 +603,33 @@ struct serializer
         //   {...},
         // ]
         // ```
-        if(this->can_be_inlined_)
+        // This function checks if inlinization is possible or not, and then
+        // format the array-of-tables in a proper way.
+        //
+        // Note about comments:
+        //
+        // If the array itself has a comment (value_has_comment_ == true), we
+        // should try to make it inline.
+        // ```toml
+        // # comment about array
+        // array = [
+        //   # comment about table element
+        //   {of = "table"}
+        // ]
+        // ```
+        // If it is formatted as a multiline table, the two comments becomes
+        // indistinguishable.
+        // ```toml
+        // # comment about array
+        // # comment about table element
+        // [[array]]
+        // of = "table"
+        // ```
+        // So we need to try to make it inline, and it force-inlines regardless
+        // of the line width limit.
+        //     It may fail if the element of a table has comment. In that case,
+        // the array-of-tables will be formatted as a multiline table.
+        if(this->can_be_inlined_ || this->value_has_comment_)
         {
             std::string token;
             if(!keys_.empty())
@@ -596,8 +638,7 @@ struct serializer
                 token += " = ";
             }
 
-            bool exceed_column = false;
-            bool has_comment   = false;
+            bool failed = false;
             token += "[\n";
             for(const auto& item : v)
             {
@@ -605,7 +646,7 @@ struct serializer
                 // cannot be inlined.
                 if(this->has_comment_inside(item.as_table()))
                 {
-                    has_comment = true;
+                    failed = true;
                     break;
                 }
                 // write comments for the table itself
@@ -616,13 +657,18 @@ struct serializer
                 if(t.size() + 1 > width_ || // +1 for the last comma {...},
                    std::find(t.cbegin(), t.cend(), '\n') != t.cend())
                 {
-                    exceed_column = true;
-                    break;
+                    // if the value itself has a comment, ignore the line width limit
+                    if( ! this->value_has_comment_)
+                    {
+                        failed = true;
+                        break;
+                    }
                 }
                 token += t;
                 token += ",\n";
             }
-            if(!exceed_column && !has_comment)
+
+            if( ! failed)
             {
                 token += "]\n";
                 return token;
@@ -675,6 +721,7 @@ struct serializer
 
     bool        can_be_inlined_;
     bool        no_comment_;
+    bool        value_has_comment_;
     int         float_prec_;
     std::size_t width_;
     std::vector<toml::key> keys_;
