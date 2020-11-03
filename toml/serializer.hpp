@@ -704,7 +704,7 @@ struct serializer
 
     bool is_array_of_tables(const value_type& v) const
     {
-        if(!v.is_array()) {return false;}
+        if(!v.is_array() || v.as_array().empty()) {return false;}
         return is_array_of_tables(v.as_array());
     }
     bool is_array_of_tables(const array_type& v) const
