@@ -122,7 +122,7 @@ struct serializer
         std::snprintf(buf.data(), buf.size(), fmt, this->float_prec_, f);
 
         std::string token(buf.begin(), std::prev(buf.end()));
-        if(token.back() == '.') // 1. => 1.0
+        if(!token.empty() && token.back() == '.') // 1. => 1.0
         {
             token += '0';
         }
@@ -304,7 +304,7 @@ struct serializer
                     token += '\n';
                 }
                 token += toml::visit(*this, item);
-                if(token.back() == '\n') {token.pop_back();}
+                if(!token.empty() && token.back() == '\n') {token.pop_back();}
                 token += ",\n";
                 continue;
             }
@@ -312,7 +312,7 @@ struct serializer
             next_elem += toml::visit(*this, item);
 
             // comma before newline.
-            if(next_elem.back() == '\n') {next_elem.pop_back();}
+            if(!next_elem.empty() && next_elem.back() == '\n') {next_elem.pop_back();}
 
             // if current line does not exceeds the width limit, continue.
             if(current_line.size() + next_elem.size() + 1 < this->width_)
@@ -339,7 +339,10 @@ struct serializer
         }
         if(!current_line.empty())
         {
-            if(current_line.back() != '\n') {current_line += '\n';}
+            if(!current_line.empty() && current_line.back() != '\n')
+            {
+                current_line += '\n';
+            }
             token += current_line;
         }
         token += "]\n";
