@@ -344,7 +344,7 @@ struct region final : public region_base
                     {
                         // unwrap the first '#' by std::next.
                         auto str = make_string(std::next(comment_found), iter);
-                        if(str.back() == '\r') {str.pop_back();}
+                        if(!str.empty() && str.back() == '\r') {str.pop_back();}
                         com.push_back(std::move(str));
                     }
                     else
@@ -397,7 +397,7 @@ struct region final : public region_base
                 {
                     // unwrap the first '#' by std::next.
                     auto str = make_string(std::next(comment_found), this->line_end());
-                    if(str.back() == '\r') {str.pop_back();}
+                    if(!str.empty() && str.back() == '\r') {str.pop_back();}
                     com.push_back(std::move(str));
                 }
             }
