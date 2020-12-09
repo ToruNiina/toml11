@@ -4,6 +4,7 @@
 #define TOML11_COMMENTS_HPP
 #include <initializer_list>
 #include <iterator>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
