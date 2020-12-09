@@ -3,6 +3,7 @@
 #ifndef TOML11_SOURCE_LOCATION_HPP
 #define TOML11_SOURCE_LOCATION_HPP
 #include <cstdint>
+#include <sstream>
 
 #include "region.hpp"
 
