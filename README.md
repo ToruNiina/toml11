@@ -1303,9 +1303,9 @@ struct foo
     double      b;
     std::string c;
 
-    toml::table into_toml() const // you need to mark it const.
+    toml::value into_toml() const // you need to mark it const.
     {
-        return toml::table{{"a", this->a}, {"b", this->b}, {"c", this->c}};
+        return toml::value{{"a", this->a}, {"b", this->b}, {"c", this->c}};
     }
 };
 } // ext
@@ -1332,9 +1332,9 @@ namespace toml
 template<>
 struct into<ext::foo>
 {
-    static toml::table into_toml(const ext::foo& f)
+    static toml::value into_toml(const ext::foo& f)
     {
-        return toml::table{{"a", f.a}, {"b", f.b}, {"c", f.c}};
+        return toml::value{{"a", f.a}, {"b", f.b}, {"c", f.c}};
     }
 };
 } // toml
@@ -1345,6 +1345,27 @@ toml::value v(f);
 
 Any type that can be converted to `toml::value`, e.g. `int`, `toml::table` and
 `toml::array` are okay to return from `into_toml`.
+
+You can also return a custom `toml::basic_value` from `toml::into`.
+
+```cpp
+namespace toml
+{
+template<>
+struct into<ext::foo>
+{
+    static toml::basic_value<toml::preserve_comments> into_toml(const ext::foo& f)
+    {
+        toml::basic_value<toml::preserve_comments> v{{"a", f.a}, {"b", f.b}, {"c", f.c}};
+        v.comments().push_back(" comment");
+        return v;
+    }
+};
+} // toml
+```
+
+But note that, if this `basic_value` would be assigned into other `toml::value`
+that discards `comments`, the comments would be dropped.
 
 ## Formatting user-defined error messages
 
