@@ -28,6 +28,10 @@ toml11 is a C++11 (or later) header-only toml parser/encoder depending only on C
 
 int main()
 {
+    // ```toml
+    // title = "an example toml file"
+    // nums  = [3, 1, 4, 1, 5]
+    // ```
     auto data = toml::parse("example.toml");
 
     // find a value with the specified type from a table
@@ -37,9 +41,9 @@ int main()
     std::vector<int> nums = toml::find<std::vector<int>>(data, "nums");
 
     // access with STL-like manner
-    if(not data.at("a").contains("b"))
+    if(not data.contains("foo"))
     {
-        data["a"]["b"] = "c";
+        data["foo"] = "bar";
     }
 
     // pass a fallback
