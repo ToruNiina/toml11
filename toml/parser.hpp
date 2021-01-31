@@ -930,7 +930,7 @@ parse_key(location& loc)
         return ok(std::make_pair(std::vector<key>(1, smpl.unwrap().first),
                                  smpl.unwrap().second));
     }
-    return err(format_underline("toml::parse_key: an invalid key appeaed.",
+    return err(format_underline("toml::parse_key: an invalid key appeared.",
                 {{source_location(loc), "is not a valid key"}}, {
                 "bare keys  : non-empty strings composed only of [A-Za-z0-9_-].",
                 "quoted keys: same as \"basic strings\" or 'literal strings'.",
