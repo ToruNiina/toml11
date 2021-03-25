@@ -35,7 +35,7 @@
 
 #define TOML11_VERSION_MAJOR 3
 #define TOML11_VERSION_MINOR 6
-#define TOML11_VERSION_PATCH 0
+#define TOML11_VERSION_PATCH 1
 
 #include "toml/parser.hpp"
 #include "toml/literal.hpp"
