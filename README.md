@@ -11,7 +11,7 @@ toml11
 
 toml11 is a C++11 (or later) header-only toml parser/encoder depending only on C++ standard library.
 
-- It is compatible to the latest version of [TOML v1.0.0-rc.2](https://toml.io/en/v1.0.0-rc.2).
+- It is compatible to the latest version of [TOML v1.0.0](https://toml.io/en/v1.0.0).
 - It is one of the most TOML standard compliant libraries, tested with [the language agnostic test suite for TOML parsers by BurntSushi](https://github.com/BurntSushi/toml-test).
 - It shows highly informative error messages. You can see the error messages about invalid files at [CircleCI](https://circleci.com/gh/ToruNiina/toml11).
 - It has configurable container. You can use any random-access containers and key-value maps as backend containers.
@@ -1873,6 +1873,12 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fix include path in README
 - Mohammed Alyousef (@MoAlyousef)
   - Made testing optional in CMake
+- Ivan Shynkarenka (@chronoxor)
+  - Fix compilation error in `<filesystem>` with MinGW
+- Alex Merry (@amerry)
+  - Add missing include files
+- sneakypete81 (@sneakypete81)
+  - Fix typo in error message
 
 
 ## Licensing terms
