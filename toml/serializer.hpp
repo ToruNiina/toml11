@@ -582,6 +582,7 @@ struct serializer
                std::find(tmp.cbegin(), tmp.cend(), '\n') != tmp.cend())
             {
                 multiline_table_printed = true;
+                tmp += '\n';
             }
             else
             {
