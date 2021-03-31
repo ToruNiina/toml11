@@ -578,20 +578,35 @@ struct serializer
                 !multiline_table_printed, this->no_comment_, ks,
                 /*has_comment*/ !kv.second.comments().empty()), kv.second);
 
+            // If it is the first time to print a multi-line table, it would be
+            // helpful to separate normal key-value pair and subtables by a
+            // newline.
+            // (this checks if the current key-value pair contains newlines.
+            //  but it is not perfect because multi-line string can also contain
+            //  a newline. in such a case, an empty line will be written) TODO
             if((!multiline_table_printed) &&
                std::find(tmp.cbegin(), tmp.cend(), '\n') != tmp.cend())
             {
                 multiline_table_printed = true;
-                tmp += '\n';
+                token += '\n'; // separate key-value pairs and subtables
+
+                token += write_comments(kv.second);
+                token += tmp;
+
+                // care about recursive tables (all tables in each level prints
+                // newline and there will be a full of newlines)
+                if(tmp.substr(tmp.size() - 2, 2) != "\n\n" &&
+                   tmp.substr(tmp.size() - 4, 4) != "\r\n\r\n" )
+                {
+                    token += '\n';
+                }
             }
             else
             {
-                // still inline tables only.
-                tmp += '\n';
+                token += write_comments(kv.second);
+                token += tmp;
+                token += '\n';
             }
-
-            token += write_comments(kv.second);
-            token += tmp;
         }
         return token;
     }
