@@ -547,6 +547,8 @@ BOOST_AUTO_TEST_CASE(test_recursive_conversion)
 
 // ===========================================================================
 
+#ifndef TOML11_WITHOUT_DEFINE_NON_INTRUSIVE
+
 namespace extlib3
 {
 struct foo
@@ -626,3 +628,4 @@ BOOST_AUTO_TEST_CASE(test_conversion_via_macro)
         BOOST_TEST(v2 == v);
     }
 }
+#endif // TOML11_WITHOUT_DEFINE_NON_INTRUSIVE
