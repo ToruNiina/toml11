@@ -1371,6 +1371,34 @@ struct into<ext::foo>
 But note that, if this `basic_value` would be assigned into other `toml::value`
 that discards `comments`, the comments would be dropped.
 
+### Macro to automatically define conversion functions
+
+There is a helper macro that automatically generates conversion functions `from` and `into` for a simple struct.
+
+```cpp
+namespace foo
+{
+struct Foo
+{
+    std::string s;
+    double      d;
+    int         i;
+};
+} // foo
+
+TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(foo::Foo, s, d, i)
+
+int main()
+{
+    const auto file = toml::parse("example.toml");
+    auto f = toml::find<foo::Foo>(file, "foo");
+}
+```
+
+And then you can use `toml::find<foo::Foo>(file, "foo");`
+
+**Note** that, because of a slight difference in implementation of preprocessor between gcc/clang and MSVC, [you need to define `/Zc:preprocessor`](https://github.com/ToruNiina/toml11/issues/139#issuecomment-803683682) to use it in MSVC (Thank you @glebm !).
+
 ## Formatting user-defined error messages
 
 When you encounter an error after you read the toml value, you may want to

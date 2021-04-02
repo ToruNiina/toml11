@@ -545,3 +545,87 @@ BOOST_AUTO_TEST_CASE(test_recursive_conversion)
 
 }
 
+// ===========================================================================
+
+#ifndef TOML11_WITHOUT_DEFINE_NON_INTRUSIVE
+
+namespace extlib3
+{
+struct foo
+{
+    int a;
+    std::string b;
+};
+struct bar
+{
+    int         a;
+    std::string b;
+    foo         f;
+};
+
+} // extlib3
+
+TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(extlib3::foo, a, b)
+TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(extlib3::bar, a, b, f)
+
+BOOST_AUTO_TEST_CASE(test_conversion_via_macro)
+{
+    {
+        const toml::value v{{"a", 42}, {"b", "baz"}};
+
+        const auto foo = toml::get<extlib3::foo>(v);
+        BOOST_TEST(foo.a == 42);
+        BOOST_TEST(foo.b == "baz");
+
+        const toml::value v2(foo);
+        BOOST_TEST(v2 == v);
+    }
+    {
+        const toml::basic_value<toml::discard_comments, std::map, std::deque> v{
+            {"a", 42}, {"b", "baz"}
+        };
+
+        const auto foo = toml::get<extlib3::foo>(v);
+        BOOST_TEST(foo.a == 42);
+        BOOST_TEST(foo.b == "baz");
+
+        const toml::basic_value<toml::discard_comments, std::map, std::deque> v2(foo);
+        BOOST_TEST(v2 == v);
+    }
+
+    // -----------------------------------------------------------------------
+
+    {
+        const toml::value v{
+            {"a", 42},
+            {"b", "bar.b"},
+            {"f", toml::table{{"a", 42}, {"b", "foo.b"}}}
+        };
+
+        const auto bar = toml::get<extlib3::bar>(v);
+        BOOST_TEST(bar.a == 42);
+        BOOST_TEST(bar.b == "bar.b");
+        BOOST_TEST(bar.f.a == 42);
+        BOOST_TEST(bar.f.b == "foo.b");
+
+        const toml::value v2(bar);
+        BOOST_TEST(v2 == v);
+    }
+    {
+        const toml::basic_value<toml::discard_comments, std::map, std::deque> v{
+            {"a", 42},
+            {"b", "bar.b"},
+            {"f", toml::table{{"a", 42}, {"b", "foo.b"}}}
+        };
+
+        const auto bar = toml::get<extlib3::bar>(v);
+        BOOST_TEST(bar.a == 42);
+        BOOST_TEST(bar.b == "bar.b");
+        BOOST_TEST(bar.f.a == 42);
+        BOOST_TEST(bar.f.b == "foo.b");
+
+        const toml::basic_value<toml::discard_comments, std::map, std::deque> v2(bar);
+        BOOST_TEST(v2 == v);
+    }
+}
+#endif // TOML11_WITHOUT_DEFINE_NON_INTRUSIVE
