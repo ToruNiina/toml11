@@ -97,8 +97,10 @@ struct serializer
                const int         float_prec     = std::numeric_limits<toml::floating>::max_digits10,
                const bool        can_be_inlined = false,
                const bool        no_comment     = false,
-               std::vector<toml::key> ks        = {})
+               std::vector<toml::key> ks        = {},
+               const bool     value_has_comment = false)
         : can_be_inlined_(can_be_inlined), no_comment_(no_comment),
+          value_has_comment_(value_has_comment && !no_comment),
           float_prec_(float_prec), width_(w), keys_(std::move(ks))
     {}
     ~serializer() = default;
@@ -120,7 +122,7 @@ struct serializer
         std::snprintf(buf.data(), buf.size(), fmt, this->float_prec_, f);
 
         std::string token(buf.begin(), std::prev(buf.end()));
-        if(token.back() == '.') // 1. => 1.0
+        if(!token.empty() && token.back() == '.') // 1. => 1.0
         {
             token += '0';
         }
@@ -244,92 +246,18 @@ struct serializer
 
     std::string operator()(const array_type& v) const
     {
-        if(!v.empty() && v.front().is_table())// v is an array of tables
-        {
-            // if it's not inlined, we need to add `[[table.key]]`.
-            // but if it can be inlined,
-            // ```
-            // table.key = [
-            //   {...},
-            //   # comment
-            //   {...},
-            // ]
-            // ```
-            if(this->can_be_inlined_)
-            {
-                std::string token;
-                if(!keys_.empty())
-                {
-                    token += format_key(keys_.back());
-                    token += " = ";
-                }
-                bool failed = false;
-                token += "[\n";
-                for(const auto& item : v)
-                {
-                    // if an element of the table has a comment, the table
-                    // cannot be inlined.
-                    if(this->has_comment_inside(item.as_table()))
-                    {
-                        failed = true;
-                        break;
-                    }
-                    if(!no_comment_)
-                    {
-                        for(const auto& c : item.comments())
-                        {
-                            token += '#';
-                            token += c;
-                            token += '\n';
-                        }
-                    }
-
-                    const auto t = this->make_inline_table(item.as_table());
-
-                    if(t.size() + 1 > width_ || // +1 for the last comma {...},
-                       std::find(t.cbegin(), t.cend(), '\n') != t.cend())
-                    {
-                        failed = true;
-                        break;
-                    }
-                    token += t;
-                    token += ",\n";
-                }
-                if(!failed)
-                {
-                    token += "]\n";
-                    return token;
-                }
-                // if failed, serialize them as [[array.of.tables]].
-            }
-
-            std::string token;
-            for(const auto& item : v)
-            {
-                if(!no_comment_)
-                {
-                    for(const auto& c : item.comments())
-                    {
-                        token += '#';
-                        token += c;
-                        token += '\n';
-                    }
-                }
-                token += "[[";
-                token += format_keys(keys_);
-                token += "]]\n";
-                token += this->make_multiline_table(item.as_table());
-            }
-            return token;
-        }
         if(v.empty())
         {
             return std::string("[]");
         }
+        if(this->is_array_of_tables(v))
+        {
+            return make_array_of_tables(v);
+        }
 
         // not an array of tables. normal array.
         // first, try to make it inline if none of the elements have a comment.
-        if(!this->has_comment_inside(v))
+        if( ! this->has_comment_inside(v))
         {
             const auto inl = this->make_inline_array(v);
             if(inl.size() < this->width_ &&
@@ -350,7 +278,7 @@ struct serializer
         token += "[\n";
         for(const auto& item : v)
         {
-            if(!item.comments().empty() && !no_comment_)
+            if( ! item.comments().empty() && !no_comment_)
             {
                 // if comment exists, the element must be the only element in the line.
                 // e.g. the following is not allowed.
@@ -376,7 +304,7 @@ struct serializer
                     token += '\n';
                 }
                 token += toml::visit(*this, item);
-                if(token.back() == '\n') {token.pop_back();}
+                if(!token.empty() && token.back() == '\n') {token.pop_back();}
                 token += ",\n";
                 continue;
             }
@@ -384,7 +312,7 @@ struct serializer
             next_elem += toml::visit(*this, item);
 
             // comma before newline.
-            if(next_elem.back() == '\n') {next_elem.pop_back();}
+            if(!next_elem.empty() && next_elem.back() == '\n') {next_elem.pop_back();}
 
             // if current line does not exceeds the width limit, continue.
             if(current_line.size() + next_elem.size() + 1 < this->width_)
@@ -411,7 +339,10 @@ struct serializer
         }
         if(!current_line.empty())
         {
-            if(current_line.back() != '\n') {current_line += '\n';}
+            if(!current_line.empty() && current_line.back() != '\n')
+            {
+                current_line += '\n';
+            }
             token += current_line;
         }
         token += "]\n";
@@ -557,8 +488,10 @@ struct serializer
         for(const auto& item : v)
         {
             if(is_first) {is_first = false;} else {token += ',';}
-            token += visit(serializer((std::numeric_limits<std::size_t>::max)(),
-                                      this->float_prec_, true), item);
+            token += visit(serializer(
+                (std::numeric_limits<std::size_t>::max)(), this->float_prec_,
+                /* inlined */ true, /*no comment*/ false, /*keys*/ {},
+                /*has_comment*/ !item.comments().empty()), item);
         }
         token += ']';
         return token;
@@ -577,8 +510,10 @@ struct serializer
             if(is_first) {is_first = false;} else {token += ',';}
             token += format_key(kv.first);
             token += '=';
-            token += visit(serializer((std::numeric_limits<std::size_t>::max)(),
-                                      this->float_prec_, true), kv.second);
+            token += visit(serializer(
+                (std::numeric_limits<std::size_t>::max)(), this->float_prec_,
+                /* inlined */ true, /*no comment*/ false, /*keys*/ {},
+                /*has_comment*/ !kv.second.comments().empty()), kv.second);
         }
         token += '}';
         return token;
@@ -588,8 +523,16 @@ struct serializer
     {
         std::string token;
 
-        // print non-table stuff first. because after printing [foo.bar], the
-        // remaining non-table values will be assigned into [foo.bar], not [foo]
+        // print non-table elements first.
+        // ```toml
+        // [foo]         # a table we're writing now here
+        // key = "value" # <- non-table element, "key"
+        // # ...
+        // [foo.bar] # <- table element, "bar"
+        // ```
+        // because after printing [foo.bar], the remaining non-table values will
+        // be assigned into [foo.bar], not [foo]. Those values should be printed
+        // earlier.
         for(const auto& kv : v)
         {
             if(kv.second.is_table() || is_array_of_tables(kv.second))
@@ -597,21 +540,16 @@ struct serializer
                 continue;
             }
 
-            if(!kv.second.comments().empty() && !no_comment_)
-            {
-                for(const auto& c : kv.second.comments())
-                {
-                    token += '#';
-                    token += c;
-                    token += '\n';
-                }
-            }
+            token += write_comments(kv.second);
+
             const auto key_and_sep    = format_key(kv.first) + " = ";
             const auto residual_width = (this->width_ > key_and_sep.size()) ?
                                         this->width_ - key_and_sep.size() : 0;
             token += key_and_sep;
-            token += visit(serializer(residual_width, this->float_prec_, true),
-                           kv.second);
+            token += visit(serializer(residual_width, this->float_prec_,
+                /*can be inlined*/ true, /*no comment*/ false, /*keys*/ {},
+                /*has_comment*/ !kv.second.comments().empty()), kv.second);
+
             if(token.back() != '\n')
             {
                 token += '\n';
@@ -637,45 +575,172 @@ struct serializer
             ks.push_back(kv.first);
 
             auto tmp = visit(serializer(this->width_, this->float_prec_,
-                !multiline_table_printed, this->no_comment_, ks),
-                kv.second);
+                !multiline_table_printed, this->no_comment_, ks,
+                /*has_comment*/ !kv.second.comments().empty()), kv.second);
 
+            // If it is the first time to print a multi-line table, it would be
+            // helpful to separate normal key-value pair and subtables by a
+            // newline.
+            // (this checks if the current key-value pair contains newlines.
+            //  but it is not perfect because multi-line string can also contain
+            //  a newline. in such a case, an empty line will be written) TODO
             if((!multiline_table_printed) &&
                std::find(tmp.cbegin(), tmp.cend(), '\n') != tmp.cend())
             {
                 multiline_table_printed = true;
-            }
-            else
-            {
-                // still inline tables only.
-                tmp += '\n';
-            }
+                token += '\n'; // separate key-value pairs and subtables
 
-            if(!kv.second.comments().empty() && !no_comment_)
-            {
-                for(const auto& c : kv.second.comments())
+                token += write_comments(kv.second);
+                token += tmp;
+
+                // care about recursive tables (all tables in each level prints
+                // newline and there will be a full of newlines)
+                if(tmp.substr(tmp.size() - 2, 2) != "\n\n" &&
+                   tmp.substr(tmp.size() - 4, 4) != "\r\n\r\n" )
                 {
-                    token += '#';
-                    token += c;
                     token += '\n';
                 }
             }
-            token += tmp;
+            else
+            {
+                token += write_comments(kv.second);
+                token += tmp;
+                token += '\n';
+            }
         }
         return token;
     }
 
+    std::string make_array_of_tables(const array_type& v) const
+    {
+        // if it's not inlined, we need to add `[[table.key]]`.
+        // but if it can be inlined, we can format it as the following.
+        // ```
+        // table.key = [
+        //   {...},
+        //   # comment
+        //   {...},
+        // ]
+        // ```
+        // This function checks if inlinization is possible or not, and then
+        // format the array-of-tables in a proper way.
+        //
+        // Note about comments:
+        //
+        // If the array itself has a comment (value_has_comment_ == true), we
+        // should try to make it inline.
+        // ```toml
+        // # comment about array
+        // array = [
+        //   # comment about table element
+        //   {of = "table"}
+        // ]
+        // ```
+        // If it is formatted as a multiline table, the two comments becomes
+        // indistinguishable.
+        // ```toml
+        // # comment about array
+        // # comment about table element
+        // [[array]]
+        // of = "table"
+        // ```
+        // So we need to try to make it inline, and it force-inlines regardless
+        // of the line width limit.
+        //     It may fail if the element of a table has comment. In that case,
+        // the array-of-tables will be formatted as a multiline table.
+        if(this->can_be_inlined_ || this->value_has_comment_)
+        {
+            std::string token;
+            if(!keys_.empty())
+            {
+                token += format_key(keys_.back());
+                token += " = ";
+            }
+
+            bool failed = false;
+            token += "[\n";
+            for(const auto& item : v)
+            {
+                // if an element of the table has a comment, the table
+                // cannot be inlined.
+                if(this->has_comment_inside(item.as_table()))
+                {
+                    failed = true;
+                    break;
+                }
+                // write comments for the table itself
+                token += write_comments(item);
+
+                const auto t = this->make_inline_table(item.as_table());
+
+                if(t.size() + 1 > width_ || // +1 for the last comma {...},
+                   std::find(t.cbegin(), t.cend(), '\n') != t.cend())
+                {
+                    // if the value itself has a comment, ignore the line width limit
+                    if( ! this->value_has_comment_)
+                    {
+                        failed = true;
+                        break;
+                    }
+                }
+                token += t;
+                token += ",\n";
+            }
+
+            if( ! failed)
+            {
+                token += "]\n";
+                return token;
+            }
+            // if failed, serialize them as [[array.of.tables]].
+        }
+
+        std::string token;
+        for(const auto& item : v)
+        {
+            token += write_comments(item);
+            token += "[[";
+            token += format_keys(keys_);
+            token += "]]\n";
+            token += this->make_multiline_table(item.as_table());
+        }
+        return token;
+    }
+
+    std::string write_comments(const value_type& v) const
+    {
+        std::string retval;
+        if(this->no_comment_) {return retval;}
+
+        for(const auto& c : v.comments())
+        {
+            retval += '#';
+            retval += c;
+            retval += '\n';
+        }
+        return retval;
+    }
+
     bool is_array_of_tables(const value_type& v) const
     {
-        if(!v.is_array()) {return false;}
-        const auto& a = v.as_array();
-        return !a.empty() && a.front().is_table();
+        if(!v.is_array() || v.as_array().empty()) {return false;}
+        return is_array_of_tables(v.as_array());
+    }
+    bool is_array_of_tables(const array_type& v) const
+    {
+        // Since TOML v0.5.0, heterogeneous arrays are allowed. So we need to
+        // check all the element in an array to check if the array is an array
+        // of tables.
+        return std::all_of(v.begin(), v.end(), [](const value_type& elem) {
+                return elem.is_table();
+            });
     }
 
   private:
 
     bool        can_be_inlined_;
     bool        no_comment_;
+    bool        value_has_comment_;
     int         float_prec_;
     std::size_t width_;
     std::vector<toml::key> keys_;

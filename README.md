@@ -11,7 +11,7 @@ toml11
 
 toml11 is a C++11 (or later) header-only toml parser/encoder depending only on C++ standard library.
 
-- It is compatible to the latest version of [TOML v1.0.0-rc.2](https://toml.io/en/v1.0.0-rc.2).
+- It is compatible to the latest version of [TOML v1.0.0](https://toml.io/en/v1.0.0).
 - It is one of the most TOML standard compliant libraries, tested with [the language agnostic test suite for TOML parsers by BurntSushi](https://github.com/BurntSushi/toml-test).
 - It shows highly informative error messages. You can see the error messages about invalid files at [CircleCI](https://circleci.com/gh/ToruNiina/toml11).
 - It has configurable container. You can use any random-access containers and key-value maps as backend containers.
@@ -28,6 +28,10 @@ toml11 is a C++11 (or later) header-only toml parser/encoder depending only on C
 
 int main()
 {
+    // ```toml
+    // title = "an example toml file"
+    // nums  = [3, 1, 4, 1, 5]
+    // ```
     auto data = toml::parse("example.toml");
 
     // find a value with the specified type from a table
@@ -37,9 +41,9 @@ int main()
     std::vector<int> nums = toml::find<std::vector<int>>(data, "nums");
 
     // access with STL-like manner
-    if(not data.at("a").contains("b"))
+    if(not data.contains("foo"))
     {
-        data["a"]["b"] = "c";
+        data["foo"] = "bar";
     }
 
     // pass a fallback
@@ -1303,9 +1307,9 @@ struct foo
     double      b;
     std::string c;
 
-    toml::table into_toml() const // you need to mark it const.
+    toml::value into_toml() const // you need to mark it const.
     {
-        return toml::table{{"a", this->a}, {"b", this->b}, {"c", this->c}};
+        return toml::value{{"a", this->a}, {"b", this->b}, {"c", this->c}};
     }
 };
 } // ext
@@ -1332,9 +1336,9 @@ namespace toml
 template<>
 struct into<ext::foo>
 {
-    static toml::table into_toml(const ext::foo& f)
+    static toml::value into_toml(const ext::foo& f)
     {
-        return toml::table{{"a", f.a}, {"b", f.b}, {"c", f.c}};
+        return toml::value{{"a", f.a}, {"b", f.b}, {"c", f.c}};
     }
 };
 } // toml
@@ -1345,6 +1349,27 @@ toml::value v(f);
 
 Any type that can be converted to `toml::value`, e.g. `int`, `toml::table` and
 `toml::array` are okay to return from `into_toml`.
+
+You can also return a custom `toml::basic_value` from `toml::into`.
+
+```cpp
+namespace toml
+{
+template<>
+struct into<ext::foo>
+{
+    static toml::basic_value<toml::preserve_comments> into_toml(const ext::foo& f)
+    {
+        toml::basic_value<toml::preserve_comments> v{{"a", f.a}, {"b", f.b}, {"c", f.c}};
+        v.comments().push_back(" comment");
+        return v;
+    }
+};
+} // toml
+```
+
+But note that, if this `basic_value` would be assigned into other `toml::value`
+that discards `comments`, the comments would be dropped.
 
 ## Formatting user-defined error messages
 
@@ -1848,6 +1873,12 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fix include path in README
 - Mohammed Alyousef (@MoAlyousef)
   - Made testing optional in CMake
+- Ivan Shynkarenka (@chronoxor)
+  - Fix compilation error in `<filesystem>` with MinGW
+- Alex Merry (@amerry)
+  - Add missing include files
+- sneakypete81 (@sneakypete81)
+  - Fix typo in error message
 
 
 ## Licensing terms

@@ -70,9 +70,9 @@ struct from<extlib::foo>
 template<>
 struct into<extlib::foo>
 {
-    static toml::table into_toml(const extlib::foo& f)
+    static toml::value into_toml(const extlib::foo& f)
     {
-        return toml::table{{"a", f.a}, {"b", f.b}};
+        return toml::value{{"a", f.a}, {"b", f.b}};
     }
 };
 
