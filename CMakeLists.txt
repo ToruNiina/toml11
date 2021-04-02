@@ -40,7 +40,13 @@ endif()
 if(MSVC)
     add_definitions("/Zc:__cplusplus")  # define __cplusplus value correctly
     add_definitions("/utf-8")           # enable to use u8"" literal
-    add_definitions("/Zc:preprocessor")
+    if(MSVC_VERSION LESS 1910)
+        add_definitions(-DTOML11_WITHOUT_DEFINE_NON_INTRUSIVE)
+    elseif(MSVC_VERSION LESS 1920)
+        add_definitions("/experimental:preprocessor") # MSVC 2017
+    else()
+        add_definitions("/Zc:preprocessor") # MSVC 2019
+    endif()
 endif()
 
 # Set some common directories

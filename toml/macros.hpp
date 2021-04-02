@@ -7,6 +7,11 @@
 #define TOML11_CONCATENATE_AUX(x, y) x##y
 #define TOML11_CONCATENATE(x, y)     TOML11_CONCATENATE_AUX(x, y)
 
+// ============================================================================
+// TOML11_DEFINE_CONVERSION_NON_INTRUSIVE
+
+#ifndef TOML11_WITHOUT_DEFINE_NON_INTRUSIVE
+
 // ----------------------------------------------------------------------------
 // TOML11_ARGS_SIZE
 
@@ -110,5 +115,7 @@
         }                                                                                \
     };                                                                                   \
     } /* toml */
+
+#endif// TOML11_WITHOUT_DEFINE_NON_INTRUSIVE
 
 #endif// TOML11_MACROS_HPP
