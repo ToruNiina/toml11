@@ -1035,7 +1035,10 @@ find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
 
 template<typename T, typename C,
          template<typename ...> class M, template<typename ...> class V,
-         typename ... Ks>
+         typename ... Ks,
+         typename detail::enable_if_t<(sizeof...(Ks) > 1), std::nullptr_t> = nullptr>
+         // here we need to add SFINAE in the template parameter to avoid
+         // infinite recursion in type deduction on gcc
 auto find_or(const basic_value<C, M, V>& v, const toml::key& ky, Ks&& ... keys)
     -> decltype(find_or<T>(v, ky, detail::last_one(std::forward<Ks>(keys)...)))
 {
