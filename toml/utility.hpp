@@ -117,10 +117,8 @@ decltype(auto) last_one(T&& /*head*/, Ts&& ... tail) noexcept
 // line #3, so `decltype()` cannot deduce the type returned from `last_one`.
 // So we need to determine return type in a different way, like a meta func.
 
-template<typename ... Ts>
-struct last_one_in_pack;
 template<typename T, typename ... Ts>
-struct last_one_in_pack<T, Ts...>
+struct last_one_in_pack
 {
     using type = typename last_one_in_pack<Ts...>::type;
 };
@@ -137,9 +135,8 @@ T&& last_one(T&& tail) noexcept
 {
     return std::forward<T>(tail);
 }
-
 template<typename T, typename ... Ts>
-last_one_in_pack_t<Ts&& ...>
+enable_if_t<(sizeof...(Ts) > 0), last_one_in_pack_t<Ts&& ...>>
 last_one(T&& /*head*/, Ts&& ... tail)
 {
     return last_one(std::forward<Ts>(tail)...);
