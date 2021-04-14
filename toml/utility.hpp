@@ -89,5 +89,64 @@ T from_string(const std::string& str, T opt)
     return v;
 }
 
+namespace detail
+{
+#if __cplusplus >= 201402L
+template<typename T>
+decltype(auto) last_one(T&& tail) noexcept
+{
+    return std::forward<T>(tail);
+}
+
+template<typename T, typename ... Ts>
+decltype(auto) last_one(T&& /*head*/, Ts&& ... tail) noexcept
+{
+    return last_one(std::forward<Ts>(tail)...);
+}
+#else // C++11
+// The following code
+// ```cpp
+//  1 | template<typename T, typename ... Ts>
+//  2 | auto last_one(T&& /*head*/, Ts&& ... tail)
+//  3 |  -> decltype(last_one(std::forward<Ts>(tail)...))
+//  4 | {
+//  5 |     return last_one(std::forward<Ts>(tail)...);
+//  6 | }
+// ```
+// does not work because the function `last_one(...)` is not yet defined at
+// line #3, so `decltype()` cannot deduce the type returned from `last_one`.
+// So we need to determine return type in a different way, like a meta func.
+
+template<typename ... Ts>
+struct last_one_in_pack;
+template<typename T, typename ... Ts>
+struct last_one_in_pack<T, Ts...>
+{
+    using type = typename last_one_in_pack<Ts...>::type;
+};
+template<typename T>
+struct last_one_in_pack<T>
+{
+    using type = T;
+};
+template<typename ... Ts>
+using last_one_in_pack_t = typename last_one_in_pack<Ts...>::type;
+
+template<typename T>
+T&& last_one(T&& tail) noexcept
+{
+    return std::forward<T>(tail);
+}
+
+template<typename T, typename ... Ts>
+last_one_in_pack_t<Ts&& ...>
+last_one(T&& /*head*/, Ts&& ... tail)
+{
+    return last_one(std::forward<Ts>(tail)...);
+}
+
+#endif
+} // detail
+
 }// toml
 #endif // TOML11_UTILITY

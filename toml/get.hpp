@@ -1033,6 +1033,24 @@ find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
     return get_or(tab.at(ky), std::forward<T>(opt));
 }
 
+template<typename T, typename C,
+         template<typename ...> class M, template<typename ...> class V,
+         typename ... Ks>
+auto find_or(const basic_value<C, M, V>& v, const toml::key& ky, Ks&& ... keys)
+    -> decltype(find_or<T>(v, ky, detail::last_one(std::forward<Ks>(keys)...)))
+{
+    if(!v.is_table())
+    {
+        return detail::last_one(std::forward<Ks>(keys)...);
+    }
+    const auto& tab = v.as_table();
+    if(tab.count(ky) == 0)
+    {
+        return detail::last_one(std::forward<Ks>(keys)...);
+    }
+    return find_or(tab.at(ky), std::forward<Ks>(keys)...);
+}
+
 // ============================================================================
 // expect
 
