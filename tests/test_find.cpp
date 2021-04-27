@@ -19,7 +19,7 @@
 #include <tuple>
 
 using test_value_types = std::tuple<
-    toml::value,
+    toml::basic_value<toml::discard_comments>,
     toml::basic_value<toml::preserve_comments>,
     toml::basic_value<toml::discard_comments,  std::map, std::deque>,
     toml::basic_value<toml::preserve_comments, std::map, std::deque>
