@@ -127,8 +127,8 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment_nocomment)
         BOOST_TEST(!has_comment_inside(serialized));
     }
     {
-        const auto data_nocomment = toml::parse("toml/tests/example.toml");
-        auto serialized = toml::parse("tmp1_com_nocomment.toml");
+        const auto data_nocomment = toml::parse<toml::discard_comments>("toml/tests/example.toml");
+        auto serialized = toml::parse<toml::discard_comments>("tmp1_com_nocomment.toml");
         {
             auto& owner = toml::find(serialized, "owner");
             auto& bio   = toml::find<std::string>(owner, "bio");
@@ -182,8 +182,8 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment_map_dq_nocomment)
         BOOST_TEST(!has_comment_inside(serialized));
     }
     {
-        const auto data_nocomment = toml::parse("toml/tests/example.toml");
-        auto serialized = toml::parse("tmp1_com_map_dq_nocomment.toml");
+        const auto data_nocomment = toml::parse<toml::discard_comments>("toml/tests/example.toml");
+        auto serialized = toml::parse<toml::discard_comments>("tmp1_com_map_dq_nocomment.toml");
         {
             auto& owner = toml::find(serialized, "owner");
             auto& bio   = toml::find<std::string>(owner, "bio");

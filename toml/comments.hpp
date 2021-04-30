@@ -10,6 +10,12 @@
 #include <utility>
 #include <vector>
 
+#ifdef TOML11_PRESERVE_COMMENTS_BY_DEFAULT
+#  define TOML11_DEFAULT_COMMENT_STRATEGY ::toml::preserve_comments
+#else
+#  define TOML11_DEFAULT_COMMENT_STRATEGY ::toml::discard_comments
+#endif
+
 // This file provides mainly two classes, `preserve_comments` and `discard_comments`.
 // Those two are a container that have the same interface as `std::vector<std::string>`
 // but bahaves in the opposite way. `preserve_comments` is just the same as
