@@ -38,6 +38,12 @@ using floating       = double; // "float" is a keyward, cannot use it here.
 // using array = typename value::array_type;
 // using table = typename value::table_type;
 
+// to avoid warnings about `value_t::integer` is "shadowing" toml::integer in
+// GCC -Wshadow=global.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow=global"
+#endif
 enum class value_t : std::uint8_t
 {
     empty           =  0,
@@ -52,6 +58,9 @@ enum class value_t : std::uint8_t
     array           =  9,
     table           = 10,
 };
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 template<typename charT, typename traits>
 inline std::basic_ostream<charT, traits>&
@@ -147,4 +156,5 @@ template<typename T, typename V> struct is_exact_toml_type<T const volatile&, V>
 
 } // detail
 } // toml
+
 #endif// TOML11_TYPES_H
