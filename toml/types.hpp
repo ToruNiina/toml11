@@ -21,6 +21,11 @@ class basic_value;
 using character = char;
 using key = std::string;
 
+#if !defined(__clang__) && defined(__GNUC__) && __GNUC__ <= 4
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wshadow"
+#endif
+
 using boolean        = bool;
 using integer        = std::int64_t;
 using floating       = double; // "float" is a keyward, cannot use it here.
@@ -31,6 +36,10 @@ using floating       = double; // "float" is a keyward, cannot use it here.
 // - local_datetime
 // - local_date
 // - local_time
+
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
 
 // default toml::value and default array/table. these are defined after defining
 // basic_value itself.
