@@ -26,19 +26,19 @@ namespace toml
 // a `"` and escaping some special character is boring.
 template<typename charT, typename traits, typename Alloc>
 std::basic_string<charT, traits, Alloc>
-format_key(const std::basic_string<charT, traits, Alloc>& key)
+format_key(const std::basic_string<charT, traits, Alloc>& k)
 {
     // check the key can be a bare (unquoted) key
-    detail::location loc(key, std::vector<char>(key.begin(), key.end()));
+    detail::location loc(k, std::vector<char>(k.begin(), k.end()));
     detail::lex_unquoted_key::invoke(loc);
     if(loc.iter() == loc.end())
     {
-        return key; // all the tokens are consumed. the key is unquoted-key.
+        return k; // all the tokens are consumed. the key is unquoted-key.
     }
 
     //if it includes special characters, then format it in a "quoted" key.
     std::basic_string<charT, traits, Alloc> serialized("\"");
-    for(const char c : key)
+    for(const char c : k)
     {
         switch(c)
         {
