@@ -41,8 +41,12 @@ using floating       = double; // "float" is a keyward, cannot use it here.
 // to avoid warnings about `value_t::integer` is "shadowing" toml::integer in
 // GCC -Wshadow=global.
 #if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow=global"
+#  pragma GCC diagnostic push
+#  if 7 <= __GNUC__
+#    pragma GCC diagnostic ignored "-Wshadow=global"
+#  else // gcc-6 or older
+#    pragma GCC diagnostic ignored "-Wshadow"
+#  endif
 #endif
 enum class value_t : std::uint8_t
 {
@@ -59,7 +63,7 @@ enum class value_t : std::uint8_t
     table           = 10,
 };
 #if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic pop
+#  pragma GCC diagnostic pop
 #endif
 
 template<typename charT, typename traits>
