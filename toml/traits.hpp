@@ -92,15 +92,15 @@ struct has_specialized_from_impl
 {
     template<typename T>
     static std::false_type check(...);
-    template<typename T>
-    static std::true_type check(std::nullptr_t, std::size_t S = sizeof(::toml::from<T>));
+    template<typename T, std::size_t S = sizeof(::toml::from<T>)>
+    static std::true_type check(::toml::from<T>*);
 };
 struct has_specialized_into_impl
 {
     template<typename T>
     static std::false_type check(...);
-    template<typename T>
-    static std::true_type check(std::nullptr_t, std::size_t S = sizeof(::toml::into<T>));
+    template<typename T, std::size_t S = sizeof(::toml::into<T>)>
+    static std::true_type check(::toml::from<T>*);
 };
 
 
