@@ -255,9 +255,9 @@ get(const basic_value<C, M, V>&);
 
 // toml::from<T>::from_toml(v)
 template<typename T, typename C,
-         template<typename ...> class M, template<typename ...> class V,
-         std::size_t S = sizeof(::toml::from<T>)>
-T get(const basic_value<C, M, V>&);
+         template<typename ...> class M, template<typename ...> class V>
+detail::enable_if_t<detail::has_specialized_from<T>::value, T>
+get(const basic_value<C, M, V>&);
 
 // T(const toml::value&) and T is not toml::basic_value
 template<typename T, typename C,
@@ -440,9 +440,9 @@ get(const basic_value<C, M, V>& v)
     return ud;
 }
 template<typename T, typename C,
-         template<typename ...> class M, template<typename ...> class V,
-         std::size_t>
-T get(const basic_value<C, M, V>& v)
+         template<typename ...> class M, template<typename ...> class V>
+detail::enable_if_t<detail::has_specialized_from<T>::value, T>
+get(const basic_value<C, M, V>& v)
 {
     return ::toml::from<T>::from_toml(v);
 }
