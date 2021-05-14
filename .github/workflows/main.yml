@@ -47,7 +47,7 @@ jobs:
     runs-on: Ubuntu-18.04
     strategy:
       matrix:
-        compiler: ['11', '10', '9', '8', '7', '6.0', '5.0', '4.0', '3.9']
+        compiler: ['10', '9', '8', '7', '6.0', '5.0', '4.0', '3.9']
         standard: ['11', '14', '17', '20']
         exclude:
             - {compiler: '3.9', standard: '17'}
