@@ -59,6 +59,7 @@ jobs:
             - {compiler: '6.0', standard: '20'}
             - {compiler: '7',   standard: '20'}
             - {compiler: '8',   standard: '20'}
+            - {compiler: '9',   standard: '20'}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
