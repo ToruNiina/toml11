@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         # g++-4.8 and 4.9 are tested on Travis.CI.
-        compiler: ['g++-9', 'g++-8', 'g++-7', 'g++-6', 'g++-5']
+        compiler: ['g++-11', 'g++-10', 'g++-9', 'g++-8', 'g++-7', 'g++-6', 'g++-5']
         standard: ['11', '14', '17', '20']
         exclude:
             - {compiler: 'g++-5', standard: '17'}
@@ -47,7 +47,7 @@ jobs:
     runs-on: Ubuntu-18.04
     strategy:
       matrix:
-        compiler: ['10', '9', '8', '7', '6.0', '5.0', '4.0', '3.9']
+        compiler: ['11', '10', '9', '8', '7', '6.0', '5.0', '4.0', '3.9']
         standard: ['11', '14', '17', '20']
         exclude:
             - {compiler: '3.9', standard: '17'}
