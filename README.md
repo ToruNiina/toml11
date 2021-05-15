@@ -971,12 +971,27 @@ v.push_back(6);
 
 ## Preserving comments
 
-After toml11 v3, you can choose whether comments are preserved or not.
+toml11 v3 or later allows you yo choose whether comments are preserved or not via template parameter
 
 ```cpp
 const auto data1 = toml::parse<toml::discard_comments >("example.toml");
 const auto data2 = toml::parse<toml::preserve_comments>("example.toml");
 ```
+
+or macro definition.
+
+```cpp
+#define TOML11_PRESERVE_COMMENTS_BY_DEFAULT
+#include <toml11/toml.hpp>
+```
+
+This feature is controlled by template parameter in `toml::basic_value<...>`.
+`toml::value` is an alias of `toml::basic_value<...>`.
+
+If template paramter is explicitly specified, the return value of `toml::parse`
+will be `toml::basic_value<toml::preserve_comments>`.
+If the macro is defined, the alias `toml::value` will be
+`toml::basic_value<toml::preserve_comments>`.
 
 Comments related to a value can be obtained by `toml::value::comments()`.
 The return value has the same interface as `std::vector<std::string>`.
