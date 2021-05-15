@@ -1038,25 +1038,48 @@ find_or(const basic_value<C, M, V>& v, const toml::key& ky, T&& opt)
     return get_or(tab.at(ky), std::forward<T>(opt));
 }
 
-template<typename T, typename C,
-         template<typename ...> class M, template<typename ...> class V,
-         typename ... Ks,
+// ---------------------------------------------------------------------------
+// recursive find-or with type deduction (find_or(value, keys, opt))
+
+template<typename Value, typename ... Ks,
          typename detail::enable_if_t<(sizeof...(Ks) > 1), std::nullptr_t> = nullptr>
          // here we need to add SFINAE in the template parameter to avoid
          // infinite recursion in type deduction on gcc
-auto find_or(const basic_value<C, M, V>& v, const toml::key& ky, Ks&& ... keys)
-    -> decltype(find_or<T>(v, ky, detail::last_one(std::forward<Ks>(keys)...)))
+auto find_or(Value&& v, const toml::key& ky, Ks&& ... keys)
+    -> decltype(find_or(std::forward<Value>(v), ky, detail::last_one(std::forward<Ks>(keys)...)))
 {
     if(!v.is_table())
     {
         return detail::last_one(std::forward<Ks>(keys)...);
     }
-    const auto& tab = v.as_table();
+    auto&& tab = std::forward<Value>(v).as_table();
     if(tab.count(ky) == 0)
     {
         return detail::last_one(std::forward<Ks>(keys)...);
     }
-    return find_or(tab.at(ky), std::forward<Ks>(keys)...);
+    return find_or(std::forward<decltype(tab)>(tab).at(ky), std::forward<Ks>(keys)...);
+}
+
+// ---------------------------------------------------------------------------
+// recursive find_or with explicit type specialization, find_or<int>(value, keys...)
+
+template<typename T, typename Value, typename ... Ks,
+         typename detail::enable_if_t<(sizeof...(Ks) > 1), std::nullptr_t> = nullptr>
+         // here we need to add SFINAE in the template parameter to avoid
+         // infinite recursion in type deduction on gcc
+auto find_or(Value&& v, const toml::key& ky, Ks&& ... keys)
+    -> decltype(find_or<T>(std::forward<Value>(v), ky, detail::last_one(std::forward<Ks>(keys)...)))
+{
+    if(!v.is_table())
+    {
+        return detail::last_one(std::forward<Ks>(keys)...);
+    }
+    auto&& tab = std::forward<Value>(v).as_table();
+    if(tab.count(ky) == 0)
+    {
+        return detail::last_one(std::forward<Ks>(keys)...);
+    }
+    return find_or(std::forward<decltype(tab)>(tab).at(ky), std::forward<Ks>(keys)...);
 }
 
 // ============================================================================
