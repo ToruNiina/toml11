@@ -21,6 +21,11 @@ class basic_value;
 using character = char;
 using key = std::string;
 
+#if !defined(__clang__) && defined(__GNUC__) && __GNUC__ <= 4
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wshadow"
+#endif
+
 using boolean        = bool;
 using integer        = std::int64_t;
 using floating       = double; // "float" is a keyward, cannot use it here.
@@ -32,12 +37,26 @@ using floating       = double; // "float" is a keyward, cannot use it here.
 // - local_date
 // - local_time
 
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
+
 // default toml::value and default array/table. these are defined after defining
 // basic_value itself.
 // using value = basic_value<discard_comments, std::unordered_map, std::vector>;
 // using array = typename value::array_type;
 // using table = typename value::table_type;
 
+// to avoid warnings about `value_t::integer` is "shadowing" toml::integer in
+// GCC -Wshadow=global.
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  if 7 <= __GNUC__
+#    pragma GCC diagnostic ignored "-Wshadow=global"
+#  else // gcc-6 or older
+#    pragma GCC diagnostic ignored "-Wshadow"
+#  endif
+#endif
 enum class value_t : std::uint8_t
 {
     empty           =  0,
@@ -52,6 +71,9 @@ enum class value_t : std::uint8_t
     array           =  9,
     table           = 10,
 };
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
 
 template<typename charT, typename traits>
 inline std::basic_ostream<charT, traits>&
@@ -147,4 +169,5 @@ template<typename T, typename V> struct is_exact_toml_type<T const volatile&, V>
 
 } // detail
 } // toml
+
 #endif// TOML11_TYPES_H

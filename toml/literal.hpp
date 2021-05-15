@@ -12,11 +12,11 @@ inline namespace toml_literals
 {
 
 // implementation
-inline ::toml::basic_value<::toml::discard_comments, std::unordered_map, std::vector>
+inline ::toml::basic_value<TOML11_DEFAULT_COMMENT_STRATEGY, std::unordered_map, std::vector>
 literal_internal_impl(::toml::detail::location loc)
 {
     using value_type = ::toml::basic_value<
-        ::toml::discard_comments, std::unordered_map, std::vector>;
+        TOML11_DEFAULT_COMMENT_STRATEGY, std::unordered_map, std::vector>;
     // if there are some comments or empty lines, skip them.
     using skip_line = ::toml::detail::repeat<toml::detail::sequence<
             ::toml::detail::maybe<::toml::detail::lex_ws>,
@@ -81,7 +81,7 @@ literal_internal_impl(::toml::detail::location loc)
 
 }
 
-inline ::toml::basic_value<::toml::discard_comments, std::unordered_map, std::vector>
+inline ::toml::basic_value<TOML11_DEFAULT_COMMENT_STRATEGY, std::unordered_map, std::vector>
 operator"" _toml(const char* str, std::size_t len)
 {
     ::toml::detail::location loc(
@@ -95,7 +95,7 @@ operator"" _toml(const char* str, std::size_t len)
 #if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
 // value of u8"" literal has been changed from char to char8_t and char8_t is
 // NOT compatible to char
-inline ::toml::basic_value<::toml::discard_comments, std::unordered_map, std::vector>
+inline ::toml::basic_value<TOML11_DEFAULT_COMMENT_STRATEGY, std::unordered_map, std::vector>
 operator"" _toml(const char8_t* str, std::size_t len)
 {
     ::toml::detail::location loc(

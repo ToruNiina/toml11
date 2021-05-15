@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(test_discard_comment)
     )";
 
     std::istringstream iss(file);
-    const auto v = toml::parse(iss);
+    const auto v = toml::parse<toml::discard_comments>(iss);
 
     const auto& a  = toml::find(v, "a");
     const auto& b  = toml::find(v, "b");

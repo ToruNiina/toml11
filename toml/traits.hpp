@@ -2,6 +2,10 @@
 // Distributed under the MIT License.
 #ifndef TOML11_TRAITS_HPP
 #define TOML11_TRAITS_HPP
+
+#include "from.hpp"
+#include "into.hpp"
+
 #include <chrono>
 #include <forward_list>
 #include <string>
@@ -84,6 +88,22 @@ struct has_into_toml_method_impl
     static std::false_type check(...);
 };
 
+struct has_specialized_from_impl
+{
+    template<typename T>
+    static std::false_type check(...);
+    template<typename T, std::size_t S = sizeof(::toml::from<T>)>
+    static std::true_type check(::toml::from<T>*);
+};
+struct has_specialized_into_impl
+{
+    template<typename T>
+    static std::false_type check(...);
+    template<typename T, std::size_t S = sizeof(::toml::into<T>)>
+    static std::true_type check(::toml::from<T>*);
+};
+
+
 /// Intel C++ compiler can not use decltype in parent class declaration, here
 /// is a hack to work around it. https://stackoverflow.com/a/23953090/4692076
 #ifdef __INTEL_COMPILER
@@ -113,6 +133,11 @@ struct has_from_toml_method
 template<typename T>
 struct has_into_toml_method
 : decltype(has_into_toml_method_impl::check<T>(nullptr)){};
+
+template<typename T>
+struct has_specialized_from : decltype(has_specialized_from_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_specialized_into : decltype(has_specialized_into_impl::check<T>(nullptr)){};
 
 #ifdef __INTEL_COMPILER
 #undef decltype

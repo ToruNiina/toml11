@@ -1255,8 +1255,16 @@ struct from<ext::foo>
 In this way, since the conversion function is defined outside of the class,
 you can add conversion between `toml::value` and classes defined in another library.
 
-Note that you cannot implement both of the functions because the overload
-resolution of `toml::get` will be ambiguous.
+In some cases, a class has a templatized constructor that takes a template, `T`.
+It confuses `toml::get/find<T>` because it makes the class "constructible" from
+`toml::value`. To avoid this problem, `toml::from` and `from_toml` always
+precede constructor. It makes easier to implement conversion between
+`toml::value` and types defined in other libraries because it skips constructor.
+
+But, importantly, you cannot define `toml::from<T>` and `T.from_toml` at the same
+time because it causes ambiguity in the overload resolution of `toml::get<T>` and `toml::find<T>`.
+
+So the precedence is `toml::from<T>` == `T.from_toml()` > `T(toml::value)`.
 
 If you want to convert any versions of `toml::basic_value`,
 you need to templatize the conversion function as follows.

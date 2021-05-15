@@ -2076,7 +2076,7 @@ result<Value, std::string> parse_toml_file(location& loc)
 
 } // detail
 
-template<typename                     Comment = ::toml::discard_comments,
+template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array>
@@ -2127,7 +2127,7 @@ parse(std::istream& is, const std::string& fname = "unknown file")
     return data.unwrap();
 }
 
-template<typename                     Comment = ::toml::discard_comments,
+template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array> parse(const std::string& fname)
@@ -2150,7 +2150,7 @@ basic_value<Comment, Table, Array> parse(const std::string& fname)
 //
 // This function exactly matches to the invokation with c-string.
 // So this function is preferred than others and the ambiguity disappears.
-template<typename                     Comment = ::toml::discard_comments,
+template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array> parse(const char* fname)
@@ -2158,7 +2158,7 @@ basic_value<Comment, Table, Array> parse(const char* fname)
     return parse<Comment, Table, Array>(std::string(fname));
 }
 
-template<typename                     Comment = ::toml::discard_comments,
+template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array> parse(const std::filesystem::path& fpath)

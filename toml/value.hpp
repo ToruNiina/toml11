@@ -281,9 +281,9 @@ class basic_value
 
     // overwrite comments ----------------------------------------------------
 
-    basic_value(const basic_value& v, std::vector<std::string> comments)
+    basic_value(const basic_value& v, std::vector<std::string> com)
         : type_(v.type()), region_info_(v.region_info_),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         switch(v.type())
         {
@@ -301,9 +301,9 @@ class basic_value
         }
     }
 
-    basic_value(basic_value&& v, std::vector<std::string> comments)
+    basic_value(basic_value&& v, std::vector<std::string> com)
         : type_(v.type()), region_info_(std::move(v.region_info_)),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         switch(this->type_) // here this->type_ is already initialized
         {
@@ -359,9 +359,9 @@ class basic_value
     template<typename C,
              template<typename ...> class T,
              template<typename ...> class A>
-    basic_value(const basic_value<C, T, A>& v, std::vector<std::string> comments)
+    basic_value(const basic_value<C, T, A>& v, std::vector<std::string> com)
         : type_(v.type()), region_info_(v.region_info_),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         switch(v.type())
         {
@@ -443,10 +443,10 @@ class basic_value
         assigner(this->boolean_, b);
         return *this;
     }
-    basic_value(boolean b, std::vector<std::string> comments)
+    basic_value(boolean b, std::vector<std::string> com)
         : type_(value_t::boolean),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->boolean_, b);
     }
@@ -478,10 +478,10 @@ class basic_value
     template<typename T, typename std::enable_if<detail::conjunction<
         std::is_integral<T>, detail::negation<std::is_same<T, boolean>>>::value,
         std::nullptr_t>::type = nullptr>
-    basic_value(T i, std::vector<std::string> comments)
+    basic_value(T i, std::vector<std::string> com)
         : type_(value_t::integer),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->integer_, static_cast<integer>(i));
     }
@@ -511,10 +511,10 @@ class basic_value
 
     template<typename T, typename std::enable_if<
         std::is_floating_point<T>::value, std::nullptr_t>::type = nullptr>
-    basic_value(T f, std::vector<std::string> comments)
+    basic_value(T f, std::vector<std::string> com)
         : type_(value_t::floating),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->floating_, f);
     }
@@ -535,10 +535,10 @@ class basic_value
         assigner(this->string_, s);
         return *this;
     }
-    basic_value(toml::string s, std::vector<std::string> comments)
+    basic_value(toml::string s, std::vector<std::string> com)
         : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->string_, std::move(s));
     }
@@ -563,17 +563,17 @@ class basic_value
     {
         assigner(this->string_, toml::string(std::move(s), kind));
     }
-    basic_value(std::string s, std::vector<std::string> comments)
+    basic_value(std::string s, std::vector<std::string> com)
         : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->string_, toml::string(std::move(s)));
     }
-    basic_value(std::string s, string_t kind, std::vector<std::string> comments)
+    basic_value(std::string s, string_t kind, std::vector<std::string> com)
         : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->string_, toml::string(std::move(s), kind));
     }
@@ -598,17 +598,17 @@ class basic_value
     {
         assigner(this->string_, toml::string(std::string(s), kind));
     }
-    basic_value(const char* s, std::vector<std::string> comments)
+    basic_value(const char* s, std::vector<std::string> com)
         : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->string_, toml::string(std::string(s)));
     }
-    basic_value(const char* s, string_t kind, std::vector<std::string> comments)
+    basic_value(const char* s, string_t kind, std::vector<std::string> com)
         : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->string_, toml::string(std::string(s), kind));
     }
@@ -628,10 +628,10 @@ class basic_value
         assigner(this->string_, toml::string(s));
         return *this;
     }
-    basic_value(std::string_view s, std::vector<std::string> comments)
+    basic_value(std::string_view s, std::vector<std::string> com)
         : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->string_, toml::string(s));
     }
@@ -641,10 +641,10 @@ class basic_value
     {
         assigner(this->string_, toml::string(s, kind));
     }
-    basic_value(std::string_view s, string_t kind, std::vector<std::string> comments)
+    basic_value(std::string_view s, string_t kind, std::vector<std::string> com)
         : type_(value_t::string),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->string_, toml::string(s, kind));
     }
@@ -666,10 +666,10 @@ class basic_value
         assigner(this->local_date_, ld);
         return *this;
     }
-    basic_value(const local_date& ld, std::vector<std::string> comments)
+    basic_value(const local_date& ld, std::vector<std::string> com)
         : type_(value_t::local_date),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->local_date_, ld);
     }
@@ -682,10 +682,10 @@ class basic_value
     {
         assigner(this->local_time_, lt);
     }
-    basic_value(const local_time& lt, std::vector<std::string> comments)
+    basic_value(const local_time& lt, std::vector<std::string> com)
         : type_(value_t::local_time),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->local_time_, lt);
     }
@@ -707,10 +707,10 @@ class basic_value
     }
     template<typename Rep, typename Period>
     basic_value(const std::chrono::duration<Rep, Period>& dur,
-                std::vector<std::string> comments)
+                std::vector<std::string> com)
         : type_(value_t::local_time),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->local_time_, local_time(dur));
     }
@@ -732,10 +732,10 @@ class basic_value
     {
         assigner(this->local_datetime_, ldt);
     }
-    basic_value(const local_datetime& ldt, std::vector<std::string> comments)
+    basic_value(const local_datetime& ldt, std::vector<std::string> com)
         : type_(value_t::local_datetime),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->local_datetime_, ldt);
     }
@@ -756,10 +756,10 @@ class basic_value
     {
         assigner(this->offset_datetime_, odt);
     }
-    basic_value(const offset_datetime& odt, std::vector<std::string> comments)
+    basic_value(const offset_datetime& odt, std::vector<std::string> com)
         : type_(value_t::offset_datetime),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->offset_datetime_, odt);
     }
@@ -778,10 +778,10 @@ class basic_value
         assigner(this->offset_datetime_, offset_datetime(tp));
     }
     basic_value(const std::chrono::system_clock::time_point& tp,
-                std::vector<std::string> comments)
+                std::vector<std::string> com)
         : type_(value_t::offset_datetime),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->offset_datetime_, offset_datetime(tp));
     }
@@ -802,10 +802,10 @@ class basic_value
     {
         assigner(this->array_, ary);
     }
-    basic_value(const array_type& ary, std::vector<std::string> comments)
+    basic_value(const array_type& ary, std::vector<std::string> com)
         : type_(value_t::array),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->array_, ary);
     }
@@ -833,10 +833,10 @@ class basic_value
     template<typename T, typename std::enable_if<
             std::is_convertible<T, value_type>::value,
         std::nullptr_t>::type = nullptr>
-    basic_value(std::initializer_list<T> list, std::vector<std::string> comments)
+    basic_value(std::initializer_list<T> list, std::vector<std::string> com)
         : type_(value_t::array),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         array_type ary(list.begin(), list.end());
         assigner(this->array_, std::move(ary));
@@ -876,10 +876,10 @@ class basic_value
             detail::negation<std::is_same<T, array_type>>,
             detail::is_container<T>
         >::value, std::nullptr_t>::type = nullptr>
-    basic_value(const T& list, std::vector<std::string> comments)
+    basic_value(const T& list, std::vector<std::string> com)
         : type_(value_t::array),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         static_assert(std::is_convertible<typename T::value_type, value_type>::value,
             "elements of a container should be convertible to toml::value");
@@ -915,10 +915,10 @@ class basic_value
     {
         assigner(this->table_, tab);
     }
-    basic_value(const table_type& tab, std::vector<std::string> comments)
+    basic_value(const table_type& tab, std::vector<std::string> com)
         : type_(value_t::table),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         assigner(this->table_, tab);
     }
@@ -943,10 +943,10 @@ class basic_value
     }
 
     basic_value(std::initializer_list<std::pair<key, basic_value>> list,
-                std::vector<std::string> comments)
+                std::vector<std::string> com)
         : type_(value_t::table),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         table_type tab;
         for(const auto& elem : list) {tab[elem.first] = elem.second;}
@@ -982,10 +982,10 @@ class basic_value
             detail::negation<std::is_same<Map, table_type>>,
             detail::is_map<Map>
         >::value, std::nullptr_t>::type = nullptr>
-    basic_value(const Map& mp, std::vector<std::string> comments)
+    basic_value(const Map& mp, std::vector<std::string> com)
         : type_(value_t::table),
           region_info_(std::make_shared<region_base>(region_base{})),
-          comments_(std::move(comments))
+          comments_(std::move(com))
     {
         table_type tab;
         for(const auto& elem : mp) {tab[elem.first] = elem.second;}
@@ -1017,8 +1017,8 @@ class basic_value
 
     template<typename T, typename std::enable_if<
         detail::has_into_toml_method<T>::value, std::nullptr_t>::type = nullptr>
-    basic_value(const T& ud, std::vector<std::string> comments)
-        : basic_value(ud.into_toml(), std::move(comments))
+    basic_value(const T& ud, std::vector<std::string> com)
+        : basic_value(ud.into_toml(), std::move(com))
     {}
     template<typename T, typename std::enable_if<
         detail::has_into_toml_method<T>::value, std::nullptr_t>::type = nullptr>
@@ -1033,8 +1033,8 @@ class basic_value
     template<typename T, std::size_t S = sizeof(::toml::into<T>)>
     basic_value(const T& ud): basic_value(::toml::into<T>::into_toml(ud)) {}
     template<typename T, std::size_t S = sizeof(::toml::into<T>)>
-    basic_value(const T& ud, std::vector<std::string> comments)
-        : basic_value(::toml::into<T>::into_toml(ud), std::move(comments))
+    basic_value(const T& ud, std::vector<std::string> com)
+        : basic_value(::toml::into<T>::into_toml(ud), std::move(com))
     {}
     template<typename T, std::size_t S = sizeof(::toml::into<T>)>
     basic_value& operator=(const T& ud)
@@ -1134,10 +1134,10 @@ class basic_value
     template<typename T, typename std::enable_if<
         detail::is_exact_toml_type<T, value_type>::value,
         std::nullptr_t>::type = nullptr>
-    basic_value(std::pair<T, detail::region> parse_result, std::vector<std::string> comments)
+    basic_value(std::pair<T, detail::region> parse_result, std::vector<std::string> com)
         : basic_value(std::move(parse_result.first),
                       std::move(parse_result.second),
-                      std::move(comments))
+                      std::move(com))
     {}
 
     // type checking and casting ============================================
@@ -1739,7 +1739,8 @@ class basic_value
 };
 
 // default toml::value and default array/table.
-using value = basic_value<discard_comments, std::unordered_map, std::vector>;
+// TOML11_DEFAULT_COMMENT_STRATEGY is defined in comments.hpp
+using value = basic_value<TOML11_DEFAULT_COMMENT_STRATEGY, std::unordered_map, std::vector>;
 using array = typename value::array_type;
 using table = typename value::table_type;
 
