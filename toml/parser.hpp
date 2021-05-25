@@ -1977,7 +1977,9 @@ result<Value, std::string> parse_toml_file(location& loc)
     const auto first = loc.iter();
     if(first == loc.end())
     {
-        return ok(value_type(table_type{} /*, empty file has no region ...*/));
+        // For empty files, return an empty table with an empty region (zero-length).
+        // Without the region, error messages would miss the filename.
+        return ok(value_type(table_type{}, region(loc, first, first), {}));
     }
 
     // put the first line as a region of a file

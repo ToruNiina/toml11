@@ -1943,6 +1943,8 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Add missing include files
 - sneakypete81 (@sneakypete81)
   - Fix typo in error message
+- Oliver Kahrmann (@founderio)
+  - Fix missing filename in error message if parsed file is empty
 
 
 ## Licensing terms
