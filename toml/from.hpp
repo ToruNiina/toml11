@@ -2,7 +2,6 @@
 // Distributed under the MIT License.
 #ifndef TOML11_FROM_HPP
 #define TOML11_FROM_HPP
-#include "traits.hpp"
 
 namespace toml
 {
