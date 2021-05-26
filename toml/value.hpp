@@ -66,9 +66,20 @@ throw_key_not_found_error(const Value& v, const key& ky)
     // ```
     // It actually points to the top-level table at the first character,
     // not `[table]`. But it is too confusing. To avoid the confusion, the error
-    // message should explicitly say "key not found in the top-level table".
+    // message should explicitly say "key not found in the top-level table",
+    // or "the parsed file is empty" if there is no content at all (0 bytes in file).
     const auto loc = v.location();
-    if(loc.line() == 1 && loc.region() == 1)
+    if(loc.line() == 1 && loc.region() == 0)
+    {
+        // First line with a zero-length region means "empty file".
+        // The region will be generated at `parse_toml_file` function
+        // if the file contains no bytes.
+        throw std::out_of_range(format_underline(concat_to_string(
+            "key \"", ky, "\" not found in the top-level table"), {
+                {loc, "the parsed file is empty"}
+            }));
+    }
+    else if(loc.line() == 1 && loc.region() == 1)
     {
         // Here it assumes that top-level table starts at the first character.
         // The region corresponds to the top-level table will be generated at
