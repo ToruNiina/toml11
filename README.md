@@ -1951,6 +1951,6 @@ I appreciate the help of the contributors who introduced the great feature to th
 
 This product is licensed under the terms of the [MIT License](LICENSE).
 
-- Copyright (c) 2017-2020 Toru Niina
+- Copyright (c) 2017-2021 Toru Niina
 
 All rights reserved.
