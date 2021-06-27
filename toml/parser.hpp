@@ -1268,7 +1268,10 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                     }
                     // the above if-else-if checks tab->at(k) is an array
                     auto& a = tab->at(k).as_array();
-                    if(!(a.front().is_table()))
+                    // If table element is defined as [[array_of_tables]], it
+                    // cannot be an empty array. If an array of tables is
+                    // defined as `aot = []`, it cannot be appended.
+                    if(a.empty() || !(a.front().is_table()))
                     {
                         throw syntax_error(format_underline(concat_to_string(
                             "toml::insert_value: array of table (\"",
@@ -1510,6 +1513,7 @@ parse_inline_table(location& loc)
         {
             return err(kv_r.unwrap_err());
         }
+
         const auto&              kvpair  = kv_r.unwrap();
         const std::vector<key>&  keys    = kvpair.first.first;
         const auto&              key_reg = kvpair.first.second;
@@ -1526,10 +1530,19 @@ parse_inline_table(location& loc)
 
         using lex_table_separator = sequence<maybe<lex_ws>, character<','>>;
         const auto sp = lex_table_separator::invoke(loc);
+
         if(!sp)
         {
             maybe<lex_ws>::invoke(loc);
-            if(loc.iter() != loc.end() && *loc.iter() == '}')
+
+            if(loc.iter() == loc.end())
+            {
+                throw syntax_error(format_underline(
+                    "toml::parse_inline_table: missing table separator `}` ",
+                    {{source_location(loc), "should be `}`"}}),
+                    source_location(loc));
+            }
+            else if(*loc.iter() == '}')
             {
                 loc.advance(); // skip `}`
                 return ok(std::make_pair(
