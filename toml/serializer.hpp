@@ -178,8 +178,9 @@ struct serializer
     {
         if(s.kind == string_t::basic)
         {
-            if(std::find(s.str.cbegin(), s.str.cend(), '\n') != s.str.cend() ||
-               std::find(s.str.cbegin(), s.str.cend(), '\"') != s.str.cend())
+            if((std::find(s.str.cbegin(), s.str.cend(), '\n') != s.str.cend() ||
+                std::find(s.str.cbegin(), s.str.cend(), '\"') != s.str.cend()) &&
+               this->width_ != std::numeric_limits<std::size_t>::max())
             {
                 // if linefeed or double-quote is contained,
                 // make it multiline basic string.
