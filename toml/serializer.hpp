@@ -2,6 +2,7 @@
 // Distributed under the MIT License.
 #ifndef TOML11_SERIALIZER_HPP
 #define TOML11_SERIALIZER_HPP
+#include <cmath>
 #include <cstdio>
 
 #include <limits>
@@ -115,6 +116,29 @@ struct serializer
     }
     std::string operator()(const floating_type f) const
     {
+        if(std::isnan(f))
+        {
+            if(std::signbit(f))
+            {
+                return std::string("-nan");
+            }
+            else
+            {
+                return std::string("nan");
+            }
+        }
+        else if(!std::isfinite(f))
+        {
+            if(std::signbit(f))
+            {
+                return std::string("-inf");
+            }
+            else
+            {
+                return std::string("inf");
+            }
+        }
+
         const auto fmt = "%.*g";
         const auto bsz = std::snprintf(nullptr, 0, fmt, this->float_prec_, f);
         // +1 for null character(\0)
