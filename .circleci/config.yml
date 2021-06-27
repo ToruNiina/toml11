@@ -2,10 +2,8 @@ version: 2.1
 
 jobs:
   test_suite:
-    environment:
-      - GOPATH: /home/circleci/go
     docker:
-      - image: circleci/golang:1.9
+      - image: cimg/go:1.16
     steps:
       - checkout
       - run:
