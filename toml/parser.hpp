@@ -1497,17 +1497,18 @@ parse_inline_table(location& loc)
             {{source_location(loc), "the next token is not an inline table"}}));
     }
     loc.advance();
+
+    // check if the inline table is an empty table = { }
+    maybe<lex_ws>::invoke(loc);
+    if(loc.iter() != loc.end() && *loc.iter() == '}')
+    {
+        loc.advance(); // skip `}`
+        return ok(std::make_pair(retval, region(loc, first, loc.iter())));
+    }
+
     // it starts from "{". it should be formatted as inline-table
     while(loc.iter() != loc.end())
     {
-        maybe<lex_ws>::invoke(loc);
-        if(loc.iter() != loc.end() && *loc.iter() == '}')
-        {
-            loc.advance(); // skip `}`
-            return ok(std::make_pair(retval,
-                        region(loc, first, loc.iter())));
-        }
-
         const auto kv_r = parse_key_value_pair<value_type>(loc);
         if(!kv_r)
         {
@@ -1560,6 +1561,18 @@ parse_inline_table(location& loc)
                 throw syntax_error(format_underline(
                     "toml::parse_inline_table: missing table separator `,` ",
                     {{source_location(loc), "should be `,`"}}),
+                    source_location(loc));
+            }
+        }
+        else // `,` is found
+        {
+            maybe<lex_ws>::invoke(loc);
+            if(loc.iter() != loc.end() && *loc.iter() == '}')
+            {
+                throw syntax_error(format_underline(
+                    "toml::parse_inline_table: trailing comma is not allowed in"
+                    " an inline table",
+                    {{source_location(loc), "should be `}`"}}),
                     source_location(loc));
             }
         }
