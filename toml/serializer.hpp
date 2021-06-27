@@ -441,7 +441,19 @@ struct serializer
                 case '\f': {retval += "\\f";  break;}
                 case '\n': {retval += "\\n";  break;}
                 case '\r': {retval += "\\r";  break;}
-                default  : {retval += c;      break;}
+                default  :
+                {
+                    if((0x00 <= c && c <= 0x08) || (0x0A <= c && c <= 0x1F) || c == 0x7F)
+                    {
+                        retval += "\\u00";
+                        retval += char(48 + (c / 16));
+                        retval += char((c % 16 < 10 ? 48 : 55) + (c % 16));
+                    }
+                    else
+                    {
+                        retval += c;
+                    }
+                }
             }
         }
         return retval;
@@ -475,7 +487,21 @@ struct serializer
                     }
                     break;
                 }
-                default: {retval += *i; break;}
+                default  :
+                {
+                    const auto c = *i;
+                    if((0x00 <= c && c <= 0x08) || (0x0A <= c && c <= 0x1F) || c == 0x7F)
+                    {
+                        retval += "\\u00";
+                        retval += char(48 + (c / 16));
+                        retval += char((c % 16 < 10 ? 48 : 55) + (c % 16));
+                    }
+                    else
+                    {
+                        retval += c;
+                    }
+                }
+
             }
         }
         // Only 1 or 2 consecutive `"`s are allowed in multiline basic string.
