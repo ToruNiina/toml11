@@ -662,12 +662,19 @@ parse_local_date(location& loc)
                 {{source_location(inner_loc), "here"}}),
                 source_location(inner_loc));
         }
-        return ok(std::make_pair(local_date(
-            static_cast<std::int16_t>(from_string<int>(y.unwrap().str(), 0)),
-            static_cast<month_t>(
-                static_cast<std::int8_t>(from_string<int>(m.unwrap().str(), 0)-1)),
-            static_cast<std::int8_t>(from_string<int>(d.unwrap().str(), 0))),
-            token.unwrap()));
+
+        const auto year  = static_cast<std::int16_t>(from_string<int>(y.unwrap().str(), 0));
+        const auto month = static_cast<std::int8_t >(from_string<int>(m.unwrap().str(), 0));
+        const auto day   = static_cast<std::int8_t >(from_string<int>(d.unwrap().str(), 0));
+
+        // this could be improved a bit more, but is it ... really ... needed?
+        if(31 < day)
+        {
+            throw syntax_error(format_underline("toml::parse_date: invalid date",
+                {{source_location(loc), "here"}}), source_location(loc));
+        }
+        return ok(std::make_pair(local_date(year, static_cast<month_t>(month - 1), day),
+                                 token.unwrap()));
     }
     else
     {
