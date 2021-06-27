@@ -16,6 +16,14 @@ struct json_serializer
     }
     void operator()(toml::floating v)
     {
+        if(std::isnan(v) && std::signbit(v))
+        {
+            // toml-test does not allow negative NaN represented in "-nan" because
+            // there are languages that does not distinguish nan and -nan.
+            // But toml11 keeps sign from input. To resolve this difference,
+            // we convert -nan to nan here.
+            v = std::numeric_limits<toml::floating>::quiet_NaN();
+        }
         std::cout << "{\"type\":\"float\",\"value\":\"" << toml::value(v) << "\"}";
         return ;
     }
@@ -24,23 +32,24 @@ struct json_serializer
         // since toml11 automatically convert string to multiline string that is
         // valid only in TOML, we need to format the string to make it valid in
         // JSON.
-        std::cout << "{\"type\":\"string\",\"value\":\""
-                  << this->escape_string(v.str) << "\"}";
+        toml::serializer<toml::value> ser(std::numeric_limits<std::size_t>::max());
+        std::cout << "{\"type\":\"string\",\"value\":"
+                  << ser(v.str) << "}";
         return ;
     }
     void operator()(const toml::local_time& v)
     {
-        std::cout << "{\"type\":\"local_time\",\"value\":\"" << toml::value(v) << "\"}";
+        std::cout << "{\"type\":\"time-local\",\"value\":\"" << toml::value(v) << "\"}";
         return ;
     }
     void operator()(const toml::local_date& v)
     {
-        std::cout << "{\"type\":\"local_date\",\"value\":\"" << toml::value(v) << "\"}";
+        std::cout << "{\"type\":\"date-local\",\"value\":\"" << toml::value(v) << "\"}";
         return ;
     }
     void operator()(const toml::local_datetime& v)
     {
-        std::cout << "{\"type\":\"local_datetime\",\"value\":\"" << toml::value(v) << "\"}";
+        std::cout << "{\"type\":\"datetime-local\",\"value\":\"" << toml::value(v) << "\"}";
         return ;
     }
     void operator()(const toml::offset_datetime& v)
@@ -64,7 +73,8 @@ struct json_serializer
         }
         else
         {
-            std::cout << "{\"type\":\"array\",\"value\":[";
+//             std::cout << "{\"type\":\"array\",\"value\":[";
+            std::cout << "[";
             bool is_first = true;
             for(const auto& elem : v)
             {
@@ -72,7 +82,7 @@ struct json_serializer
                 is_first = false;
                 toml::visit(*this, elem);
             }
-            std::cout << "]}";
+            std::cout << "]";
         }
         return ;
     }
@@ -84,37 +94,19 @@ struct json_serializer
         {
             if(!is_first) {std::cout << ", ";}
             is_first = false;
-            std::cout << this->format_key(elem.first) << ':';
+            const auto k = toml::format_key(elem.first);
+            if(k.at(0) == '"')
+            {
+                std::cout << k << ":";
+            }
+            else // bare key
+            {
+                std::cout << '\"' << k << "\":";
+            }
             toml::visit(*this, elem.second);
         }
         std::cout << '}';
         return ;
-    }
-
-    std::string escape_string(const std::string& s) const
-    {
-        std::string retval;
-        for(const char c : s)
-        {
-            switch(c)
-            {
-                case '\\': {retval += "\\\\"; break;}
-                case '\"': {retval += "\\\""; break;}
-                case '\b': {retval += "\\b";  break;}
-                case '\t': {retval += "\\t";  break;}
-                case '\f': {retval += "\\f";  break;}
-                case '\n': {retval += "\\n";  break;}
-                case '\r': {retval += "\\r";  break;}
-                default  : {retval += c;      break;}
-            }
-        }
-        return retval;
-    }
-
-    std::string format_key(const std::string& s) const
-    {
-        const auto quote("\"");
-        return quote + escape_string(s) + quote;
     }
 };
 
