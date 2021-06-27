@@ -119,8 +119,8 @@ using lex_local_time       = lex_partial_time;
 // ===========================================================================
 
 using lex_quotation_mark  = character<'"'>;
-using lex_basic_unescaped = exclude<either<in_range<0x00, 0x08>, // 0x09 (tab)
-                                           in_range<0x0a, 0x1F>, // is allowed
+using lex_basic_unescaped = exclude<either<in_range<0x00, 0x08>, // 0x09 (tab) is allowed
+                                           in_range<0x0A, 0x1F>,
                                            character<0x22>, character<0x5C>,
                                            character<0x7F>>>;
 
@@ -178,8 +178,8 @@ using lex_ml_basic_string_close = sequence<
         maybe<lex_quotation_mark>, maybe<lex_quotation_mark>
     >;
 
-using lex_ml_basic_unescaped    = exclude<either<in_range<0x00, 0x08>, // 0x09
-                                                 in_range<0x0a, 0x1F>, // is tab
+using lex_ml_basic_unescaped    = exclude<either<in_range<0x00, 0x08>, // 0x09 is tab
+                                                 in_range<0x0A, 0x1F>,
                                                  character<0x5C>, // backslash
                                                  character<0x7F>, // DEL
                                                  lex_ml_basic_string_delim>>;
@@ -196,8 +196,8 @@ using lex_ml_basic_string = sequence<lex_ml_basic_string_open,
                                      lex_ml_basic_body,
                                      lex_ml_basic_string_close>;
 
-using lex_literal_char = exclude<either<in_range<0x00, 0x08>,
-                                        in_range<0x10, 0x19>, character<0x27>>>;
+using lex_literal_char = exclude<either<in_range<0x00, 0x08>, in_range<0x0A, 0x1F>,
+                                        character<0x7F>, character<0x27>>>;
 using lex_apostrophe = character<'\''>;
 using lex_literal_string = sequence<lex_apostrophe,
                                     repeat<lex_literal_char, unlimited>,
@@ -212,7 +212,7 @@ using lex_ml_literal_string_close = sequence<
     >;
 
 using lex_ml_literal_char = exclude<either<in_range<0x00, 0x08>,
-                                           in_range<0x10, 0x1F>,
+                                           in_range<0x0A, 0x1F>,
                                            character<0x7F>,
                                            lex_ml_literal_string_delim>>;
 using lex_ml_literal_body = repeat<either<lex_ml_literal_char, lex_newline>,
@@ -227,7 +227,8 @@ using lex_string = either<lex_ml_basic_string,   lex_basic_string,
 // ===========================================================================
 
 using lex_comment_start_symbol = character<'#'>;
-using lex_non_eol = either<character<'\t'>, exclude<in_range<0x00, 0x19>>>;
+using lex_non_eol = exclude<either<in_range<0x00, 0x08>, /*0x09 == tab is allowed*/
+                                   in_range<0x0A, 0x1F>, character<0x7F>>>;
 using lex_comment = sequence<lex_comment_start_symbol,
                              repeat<lex_non_eol, unlimited>>;
 
