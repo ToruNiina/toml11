@@ -309,7 +309,17 @@ struct serializer
                 continue;
             }
             std::string next_elem;
-            next_elem += toml::visit(*this, item);
+            if(item.is_table())
+            {
+                serializer ser(*this);
+                ser.can_be_inlined_ = true;
+                ser.width_ = std::numeric_limits<std::size_t>::max();
+                next_elem += toml::visit(ser, item);
+            }
+            else
+            {
+                next_elem += toml::visit(*this, item);
+            }
 
             // comma before newline.
             if(!next_elem.empty() && next_elem.back() == '\n') {next_elem.pop_back();}
