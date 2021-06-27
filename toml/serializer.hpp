@@ -29,6 +29,11 @@ template<typename charT, typename traits, typename Alloc>
 std::basic_string<charT, traits, Alloc>
 format_key(const std::basic_string<charT, traits, Alloc>& k)
 {
+    if(k.empty())
+    {
+        return std::string("\"\"");
+    }
+
     // check the key can be a bare (unquoted) key
     detail::location loc(k, std::vector<char>(k.begin(), k.end()));
     detail::lex_unquoted_key::invoke(loc);
@@ -61,9 +66,12 @@ template<typename charT, typename traits, typename Alloc>
 std::basic_string<charT, traits, Alloc>
 format_keys(const std::vector<std::basic_string<charT, traits, Alloc>>& keys)
 {
-    std::basic_string<charT, traits, Alloc> serialized;
-    if(keys.empty()) {return serialized;}
+    if(keys.empty())
+    {
+        return std::string("\"\"");
+    }
 
+    std::basic_string<charT, traits, Alloc> serialized;
     for(const auto& ky : keys)
     {
         serialized += format_key(ky);
