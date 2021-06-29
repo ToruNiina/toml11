@@ -225,13 +225,6 @@ using lex_string = either<lex_ml_basic_string,   lex_basic_string,
                           lex_ml_literal_string, lex_literal_string>;
 
 // ===========================================================================
-
-using lex_comment_start_symbol = character<'#'>;
-using lex_non_eol = exclude<either<in_range<0x00, 0x08>, /*0x09 == tab is allowed*/
-                                   in_range<0x0A, 0x1F>, character<0x7F>>>;
-using lex_comment = sequence<lex_comment_start_symbol,
-                             repeat<lex_non_eol, unlimited>>;
-
 using lex_dot_sep = sequence<maybe<lex_ws>, character<'.'>, maybe<lex_ws>>;
 
 using lex_unquoted_key = repeat<either<lex_alpha, lex_digit,
@@ -265,6 +258,35 @@ using lex_array_table       = sequence<lex_array_table_open,
                                        lex_key,
                                        maybe<lex_ws>,
                                        lex_array_table_close>;
+
+using lex_utf8_1byte = in_range<0x00, 0x7F>;
+using lex_utf8_2byte = sequence<
+        in_range<static_cast<char>(0xC2), static_cast<char>(0xDF)>,
+        in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>
+    >;
+using lex_utf8_3byte = sequence<either<
+        sequence<character<static_cast<char>(0xE0)>,                          in_range<static_cast<char>(0xA0), static_cast<char>(0xBF)>>,
+        sequence<in_range <static_cast<char>(0xE1), static_cast<char>(0xEC)>, in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>>,
+        sequence<character<static_cast<char>(0xED)>,                          in_range<static_cast<char>(0x80), static_cast<char>(0x9F)>>,
+        sequence<in_range <static_cast<char>(0xEE), static_cast<char>(0xEF)>, in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>>
+    >, in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>>;
+using lex_utf8_4byte = sequence<either<
+        sequence<character<static_cast<char>(0xF0)>,                          in_range<static_cast<char>(0x90), static_cast<char>(0xBF)>>,
+        sequence<in_range <static_cast<char>(0xF1), static_cast<char>(0xF3)>, in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>>,
+        sequence<character<static_cast<char>(0xF4)>,                          in_range<static_cast<char>(0x80), static_cast<char>(0x8F)>>
+    >, in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>,
+       in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>>;
+using lex_utf8_code = either<
+        lex_utf8_1byte,
+        lex_utf8_2byte,
+        lex_utf8_3byte,
+        lex_utf8_4byte
+    >;
+
+using lex_comment_start_symbol = character<'#'>;
+using lex_non_eol_ascii = either<character<0x09>, in_range<0x20, 0x7E>>;
+using lex_comment = sequence<lex_comment_start_symbol, repeat<either<
+    lex_non_eol_ascii, lex_utf8_2byte, lex_utf8_3byte, lex_utf8_4byte>, unlimited>>;
 
 } // detail
 } // toml

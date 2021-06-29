@@ -364,6 +364,17 @@ inline result<std::string, std::string> parse_escape_sequence(location& loc)
     return err(msg);
 }
 
+inline result<none_t, std::ptrdiff_t> check_utf8_validity(const std::string& reg)
+{
+    location loc("tmp", reg);
+    const auto u8 = repeat<lex_utf8_code, unlimited>::invoke(loc);
+    if(!u8 || loc.iter() != loc.end())
+    {
+        return err(std::distance(loc.begin(), loc.iter()));
+    }
+    return ok(none_t{});
+}
+
 inline result<std::pair<toml::string, region>, std::string>
 parse_ml_basic_string(location& loc)
 {
@@ -432,7 +443,20 @@ parse_ml_basic_string(location& loc)
                     source_location(inner_loc));
             }
         }
-        return ok(std::make_pair(toml::string(retval), token.unwrap()));
+
+        if(const auto u8 = check_utf8_validity(token.unwrap().str()))
+        {
+            return ok(std::make_pair(toml::string(retval), token.unwrap()));
+        }
+        else
+        {
+            inner_loc.reset(first);
+            inner_loc.advance(u8.as_err());
+            throw syntax_error(format_underline(
+                "parse_ml_basic_string: invalid utf8 sequence found",
+                {{source_location(inner_loc), "here"}}),
+                source_location(inner_loc));
+        }
     }
     else
     {
@@ -484,7 +508,20 @@ parse_basic_string(location& loc)
             }
             quot = lex_quotation_mark::invoke(inner_loc);
         }
-        return ok(std::make_pair(toml::string(retval), token.unwrap()));
+
+        if(const auto u8 = check_utf8_validity(token.unwrap().str()))
+        {
+            return ok(std::make_pair(toml::string(retval), token.unwrap()));
+        }
+        else
+        {
+            inner_loc.reset(first);
+            inner_loc.advance(u8.as_err());
+            throw syntax_error(format_underline(
+                "parse_ml_basic_string: invalid utf8 sequence found",
+                {{source_location(inner_loc), "here"}}),
+                source_location(inner_loc));
+        }
     }
     else
     {
@@ -545,8 +582,21 @@ parse_ml_literal_string(location& loc)
                     source_location(inner_loc));
             }
         }
-        return ok(std::make_pair(toml::string(retval, toml::string_t::literal),
-                                 token.unwrap()));
+
+        if(const auto u8 = check_utf8_validity(token.unwrap().str()))
+        {
+            return ok(std::make_pair(toml::string(retval, toml::string_t::literal),
+                                     token.unwrap()));
+        }
+        else
+        {
+            inner_loc.reset(first);
+            inner_loc.advance(u8.as_err());
+            throw syntax_error(format_underline(
+                "parse_ml_basic_string: invalid utf8 sequence found",
+                {{source_location(inner_loc), "here"}}),
+                source_location(inner_loc));
+        }
     }
     else
     {
@@ -584,9 +634,22 @@ parse_literal_string(location& loc)
                 {{source_location(inner_loc), "should be '"}}),
                 source_location(inner_loc));
         }
-        return ok(std::make_pair(
-                  toml::string(body.unwrap().str(), toml::string_t::literal),
-                  token.unwrap()));
+
+        if(const auto u8 = check_utf8_validity(token.unwrap().str()))
+        {
+            return ok(std::make_pair(
+                      toml::string(body.unwrap().str(), toml::string_t::literal),
+                      token.unwrap()));
+        }
+        else
+        {
+            inner_loc.reset(first);
+            inner_loc.advance(u8.as_err());
+            throw syntax_error(format_underline(
+                "parse_ml_basic_string: invalid utf8 sequence found",
+                {{source_location(inner_loc), "here"}}),
+                source_location(inner_loc));
+        }
     }
     else
     {
