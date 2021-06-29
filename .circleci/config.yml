@@ -12,6 +12,7 @@ jobs:
               cd tests/
               g++ -std=c++11 -O2 -Wall -Wextra -Werror -I../ check_toml_test.cpp -o check_toml_test
               export PATH=$(pwd):${PATH}
+              go clean -modcache
               go get github.com/BurntSushi/toml-test/cmd/toml-test
               $GOPATH/bin/toml-test ./check_toml_test
   test_serialization:
