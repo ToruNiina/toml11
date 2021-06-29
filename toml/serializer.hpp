@@ -180,7 +180,7 @@ struct serializer
         {
             if((std::find(s.str.cbegin(), s.str.cend(), '\n') != s.str.cend() ||
                 std::find(s.str.cbegin(), s.str.cend(), '\"') != s.str.cend()) &&
-               this->width_ != std::numeric_limits<std::size_t>::max())
+               this->width_ != (std::numeric_limits<std::size_t>::max)())
             {
                 // if linefeed or double-quote is contained,
                 // make it multiline basic string.
@@ -346,7 +346,7 @@ struct serializer
             {
                 serializer ser(*this);
                 ser.can_be_inlined_ = true;
-                ser.width_ = std::numeric_limits<std::size_t>::max();
+                ser.width_ = (std::numeric_limits<std::size_t>::max)();
                 next_elem += toml::visit(ser, item);
             }
             else
