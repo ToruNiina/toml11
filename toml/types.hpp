@@ -28,7 +28,7 @@ using key = std::string;
 
 using boolean        = bool;
 using integer        = std::int64_t;
-using floating       = double; // "float" is a keyward, cannot use it here.
+using floating       = double; // "float" is a keyword, cannot use it here.
 // the following stuffs are structs defined here, so aliases are not needed.
 // - string
 // - offset_datetime

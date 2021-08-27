@@ -101,7 +101,7 @@ throw_key_not_found_error(const Value& v, const key& ky)
         // ```toml
         // a = {b = "c"}
         // ```
-        // toml11 consideres the inline table body as the table region. Here,
+        // toml11 considers the inline table body as the table region. Here,
         // `{b = "c"}` is the region of the table "a". The size of the region
         // is 9, not 1. The shotest inline table still has two characters, `{`
         // and `}`. The size cannot be 1.
@@ -110,7 +110,7 @@ throw_key_not_found_error(const Value& v, const key& ky)
         // ```toml
         // [a]
         // ```
-        // toml11 consideres the whole table key as the table region. Here,
+        // toml11 considers the whole table key as the table region. Here,
         // `[a]` is the table region. The size is 3, not 1.
         //
         throw std::out_of_range(format_underline(concat_to_string(

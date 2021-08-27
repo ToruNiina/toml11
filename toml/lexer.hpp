@@ -166,7 +166,7 @@ using lex_basic_string = sequence<lex_quotation_mark,
 //     |                                                               ^- expected newline, but got '"'.
 // ```
 // As a quick workaround for this problem, `lex_ml_basic_string_delim` was
-// splitted into two, `lex_ml_basic_string_open` and `lex_ml_basic_string_close`.
+// split into two, `lex_ml_basic_string_open` and `lex_ml_basic_string_close`.
 // `lex_ml_basic_string_open` allows only `"""`. `_close` allows 3-5 `"`s.
 // In parse_ml_basic_string() function, the trailing `"`s will be attached to
 // the string body.
