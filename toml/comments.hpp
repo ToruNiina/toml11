@@ -346,7 +346,7 @@ operator+(const empty_iterator<T, C>& lhs, typename empty_iterator<T, C>::differ
 //
 // Why this is chose as the default type is because the last version (2.x.y)
 // does not contain any comments in a value. To minimize the impact on the
-// efficiency, this is choosed as a default.
+// efficiency, this is chosen as a default.
 //
 // To reduce the memory footprint, later we can try empty base optimization (EBO).
 struct discard_comments

@@ -251,7 +251,7 @@ See also [underlying types](#underlying-types).
 **NOTE**: For some technical reason, automatic conversion between `integer` and
 `floating` is not supported. If you want to get a floating value even if a value
 has integer value, you need to convert it manually after obtaining a value,
-like the followings.
+like the following.
 
 ```cpp
 const auto vx = toml::find(data, "x");
@@ -905,7 +905,7 @@ toml::visit([](const auto& val) -> void {
 ```
 
 The function object that would be passed to `toml::visit` must be able to
-recieve all the possible TOML types. Also, the result types should be the same
+receive all the possible TOML types. Also, the result types should be the same
 each other.
 
 ## Constructing a toml::value
@@ -988,7 +988,7 @@ or macro definition.
 This feature is controlled by template parameter in `toml::basic_value<...>`.
 `toml::value` is an alias of `toml::basic_value<...>`.
 
-If template paramter is explicitly specified, the return value of `toml::parse`
+If template parameter is explicitly specified, the return value of `toml::parse`
 will be `toml::basic_value<toml::preserve_comments>`.
 If the macro is defined, the alias `toml::value` will be
 `toml::basic_value<toml::preserve_comments>`.
@@ -1618,7 +1618,7 @@ it uses [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code).
 Without `TOML11_COLORIZE_ERROR_MESSAGE`, you can still colorize user-defined
 error message by passing `true` to the `toml::format_error` function.
 If you define `TOML11_COLORIZE_ERROR_MESSAGE`, the value is `true` by default.
-If not, the defalut value would be `false`.
+If not, the default value would be `false`.
 
 ```cpp
 std::cerr << toml::format_error("[error] value should be positive",
@@ -1719,7 +1719,7 @@ const std::string fmt = toml::format(v);
 ```
 
 To control the width and precision, `toml::format` receives optional second and
-third arguments to set them. By default, the witdh is 80 and the precision is
+third arguments to set them. By default, the width is 80 and the precision is
 `std::numeric_limits<double>::max_digit10`.
 
 ```cpp
@@ -1755,7 +1755,7 @@ flag that represents a kind of a string, `string_t::basic` and `string_t::litera
 Although `std::string` is not an exact toml type, still you can get a reference
 that points to internal `std::string` by using `toml::get<std::string>()` for convenience.
 The most important difference between `std::string` and `toml::string` is that
-`toml::string` will be formatted as a TOML string when outputed with `ostream`.
+`toml::string` will be formatted as a TOML string when outputted with `ostream`.
 This feature is introduced to make it easy to write a custom serializer.
 
 `Datetime` variants are `struct` that are defined in this library.
@@ -1906,7 +1906,7 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Intel Compiler support
 - Quentin Khan (@xaxousis)
   - Found & Fixed a bug around ODR
-  - Improved error messages for invaild keys to show the location where the parser fails
+  - Improved error messages for invalid keys to show the location where the parser fails
 - Petr Beneš (@wbenny)
   - Fixed warnings on MSVC
 - Ivan Shynkarenka (@chronoxor)

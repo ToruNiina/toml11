@@ -854,7 +854,7 @@ template<typename charT, typename traits>
 std::basic_ostream<charT, traits>&
 nocomment(std::basic_ostream<charT, traits>& os)
 {
-    // by default, it is zero. and by defalut, it shows comments.
+    // by default, it is zero. and by default, it shows comments.
     os.iword(detail::comment_index(os)) = 1;
     return os;
 }
@@ -863,7 +863,7 @@ template<typename charT, typename traits>
 std::basic_ostream<charT, traits>&
 showcomment(std::basic_ostream<charT, traits>& os)
 {
-    // by default, it is zero. and by defalut, it shows comments.
+    // by default, it is zero. and by default, it shows comments.
     os.iword(detail::comment_index(os)) = 0;
     return os;
 }
@@ -880,7 +880,7 @@ operator<<(std::basic_ostream<charT, traits>& os, const basic_value<C, M, V>& v)
     const int  fprec = static_cast<int>(os.precision());
     os.width(0);
 
-    // by defualt, iword is initialized byl 0. And by default, toml11 outputs
+    // by default, iword is initialized by 0. And by default, toml11 outputs
     // comments. So `0` means showcomment. 1 means nocommnet.
     const bool no_comment = (1 == os.iword(detail::comment_index(os)));
 
