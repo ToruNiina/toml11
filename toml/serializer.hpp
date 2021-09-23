@@ -833,7 +833,7 @@ format(const basic_value<C, M, V>& v, std::size_t w = 80u,
             oss << v.comments();
             oss << '\n'; // to split the file comment from the first element
         }
-        const auto serialized = visit(serializer<value_type>(w, fprec, no_comment, false), v);
+        const auto serialized = visit(serializer<value_type>(w, fprec, false, no_comment), v);
         oss << serialized;
         return oss.str();
     }
