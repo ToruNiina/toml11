@@ -154,7 +154,7 @@ struct sequence<Head, Tail...>
     invoke(location& loc)
     {
         const auto first = loc.iter();
-        const auto rslt = Head::invoke(loc);
+        auto rslt = Head::invoke(loc);
         if(rslt.is_err())
         {
             loc.reset(first);
