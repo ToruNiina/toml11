@@ -1459,6 +1459,16 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                     auto& t = tab->at(k).as_table();
                     for(const auto& kv : v.as_table())
                     {
+                        if(tab->at(k).contains(kv.first))
+                        {
+                            throw syntax_error(format_underline(concat_to_string(
+                                "toml::insert_value: value (\"",
+                                format_dotted_keys(first, last),
+                                "\") already exists."), {
+                                    {t.at(kv.first).location(), "already exists here"},
+                                    {v.location(), "this defined twice"}
+                                }), v.location());
+                        }
                         t[kv.first] = kv.second;
                     }
                     detail::change_region(tab->at(k), key_reg);
