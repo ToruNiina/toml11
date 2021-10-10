@@ -41,7 +41,7 @@ int main()
     std::vector<int> nums = toml::find<std::vector<int>>(data, "nums");
 
     // access with STL-like manner
-    if(not data.contains("foo"))
+    if(!data.contains("foo"))
     {
         data["foo"] = "bar";
     }
