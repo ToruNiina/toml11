@@ -149,6 +149,10 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4820")
     # pragma warning(pop): likely mismatch, popping warning state pushed in different file
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5031")
+	# pragma warning(pop): spectre warnings in tests
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5045")
+	# pragma warning(pop): spectre warnings in tests
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4265")
 endif()
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
@@ -185,6 +189,7 @@ option(TOML11_REQUIRE_FILESYSTEM_LIBRARY "need to link -lstdc++fs or -lc++fs" OF
 foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
     target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} toml11::toml11)
+    target_include_directories(${TEST_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
 
     # to compile tests with <filesystem>...
     if(TOML11_REQUIRE_FILESYSTEM_LIBRARY)

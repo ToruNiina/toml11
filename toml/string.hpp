@@ -9,6 +9,7 @@
 
 #if __cplusplus >= 201703L
 #if __has_include(<string_view>)
+#define TOML11_USING_STRING_VIEW 1
 #include <string_view>
 #endif
 #endif
@@ -53,7 +54,7 @@ struct string
     string& operator+=(const std::string& rhs) {str += rhs; return *this;}
     string& operator+=(const string&      rhs) {str += rhs.str; return *this;}
 
-#if __cplusplus >= 201703L
+#if defined(TOML11_USING_STRING_VIEW) && TOML11_USING_STRING_VIEW>0
     explicit string(std::string_view s): kind(string_t::basic), str(s){}
     string(std::string_view s, string_t k): kind(k), str(s){}
 
