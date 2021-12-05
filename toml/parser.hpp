@@ -2134,7 +2134,7 @@ result<Value, std::string> parse_toml_file(location& loc)
 
     table_type data;
     // root object is also a table, but without [tablename]
-    if(auto tab = parse_ml_table<value_type>(loc))
+    if(const auto tab = parse_ml_table<value_type>(loc))
     {
         data = std::move(tab.unwrap());
     }
