@@ -1945,6 +1945,16 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fix typo in error message
 - Oliver Kahrmann (@founderio)
   - Fix missing filename in error message if parsed file is empty
+- Karl Nilsson (@karl-nilsson)
+  - Fix many spelling errors
+- ohdarling88 (@ohdarling)
+  - Fix a bug in a constructor of serializer
+- estshorter (@estshorter)
+  - Fix MSVC warning C26478
+- Philip Top (@phlptp)
+  - Improve checking standard library feature availability check
+- Louis Marascio (@marascio)
+  - Fix free-nonheap-object warning
 
 
 ## Licensing terms
