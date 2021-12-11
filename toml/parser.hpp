@@ -2209,11 +2209,23 @@ parse(std::istream& is, const std::string& fname = "unknown file")
     std::vector<char> letters(static_cast<std::size_t>(fsize));
     is.read(letters.data(), fsize);
 
+    // remove null character if exists
     while(!letters.empty() && letters.back() == '\0')
     {
         letters.pop_back();
     }
     assert(letters.empty() || letters.back() != '\0');
+
+    // append LF.
+    // Although TOML does not require LF at the EOF, to make parsing logic
+    // simpler, we "normalize" the content by adding LF if it does not exist.
+    // It also checks if the last char is CR, to avoid changing the meaning.
+    // This is not the *best* way to deal with the last character, but is a
+    // simple and quick fix.
+    if(!letters.empty() && letters.back() != '\n' && letters.back() != '\r')
+    {
+        letters.push_back('\n');
+    }
 
     detail::location loc(std::move(fname), std::move(letters));
 
