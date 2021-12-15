@@ -736,11 +736,28 @@ parse_local_date(location& loc)
         const auto month = static_cast<std::int8_t >(from_string<int>(m.unwrap().str(), 0));
         const auto day   = static_cast<std::int8_t >(from_string<int>(d.unwrap().str(), 0));
 
-        // this could be improved a bit more, but is it ... really ... needed?
-        if(31 < day)
+        // We briefly check whether the input date is valid or not. But here, we
+        // only check if the RFC3339 compliance.
+        //     Actually there are several special date that does not exist,
+        // because of historical reasons, such as 1582/10/5-1582/10/14 (only in
+        // several countries). But here, we do not care about such a complicated
+        // rule. It makes the code complicated and there is only low probability
+        // that such a specific date is needed in practice. If someone need to
+        // validate date accurately, that means that the one need a specialized
+        // library for their purpose in a different layer.
         {
-            throw syntax_error(format_underline("toml::parse_date: invalid date",
-                {{source_location(loc), "here"}}), source_location(loc));
+            const bool is_leap = (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0));
+            const auto max_day = (month == 2) ? (is_leap ? 29 : 28) :
+                ((month == 4 || month == 6 || month == 9 || month == 11) ? 30 : 31);
+
+            if((month < 1 || 12 < month) || (day < 1 || max_day < day))
+            {
+                throw syntax_error(format_underline("toml::parse_date: "
+                    "invalid date: it does not conform RFC3339.", {{
+                    source_location(loc), "month should be 01-12, day should be"
+                    " 01-28,29,30,31, depending on month/year."
+                    }}), source_location(inner_loc));
+            }
         }
         return ok(std::make_pair(local_date(year, static_cast<month_t>(month - 1), day),
                                  token.unwrap()));
@@ -787,10 +804,22 @@ parse_local_time(location& loc)
                 {{source_location(inner_loc), "here"}}),
                 source_location(inner_loc));
         }
-        local_time time(
-            from_string<int>(h.unwrap().str(), 0),
-            from_string<int>(m.unwrap().str(), 0),
-            from_string<int>(s.unwrap().str(), 0), 0, 0);
+
+        const int hour   = from_string<int>(h.unwrap().str(), 0);
+        const int minute = from_string<int>(m.unwrap().str(), 0);
+        const int second = from_string<int>(s.unwrap().str(), 0);
+
+        if((hour   < 0 || 23 < hour) || (minute < 0 || 59 < minute) ||
+           (second < 0 || 60 < second)) // it may be leap second
+        {
+            throw syntax_error(format_underline("toml::parse_time: "
+                "invalid time: it does not conform RFC3339.", {{
+                source_location(loc), "hour should be 00-23, minute should be"
+                " 00-59, second should be 00-60 (depending on the leap"
+                " second rules.)"}}), source_location(inner_loc));
+        }
+
+        local_time time(hour, minute, second, 0, 0);
 
         const auto before_secfrac = inner_loc.iter();
         if(const auto secfrac = lex_time_secfrac::invoke(inner_loc))
@@ -904,15 +933,26 @@ parse_offset_datetime(location& loc)
         if(const auto ofs = lex_time_numoffset::invoke(inner_loc))
         {
             const auto str = ofs.unwrap().str();
+
+            const auto hour   = from_string<int>(str.substr(1,2), 0);
+            const auto minute = from_string<int>(str.substr(4,2), 0);
+
+            if((hour < 0 || 23 < hour) || (minute < 0 || 59 < minute))
+            {
+                throw syntax_error(format_underline("toml::parse_offset_datetime: "
+                    "invalid offset: it does not conform RFC3339.", {{
+                    source_location(loc), "month should be 01-12, day should be"
+                    " 01-28,29,30,31, depending on month/year."
+                    }}), source_location(inner_loc));
+            }
+
             if(str.front() == '+')
             {
-                offset = time_offset(from_string<int>(str.substr(1,2), 0),
-                                     from_string<int>(str.substr(4,2), 0));
+                offset = time_offset(hour, minute);
             }
             else
             {
-                offset = time_offset(-from_string<int>(str.substr(1,2), 0),
-                                     -from_string<int>(str.substr(4,2), 0));
+                offset = time_offset(-hour, -minute);
             }
         }
         else if(*inner_loc.iter() != 'Z' && *inner_loc.iter() != 'z')
