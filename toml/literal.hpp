@@ -87,6 +87,7 @@ operator"" _toml(const char* str, std::size_t len)
     ::toml::detail::location loc(
             std::string("TOML literal encoded in a C++ code"),
             std::vector<char>(str, str + len));
+    // literal length does not include the null character at the end.
     return literal_internal_impl(std::move(loc));
 }
 
