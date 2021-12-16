@@ -1257,6 +1257,9 @@ std::string format_dotted_keys(InputIterator first, const InputIterator last)
 // forward decl for is_valid_forward_table_definition
 result<std::pair<std::vector<key>, region>, std::string>
 parse_table_key(location& loc);
+template<typename Value>
+result<std::pair<typename Value::table_type, region>, std::string>
+parse_inline_table(location& loc);
 
 // The following toml file is allowed.
 // ```toml
@@ -1282,16 +1285,41 @@ parse_table_key(location& loc);
 // of the key. If the key region points deeper node, it would be allowed.
 // Otherwise, the key points the same node. It would be rejected.
 template<typename Value, typename Iterator>
-bool is_valid_forward_table_definition(const Value& fwd,
+bool is_valid_forward_table_definition(const Value& fwd, const Value& inserting,
         Iterator key_first, Iterator key_curr, Iterator key_last)
 {
+    // ------------------------------------------------------------------------
+    // check type of the value to be inserted/merged
+
+    std::string inserting_reg = "";
+    if(const auto ptr = detail::get_region(inserting))
+    {
+        inserting_reg = ptr->str();
+    }
+    location inserting_def("internal", std::move(inserting_reg));
+    if(const auto inlinetable = parse_inline_table<Value>(inserting_def))
+    {
+        // check if we are overwriting existing table.
+        // ```toml
+        // # NG
+        // a.b = 42
+        // a = {d = 3.14}
+        // ```
+        // Inserting an inline table to a existing super-table is not allowed in
+        // any case. If we found it, we can reject it without further checking.
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+    // check table defined before
+
     std::string internal = "";
     if(const auto ptr = detail::get_region(fwd))
     {
         internal = ptr->str();
     }
     location def("internal", std::move(internal));
-    if(const auto tabkeys = parse_table_key(def))
+    if(const auto tabkeys = parse_table_key(def)) // [table.key]
     {
         // table keys always contains all the nodes from the root.
         const auto& tks = tabkeys.unwrap().first;
@@ -1481,7 +1509,7 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                 if(tab->at(k).is_table() && v.is_table())
                 {
                     if(!is_valid_forward_table_definition(
-                                tab->at(k), first, iter, last))
+                                tab->at(k), v, first, iter, last))
                     {
                         throw syntax_error(format_underline(concat_to_string(
                             "toml::insert_value: table (\"",
