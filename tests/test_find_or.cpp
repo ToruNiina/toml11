@@ -12,7 +12,7 @@
 #include <deque>
 #include <array>
 #include <tuple>
-#if __cplusplus >= 201703L
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
 #include <string_view>
 #endif
 

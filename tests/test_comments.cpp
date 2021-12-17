@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE(test_construct_value_with_comments)
         BOOST_TEST(v.is_string());
         BOOST_TEST(v.as_string() == "str");
     }
-#if __cplusplus >= 201703L
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
     {
         using namespace std::literals::string_view_literals;
         const value_type v("str"sv, {"comment1", "comment2"});
