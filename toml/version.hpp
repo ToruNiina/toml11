@@ -35,7 +35,7 @@
 #  define TOML11_CPLUSPLUS_STANDARD_VERSION __cplusplus
 #endif
 
-#if TOML11_CPLUSPLUS_STANDARD_VERSION < 201103L
+#if TOML11_CPLUSPLUS_STANDARD_VERSION < 201103L && _MSC_VER < 1900
 #    error "toml11 requires C++11 or later."
 #endif
 
