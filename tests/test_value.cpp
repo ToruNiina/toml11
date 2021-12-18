@@ -9,7 +9,7 @@
 #include <map>
 #include <list>
 
-#if __cplusplus >= 201703L
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
 #include <string_view>
 #endif
 
@@ -423,7 +423,7 @@ BOOST_AUTO_TEST_CASE(test_value_string)
     BOOST_TEST(v2.as_boolean() == true);
     BOOST_TEST(v3.as_boolean() == true);
 
-#if __cplusplus >= 201703L
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
     std::string_view sv = "foo";
 
     toml::value v7(sv);

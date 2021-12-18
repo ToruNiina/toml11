@@ -13,7 +13,7 @@
 #include <list>
 #include <deque>
 #include <array>
-#if __cplusplus >= 201703L
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
 #include <string_view>
 #endif
 #include <tuple>
@@ -477,7 +477,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_string_type, value_type, test_value_type
         BOOST_TEST("foo" == moved);
     }
 
-#if __cplusplus >= 201703L
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
     {
         value_type v{{"key", toml::string("foo", toml::string_t::basic)}};
         BOOST_TEST("foo" == toml::find<std::string_view>(v, "key"));

@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(test_string_add_assign)
         str += str2;
         BOOST_TEST(str.str == "foobar");
     }
-#if __cplusplus >= 201703L
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
     // std::string_view
     {
         toml::string str("foo");
