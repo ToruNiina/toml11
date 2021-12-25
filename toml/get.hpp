@@ -215,6 +215,7 @@ template<typename T, typename C,
 detail::enable_if_t<detail::conjunction<
     detail::is_container<T>,                           // T is a container
     detail::negation<detail::has_push_back_method<T>>, // w/o push_back(...)
+    detail::negation<detail::has_specialized_from<T>>, // T does not have special conversion
     detail::negation<                                  // not toml::array
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>
     >::value, T>
@@ -324,6 +325,7 @@ template<typename T, typename C,
 detail::enable_if_t<detail::conjunction<
     detail::is_container<T>,                           // T is a container
     detail::negation<detail::has_push_back_method<T>>, // w/o push_back
+    detail::negation<detail::has_specialized_from<T>>, // T does not have special conversion
     detail::negation<                                  // T is not toml::array
         detail::is_exact_toml_type<T, basic_value<C, M, V>>>
     >::value, T>
