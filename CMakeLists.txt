@@ -4,6 +4,7 @@ enable_testing()
 project(toml11 VERSION 3.7.0)
 
 option(toml11_BUILD_TEST "Build toml tests" OFF)
+option(toml11_INSTALL "Install CMake targets during install step." ON)
 option(toml11_TEST_WITH_ASAN  "use LLVM address sanitizer" OFF)
 option(toml11_TEST_WITH_UBSAN "use LLVM undefined behavior sanitizer" OFF)
 
@@ -75,38 +76,40 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
-configure_package_config_file(
-    cmake/toml11Config.cmake.in
-    ${toml11_config}
-    INSTALL_DESTINATION ${toml11_install_cmake_dir}
-    PATH_VARS toml11_install_cmake_dir
-)
+if (toml11_INSTALL)
+    configure_package_config_file(
+        cmake/toml11Config.cmake.in
+        ${toml11_config}
+        INSTALL_DESTINATION ${toml11_install_cmake_dir}
+        PATH_VARS toml11_install_cmake_dir
+    )
 
-# Install config files
-install(FILES ${toml11_config} ${toml11_config_version}
-    DESTINATION ${toml11_install_cmake_dir}
-)
+    # Install config files
+    install(FILES ${toml11_config} ${toml11_config_version}
+        DESTINATION ${toml11_install_cmake_dir}
+    )
 
-# Install header files
-install(
-    FILES toml.hpp
-    DESTINATION "${toml11_install_include_dir}"
-)
-install(
-    DIRECTORY "toml"
-    DESTINATION "${toml11_install_include_dir}"
-    FILES_MATCHING PATTERN "*.hpp"
-)
+    # Install header files
+    install(
+        FILES toml.hpp
+        DESTINATION "${toml11_install_include_dir}"
+    )
+    install(
+        DIRECTORY "toml"
+        DESTINATION "${toml11_install_include_dir}"
+        FILES_MATCHING PATTERN "*.hpp"
+    )
 
-# Export targets and install them
-install(TARGETS toml11
-    EXPORT toml11Targets
-)
-install(EXPORT toml11Targets
-    FILE toml11Targets.cmake
-    DESTINATION ${toml11_install_cmake_dir}
-    NAMESPACE toml11::
-)
+    # Export targets and install them
+    install(TARGETS toml11
+        EXPORT toml11Targets
+    )
+    install(EXPORT toml11Targets
+        FILE toml11Targets.cmake
+        DESTINATION ${toml11_install_cmake_dir}
+        NAMESPACE toml11::
+    )
+endif()
 
 if (toml11_BUILD_TEST)
     add_subdirectory(tests)
