@@ -1911,7 +1911,7 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fixed warnings on MSVC
 - Ivan Shynkarenka (@chronoxor)
   - Fixed Visual Studio 2019 warnings
-- @khoitd1997
+- Khoi Dinh Trinh (@khoitd1997)
   - Fixed warnings while type conversion
 - @KerstinKeller
   - Added installation script to CMake
@@ -1955,12 +1955,13 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Improve checking standard library feature availability check
 - Louis Marascio (@marascio)
   - Fix free-nonheap-object warning
-
+- Axel Huebl (@ax3l)
+  - Make installation optional if the library is embedded
 
 ## Licensing terms
 
 This product is licensed under the terms of the [MIT License](LICENSE).
 
-- Copyright (c) 2017-2021 Toru Niina
+- Copyright (c) 2017-2022 Toru Niina
 
 All rights reserved.
