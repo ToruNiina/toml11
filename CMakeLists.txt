@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 enable_testing()
 
-project(toml11 VERSION 3.7.0)
+project(toml11 VERSION 3.7.1)
 
 option(toml11_BUILD_TEST "Build toml tests" OFF)
 option(toml11_INSTALL "Install CMake targets during install step." ON)
