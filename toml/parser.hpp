@@ -1310,6 +1310,46 @@ bool is_valid_forward_table_definition(const Value& fwd, const Value& inserting,
         return false;
     }
 
+    // Valid and invalid cases when inserting to the [a.b] table:
+    //
+    // ## Invalid
+    //
+    // ```toml
+    // # invalid
+    // [a]
+    // b.c.d = "foo"
+    // [a.b]       # a.b is already defined and closed
+    // d = "bar"
+    // ```
+    // ```toml
+    // # invalid
+    // a = {b.c.d = "foo"}
+    // [a.b] # a is already defined and inline table is closed
+    // d = "bar"
+    // ```
+    // ```toml
+    // # invalid
+    // a.b.c.d = "foo"
+    // [a.b] # a.b is already defined and dotted-key table is closed
+    // d = "bar"
+    // ```
+    //
+    // ## Valid
+    //
+    // ```toml
+    // # OK. a.b is defined, but is *overwritable*
+    // [a.b.c]
+    // d = "foo"
+    // [a.b]
+    // d = "bar"
+    // ```
+    // ```toml
+    // # OK. a.b is defined, but is *overwritable*
+    // [a]
+    // b.c.d = "foo"
+    // b.e = "bar"
+    // ```
+
     // ------------------------------------------------------------------------
     // check table defined before
 
@@ -1332,7 +1372,7 @@ bool is_valid_forward_table_definition(const Value& fwd, const Value& inserting,
         // the keys are not equivalent. it is allowed.
         return true;
     }
-    if(const auto dotkeys = parse_key(def))
+    if(const auto dotkeys = parse_key(def)) // a.b.c = "foo"
     {
         // consider the following case.
         // [a]
@@ -1340,6 +1380,18 @@ bool is_valid_forward_table_definition(const Value& fwd, const Value& inserting,
         // [a.b.c]
         // e = 2.71
         // this defines the table [a.b.c] twice. no?
+        if(const auto reopening_dotkey_by_table = parse_table_key(inserting_def))
+        {
+            // re-opening a dotkey-defined table by a table is invalid.
+            // only dotkey can append a key-val. Like:
+            // ```toml
+            // a.b.c = "foo"
+            // a.b.d = "bar" # OK. reopen `a.b` by dotkey
+            // [a.b]
+            // e = "bar" # Invalid. re-opening `a.b` by [a.b] is not allowed.
+            // ```
+            return false;
+        }
 
         // a dotted key starts from the node representing a table in which the
         // dotted key belongs to.
