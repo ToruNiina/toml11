@@ -105,9 +105,6 @@ if(COMPILER_SUPPORTS_WUNDEF)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wundef")
 endif()
 
-option(TOML11_USE_UNRELEASED_TOML_FEATURES
-    "use features in toml-lang/toml master while testing" OFF)
-
 if(TOML11_USE_UNRELEASED_TOML_FEATURES)
     message(STATUS "adding TOML11_USE_UNRELEASED_TOML_FEATURES flag")
     add_definitions("-DTOML11_USE_UNRELEASED_TOML_FEATURES")

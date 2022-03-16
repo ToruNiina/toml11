@@ -8,6 +8,9 @@ option(toml11_INSTALL "Install CMake targets during install step." ON)
 option(toml11_TEST_WITH_ASAN  "use LLVM address sanitizer" OFF)
 option(toml11_TEST_WITH_UBSAN "use LLVM undefined behavior sanitizer" OFF)
 
+option(TOML11_USE_UNRELEASED_TOML_FEATURES
+    "use features in toml-lang/toml master while testing" OFF)
+
 include(CheckCXXCompilerFlag)
 if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
     set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Boolean specifying whether compiler specific extensions are requested.")
