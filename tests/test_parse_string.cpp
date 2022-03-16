@@ -217,6 +217,19 @@ BOOST_AUTO_TEST_CASE(test_ml_literal_string_value)
         value("'This,' she said, 'is just a pointless statement.'", string_t::literal));
 }
 
+BOOST_AUTO_TEST_CASE(test_simple_excape_sequences)
+{
+    TOML11_TEST_PARSE_EQUAL(parse_string,
+            R"("\"\\\b\f\n\r\t")",
+            string("\"\\\b\f\n\r\t", string_t::basic));
+#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
+    TOML11_TEST_PARSE_EQUAL(parse_string,
+            R"("\e")",
+            string("\x1b", string_t::basic));
+#endif
+}
+
+
 BOOST_AUTO_TEST_CASE(test_unicode_escape_sequence)
 {
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)

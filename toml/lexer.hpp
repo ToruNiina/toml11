@@ -133,6 +133,9 @@ using lex_escape_seq_char = either<character<'"'>, character<'\\'>,
                                    character<'b'>, character<'f'>,
                                    character<'n'>, character<'r'>,
                                    character<'t'>,
+#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
+                                   character<'e'>, // ESC (0x1B)
+#endif
                                    lex_escape_unicode_short,
                                    lex_escape_unicode_long
                                    >;

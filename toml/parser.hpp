@@ -327,6 +327,9 @@ inline result<std::string, std::string> parse_escape_sequence(location& loc)
         case 'n' :{loc.advance(); return ok(std::string("\n"));}
         case 'f' :{loc.advance(); return ok(std::string("\f"));}
         case 'r' :{loc.advance(); return ok(std::string("\r"));}
+#ifdef TOML11_USE_UNRELEASED_TOML_FEATURES
+        case 'e' :{loc.advance(); return ok(std::string("\x1b"));} // ESC
+#endif
         case 'u' :
         {
             if(const auto token = lex_escape_unicode_short::invoke(loc))
