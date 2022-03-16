@@ -1764,16 +1764,13 @@ not capable of representing a Local Time independent from a specific day.
 
 ## Unreleased TOML features
 
-Since TOML v1.0.0-rc.1 has been released, those features are now activated by
-default. We no longer need to define `TOML11_USE_UNRELEASED_FEATURES`.
+After TOML v1.0.0 has been released, some features are added to the main branch
+of the TOML spec repository. (see: [CHANGELOG.md in toml-lang/toml repository](https://github.com/toml-lang/toml/blob/main/CHANGELOG.md)).
 
-- Leading zeroes in exponent parts of floats are permitted.
-  - e.g. `1.0e+01`, `5e+05`
-  - [toml-lang/toml/PR/656](https://github.com/toml-lang/toml/pull/656)
-- Allow raw tab characters in basic strings and multi-line basic strings.
-  - [toml-lang/toml/PR/627](https://github.com/toml-lang/toml/pull/627)
-- Allow heterogeneous arrays
-  - [toml-lang/toml/PR/676](https://github.com/toml-lang/toml/pull/676)
+The following list shows available "unreleased" features that can be activated
+by defining a macro named `TOML11_USE_UNRELEASED_FEATURES`.
+
+- Add new `\e` shorthand for the escape character.
 
 ## Note about heterogeneous arrays
 
