@@ -1630,6 +1630,15 @@ Note: It colorize `[error]` in red. That means that it detects `[error]` prefix
 at the front of the error message. If there is no `[error]` prefix,
 `format_error` adds it to the error message.
 
+## Opting out of the default `[error]` prefix
+
+toml11 prints error messages with the `[error]` prefix by default.
+Defining `TOML11_NO_ERROR_PREFIX` will let toml11 omit the prefix regardless of colorized or not in case you would use a custom prefix, such as `Error:`.
+
+```cpp
+#define TOML11_NO_ERROR_PREFIX
+```
+
 ## Serializing TOML data
 
 toml11 enables you to serialize data into toml format.
