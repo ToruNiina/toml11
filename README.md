@@ -1626,9 +1626,52 @@ std::cerr << toml::format_error("[error] value should be positive",
                                 hints, /*colorize = */ true) << std::endl;
 ```
 
-Note: It colorize `[error]` in red. That means that it detects `[error]` prefix
+Note: It colorizes `[error]` in red. That means that it detects `[error]` prefix
 at the front of the error message. If there is no `[error]` prefix,
 `format_error` adds it to the error message.
+
+Compared to the `TOML11_COLORIZE_ERROR_MESSAGE` macro that enables colorization
+statically, toml11 provides `toml::color::enable` & `toml::color::disable`
+functions to dynamically change the color mode. This feature overwrites
+`TOML11_COLORIZE_ERROR_MESSAGE` and the `colorize` argument of
+`toml::format_error` when you call `enable`.
+
+Note: If either `TOML11_COLORIZE_ERROR_MESSAGE` is defined or the `colorize`
+argument is used, it takes precedence, meaning that `disable` won't work.
+Accordingly, we highly recommend using only one of them.
+
+```cpp
+toml::color::enable();  // enable colorization
+toml::color::disable(); // disable colorization
+```
+
+If you use user-defined error message, you can manage the setting as follows:
+
+```cpp
+toml::color::enable();
+std::cerr << toml::format_error("[error] value should be positive",
+                                data.at("num"), "positive number required",
+                                hints) << std::endl; // colorized
+
+toml::color::disable();
+std::cerr << toml::format_error("[error] value should be positive",
+                                data.at("num"), "positive number required",
+                                hints) << std::endl; // NOT colorized
+```
+
+Or you may use toml11 in your application like:
+
+```cpp
+std::vector<std::string> args(argv + 1, argv + argc);
+auto result = std::find(args.begin(), args.end(), "--color");
+if (result != args.end()) {
+    toml::color::enable();
+} else {
+    toml::color::disable();
+}
+
+// use toml11 ...
+```
 
 ## Opting out of the default `[error]` prefix
 

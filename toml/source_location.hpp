@@ -125,7 +125,7 @@ inline std::string format_underline(const std::string& message,
 
     std::ostringstream retval;
 
-    if(colorize)
+    if(color::should_color() || colorize)
     {
         retval << color::colorize; // turn on ANSI color
     }
