@@ -25,25 +25,30 @@ inline int colorize_index()
 }
 
 // Control color mode globally
-class color_mode {
-public:
-    inline void enable() {
+class color_mode
+{
+  public:
+    inline void enable()
+    {
         should_color_ = true;
     }
-    inline void disable() {
+    inline void disable()
+    {
         should_color_ = false;
     }
 
-    inline bool should_color() const {
+    inline bool should_color() const
+    {
         return should_color_;
     }
 
-    static color_mode& status() {
+    static color_mode& status()
+    {
         static color_mode status_;
         return status_;
     }
 
-private:
+  private:
     bool should_color_ = false;
 };
 
@@ -81,14 +86,17 @@ inline std::ostream& cyan   (std::ostream& os)
 inline std::ostream& white  (std::ostream& os)
 {if(os.iword(detail::colorize_index()) == 1) {os << "\033[37m";} return os;}
 
-inline void enable() {
+inline void enable()
+{
     return detail::color_mode::status().enable();
 }
-inline void disable() {
+inline void disable()
+{
     return detail::color_mode::status().disable();
 }
 
-inline bool should_color() {
+inline bool should_color()
+{
     return detail::color_mode::status().should_color();
 }
 
