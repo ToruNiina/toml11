@@ -2317,7 +2317,7 @@ template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array>
-parse(std::istream& is, const std::string& fname = "unknown file")
+parse(std::istream& is, std::string fname = "unknown file")
 {
     using value_type = basic_value<Comment, Table, Array>;
 
@@ -2372,14 +2372,14 @@ parse(std::istream& is, const std::string& fname = "unknown file")
 template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
-basic_value<Comment, Table, Array> parse(const std::string& fname)
+basic_value<Comment, Table, Array> parse(std::string fname)
 {
     std::ifstream ifs(fname.c_str(), std::ios_base::binary);
     if(!ifs.good())
     {
         throw std::runtime_error("toml::parse: file open error -> " + fname);
     }
-    return parse<Comment, Table, Array>(ifs, fname);
+    return parse<Comment, Table, Array>(ifs, std::move(fname));
 }
 
 #ifdef TOML11_HAS_STD_FILESYSTEM
