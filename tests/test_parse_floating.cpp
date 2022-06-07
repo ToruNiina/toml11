@@ -176,3 +176,10 @@ BOOST_AUTO_TEST_CASE(test_nan)
         BOOST_CHECK(std::isnan(r.unwrap().first));
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_overflow)
+{
+    std::istringstream float_overflow (std::string("float-overflow  = 1.0e+1024"));
+    BOOST_CHECK_THROW(toml::parse(float_overflow ), toml::syntax_error);
+    // istringstream >> float does not set failbit in case of underflow.
+}
