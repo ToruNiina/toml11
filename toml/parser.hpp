@@ -60,6 +60,7 @@ parse_binary_integer(location& loc)
         if(64 <= str.size())
         {
             // since toml11 uses int64_t, 64bit (unsigned) input cannot be read.
+            loc.reset(first);
             return err(format_underline("toml::parse_binary_integer:",
                        {{source_location(loc), "too large input (> int64_t)"}}));
         }
@@ -108,6 +109,7 @@ parse_octal_integer(location& loc)
             //  - no conversion is possible.
             // since we already checked that the string is valid octal integer,
             // so the error reason is out_of_range.
+            loc.reset(first);
             return err(format_underline("toml::parse_octal_integer:",
                        {{source_location(loc), "out of range"}}));
         }
@@ -134,6 +136,7 @@ parse_hexadecimal_integer(location& loc)
         if(iss.fail())
         {
             // see parse_octal_integer for detail of this error message.
+            loc.reset(first);
             return err(format_underline("toml::parse_hexadecimal_integer:",
                        {{source_location(loc), "out of range"}}));
         }
@@ -186,6 +189,7 @@ parse_integer(location& loc)
         if(iss.fail())
         {
             // see parse_octal_integer for detail of this error message.
+            loc.reset(first);
             return err(format_underline("toml::parse_integer:",
                        {{source_location(loc), "out of range"}}));
         }
@@ -280,6 +284,7 @@ parse_floating(location& loc)
         if(iss.fail())
         {
             // see parse_octal_integer for detail of this error message.
+            loc.reset(first);
             return err(format_underline("toml::parse_floating:",
                        {{source_location(loc), "out of range"}}));
         }
