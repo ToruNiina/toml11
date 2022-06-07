@@ -57,6 +57,12 @@ parse_binary_integer(location& loc)
     {
         auto str = token.unwrap().str();
         assert(str.size() > 2); // minimum -> 0b1
+        if(64 <= str.size())
+        {
+            // since toml11 uses int64_t, 64bit (unsigned) input cannot be read.
+            return err(format_underline("toml::parse_binary_integer:",
+                       {{source_location(loc), "too large input (> int64_t)"}}));
+        }
         integer retval(0), base(1);
         for(auto i(str.rbegin()), e(str.rend() - 2); i!=e; ++i)
         {
@@ -91,6 +97,20 @@ parse_octal_integer(location& loc)
         std::istringstream iss(str);
         integer retval(0);
         iss >> std::oct >> retval;
+        if(iss.fail())
+        {
+            // `istream` sets `failbit` if internally-called `std::num_get::get`
+            // fails.
+            // `std::num_get::get` calls `std::strtoll` if the argument type is
+            // signed.
+            // `std::strtoll` fails if
+            //  - the value is out_of_range or
+            //  - no conversion is possible.
+            // since we already checked that the string is valid octal integer,
+            // so the error reason is out_of_range.
+            return err(format_underline("toml::parse_octal_integer:",
+                       {{source_location(loc), "out of range"}}));
+        }
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.reset(first);
@@ -111,6 +131,12 @@ parse_hexadecimal_integer(location& loc)
         std::istringstream iss(str);
         integer retval(0);
         iss >> std::hex >> retval;
+        if(iss.fail())
+        {
+            // see parse_octal_integer for detail of this error message.
+            return err(format_underline("toml::parse_hexadecimal_integer:",
+                       {{source_location(loc), "out of range"}}));
+        }
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.reset(first);
@@ -157,6 +183,12 @@ parse_integer(location& loc)
         std::istringstream iss(str);
         integer retval(0);
         iss >> retval;
+        if(iss.fail())
+        {
+            // see parse_octal_integer for detail of this error message.
+            return err(format_underline("toml::parse_integer:",
+                       {{source_location(loc), "out of range"}}));
+        }
         return ok(std::make_pair(retval, token.unwrap()));
     }
     loc.reset(first);
@@ -245,6 +277,12 @@ parse_floating(location& loc)
         std::istringstream iss(str);
         floating v(0.0);
         iss >> v;
+        if(iss.fail())
+        {
+            // see parse_octal_integer for detail of this error message.
+            return err(format_underline("toml::parse_floating:",
+                       {{source_location(loc), "out of range"}}));
+        }
         return ok(std::make_pair(v, token.unwrap()));
     }
     loc.reset(first);
