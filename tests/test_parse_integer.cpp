@@ -90,3 +90,15 @@ BOOST_AUTO_TEST_CASE(test_bin_value)
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0b01_00_00", value(16));
     TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0b111111",   value(63));
 }
+
+BOOST_AUTO_TEST_CASE(test_integer_overflow)
+{
+    std::istringstream dec_overflow(std::string("dec-overflow = 9223372036854775808"));
+    std::istringstream hex_overflow(std::string("hex-overflow = 0x1_00000000_00000000"));
+    std::istringstream oct_overflow(std::string("oct-overflow = 0o1_000_000_000_000_000_000_000"));
+    std::istringstream bin_overflow(std::string("bin-overflow = 0b1_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000"));
+    BOOST_CHECK_THROW(toml::parse(dec_overflow), toml::syntax_error);
+    BOOST_CHECK_THROW(toml::parse(hex_overflow), toml::syntax_error);
+    BOOST_CHECK_THROW(toml::parse(oct_overflow), toml::syntax_error);
+    BOOST_CHECK_THROW(toml::parse(bin_overflow), toml::syntax_error);
+}
