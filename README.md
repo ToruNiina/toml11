@@ -2006,6 +2006,11 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fix free-nonheap-object warning
 - Axel Huebl (@ax3l)
   - Make installation optional if the library is embedded
+- Ken Matsui (@ken-matsui)
+  - Support user-defined error message prefix
+  - Support dynamic color mode
+- Giel van Schijndel (@GielVanSchijndel-TomTom)
+  - Remove needless copy in `parse` function
 
 ## Licensing terms
 
