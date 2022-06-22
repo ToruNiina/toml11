@@ -1960,6 +1960,7 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fixed warnings on MSVC
 - Ivan Shynkarenka (@chronoxor)
   - Fixed Visual Studio 2019 warnings
+  - Fix compilation error in `<filesystem>` with MinGW
 - Khoi Dinh Trinh (@khoitd1997)
   - Fixed warnings while type conversion
 - @KerstinKeller
@@ -1971,6 +1972,7 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Suppress warnings in Debug mode
 - OGAWA Kenichi (@kenichiice)
   - Suppress warnings on intel compiler
+  - Fix include path in README
 - Jordan Williams (@jwillikers)
   - Fixed clang range-loop-analysis warnings
   - Fixed feature test macro to suppress -Wundef
@@ -1982,12 +1984,8 @@ I appreciate the help of the contributors who introduced the great feature to th
   - fix "Finding a value in an array" example in README
 - @maass-tv and @SeverinLeonhardt
   - Fix MSVC warning C4866
-- OGAWA KenIchi (@kenichiice)
-  - Fix include path in README
 - Mohammed Alyousef (@MoAlyousef)
   - Made testing optional in CMake
-- Ivan Shynkarenka (@chronoxor)
-  - Fix compilation error in `<filesystem>` with MinGW
 - Alex Merry (@amerry)
   - Add missing include files
 - sneakypete81 (@sneakypete81)
