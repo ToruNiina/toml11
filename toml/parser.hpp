@@ -1716,6 +1716,29 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
                             {v.location(), "inserting this"}
                         }), v.location());
                 }
+                if(a.empty())
+                {
+                    throw syntax_error(format_underline(concat_to_string(
+                        "toml::insert_value: table (\"",
+                        format_dotted_keys(first, last), "\") conflicts with"
+                        " existing value"), {
+                            {tab->at(k).location(), std::string("this array is not insertable")},
+                            {v.location(), std::string("appending it to the statically sized array")}
+                        }), v.location());
+                }
+                if(const auto ptr = detail::get_region(a.at(0)))
+                {
+                    if(ptr->str().substr(0,2) != "[[")
+                    {
+                        throw syntax_error(format_underline(concat_to_string(
+                            "toml::insert_value: a table (\"",
+                            format_dotted_keys(first, last), "\") cannot be "
+                            "inserted to an existing inline array-of-tables"), {
+                                {tab->at(k).location(), std::string("this array of table has a static size")},
+                                {v.location(), std::string("appending it to the statically sized array")}
+                            }), v.location());
+                    }
+                }
                 tab = std::addressof(a.back().as_table());
             }
             else
