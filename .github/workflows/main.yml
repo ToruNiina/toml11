@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build-linux-gcc:
-    runs-on: Ubuntu-18.04
+    runs-on: Ubuntu-20.04
     strategy:
       matrix:
         # g++-4.8 and 4.9 are tested on Travis.CI.
@@ -45,7 +45,7 @@ jobs:
         run: |
             cd build && ctest --output-on-failure
   build-linux-clang:
-    runs-on: Ubuntu-18.04
+    runs-on: Ubuntu-20.04
     strategy:
       matrix:
         compiler: ['10', '9', '8', '7', '6.0', '5.0', '4.0', '3.9']
@@ -87,7 +87,7 @@ jobs:
             cd build && ctest --output-on-failure
 
   build-osx:
-    runs-on: macos-10.15
+    runs-on: macos-11
     strategy:
       matrix:
         standard: ['11', '14', '17', '20']
@@ -112,7 +112,7 @@ jobs:
             cd build && ctest --output-on-failure
 
   build-windows-msvc:
-    runs-on: windows-2019
+    runs-on: windows-2022
     strategy:
       matrix:
         standard: ['11', '14', '17', '20']
