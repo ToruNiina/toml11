@@ -71,6 +71,66 @@ jobs:
         run: |
             cd build && ctest --output-on-failure
 
+  build-linux-old-gcc:
+    runs-on: Ubuntu-18.04
+    strategy:
+      matrix:
+        compiler: ['g++-6', 'g++-5']
+        standard: ['11', '14']
+        unreleased: ['ON', 'OFF']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Install
+        run: |
+            sudo apt-add-repository ppa:ubuntu-toolchain-r/test
+            sudo apt-add-repository ppa:mhier/libboost-latest
+            sudo apt-get update
+            sudo apt-get install boost1.70
+            sudo apt-get install ${{ matrix.compiler }}
+      - name: Configure
+        run: |
+            mkdir build && cd build
+            cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_USE_UNRELEASED_TOML_FEATURES=${{ matrix.unreleased }}
+      - name: Build
+        run: |
+            cd build && cmake --build .
+      - name: Test
+        run: |
+            cd build && ctest --output-on-failure
+
+  build-linux-old-clang:
+    runs-on: Ubuntu-18.04
+    strategy:
+      matrix:
+        compiler: ['5.0', '4.0', '3.9']
+        standard: ['11', '14']
+        unreleased: ['ON', 'OFF']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Install
+        run: |
+            sudo apt-add-repository ppa:ubuntu-toolchain-r/test
+            sudo apt-add-repository ppa:mhier/libboost-latest
+            sudo apt-get update
+            sudo apt-get install boost1.70
+            sudo apt-get install clang-${{ matrix.compiler }}
+      - name: Configure
+        run: |
+            mkdir build && cd build
+            cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_C_COMPILER=clang-${{ matrix.compiler }} -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_USE_UNRELEASED_TOML_FEATURES=${{ matrix.unreleased }}
+      - name: Build
+        run: |
+            cd build && cmake --build .
+      - name: Test
+        run: |
+            cd build && ctest --output-on-failure
+
   build-osx:
     runs-on: macos-11
     strategy:
