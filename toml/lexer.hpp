@@ -5,7 +5,6 @@
 #include <istream>
 #include <sstream>
 #include <stdexcept>
-#include <fstream>
 
 #include "combinator.hpp"
 
