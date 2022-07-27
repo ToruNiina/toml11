@@ -837,7 +837,7 @@ const auto num  = toml::find_or(data, "num", 42);
 
 It works recursively if you pass several keys for subtables.
 In that case, the last argument is considered to be the optional value.
-All other arguments between `toml::value` and the optinoal value are considered as keys.
+All other arguments between `toml::value` and the optional value are considered as keys.
 
 ```cpp
 // [fruit.physical]
