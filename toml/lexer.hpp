@@ -264,21 +264,20 @@ using lex_array_table       = sequence<lex_array_table_open,
 
 using lex_utf8_1byte = in_range<0x00, 0x7F>;
 using lex_utf8_2byte = sequence<
-        in_range<static_cast<char>(0xC2), static_cast<char>(0xDF)>,
-        in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>
+        in_range<'\xC2', '\xDF'>,
+        in_range<'\x80', '\xBF'>
     >;
 using lex_utf8_3byte = sequence<either<
-        sequence<character<static_cast<char>(0xE0)>,                          in_range<static_cast<char>(0xA0), static_cast<char>(0xBF)>>,
-        sequence<in_range <static_cast<char>(0xE1), static_cast<char>(0xEC)>, in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>>,
-        sequence<character<static_cast<char>(0xED)>,                          in_range<static_cast<char>(0x80), static_cast<char>(0x9F)>>,
-        sequence<in_range <static_cast<char>(0xEE), static_cast<char>(0xEF)>, in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>>
-    >, in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>>;
+        sequence<character<'\xE0'>, in_range<'\xA0', '\xBF'>>,
+        sequence<in_range<'\xE1', '\xEC'>, in_range<'\x80', '\xBF'>>,
+        sequence<character<'\xED'>, in_range<'\x80', '\x9F'>>,
+        sequence<in_range<'\xEE', '\xEF'>, in_range<'\x80', '\xBF'>>
+    >, in_range<'\x80', '\xBF'>>;
 using lex_utf8_4byte = sequence<either<
-        sequence<character<static_cast<char>(0xF0)>,                          in_range<static_cast<char>(0x90), static_cast<char>(0xBF)>>,
-        sequence<in_range <static_cast<char>(0xF1), static_cast<char>(0xF3)>, in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>>,
-        sequence<character<static_cast<char>(0xF4)>,                          in_range<static_cast<char>(0x80), static_cast<char>(0x8F)>>
-    >, in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>,
-       in_range<static_cast<char>(0x80), static_cast<char>(0xBF)>>;
+        sequence<character<'\xF0'>, in_range<'\x90', '\xBF'>>,
+        sequence<in_range<'\xF1', '\xF3'>, in_range<'\x80', '\xBF'>>,
+        sequence<character<'\xF4'>, in_range<'\x80', '\x8F'>>
+    >, in_range<'\x80', '\xBF'>, in_range<'\x80', '\xBF'>>;
 using lex_utf8_code = either<
         lex_utf8_1byte,
         lex_utf8_2byte,
