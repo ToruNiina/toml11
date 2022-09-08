@@ -2488,8 +2488,9 @@ basic_value<Comment, Table, Array> parse(std::string fname)
     std::ifstream ifs(fname, std::ios_base::binary);
     if(!ifs.good())
     {
-        throw std::runtime_error("toml::parse: file open error -> " + fname);
+        throw std::ios_base::failure("toml::parse: Error opening file \"" + fname + "\"");
     }
+    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     return parse<Comment, Table, Array>(ifs, std::move(fname));
 }
 

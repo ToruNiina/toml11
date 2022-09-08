@@ -1031,5 +1031,5 @@ BOOST_AUTO_TEST_CASE(test_parse_function_compiles)
 
 BOOST_AUTO_TEST_CASE(test_parse_nonexistent_file)
 {
-    BOOST_CHECK_THROW(toml::parse("nonexistent.toml"), std::runtime_error);
+    BOOST_CHECK_THROW(toml::parse("nonexistent.toml"), std::ios_base::failure);
 }
