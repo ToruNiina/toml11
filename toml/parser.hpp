@@ -2516,13 +2516,7 @@ template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array> parse(const std::filesystem::path& fpath)
 {
-    std::ifstream ifs(fpath, std::ios_base::binary);
-    if(!ifs.good())
-    {
-        throw std::runtime_error("toml::parse: file open error -> " +
-                                 fpath.string());
-    }
-    return parse<Comment, Table, Array>(ifs, fpath.string());
+    return parse<Comment, Table, Array>(fpath.string());
 }
 #endif // TOML11_HAS_STD_FILESYSTEM
 
