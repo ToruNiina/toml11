@@ -62,6 +62,82 @@ CHECK_CXX_COMPILER_FLAG("-Wrange-loop-analysis" COMPILER_SUPPORTS_WRANGE_LOOP_AN
 CHECK_CXX_COMPILER_FLAG("-Wundef"               COMPILER_SUPPORTS_WUNDEF)
 CHECK_CXX_COMPILER_FLAG("-Wshadow"              COMPILER_SUPPORTS_WSHADOW)
 
+include(CheckCXXSourceCompiles)
+
+# check which standard library implementation is used. If libstdc++ is used,
+# it will fail to compile. It compiles if libc++ is used.
+check_cxx_source_compiles("
+#include <cstddef>
+#ifdef __GLIBCXX__
+    static_assert(false);
+#endif
+int main() {
+    return 0;
+}" TOML11_WITH_LIBCXX_LIBRARY)
+
+# LLVM 8 requires -lc++fs if compiled with libc++ to use <filesystem>.
+# LLVM 9+ does not require any special library.
+# GCC 8 requires -lstdc++fs. GCC 9+ does not require it.
+#
+# Yes, we can check the version of the compiler used in the current build
+# directly in CMake. But, in most cases, clang build uses libstdc++ as the
+# standard library implementation and it makes the condition complicated.
+# In many environment, the default installed C++ compiler is GCC and libstdc++
+# is installed along with it. In most build on such an environment, even if we
+# chose clang as the C++ compiler, still libstdc++ is used. Checking default
+# gcc version makes the condition complicated.
+# The purpose of this file is to compile tests. We know the environment on which
+# the tests run. We can set this option and, I think, it is easier and better.
+option(TOML11_REQUIRE_FILESYSTEM_LIBRARY "need to link -lstdc++fs or -lc++fs" OFF)
+
+find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+
+set(PREVIOUSLY_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES}")
+set(PREVIOUSLY_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+
+list(APPEND CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
+list(APPEND CMAKE_REQUIRED_LIBRARIES ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+check_cxx_source_compiles("
+#define BOOST_TEST_MODULE \"dummy\"
+#undef BOOST_TEST_DYN_LINK
+#define BOOST_TEST_NO_LIB
+#include <boost/test/included/unit_test.hpp>
+BOOST_AUTO_TEST_CASE(proforma) { BOOST_TEST(true); }
+" TOML11_WITH_BOOST_TEST_HEADER)
+
+check_cxx_source_compiles("
+#define BOOST_TEST_MODULE \"dummy\"
+#undef BOOST_TEST_DYN_LINK
+#undef BOOST_TEST_NO_LIB
+#include <boost/test/unit_test.hpp>
+BOOST_AUTO_TEST_CASE(proforma) { BOOST_TEST(true); }
+" TOML11_WITH_BOOST_TEST_STATIC)
+
+check_cxx_source_compiles("
+#define BOOST_TEST_MODULE \"dummy\"
+#define BOOST_TEST_DYN_LINK
+#undef BOOST_TEST_NO_LIB
+#include <boost/test/unit_test.hpp>
+BOOST_AUTO_TEST_CASE(proforma) { BOOST_TEST(true); }
+" TOML11_WITH_BOOST_TEST_DYNAMIC)
+
+set(CMAKE_REQUIRED_INCLUDES "${PREVIOUSLY_REQUIRED_INCLUDES}")
+set(CMAKE_REQUIRED_LIBRARIES "${PREVIOUSLY_REQUIRED_LIBRARIES}")
+
+unset(PREVIOUSLY_REQUIRED_INCLUDES)
+unset(PREVIOUSLY_REQUIRED_LIBRARIES)
+
+if(TOML11_WITH_BOOST_TEST_DYNAMIC)
+    add_definitions(-DUNITTEST_FRAMEWORK_LIBRARY_EXIST -DBOOST_TEST_DYN_LINK)
+elseif(TOML11_WITH_BOOST_TEST_STATIC)
+    add_definitions(-DUNITTEST_FRAMEWORK_LIBRARY_EXIST)
+elseif(TOML11_WITH_BOOST_TEST_HEADER)
+    add_definitions(-DBOOST_TEST_NO_LIB)
+else()
+    message(FATAL_ERROR "Neither the Boost.Test static or shared library nor the header-only version seem to be usable.")
+endif()
+
 if(COMPILER_SUPPORTS_WALL)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
@@ -150,73 +226,6 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5045")
 	# pragma warning(pop): spectre warnings in tests
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4265")
-endif()
-
-include(CheckCXXSourceCompiles)
-
-# check which standard library implementation is used. If libstdc++ is used,
-# it will fail to compile. It compiles if libc++ is used.
-check_cxx_source_compiles("
-#include <cstddef>
-#ifdef __GLIBCXX__
-    static_assert(false);
-#endif
-int main() {
-    return 0;
-}" TOML11_WITH_LIBCXX_LIBRARY)
-
-# LLVM 8 requires -lc++fs if compiled with libc++ to use <filesystem>.
-# LLVM 9+ does not require any special library.
-# GCC 8 requires -lstdc++fs. GCC 9+ does not require it.
-#
-# Yes, we can check the version of the compiler used in the current build
-# directly in CMake. But, in most cases, clang build uses libstdc++ as the
-# standard library implementation and it makes the condition complicated.
-# In many environment, the default installed C++ compiler is GCC and libstdc++
-# is installed along with it. In most build on such an environment, even if we
-# chose clang as the C++ compiler, still libstdc++ is used. Checking default
-# gcc version makes the condition complicated.
-# The purpose of this file is to compile tests. We know the environment on which
-# the tests run. We can set this option and, I think, it is easier and better.
-option(TOML11_REQUIRE_FILESYSTEM_LIBRARY "need to link -lstdc++fs or -lc++fs" OFF)
-
-find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-
-list(APPEND CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
-list(APPEND CMAKE_REQUIRED_LIBRARIES ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-
-check_cxx_source_compiles("
-#define BOOST_TEST_MODULE \"dummy\"
-#undef BOOST_TEST_DYN_LINK
-#define BOOST_TEST_NO_LIB
-#include <boost/test/included/unit_test.hpp>
-BOOST_AUTO_TEST_CASE(proforma) { BOOST_TEST(true); }
-" TOML11_WITH_BOOST_TEST_HEADER)
-
-check_cxx_source_compiles("
-#define BOOST_TEST_MODULE \"dummy\"
-#undef BOOST_TEST_DYN_LINK
-#undef BOOST_TEST_NO_LIB
-#include <boost/test/unit_test.hpp>
-BOOST_AUTO_TEST_CASE(proforma) { BOOST_TEST(true); }
-" TOML11_WITH_BOOST_TEST_STATIC)
-
-check_cxx_source_compiles("
-#define BOOST_TEST_MODULE \"dummy\"
-#define BOOST_TEST_DYN_LINK
-#undef BOOST_TEST_NO_LIB
-#include <boost/test/unit_test.hpp>
-BOOST_AUTO_TEST_CASE(proforma) { BOOST_TEST(true); }
-" TOML11_WITH_BOOST_TEST_DYNAMIC)
-
-if(TOML11_WITH_BOOST_TEST_DYNAMIC)
-    add_definitions(-DUNITTEST_FRAMEWORK_LIBRARY_EXIST -DBOOST_TEST_DYN_LINK)
-elseif(TOML11_WITH_BOOST_TEST_STATIC)
-    add_definitions(-DUNITTEST_FRAMEWORK_LIBRARY_EXIST)
-elseif(TOML11_WITH_BOOST_TEST_HEADER)
-    add_definitions(-DBOOST_TEST_NO_LIB)
-else()
-    message(FATAL_ERROR "Neither the Boost.Test static or shared library nor the header-only version seem to be usable.")
 endif()
 
 foreach(TEST_NAME ${TEST_NAMES})
