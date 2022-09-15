@@ -152,13 +152,10 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4265")
 endif()
 
-find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-add_definitions(-DBOOST_TEST_DYN_LINK)
-add_definitions(-DUNITTEST_FRAMEWORK_LIBRARY_EXIST)
+include(CheckCXXSourceCompiles)
 
 # check which standard library implementation is used. If libstdc++ is used,
 # it will fail to compile. It compiles if libc++ is used.
-include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("
 #include <cstddef>
 #ifdef __GLIBCXX__
@@ -182,6 +179,45 @@ int main() {
 # The purpose of this file is to compile tests. We know the environment on which
 # the tests run. We can set this option and, I think, it is easier and better.
 option(TOML11_REQUIRE_FILESYSTEM_LIBRARY "need to link -lstdc++fs or -lc++fs" OFF)
+
+find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+
+list(APPEND CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
+list(APPEND CMAKE_REQUIRED_LIBRARIES ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+check_cxx_source_compiles("
+#define BOOST_TEST_MODULE \"dummy\"
+#undef BOOST_TEST_DYN_LINK
+#define BOOST_TEST_NO_LIB
+#include <boost/test/included/unit_test.hpp>
+BOOST_AUTO_TEST_CASE(proforma) { BOOST_TEST(true); }
+" TOML11_WITH_BOOST_TEST_HEADER)
+
+check_cxx_source_compiles("
+#define BOOST_TEST_MODULE \"dummy\"
+#undef BOOST_TEST_DYN_LINK
+#undef BOOST_TEST_NO_LIB
+#include <boost/test/unit_test.hpp>
+BOOST_AUTO_TEST_CASE(proforma) { BOOST_TEST(true); }
+" TOML11_WITH_BOOST_TEST_STATIC)
+
+check_cxx_source_compiles("
+#define BOOST_TEST_MODULE \"dummy\"
+#define BOOST_TEST_DYN_LINK
+#undef BOOST_TEST_NO_LIB
+#include <boost/test/unit_test.hpp>
+BOOST_AUTO_TEST_CASE(proforma) { BOOST_TEST(true); }
+" TOML11_WITH_BOOST_TEST_DYNAMIC)
+
+if(TOML11_WITH_BOOST_TEST_DYNAMIC)
+    add_definitions(-DUNITTEST_FRAMEWORK_LIBRARY_EXIST -DBOOST_TEST_DYN_LINK)
+elseif(TOML11_WITH_BOOST_TEST_STATIC)
+    add_definitions(-DUNITTEST_FRAMEWORK_LIBRARY_EXIST)
+elseif(TOML11_WITH_BOOST_TEST_HEADER)
+    add_definitions(-DBOOST_TEST_NO_LIB)
+else()
+    message(FATAL_ERROR "Neither the Boost.Test static or shared library nor the header-only version seem to be usable.")
+endif()
 
 foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
