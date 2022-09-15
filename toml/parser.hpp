@@ -2414,12 +2414,14 @@ parse(std::vector<char>& letters, const std::string& fname)
         }
     }
 
-    const auto data = detail::parse_toml_file<value_type>(loc);
-    if(!data)
+    if (auto data = detail::parse_toml_file<value_type>(loc))
     {
-        throw syntax_error(data.unwrap_err(), source_location(loc));
+        return std::move(data).unwrap();
     }
-    return data.unwrap();
+    else
+    {
+        throw syntax_error(std::move(data).unwrap_err(), source_location(loc));
+    }
 }
 
 } // detail
