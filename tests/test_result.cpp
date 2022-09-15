@@ -1,5 +1,10 @@
 #define BOOST_TEST_MODULE "test_result"
+#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
 #include <boost/test/unit_test.hpp>
+#else
+#define BOOST_TEST_NO_LIB
+#include <boost/test/included/unit_test.hpp>
+#endif
 #include <iostream>
 #include <toml/result.hpp>
 

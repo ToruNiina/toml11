@@ -1,5 +1,10 @@
 #define BOOST_TEST_MODULE "lex_key_comment_test"
+#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
 #include <boost/test/unit_test.hpp>
+#else
+#define BOOST_TEST_NO_LIB
+#include <boost/test/included/unit_test.hpp>
+#endif
 #include <toml/lexer.hpp>
 #include "test_lex_aux.hpp"
 
