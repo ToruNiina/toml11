@@ -1,9 +1,6 @@
 #define BOOST_TEST_MODULE "test_parse_boolean"
-#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
-#include <boost/test/unit_test.hpp>
-#else
-#include <boost/test/included/unit_test.hpp>
-#endif
+#include "unit_test.hpp"
+
 #include <toml/parser.hpp>
 #include "test_parse_aux.hpp"
 

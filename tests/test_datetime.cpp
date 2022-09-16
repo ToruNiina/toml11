@@ -1,9 +1,6 @@
 #define BOOST_TEST_MODULE "test_datetime"
-#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
-#include <boost/test/unit_test.hpp>
-#else
-#include <boost/test/included/unit_test.hpp>
-#endif
+#include "unit_test.hpp"
+
 #include <toml/datetime.hpp>
 
 BOOST_AUTO_TEST_CASE(test_local_date)

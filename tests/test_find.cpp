@@ -1,10 +1,5 @@
 #define BOOST_TEST_MODULE "test_find"
-
-#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
-#include <boost/test/unit_test.hpp>
-#else
-#include <boost/test/included/unit_test.hpp>
-#endif
+#include "unit_test.hpp"
 
 #include <toml.hpp>
 #include <map>

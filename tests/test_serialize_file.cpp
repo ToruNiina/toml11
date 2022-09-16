@@ -1,11 +1,7 @@
 #define BOOST_TEST_MODULE "test_serialize_file"
-#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
-#include <boost/test/unit_test.hpp>
-#else
-#include <boost/test/included/unit_test.hpp>
-#endif
+#include "unit_test.hpp"
+
 #include <toml.hpp>
-#include <cstdlib>
 #include <deque>
 #include <map>
 #include <iostream>
@@ -43,17 +39,6 @@ bool has_comment_inside(const toml::basic_value<Comment, Table, Array>& v)
         }
     }
     return true;
-}
-
-static auto testinput(const std::string& basename) -> std::string
-{
-    const auto this_or_that = [](const char *const s, const char *const t) { return s ? s : t; };
-    std::string directory = this_or_that(std::getenv("TOMLDIR"), "toml");
-    if (!directory.empty() && directory.back() != '/')
-    {
-        directory.push_back('/');
-    }
-    return directory.append("tests/").append(basename);
 }
 
 BOOST_AUTO_TEST_CASE(test_example)
