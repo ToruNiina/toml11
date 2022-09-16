@@ -391,8 +391,3 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_find_or_move_only, value_type, test_value_typ
         BOOST_TEST(ref == toml::find_or(v, "key1", "key2", std::move(opt)));
     }
 }
-
-
-
-
-

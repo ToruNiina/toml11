@@ -503,4 +503,3 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_get_toml_offset_datetime, value_type, test_va
     BOOST_TEST(tm.tm_sec ==            0);
     }
 }
-

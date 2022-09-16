@@ -438,5 +438,3 @@ BOOST_AUTO_TEST_CASE(test_and_or_other)
         BOOST_TEST("foo" == r1_gen().and_other(r2_gen()).unwrap_err());
     }
 }
-
-
