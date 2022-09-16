@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE "test_parse_file"
 #include "unit_test.hpp"
 
 #include <toml.hpp>

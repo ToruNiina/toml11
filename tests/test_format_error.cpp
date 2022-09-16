@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE "test_format_error"
 #include "unit_test.hpp"
 
 #include <toml.hpp>

@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE "test_get"
 #include "unit_test.hpp"
 
 #include <toml.hpp>

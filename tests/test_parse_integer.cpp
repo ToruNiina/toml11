@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE "parse_integer_test"
 #include "unit_test.hpp"
 
 #include <toml/parser.hpp>

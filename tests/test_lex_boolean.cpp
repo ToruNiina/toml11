@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE "test_lex_boolean"
 #include "unit_test.hpp"
 
 #include <toml/lexer.hpp>

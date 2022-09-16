@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE "test_result"
 #include "unit_test.hpp"
 
 #include <iostream>

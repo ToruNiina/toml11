@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE "lex_key_comment_test"
 #include "unit_test.hpp"
 
 #include <toml/lexer.hpp>

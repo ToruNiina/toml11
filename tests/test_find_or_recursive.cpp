@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE "test_find_or_recursive"
 #include "unit_test.hpp"
 
 #include <toml.hpp>

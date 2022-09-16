@@ -248,6 +248,7 @@ foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
     target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} toml11::toml11)
     target_include_directories(${TEST_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
+    target_compile_definitions(${TEST_NAME} PRIVATE "BOOST_TEST_MODULE=\"${TEST_NAME}\"")
 
     # to compile tests with <filesystem>...
     if(TOML11_REQUIRE_FILESYSTEM_LIBRARY)

@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE "parse_key_test"
 #include "unit_test.hpp"
 
 #include <toml/parser.hpp>

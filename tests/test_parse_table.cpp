@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE "parse_table_test"
 #include "unit_test.hpp"
 
 #include <toml/parser.hpp>
