@@ -1,8 +1,9 @@
+#include <toml/utility.hpp>
+
 #include "unit_test.hpp"
 
-#include <toml/utility.hpp>
-#include <vector>
 #include <array>
+#include <vector>
 
 BOOST_AUTO_TEST_CASE(test_try_reserve)
 {

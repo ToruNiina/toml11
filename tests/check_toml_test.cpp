@@ -1,6 +1,7 @@
-#include "toml.hpp"
-#include <iostream>
+#include <toml.hpp>
+
 #include <iomanip>
+#include <iostream>
 
 struct json_serializer
 {

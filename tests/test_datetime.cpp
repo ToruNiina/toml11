@@ -1,6 +1,6 @@
-#include "unit_test.hpp"
-
 #include <toml/datetime.hpp>
+
+#include "unit_test.hpp"
 
 BOOST_AUTO_TEST_CASE(test_local_date)
 {

@@ -1,11 +1,12 @@
+#include <toml.hpp>
+
 #include "unit_test.hpp"
 
-#include <toml.hpp>
+#include <array>
+#include <deque>
+#include <list>
 #include <map>
 #include <unordered_map>
-#include <list>
-#include <deque>
-#include <array>
 
 BOOST_AUTO_TEST_CASE(test_expect)
 {

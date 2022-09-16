@@ -1,16 +1,16 @@
-#include "unit_test.hpp"
-
 #include <toml/types.hpp>
 
-#include <list>
-#include <forward_list>
-#include <deque>
+#include "unit_test.hpp"
+
 #include <array>
+#include <deque>
+#include <forward_list>
+#include <list>
 #include <map>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <string>
 
 struct dummy_type{};
 

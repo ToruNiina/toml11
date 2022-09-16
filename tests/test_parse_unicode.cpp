@@ -1,8 +1,9 @@
+#include <toml.hpp>
+
 #include "unit_test.hpp"
 
-#include <toml.hpp>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
 {

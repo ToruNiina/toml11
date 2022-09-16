@@ -1,6 +1,6 @@
-#include "unit_test.hpp"
-
 #include <toml/parser.hpp>
+
+#include "unit_test.hpp"
 #include "test_parse_aux.hpp"
 
 using namespace toml;

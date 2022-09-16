@@ -1,10 +1,11 @@
+#include <toml.hpp>
+
 #include "unit_test.hpp"
 
-#include <toml.hpp>
 #include <deque>
-#include <map>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <map>
 #include <sstream>
 
 template<typename Comment,

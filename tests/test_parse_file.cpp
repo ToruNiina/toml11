@@ -1,10 +1,11 @@
+#include <toml.hpp>
+
 #include "unit_test.hpp"
 
-#include <toml.hpp>
-#include <iostream>
-#include <fstream>
-#include <map>
 #include <deque>
+#include <fstream>
+#include <iostream>
+#include <map>
 
 BOOST_AUTO_TEST_CASE(test_example)
 {

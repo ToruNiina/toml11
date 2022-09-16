@@ -1,7 +1,8 @@
+#include <toml/result.hpp>
+
 #include "unit_test.hpp"
 
 #include <iostream>
-#include <toml/result.hpp>
 
 BOOST_AUTO_TEST_CASE(test_construct)
 {

@@ -1,12 +1,14 @@
+#include <toml.hpp>
+
 #include "unit_test.hpp"
 
-#include <toml.hpp>
-#include <map>
-#include <unordered_map>
-#include <list>
-#include <deque>
 #include <array>
+#include <deque>
+#include <list>
+#include <map>
 #include <tuple>
+#include <unordered_map>
+
 #if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
 #include <string_view>
 #endif

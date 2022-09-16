@@ -1,6 +1,7 @@
+#include <toml.hpp>
+
 #include "unit_test.hpp"
 
-#include <toml.hpp>
 #include <deque>
 #include <map>
 

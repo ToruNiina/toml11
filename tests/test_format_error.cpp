@@ -1,6 +1,7 @@
+#include <toml.hpp>
+
 #include "unit_test.hpp"
 
-#include <toml.hpp>
 #include <iostream>
 
 // to check it successfully compiles. it does not check the formatted string.

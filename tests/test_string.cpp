@@ -1,6 +1,6 @@
-#include "unit_test.hpp"
-
 #include <toml.hpp>
+
+#include "unit_test.hpp"
 
 BOOST_AUTO_TEST_CASE(test_basic_string)
 {

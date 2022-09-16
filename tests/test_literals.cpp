@@ -1,6 +1,7 @@
+#include <toml.hpp>
+
 #include "unit_test.hpp"
 
-#include <toml.hpp>
 #include <map>
 
 BOOST_AUTO_TEST_CASE(test_file_as_literal)
