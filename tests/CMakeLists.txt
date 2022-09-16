@@ -1,11 +1,20 @@
 include(ExternalProject)
-ExternalProject_Add(toml
-        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/toml
-        GIT_REPOSITORY https://github.com/toml-lang/toml
-        GIT_TAG v0.5.0
+
+set(TOML11_LANGSPEC_GIT_REPOSITORY "https://github.com/toml-lang/toml" CACHE STRING
+    "URL of the TOML language specification repository")
+
+set(TOML11_LANGSPEC_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/toml" CACHE FILEPATH
+    "directory for the TOML language specification tree")
+
+if(NOT EXISTS "${TOML11_LANGSPEC_SOURCE_DIR}/toml.abnf")
+    ExternalProject_Add(toml
+        SOURCE_DIR "${TOML11_LANGSPEC_SOURCE_DIR}"
+        GIT_REPOSITORY "${TOML11_LANGSPEC_GIT_REPOSITORY}"
+        GIT_TAG "v0.5.0"
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND "")
+endif()
 
 set(TEST_NAMES
     test_datetime
@@ -228,6 +237,13 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4265")
 endif()
 
+set(TEST_ENVIRON "TOMLDIR=${TOML11_LANGSPEC_SOURCE_DIR}")
+if(WIN32)
+    # Set the PATH to be able to find Boost DLL
+    STRING(REPLACE ";" "\\;" PATH_STRING "$ENV{PATH}")
+    list(APPEND TEST_ENVIRON "PATH=${PATH_STRING}\;${Boost_LIBRARY_DIRS}")
+endif()
+
 foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
     target_link_libraries(${TEST_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} toml11::toml11)
@@ -257,14 +273,7 @@ foreach(TEST_NAME ${TEST_NAMES})
     endif()
 
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-    # Set the PATH to be able to find Boost DLL
-    if(WIN32)
-        STRING(REPLACE ";" "\\;" PATH_STRING "$ENV{PATH}")
-        set_tests_properties(${TEST_NAME}
-            PROPERTIES ENVIRONMENT "PATH=${PATH_STRING}\;${Boost_LIBRARY_DIRS}"
-        )
-    endif()
+    set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT "${TEST_ENVIRON}")
 endforeach(TEST_NAME)
 
 

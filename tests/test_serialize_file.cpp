@@ -5,6 +5,7 @@
 #include <boost/test/included/unit_test.hpp>
 #endif
 #include <toml.hpp>
+#include <cstdlib>
 #include <deque>
 #include <map>
 #include <iostream>
@@ -44,9 +45,20 @@ bool has_comment_inside(const toml::basic_value<Comment, Table, Array>& v)
     return true;
 }
 
+static auto testinput(const std::string& basename) -> std::string
+{
+    const auto this_or_that = [](const char *const s, const char *const t) { return s ? s : t; };
+    std::string directory = this_or_that(std::getenv("TOMLDIR"), "toml");
+    if (!directory.empty() && directory.back() != '/')
+    {
+        directory.push_back('/');
+    }
+    return directory.append("tests/").append(basename);
+}
+
 BOOST_AUTO_TEST_CASE(test_example)
 {
-    const auto data = toml::parse("toml/tests/example.toml");
+    const auto data = toml::parse(testinput("example.toml"));
     {
         std::ofstream ofs("tmp1.toml");
         ofs << std::setw(80) << data;
@@ -68,7 +80,7 @@ BOOST_AUTO_TEST_CASE(test_example)
 BOOST_AUTO_TEST_CASE(test_example_map_dq)
 {
     const auto data = toml::parse<toml::discard_comments, std::map, std::deque>(
-            "toml/tests/example.toml");
+            testinput("example.toml"));
     {
         std::ofstream ofs("tmp1_map_dq.toml");
         ofs << std::setw(80) << data;
@@ -90,7 +102,7 @@ BOOST_AUTO_TEST_CASE(test_example_map_dq)
 
 BOOST_AUTO_TEST_CASE(test_example_with_comment)
 {
-    const auto data = toml::parse<toml::preserve_comments>("toml/tests/example.toml");
+    const auto data = toml::parse<toml::preserve_comments>(testinput("example.toml"));
     {
         std::ofstream ofs("tmp1_com.toml");
         ofs << std::setw(80) << data;
@@ -116,7 +128,7 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment)
 BOOST_AUTO_TEST_CASE(test_example_with_comment_nocomment)
 {
     {
-        const auto data = toml::parse<toml::preserve_comments>("toml/tests/example.toml");
+        const auto data = toml::parse<toml::preserve_comments>(testinput("example.toml"));
         {
             std::ofstream ofs("tmp1_com_nocomment.toml");
             ofs << std::setw(80) << toml::nocomment << data;
@@ -126,7 +138,7 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment_nocomment)
         BOOST_TEST(!has_comment_inside(serialized));
     }
     {
-        const auto data_nocomment = toml::parse<toml::discard_comments>("toml/tests/example.toml");
+        const auto data_nocomment = toml::parse<toml::discard_comments>(testinput("example.toml"));
         auto serialized = toml::parse<toml::discard_comments>("tmp1_com_nocomment.toml");
         {
             auto& owner = toml::find(serialized, "owner");
@@ -145,7 +157,7 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment_nocomment)
 BOOST_AUTO_TEST_CASE(test_example_with_comment_map_dq)
 {
     const auto data = toml::parse<toml::preserve_comments, std::map, std::deque>(
-            "toml/tests/example.toml");
+            testinput("example.toml"));
     {
         std::ofstream ofs("tmp1_com_map_dq.toml");
         ofs << std::setw(80) << data;
@@ -172,7 +184,7 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment_map_dq)
 BOOST_AUTO_TEST_CASE(test_example_with_comment_map_dq_nocomment)
 {
     {
-        const auto data = toml::parse<toml::preserve_comments, std::map, std::deque>("toml/tests/example.toml");
+        const auto data = toml::parse<toml::preserve_comments, std::map, std::deque>(testinput("example.toml"));
         {
             std::ofstream ofs("tmp1_com_map_dq_nocomment.toml");
             ofs << std::setw(80) << toml::nocomment << data;
@@ -181,7 +193,7 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment_map_dq_nocomment)
         BOOST_TEST(!has_comment_inside(serialized));
     }
     {
-        const auto data_nocomment = toml::parse<toml::discard_comments>("toml/tests/example.toml");
+        const auto data_nocomment = toml::parse<toml::discard_comments>(testinput("example.toml"));
         auto serialized = toml::parse<toml::discard_comments>("tmp1_com_map_dq_nocomment.toml");
         {
             auto& owner = toml::find(serialized, "owner");
@@ -198,7 +210,7 @@ BOOST_AUTO_TEST_CASE(test_example_with_comment_map_dq_nocomment)
 
 BOOST_AUTO_TEST_CASE(test_fruit)
 {
-    const auto data = toml::parse("toml/tests/fruit.toml");
+    const auto data = toml::parse(testinput("fruit.toml"));
     {
         std::ofstream ofs("tmp2.toml");
         ofs << std::setw(80) << data;
@@ -210,7 +222,7 @@ BOOST_AUTO_TEST_CASE(test_fruit)
 BOOST_AUTO_TEST_CASE(test_fruit_map_dq)
 {
     const auto data = toml::parse<toml::discard_comments, std::map, std::deque>(
-            "toml/tests/fruit.toml");
+            testinput("fruit.toml"));
     {
         std::ofstream ofs("tmp2.toml");
         ofs << std::setw(80) << data;
@@ -222,7 +234,7 @@ BOOST_AUTO_TEST_CASE(test_fruit_map_dq)
 
 BOOST_AUTO_TEST_CASE(test_fruit_with_comments)
 {
-    const auto data = toml::parse<toml::preserve_comments>("toml/tests/fruit.toml");
+    const auto data = toml::parse<toml::preserve_comments>(testinput("fruit.toml"));
     {
         std::ofstream ofs("tmp2_com.toml");
         ofs << std::setw(80) << data;
@@ -234,7 +246,7 @@ BOOST_AUTO_TEST_CASE(test_fruit_with_comments)
 BOOST_AUTO_TEST_CASE(test_fruit_with_comments_map_dq)
 {
     const auto data = toml::parse<toml::preserve_comments, std::map, std::deque>(
-        "toml/tests/fruit.toml");
+            testinput("fruit.toml"));
     {
         std::ofstream ofs("tmp2_com.toml");
         ofs << std::setw(80) << data;
@@ -245,7 +257,7 @@ BOOST_AUTO_TEST_CASE(test_fruit_with_comments_map_dq)
 
 BOOST_AUTO_TEST_CASE(test_hard_example)
 {
-    const auto data = toml::parse("toml/tests/hard_example.toml");
+    const auto data = toml::parse(testinput("hard_example.toml"));
     {
         std::ofstream ofs("tmp3.toml");
         ofs << std::setw(80) << data;
@@ -257,7 +269,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example)
 BOOST_AUTO_TEST_CASE(test_hard_example_map_dq)
 {
     const auto data = toml::parse<toml::discard_comments, std::map, std::deque>(
-            "toml/tests/hard_example.toml");
+            testinput("hard_example.toml"));
     {
         std::ofstream ofs("tmp3.toml");
         ofs << std::setw(80) << data;
@@ -270,7 +282,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example_map_dq)
 BOOST_AUTO_TEST_CASE(test_hard_example_with_comment)
 {
     const auto data = toml::parse<toml::preserve_comments, std::map, std::deque>(
-            "toml/tests/hard_example.toml");
+            testinput("hard_example.toml"));
     {
         std::ofstream ofs("tmp3_com.toml");
         ofs << std::setw(80) << data;

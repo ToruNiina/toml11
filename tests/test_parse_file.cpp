@@ -9,10 +9,22 @@
 #include <fstream>
 #include <map>
 #include <deque>
+#include <cstdlib>
+
+static auto testinput(const std::string& basename) -> std::string
+{
+    const auto this_or_that = [](const char *const s, const char *const t) { return s ? s : t; };
+    std::string directory = this_or_that(std::getenv("TOMLDIR"), "toml");
+    if (!directory.empty() && directory.back() != '/')
+    {
+        directory.push_back('/');
+    }
+    return directory.append("tests/").append(basename);
+}
 
 BOOST_AUTO_TEST_CASE(test_example)
 {
-    const auto data = toml::parse("toml/tests/example.toml");
+    const auto data = toml::parse(testinput("example.toml"));
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
     const auto& owner = toml::find(data, "owner");
@@ -75,7 +87,7 @@ BOOST_AUTO_TEST_CASE(test_example)
 
 BOOST_AUTO_TEST_CASE(test_example_stream)
 {
-    std::ifstream ifs("toml/tests/example.toml", std::ios::binary);
+    std::ifstream ifs(testinput("example.toml"), std::ios::binary);
     const auto data = toml::parse(ifs);
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
@@ -143,7 +155,7 @@ BOOST_AUTO_TEST_CASE(test_example_stream)
 
 BOOST_AUTO_TEST_CASE(test_example_file_pointer)
 {
-    FILE * file = fopen("toml/tests/example.toml", "rb");
+    FILE * file = fopen(testinput("example.toml").c_str(), "rb");
     const auto data = toml::parse(file, "toml/tests/example.toml");
     fclose(file);
 
@@ -212,7 +224,7 @@ BOOST_AUTO_TEST_CASE(test_example_file_pointer)
 
 BOOST_AUTO_TEST_CASE(test_fruit)
 {
-    const auto data = toml::parse("toml/tests/fruit.toml");
+    const auto data = toml::parse(testinput("fruit.toml"));
     const auto blah = toml::find<toml::array>(toml::find(data, "fruit"), "blah");
     BOOST_TEST(toml::find<std::string>(blah.at(0), "name") == "apple");
     BOOST_TEST(toml::find<std::string>(blah.at(1), "name") == "banana");
@@ -230,7 +242,7 @@ BOOST_AUTO_TEST_CASE(test_fruit)
 
 BOOST_AUTO_TEST_CASE(test_hard_example)
 {
-    const auto data = toml::parse("toml/tests/hard_example.toml");
+    const auto data = toml::parse(testinput("hard_example.toml"));
     const auto the = toml::find(data, "the");
     BOOST_TEST(toml::find<std::string>(the, "test_string") ==
                       "You'll hate me after this - #");
@@ -257,7 +269,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example)
 }
 BOOST_AUTO_TEST_CASE(test_hard_example_comment)
 {
-    const auto data = toml::parse<toml::preserve_comments>("toml/tests/hard_example.toml");
+    const auto data = toml::parse<toml::preserve_comments>(testinput("hard_example.toml"));
     const auto the = toml::find(data, "the");
     BOOST_TEST(toml::find<std::string>(the, "test_string") ==
                       "You'll hate me after this - #");
@@ -286,7 +298,7 @@ BOOST_AUTO_TEST_CASE(test_hard_example_comment)
 
 BOOST_AUTO_TEST_CASE(test_example_preserve_comment)
 {
-    const auto data = toml::parse<toml::preserve_comments>("toml/tests/example.toml");
+    const auto data = toml::parse<toml::preserve_comments>(testinput("example.toml"));
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
     const auto& owner = toml::find(data, "owner");
@@ -368,8 +380,8 @@ BOOST_AUTO_TEST_CASE(test_example_preserve_comment)
 
 BOOST_AUTO_TEST_CASE(test_example_preserve_stdmap_stddeque)
 {
-    const auto data = toml::parse<toml::preserve_comments, std::map, std::deque
-          >("toml/tests/example.toml");
+    const auto data = toml::parse<toml::preserve_comments, std::map, std::deque>(
+            testinput("example.toml"));
 
     static_assert(std::is_same<typename decltype(data)::table_type,
             std::map<toml::key, typename std::remove_cv<decltype(data)>::type>
@@ -992,38 +1004,36 @@ BOOST_AUTO_TEST_CASE(test_file_ends_without_lf)
 
 BOOST_AUTO_TEST_CASE(test_parse_function_compiles)
 {
+    const auto c = [](std::string& s) -> const std::string& { return s; };
+    /*mutable*/ std::string example = testinput("example.toml");
+
     // toml::parse("");
-    const auto string_literal = toml::parse("toml/tests/example.toml");
+    using result_type = decltype(toml::parse("string literal"));
 
     BOOST_TEST_MESSAGE("string_literal");
 
-    const char* fname_cstring = "toml/tests/example.toml";
     // toml::parse(const char*);
-    const auto cstring = toml::parse(fname_cstring);
+    const result_type cstring = toml::parse(example.c_str());
 
     BOOST_TEST_MESSAGE("const char*");
 
     // toml::parse(char*);
-    std::array<char, 24> fname_char_ptr;
-    std::strncpy(fname_char_ptr.data(), fname_cstring, 24);
-    const auto char_ptr = toml::parse(fname_char_ptr.data());
+    const result_type char_ptr = toml::parse(&example.front());
 
     BOOST_TEST_MESSAGE("char*");
 
     // toml::parse(const std::string&);
-    const std::string fname_string("toml/tests/example.toml");
-    const auto string = toml::parse(fname_string);
-    std::string fname_string_mut("toml/tests/example.toml");
+    const result_type string = toml::parse(c(example));
     // toml::parse(std::string&);
-    const auto string_mutref = toml::parse(fname_string_mut);
+    const result_type string_mutref = toml::parse(example);
     // toml::parse(std::string&&);
-    const auto string_rref = toml::parse(std::move(fname_string_mut));
+    const result_type string_rref = toml::parse(std::move(example));
 
     BOOST_TEST_MESSAGE("strings");
 
 #ifdef TOML11_HAS_STD_FILESYSTEM
-    const std::filesystem::path fname_path(fname_string.begin(), fname_string.end());
-    const auto filesystem_path = toml::parse(fname_path);
+    const std::filesystem::path fname_path(example.begin(), example.end());
+    const result_type filesystem_path = toml::parse(fname_path);
     BOOST_TEST_MESSAGE("path");
 #endif
 }

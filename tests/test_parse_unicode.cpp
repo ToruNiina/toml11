@@ -7,10 +7,22 @@
 #include <toml.hpp>
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
+
+static auto testinput(const std::string& basename) -> std::string
+{
+    const auto this_or_that = [](const char *const s, const char *const t) { return s ? s : t; };
+    std::string directory = this_or_that(std::getenv("TOMLDIR"), "toml");
+    if (!directory.empty() && directory.back() != '/')
+    {
+        directory.push_back('/');
+    }
+    return directory.append("tests/").append(basename);
+}
 
 BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
 {
-    const auto data = toml::parse("toml/tests/hard_example_unicode.toml");
+    const auto data = toml::parse(testinput("hard_example_unicode.toml"));
 
     const auto the = toml::find<toml::table>(data, "the");
     BOOST_TEST(toml::get<std::string>(the.at("test_string")) ==
