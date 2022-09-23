@@ -142,6 +142,75 @@ BOOST_AUTO_TEST_CASE(test_example_stream)
     }
 }
 
+BOOST_AUTO_TEST_CASE(test_example_file_pointer)
+{
+    FILE * file = fopen("toml/tests/example.toml", "rb");
+    const auto data = toml::parse(file, "toml/tests/example.toml");
+    fclose(file);
+
+    BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
+    const auto& owner = toml::find(data, "owner");
+    {
+        BOOST_TEST(toml::find<std::string>(owner, "name") == "Tom Preston-Werner");
+        BOOST_TEST(toml::find<std::string>(owner, "organization") == "GitHub");
+        BOOST_TEST(toml::find<std::string>(owner, "bio") ==
+                          "GitHub Cofounder & CEO\nLikes tater tots and beer.");
+        BOOST_TEST(toml::find<toml::offset_datetime>(owner, "dob") ==
+                          toml::offset_datetime(toml::local_date(1979, toml::month_t::May, 27),
+                                                toml::local_time(7, 32, 0), toml::time_offset(0, 0)));
+    }
+
+    const auto& database = toml::find(data, "database");
+    {
+        BOOST_TEST(toml::find<std::string>(database, "server") == "192.168.1.1");
+        const std::vector<int> expected_ports{8001, 8001, 8002};
+        BOOST_CHECK(toml::find<std::vector<int>>(database, "ports") == expected_ports);
+        BOOST_TEST(toml::find<int >(database, "connection_max") == 5000);
+        BOOST_TEST(toml::find<bool>(database, "enabled") == true);
+    }
+
+    const auto& servers = toml::find(data, "servers");
+    {
+        toml::table alpha = toml::find<toml::table>(servers, "alpha");
+        BOOST_TEST(toml::get<std::string>(alpha.at("ip")) == "10.0.0.1");
+        BOOST_TEST(toml::get<std::string>(alpha.at("dc")) == "eqdc10");
+
+        toml::table beta = toml::find<toml::table>(servers, "beta");
+        BOOST_TEST(toml::get<std::string>(beta.at("ip")) == "10.0.0.2");
+        BOOST_TEST(toml::get<std::string>(beta.at("dc")) == "eqdc10");
+        BOOST_TEST(toml::get<std::string>(beta.at("country")) == "\xE4\xB8\xAD\xE5\x9B\xBD");
+    }
+
+    const auto& clients = toml::find(data, "clients");
+    {
+        toml::array clients_data = toml::find<toml::array>(clients, "data");
+        std::vector<std::string> expected_name{"gamma", "delta"};
+        BOOST_CHECK(toml::get<std::vector<std::string>>(clients_data.at(0)) == expected_name);
+
+        std::vector<int> expected_number{1, 2};
+        BOOST_CHECK(toml::get<std::vector<int>>(clients_data.at(1)) == expected_number);
+
+        std::vector<std::string> expected_hosts{"alpha", "omega"};
+        BOOST_CHECK(toml::find<std::vector<std::string>>(clients, "hosts") == expected_hosts);
+    }
+
+    std::vector<toml::table> products =
+        toml::find<std::vector<toml::table>>(data, "products");
+    {
+        BOOST_TEST(toml::get<std::string>(products.at(0).at("name")) ==
+                          "Hammer");
+        BOOST_TEST(toml::get<std::int64_t>(products.at(0).at("sku")) ==
+                          738594937);
+
+        BOOST_TEST(toml::get<std::string>(products.at(1).at("name")) ==
+                          "Nail");
+        BOOST_TEST(toml::get<std::int64_t>(products.at(1).at("sku")) ==
+                          284758393);
+        BOOST_TEST(toml::get<std::string>(products.at(1).at("color")) ==
+                          "gray");
+    }
+}
+
 BOOST_AUTO_TEST_CASE(test_fruit)
 {
     const auto data = toml::parse("toml/tests/fruit.toml");
@@ -958,4 +1027,9 @@ BOOST_AUTO_TEST_CASE(test_parse_function_compiles)
     const auto filesystem_path = toml::parse(fname_path);
     BOOST_TEST_MESSAGE("path");
 #endif
+}
+
+BOOST_AUTO_TEST_CASE(test_parse_nonexistent_file)
+{
+    BOOST_CHECK_THROW(toml::parse("nonexistent.toml"), std::ios_base::failure);
 }

@@ -2377,26 +2377,13 @@ result<Value, std::string> parse_toml_file(location& loc)
     return ok(Value(std::move(data), file, comments));
 }
 
-} // detail
-
 template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array>
-parse(std::istream& is, std::string fname = "unknown file")
+parse(std::vector<char>& letters, const std::string& fname)
 {
     using value_type = basic_value<Comment, Table, Array>;
-
-    const auto beg = is.tellg();
-    is.seekg(0, std::ios::end);
-    const auto end = is.tellg();
-    const auto fsize = end - beg;
-    is.seekg(beg);
-
-    // read whole file as a sequence of char
-    assert(fsize >= 0);
-    std::vector<char> letters(static_cast<std::size_t>(fsize));
-    is.read(letters.data(), fsize);
 
     // append LF.
     // Although TOML does not require LF at the EOF, to make parsing logic
@@ -2435,16 +2422,75 @@ parse(std::istream& is, std::string fname = "unknown file")
     return data.unwrap();
 }
 
+} // detail
+
+template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
+         template<typename ...> class Table   = std::unordered_map,
+         template<typename ...> class Array   = std::vector>
+basic_value<Comment, Table, Array>
+parse(FILE * file, const std::string& fname)
+{
+    const long beg = std::ftell(file);
+    if (beg == -1l) {
+        throw file_io_error(errno, "Failed to access", fname);
+    }
+
+    int res = std::fseek(file, 0, SEEK_END);
+    if (res != 0) {
+        throw file_io_error(errno, "Failed to seek", fname);
+    }
+
+    const long end = std::ftell(file);
+    if (end == -1l) {
+        throw file_io_error(errno, "Failed to access", fname);
+    }
+
+    const auto fsize = end - beg;
+
+    res = std::fseek(file, beg, SEEK_SET);
+    if (res != 0) {
+        throw file_io_error(errno, "Failed to seek", fname);
+    }
+
+    // read whole file as a sequence of char
+    assert(fsize >= 0);
+    std::vector<char> letters(static_cast<std::size_t>(fsize));
+    std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), file);
+
+    return detail::parse<Comment, Table, Array>(letters, fname);
+}
+
+template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
+         template<typename ...> class Table   = std::unordered_map,
+         template<typename ...> class Array   = std::vector>
+basic_value<Comment, Table, Array>
+parse(std::istream& is, std::string fname = "unknown file")
+{
+    const auto beg = is.tellg();
+    is.seekg(0, std::ios::end);
+    const auto end = is.tellg();
+    const auto fsize = end - beg;
+    is.seekg(beg);
+
+    // read whole file as a sequence of char
+    assert(fsize >= 0);
+    std::vector<char> letters(static_cast<std::size_t>(fsize));
+    is.read(letters.data(), fsize);
+
+    return detail::parse<Comment, Table, Array>(letters, fname);
+}
+
 template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array> parse(std::string fname)
 {
-    std::ifstream ifs(fname.c_str(), std::ios_base::binary);
+    std::ifstream ifs(fname, std::ios_base::binary);
     if(!ifs.good())
     {
-        throw std::runtime_error("toml::parse: file open error -> " + fname);
+        throw std::ios_base::failure("toml::parse: Error opening file \"" + fname + "\"");
     }
+    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     return parse<Comment, Table, Array>(ifs, std::move(fname));
 }
 
@@ -2471,13 +2517,7 @@ template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array> parse(const std::filesystem::path& fpath)
 {
-    std::ifstream ifs(fpath, std::ios_base::binary);
-    if(!ifs.good())
-    {
-        throw std::runtime_error("toml::parse: file open error -> " +
-                                 fpath.string());
-    }
-    return parse<Comment, Table, Array>(ifs, fpath.string());
+    return parse<Comment, Table, Array>(fpath.string());
 }
 #endif // TOML11_HAS_STD_FILESYSTEM
 
