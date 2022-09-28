@@ -989,38 +989,18 @@ BOOST_AUTO_TEST_CASE(test_file_ends_without_lf)
 
 BOOST_AUTO_TEST_CASE(test_parse_function_compiles)
 {
-    const auto c = [](std::string& s) -> const std::string& { return s; };
-    /*mutable*/ std::string example = testinput("example.toml");
-
-    // toml::parse("");
     using result_type = decltype(toml::parse("string literal"));
-
-    BOOST_TEST_MESSAGE("string_literal");
-
-    // toml::parse(const char*);
-    const result_type cstring = toml::parse(example.c_str());
-
-    BOOST_TEST_MESSAGE("const char*");
-
-    // toml::parse(char*);
-    const result_type char_ptr = toml::parse(&example.front());
-
-    BOOST_TEST_MESSAGE("char*");
-
-    // toml::parse(const std::string&);
-    const result_type string = toml::parse(c(example));
-    // toml::parse(std::string&);
-    const result_type string_mutref = toml::parse(example);
-    // toml::parse(std::string&&);
-    const result_type string_rref = toml::parse(std::move(example));
-
-    BOOST_TEST_MESSAGE("strings");
-
+    (void) [](const char* that) -> result_type { return toml::parse(that); };
+    (void) [](char* that) -> result_type { return toml::parse(that); };
+    (void) [](const std::string& that) -> result_type { return toml::parse(that); };
+    (void) [](std::string& that) -> result_type { return toml::parse(that); };
+    (void) [](std::string&& that) -> result_type { return toml::parse(that); };
 #ifdef TOML11_HAS_STD_FILESYSTEM
-    const std::filesystem::path fname_path(example.begin(), example.end());
-    const result_type filesystem_path = toml::parse(fname_path);
-    BOOST_TEST_MESSAGE("path");
+    (void) [](const std::filesystem::path& that) -> result_type { return toml::parse(that); };
+    (void) [](std::filesystem::path& that) -> result_type { return toml::parse(that); };
+    (void) [](std::filesystem::path&& that) -> result_type { return toml::parse(that); };
 #endif
+    (void) [](std::FILE* that) -> result_type { return toml::parse(that, "mandatory.toml"); };
 }
 
 BOOST_AUTO_TEST_CASE(test_parse_nonexistent_file)
