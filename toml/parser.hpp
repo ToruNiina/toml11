@@ -2431,24 +2431,28 @@ basic_value<Comment, Table, Array>
 parse(FILE * file, const std::string& fname)
 {
     const long beg = std::ftell(file);
-    if (beg == -1l) {
+    if (beg == -1l)
+    {
         throw file_io_error(errno, "Failed to access", fname);
     }
 
-    int res = std::fseek(file, 0, SEEK_END);
-    if (res != 0) {
+    const int res_seekend = std::fseek(file, 0, SEEK_END);
+    if (res_seekend != 0)
+    {
         throw file_io_error(errno, "Failed to seek", fname);
     }
 
     const long end = std::ftell(file);
-    if (end == -1l) {
+    if (end == -1l)
+    {
         throw file_io_error(errno, "Failed to access", fname);
     }
 
     const auto fsize = end - beg;
 
-    res = std::fseek(file, beg, SEEK_SET);
-    if (res != 0) {
+    const auto res_seekbeg = std::fseek(file, beg, SEEK_SET);
+    if (res_seekbeg != 0)
+    {
         throw file_io_error(errno, "Failed to seek", fname);
     }
 
@@ -2488,7 +2492,8 @@ basic_value<Comment, Table, Array> parse(std::string fname)
     std::ifstream ifs(fname, std::ios_base::binary);
     if(!ifs.good())
     {
-        throw std::ios_base::failure("toml::parse: Error opening file \"" + fname + "\"");
+        throw std::ios_base::failure(
+                "toml::parse: Error opening file \"" + fname + "\"");
     }
     ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     return parse<Comment, Table, Array>(ifs, std::move(fname));
@@ -2517,7 +2522,14 @@ template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array> parse(const std::filesystem::path& fpath)
 {
-    return parse<Comment, Table, Array>(fpath.string());
+    std::ifstream ifs(fpath, std::ios_base::binary);
+    if(!ifs.good())
+    {
+        throw std::ios_base::failure(
+                "toml::parse: Error opening file \"" + fpath.string() + "\"");
+    }
+    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    return parse<Comment, Table, Array>(ifs, std::move(fpath.string()));
 }
 #endif // TOML11_HAS_STD_FILESYSTEM
 
