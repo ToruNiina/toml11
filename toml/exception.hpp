@@ -4,6 +4,7 @@
 #define TOML11_EXCEPTION_HPP
 #include <stdexcept>
 #include <string>
+#include <cstring>
 
 #include "source_location.hpp"
 
@@ -17,7 +18,8 @@ struct file_io_error : public std::runtime_error
         : std::runtime_error(msg + " \"" + fname + "\": " + std::strerror(errnum)),
           errno_(errnum)
     {}
-    int get_errno() {return errno_;}
+    int get_errno() const noexcept {return errno_;}
+
   private:
     int errno_;
 };
