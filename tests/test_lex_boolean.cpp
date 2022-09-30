@@ -1,6 +1,6 @@
-#define BOOST_TEST_MODULE "test_lex_boolean"
-#include <boost/test/unit_test.hpp>
 #include <toml/lexer.hpp>
+
+#include "unit_test.hpp"
 #include "test_lex_aux.hpp"
 
 using namespace toml;

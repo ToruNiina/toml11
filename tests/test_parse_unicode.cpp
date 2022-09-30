@@ -1,17 +1,13 @@
-#define BOOST_TEST_MODULE "test_parse_unicode"
-#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
-#include <boost/test/unit_test.hpp>
-#else
-#define BOOST_TEST_NO_LIB
-#include <boost/test/included/unit_test.hpp>
-#endif
 #include <toml.hpp>
-#include <iostream>
+
+#include "unit_test.hpp"
+
 #include <fstream>
+#include <iostream>
 
 BOOST_AUTO_TEST_CASE(test_hard_example_unicode)
 {
-    const auto data = toml::parse("toml/tests/hard_example_unicode.toml");
+    const auto data = toml::parse(testinput("hard_example_unicode.toml"));
 
     const auto the = toml::find<toml::table>(data, "the");
     BOOST_TEST(toml::get<std::string>(the.at("test_string")) ==

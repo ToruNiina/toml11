@@ -1,7 +1,8 @@
-#define BOOST_TEST_MODULE "test_result"
-#include <boost/test/unit_test.hpp>
-#include <iostream>
 #include <toml/result.hpp>
+
+#include "unit_test.hpp"
+
+#include <iostream>
 
 BOOST_AUTO_TEST_CASE(test_construct)
 {
@@ -437,5 +438,3 @@ BOOST_AUTO_TEST_CASE(test_and_or_other)
         BOOST_TEST("foo" == r1_gen().and_other(r2_gen()).unwrap_err());
     }
 }
-
-

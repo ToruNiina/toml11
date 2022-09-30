@@ -1,6 +1,6 @@
-#define BOOST_TEST_MODULE "test_string"
-#include <boost/test/unit_test.hpp>
 #include <toml.hpp>
+
+#include "unit_test.hpp"
 
 BOOST_AUTO_TEST_CASE(test_basic_string)
 {
@@ -151,4 +151,3 @@ BOOST_AUTO_TEST_CASE(test_string_add_assign)
 
 
 }
-

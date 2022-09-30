@@ -1,11 +1,6 @@
-#define BOOST_TEST_MODULE "parse_array<toml::value>_test"
-#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
-#include <boost/test/unit_test.hpp>
-#else
-#define BOOST_TEST_NO_LIB
-#include <boost/test/included/unit_test.hpp>
-#endif
 #include <toml/parser.hpp>
+
+#include "unit_test.hpp"
 #include "test_parse_aux.hpp"
 
 using namespace toml;

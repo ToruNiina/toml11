@@ -1,16 +1,12 @@
-#define BOOST_TEST_MODULE "test_expect"
-#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
-#include <boost/test/unit_test.hpp>
-#else
-#define BOOST_TEST_NO_LIB
-#include <boost/test/included/unit_test.hpp>
-#endif
 #include <toml.hpp>
+
+#include "unit_test.hpp"
+
+#include <array>
+#include <deque>
+#include <list>
 #include <map>
 #include <unordered_map>
-#include <list>
-#include <deque>
-#include <array>
 
 BOOST_AUTO_TEST_CASE(test_expect)
 {

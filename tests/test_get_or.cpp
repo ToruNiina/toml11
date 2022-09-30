@@ -1,17 +1,14 @@
-#define BOOST_TEST_MODULE "test_get_or"
-#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
-#include <boost/test/unit_test.hpp>
-#else
-#define BOOST_TEST_NO_LIB
-#include <boost/test/included/unit_test.hpp>
-#endif
 #include <toml.hpp>
-#include <map>
-#include <unordered_map>
-#include <list>
-#include <deque>
+
+#include "unit_test.hpp"
+
 #include <array>
+#include <deque>
+#include <list>
+#include <map>
 #include <tuple>
+#include <unordered_map>
+
 #if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
 #include <string_view>
 #endif

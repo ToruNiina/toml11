@@ -1,13 +1,9 @@
-#define BOOST_TEST_MODULE "parse_floating_test"
-#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
-#include <boost/test/unit_test.hpp>
-#else
-#define BOOST_TEST_NO_LIB
-#include <boost/test/included/unit_test.hpp>
-#endif
 #include <toml/parser.hpp>
-#include <cmath>
+
+#include "unit_test.hpp"
 #include "test_parse_aux.hpp"
+
+#include <cmath>
 
 using namespace toml;
 using namespace detail;

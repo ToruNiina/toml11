@@ -227,8 +227,7 @@ struct region final : public region_base
     region& operator+=(const region& other)
     {
         // different regions cannot be concatenated
-        assert(this->begin() == other.begin() && this->end() == other.end() &&
-               this->last_   == other.first_);
+        assert(this->source_ == other.source_ && this->last_ == other.first_);
 
         this->last_ = other.last_;
         return *this;

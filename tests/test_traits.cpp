@@ -1,21 +1,16 @@
-#define BOOST_TEST_MODULE "test_traits"
-#ifdef UNITTEST_FRAMEWORK_LIBRARY_EXIST
-#include <boost/test/unit_test.hpp>
-#else
-#define BOOST_TEST_NO_LIB
-#include <boost/test/included/unit_test.hpp>
-#endif
 #include <toml/types.hpp>
 
-#include <list>
-#include <forward_list>
-#include <deque>
+#include "unit_test.hpp"
+
 #include <array>
+#include <deque>
+#include <forward_list>
+#include <list>
 #include <map>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <string>
 
 struct dummy_type{};
 
