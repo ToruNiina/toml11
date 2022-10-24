@@ -15,7 +15,9 @@ include(CheckCXXCompilerFlag)
 if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
     set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Boolean specifying whether compiler specific extensions are requested.")
     if(NOT DEFINED CMAKE_CXX_STANDARD)
-        set(CMAKE_CXX_STANDARD 11 CACHE STRING "The C++ standard whose features are requested to build all targets.")
+        message(FATAL_ERROR "CMAKE_CXX_STANDARD is not defined. \
+The C++ standard whose features are requested to *build* all targets. \
+Remember that toml11 is a header only library that does NOT require compilation to use.")
     endif()
     set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Boolean describing whether the value of CXX_STANDARD is a requirement.")
 else()
