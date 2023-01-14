@@ -73,7 +73,7 @@ parse_binary_integer(location& loc)
             else // internal error.
             {
                 throw internal_error(format_underline(
-                    "toml::parse_integer: internal error",
+                    "toml::parse_binary_integer: internal error",
                     {{source_location(token.unwrap()), "invalid token"}}),
                     source_location(loc));
             }
@@ -568,7 +568,7 @@ parse_basic_string(location& loc)
             inner_loc.reset(first);
             inner_loc.advance(err_loc);
             throw syntax_error(format_underline(
-                "parse_ml_basic_string: invalid utf8 sequence found",
+                "parse_basic_string: invalid utf8 sequence found",
                 {{source_location(inner_loc), "here"}}),
                 source_location(inner_loc));
         }
@@ -644,7 +644,7 @@ parse_ml_literal_string(location& loc)
             inner_loc.reset(first);
             inner_loc.advance(err_loc);
             throw syntax_error(format_underline(
-                "parse_ml_basic_string: invalid utf8 sequence found",
+                "parse_ml_literal_string: invalid utf8 sequence found",
                 {{source_location(inner_loc), "here"}}),
                 source_location(inner_loc));
         }
@@ -698,7 +698,7 @@ parse_literal_string(location& loc)
             inner_loc.reset(first);
             inner_loc.advance(err_loc);
             throw syntax_error(format_underline(
-                "parse_ml_basic_string: invalid utf8 sequence found",
+                "parse_literal_string: invalid utf8 sequence found",
                 {{source_location(inner_loc), "here"}}),
                 source_location(inner_loc));
         }
@@ -755,7 +755,7 @@ parse_local_date(location& loc)
         if(!y || inner_loc.iter() == inner_loc.end() || *inner_loc.iter() != '-')
         {
             throw internal_error(format_underline(
-                "toml::parse_inner_local_date: invalid year format",
+                "toml::parse_local_date: invalid year format",
                 {{source_location(inner_loc), "should be `-`"}}),
                 source_location(inner_loc));
         }
@@ -858,7 +858,7 @@ parse_local_time(location& loc)
         if((hour   < 0 || 23 < hour) || (minute < 0 || 59 < minute) ||
            (second < 0 || 60 < second)) // it may be leap second
         {
-            throw syntax_error(format_underline("toml::parse_time: "
+            throw syntax_error(format_underline("toml::parse_local_time: "
                 "invalid time: it does not conform RFC3339.", {{
                 source_location(loc), "hour should be 00-23, minute should be"
                 " 00-59, second should be 00-60 (depending on the leap"
@@ -1062,7 +1062,7 @@ parse_key(location& loc)
             else
             {
                 throw internal_error(format_underline(
-                    "toml::detail::parse_key: dotted key contains invalid key",
+                    "toml::parse_key: dotted key contains invalid key",
                     {{source_location(inner_loc), k.unwrap_err()}}),
                     source_location(inner_loc));
             }
@@ -2155,7 +2155,7 @@ parse_array_table_key(location& loc)
         if(!close)
         {
             throw internal_error(format_underline(
-                "toml::parse_table_key: no `]]`",
+                "toml::parse_array_table_key: no `]]`",
                 {{source_location(inner_loc), "should be `]]`"}}),
                 source_location(inner_loc));
         }
