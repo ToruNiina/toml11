@@ -588,7 +588,8 @@ parse_ml_literal_string(location& loc)
     const auto first = loc.iter();
     if(const auto token = lex_ml_literal_string::invoke(loc))
     {
-        location inner_loc(loc.name(), token.unwrap().str());
+        auto inner_loc = loc;
+        inner_loc.reset(first);
 
         const auto open = lex_ml_literal_string_open::invoke(inner_loc);
         if(!open)
