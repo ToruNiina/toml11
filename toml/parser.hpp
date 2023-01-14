@@ -664,7 +664,8 @@ parse_literal_string(location& loc)
     const auto first = loc.iter();
     if(const auto token = lex_literal_string::invoke(loc))
     {
-        location inner_loc(loc.name(), token.unwrap().str());
+        auto inner_loc = loc;
+        inner_loc.reset(first);
 
         const auto open = lex_apostrophe::invoke(inner_loc);
         if(!open)
