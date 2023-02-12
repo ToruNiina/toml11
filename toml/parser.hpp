@@ -1305,6 +1305,8 @@ std::string format_dotted_keys(InputIterator first, const InputIterator last)
 // forward decl for is_valid_forward_table_definition
 result<std::pair<std::vector<key>, region>, std::string>
 parse_table_key(location& loc);
+result<std::pair<std::vector<key>, region>, std::string>
+parse_array_table_key(location& loc);
 template<typename Value>
 result<std::pair<typename Value::table_type, region>, std::string>
 parse_inline_table(location& loc);
@@ -1411,6 +1413,21 @@ bool is_valid_forward_table_definition(const Value& fwd, const Value& inserting,
     {
         // table keys always contains all the nodes from the root.
         const auto& tks = tabkeys.unwrap().first;
+        if(std::size_t(std::distance(key_first, key_last)) == tks.size() &&
+           std::equal(tks.begin(), tks.end(), key_first))
+        {
+            // the keys are equivalent. it is not allowed.
+            return false;
+        }
+        // the keys are not equivalent. it is allowed.
+        return true;
+    }
+    // nested array-of-table definition implicitly defines tables.
+    // those tables can be reopened.
+    if(const auto atabkeys = parse_array_table_key(def))
+    {
+        // table keys always contains all the nodes from the root.
+        const auto& tks = atabkeys.unwrap().first;
         if(std::size_t(std::distance(key_first, key_last)) == tks.size() &&
            std::equal(tks.begin(), tks.end(), key_first))
         {
