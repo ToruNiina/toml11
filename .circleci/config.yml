@@ -12,7 +12,7 @@ jobs:
               cd tests/
               g++ -std=c++11 -O2 -Wall -Wextra -Werror -I../ check_toml_test.cpp -o check_toml_test
               export PATH=$(pwd):${PATH}
-              git clone --depth 1 --branch v1.2.0 https://github.com/BurntSushi/toml-test.git
+              git clone --depth 1 --branch v1.3.0 https://github.com/BurntSushi/toml-test.git
               cd toml-test/
               go install -v ./cmd/toml-test
               cd -
