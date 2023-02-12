@@ -57,20 +57,52 @@ parse_binary_integer(location& loc)
     {
         auto str = token.unwrap().str();
         assert(str.size() > 2); // minimum -> 0b1
-        if(64 <= str.size())
+        assert(str.at(0) == '0' && str.at(1) == 'b');
+
+        // skip all the zeros and `_` locating at the MSB
+        str.erase(str.begin(), std::find_if(
+                str.begin() + 2, // to skip prefix `0b`
+                str.end(),
+                [](const char c) { return c == '1'; })
+            );
+        assert(str.empty() || str.front() == '1');
+
+        // since toml11 uses int64_t, 64bit (unsigned) input cannot be read.
+        const auto max_length = 63 + std::count(str.begin(), str.end(), '_');
+        if(static_cast<std::string::size_type>(max_length) < str.size())
         {
-            // since toml11 uses int64_t, 64bit (unsigned) input cannot be read.
             loc.reset(first);
-            return err(format_underline("toml::parse_binary_integer:",
-                       {{source_location(loc), "too large input (> int64_t)"}}));
+            return err(format_underline("toml::parse_binary_integer: "
+                "only signed 64bit integer is available",
+               {{source_location(loc), "too large input (> int64_t)"}}));
         }
+
         integer retval(0), base(1);
-        for(auto i(str.rbegin()), e(str.rend() - 2); i!=e; ++i)
+        for(auto i(str.rbegin()), e(str.rend()); i!=e; ++i)
         {
-            if     (*i == '1'){retval += base; base *= 2;}
-            else if(*i == '0'){base *= 2;}
-            else if(*i == '_'){/* do nothing. */}
-            else // internal error.
+            assert(base != 0); // means overflow, checked in the above code
+            if(*i == '1')
+            {
+                retval += base;
+                if( (std::numeric_limits<integer>::max)() / 2 < base )
+                {
+                    base = 0;
+                }
+                base *= 2;
+            }
+            else if(*i == '0')
+            {
+                if( (std::numeric_limits<integer>::max)() / 2 < base )
+                {
+                    base = 0;
+                }
+                base *= 2;
+            }
+            else if(*i == '_')
+            {
+                // do nothing.
+            }
+            else // should be detected by lex_bin_int. [[unlikely]]
             {
                 throw internal_error(format_underline(
                     "toml::parse_binary_integer: internal error",
