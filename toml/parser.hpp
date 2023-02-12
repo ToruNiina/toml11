@@ -80,13 +80,22 @@ parse_binary_integer(location& loc)
         integer retval(0), base(1);
         for(auto i(str.rbegin()), e(str.rend()); i!=e; ++i)
         {
+            assert(base != 0); // means overflow, checked in the above code
             if(*i == '1')
             {
                 retval += base;
+                if(std::numeric_limits<integer>::max() / 2 < base)
+                {
+                    base = 0;
+                }
                 base *= 2;
             }
             else if(*i == '0')
             {
+                if(std::numeric_limits<integer>::max() / 2 < base)
+                {
+                    base = 0;
+                }
                 base *= 2;
             }
             else if(*i == '_')
