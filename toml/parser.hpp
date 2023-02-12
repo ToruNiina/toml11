@@ -84,7 +84,7 @@ parse_binary_integer(location& loc)
             if(*i == '1')
             {
                 retval += base;
-                if(std::numeric_limits<integer>::max() / 2 < base)
+                if( (std::numeric_limits<integer>::max)() / 2 < base )
                 {
                     base = 0;
                 }
@@ -92,7 +92,7 @@ parse_binary_integer(location& loc)
             }
             else if(*i == '0')
             {
-                if(std::numeric_limits<integer>::max() / 2 < base)
+                if( (std::numeric_limits<integer>::max)() / 2 < base )
                 {
                     base = 0;
                 }
