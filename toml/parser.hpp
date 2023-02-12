@@ -68,7 +68,8 @@ parse_binary_integer(location& loc)
         assert(str.empty() || str.front() == '1');
 
         // since toml11 uses int64_t, 64bit (unsigned) input cannot be read.
-        if(64 + std::count(str.begin(), str.end(), '_') <= str.size())
+        const auto max_length = 63 + std::count(str.begin(), str.end(), '_');
+        if(static_cast<std::string::size_type>(max_length) < str.size())
         {
             loc.reset(first);
             return err(format_underline("toml::parse_binary_integer: "
