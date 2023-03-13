@@ -70,7 +70,7 @@ struct region_base
 struct location final : public region_base
 {
     using const_iterator  = typename std::vector<char>::const_iterator;
-    using difference_type = typename const_iterator::difference_type;
+    using difference_type = typename std::iterator_traits<const_iterator>::difference_type;
     using source_ptr      = std::shared_ptr<const std::vector<char>>;
 
     location(std::string source_name, std::vector<char> cont)
@@ -92,7 +92,7 @@ struct location final : public region_base
     char front() const noexcept override {return *iter_;}
 
     // this const prohibits codes like `++(loc.iter())`.
-    const const_iterator iter()  const noexcept {return iter_;}
+    std::add_const<const_iterator>::type iter()  const noexcept {return iter_;}
 
     const_iterator begin() const noexcept {return source_->cbegin();}
     const_iterator end()   const noexcept {return source_->cend();}
