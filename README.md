@@ -478,10 +478,15 @@ elements.
 ```cpp
 const auto data = toml::parse("example.toml");
 std::cout << "keys in the top-level table are the following: \n";
-for(const auto& [k, v] : data.as_table())
+for(const auto& kv : data.as_table())
+{
+    std::cout << kv.first << '\n';
+}
+for(const auto& [k, v] : data.as_table()) // or in C++17
 {
     std::cout << k << '\n';
 }
+
 
 const auto& fruits = toml::find(data, "fruits");
 for(const auto& v : fruits.as_array())
@@ -1169,7 +1174,7 @@ add a comma after the first element (like `[1,]`).
 "[[table]]"_toml; // This is a table that has an array of tables inside.
 
 "[[1]]"_toml;     // This literal is ambiguous.
-                  // Currently, it becomes a table that has array of table "1".
+                  // Currently, it becomes an empty array of table named "1".
 "1 = [{}]"_toml;  // This is a table that has an array of table named 1.
 "[[1,]]"_toml;    // This is an array of arrays.
 "[[1],]"_toml;    // ditto.
