@@ -2009,6 +2009,19 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Support dynamic color mode
 - Giel van Schijndel (@GielVanSchijndel-TomTom)
   - Remove needless copy in `parse` function
+- Lukáš Hrázký (@lukash)
+  - Add a `parse(FILE *)` interface and improve file-related error messages
+- Moritz Klammler (@ctcmkl)
+  - Many patches in (#200) including:
+  - Improve CMake scripts, build process, and test file handling
+  - Detect error when `discard_comments` is accessed
+  - And more.
+- Chris White (@cxw42)
+  - Fix address-sanitizer error when parsing literal strings having invalid UTF-8 characters
+- offa (@offa)
+  - Update checkout action to v3
+- Sergey Vidyuk (@VestniK)
+  - Fix for case when vector iterator is raw pointer
 
 ## Licensing terms
 
