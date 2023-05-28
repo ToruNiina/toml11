@@ -8,6 +8,8 @@
 #include <map>
 #include <sstream>
 
+#include <clocale>
+
 template<typename Comment,
          template<typename ...> class Table,
          template<typename ...> class Array>
@@ -356,4 +358,43 @@ array_of_table = [
     BOOST_TEST(parsed.at("array_of_table").comments().front() == " comment about array itself");
     BOOST_TEST(parsed.at("array_of_table").at(0).comments().size()  == 1u);
     BOOST_TEST(parsed.at("array_of_table").at(0).comments().front() == " comment about the first element (table)");
+}
+
+
+BOOST_AUTO_TEST_CASE(test_serialize_under_locale)
+{
+    // avoid null init (setlocale returns null when it failed)
+    std::string setloc(std::setlocale(LC_ALL, nullptr));
+
+    // fr_FR is a one of locales that uses `,` as a decimal separator.
+    if(const char* try_hyphen = std::setlocale(LC_ALL, "fr_FR.UTF-8"))
+    {
+        setloc = std::string(try_hyphen);
+    }
+    else if(const char* try_nohyphen = std::setlocale(LC_ALL, "fr_FR.utf8"))
+    {
+        setloc = std::string(try_nohyphen);
+    }
+    BOOST_TEST_MESSAGE("current locale at the beginning of the test = " << setloc);
+
+    const std::string str = R"(
+pi        = 3.14159
+large_int = 1234567890
+)";
+    std::istringstream iss(str);
+    const auto ref = toml::parse(iss);
+    const auto serialized_str = toml::format(ref, /*width = */ 80);
+
+    BOOST_TEST_MESSAGE("serialized = " << serialized_str);
+
+    std::istringstream serialized_iss(serialized_str);
+    const auto serialized_ref = toml::parse(serialized_iss);
+
+    BOOST_TEST(serialized_ref.at("pi").as_floating() == ref.at("pi").as_floating());
+    BOOST_TEST(serialized_ref.at("large_int").as_integer() == ref.at("large_int").as_integer());
+
+    const std::string endloc(std::setlocale(LC_ALL, nullptr));
+    BOOST_TEST_MESSAGE("current locale at the end of the test = " << endloc);
+    // check if serializer change global locale
+    BOOST_TEST(setloc == endloc);
 }
