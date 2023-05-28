@@ -375,6 +375,11 @@ BOOST_AUTO_TEST_CASE(test_serialize_under_locale)
     {
         setloc = std::string(try_nohyphen);
     }
+    // In some envs, fr_FR locale has not been installed. Tests must work even in such a case.
+//     else
+//     {
+//         BOOST_TEST(false);
+//     }
     BOOST_TEST_MESSAGE("current locale at the beginning of the test = " << setloc);
 
     const std::string str = R"(
