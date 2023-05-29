@@ -7,6 +7,14 @@
 
 #include <limits>
 
+#if defined(_WIN32)
+#include <locale.h>
+#elif defined(__APPLE__) || defined(__FreeBSD__)
+#include <xlocale.h>
+#elif defined(__linux__)
+#include <locale.h>
+#endif
+
 #include "lexer.hpp"
 #include "value.hpp"
 
@@ -120,7 +128,31 @@ struct serializer
     }
     std::string operator()(const integer_type i) const
     {
-        return std::to_string(i);
+#if defined(_WIN32)
+        _configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
+        const std::string original_locale(setlocale(LC_NUMERIC, nullptr));
+        setlocale(LC_NUMERIC, "C");
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__linux__)
+        const auto c_locale = newlocale(LC_NUMERIC_MASK, "C", locale_t(0));
+        locale_t original_locale(0);
+        if(c_locale != locale_t(0))
+        {
+            original_locale = uselocale(c_locale);
+        }
+#endif
+
+        const auto str = std::to_string(i);
+
+#if defined(_WIN32)
+        setlocale(LC_NUMERIC, original_locale.c_str());
+        _configthreadlocale(_DISABLE_PER_THREAD_LOCALE);
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__linux__)
+        if(original_locale != locale_t(0))
+        {
+            uselocale(original_locale);
+        }
+#endif
+        return str;
     }
     std::string operator()(const floating_type f) const
     {
@@ -147,11 +179,39 @@ struct serializer
             }
         }
 
+        // set locale to "C".
+        // To make it thread-local, we use OS-specific features.
+        // If we set process-global locale, it can break other thread that also
+        // outputs something simultaneously.
+#if defined(_WIN32)
+        _configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
+        const std::string original_locale(setlocale(LC_NUMERIC, nullptr));
+        setlocale(LC_NUMERIC, "C");
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__linux__)
+        const auto c_locale = newlocale(LC_NUMERIC_MASK, "C", locale_t(0));
+        locale_t original_locale(0);
+        if(c_locale != locale_t(0))
+        {
+            original_locale = uselocale(c_locale);
+        }
+#endif
+
         const auto fmt = "%.*g";
         const auto bsz = std::snprintf(nullptr, 0, fmt, this->float_prec_, f);
         // +1 for null character(\0)
         std::vector<char> buf(static_cast<std::size_t>(bsz + 1), '\0');
         std::snprintf(buf.data(), buf.size(), fmt, this->float_prec_, f);
+
+        // restore the original locale
+#if defined(_WIN32)
+        setlocale(LC_NUMERIC, original_locale.c_str());
+        _configthreadlocale(_DISABLE_PER_THREAD_LOCALE);
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__linux__)
+        if(original_locale != locale_t(0))
+        {
+            uselocale(original_locale);
+        }
+#endif
 
         std::string token(buf.begin(), std::prev(buf.end()));
         if(!token.empty() && token.back() == '.') // 1. => 1.0
