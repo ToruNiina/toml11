@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 enable_testing()
 
 project(toml11 VERSION 3.7.1)
