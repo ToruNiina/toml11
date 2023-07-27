@@ -2,7 +2,6 @@ toml11
 ======
 
 [![Build Status on GitHub Actions](https://github.com/ToruNiina/toml11/workflows/build/badge.svg)](https://github.com/ToruNiina/toml11/actions)
-[![Build Status on TravisCI](https://travis-ci.org/ToruNiina/toml11.svg?branch=master)](https://travis-ci.org/ToruNiina/toml11)
 [![Build status on Appveyor](https://ci.appveyor.com/api/projects/status/m2n08a926asvg5mg/branch/master?svg=true)](https://ci.appveyor.com/project/ToruNiina/toml11/branch/master)
 [![Build status on CircleCI](https://circleci.com/gh/ToruNiina/toml11/tree/master.svg?style=svg)](https://circleci.com/gh/ToruNiina/toml11/tree/master)
 [![Version](https://img.shields.io/github/release/ToruNiina/toml11.svg?style=flat)](https://github.com/ToruNiina/toml11/releases)
