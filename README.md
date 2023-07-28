@@ -115,6 +115,37 @@ it in your system by CMake.
 
 Note for MSVC: We recommend to set `/Zc:__cplusplus` to detect C++ version correctly.
 
+### Example installation
+
+For local installation build & use the provided install target
+
+```bash
+git clone https://github.com/ToruNiina/toml11.git
+mkdir -p toml11/build
+cd toml11/build
+cmake .. -DCMAKE_CXX_STANDARD=11
+sudo make install
+```
+
+In case you want to create a `.deb` you can use `checkinstall`.
+```bash
+sudo checkinstall
+[[ .. skipping for clarity ]]
+**********************************************************************
+
+ Done. The new package has been installed and saved to
+
+ /home/user/toml11/build/build_20230728-1_amd64.deb
+
+ You can remove it from your system anytime using:
+
+      dpkg -r build
+
+**********************************************************************
+```
+
+You should get a package that you can install with `dpkg -i <myfile>.deb` and remove with `dpkg -r <myfile>.deb`
+
 ## Decoding a toml file
 
 To parse a toml file, the only thing you have to do is
