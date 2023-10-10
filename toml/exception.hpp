@@ -33,7 +33,12 @@ inline std::string str_error(int errnum)
     {
         return std::string(buf.data());
     }
-#elif (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE // XSI
+#elif defined(_GNU_SOURCE)
+    constexpr std::size_t bufsize = 256;
+    std::array<char, bufsize> buf;
+    const char* result = strerror_r(errnum, buf.data(), bufsize);
+    return std::string(result);
+#elif (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
     constexpr std::size_t bufsize = 256;
     std::array<char, bufsize> buf;
     const int result = strerror_r(errnum, buf.data(), bufsize);
@@ -45,11 +50,6 @@ inline std::string str_error(int errnum)
     {
         return std::string(buf.data());
     }
-#elif defined(_GNU_SOURCE) // GNU extension
-    constexpr std::size_t bufsize = 256;
-    std::array<char, bufsize> buf;
-    const char* result = strerror_r(errnum, buf.data(), bufsize);
-    return std::string(result);
 #else // fallback
     return std::strerror(errnum);
 #endif
