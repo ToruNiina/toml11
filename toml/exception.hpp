@@ -27,6 +27,7 @@ inline std::string str_error(int errnum)
 #ifdef _MSC_VER // MSVC
     constexpr std::size_t bufsize = 256;
     std::array<char, bufsize> buf;
+    buf.fill('\0');
     const auto result = strerror_s(buf.data(), bufsize, errnum);
     if(result != 0)
     {
@@ -39,11 +40,13 @@ inline std::string str_error(int errnum)
 #elif defined(_GNU_SOURCE)
     constexpr std::size_t bufsize = 256;
     std::array<char, bufsize> buf;
+    buf.fill('\0');
     const char* result = strerror_r(errnum, buf.data(), bufsize);
     return std::string(result);
 #elif (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
     constexpr std::size_t bufsize = 256;
     std::array<char, bufsize> buf;
+    buf.fill('\0');
     const int result = strerror_r(errnum, buf.data(), bufsize);
     if (result != 0)
     {
