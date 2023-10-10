@@ -2,8 +2,11 @@
 // Distributed under the MIT License.
 #ifndef TOML11_EXCEPTION_HPP
 #define TOML11_EXCEPTION_HPP
-#include <stdexcept>
+
+#include <array>
 #include <string>
+#include <stdexcept>
+
 #include <cstring>
 
 #include "source_location.hpp"
