@@ -2582,7 +2582,7 @@ basic_value<Comment, Table, Array> parse(const std::filesystem::path& fpath)
                 "toml::parse: Error opening file \"" + fpath.string() + "\"");
     }
     ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    return parse<Comment, Table, Array>(ifs, std::move(fpath.string()));
+    return parse<Comment, Table, Array>(ifs, fpath.string());
 }
 #endif // TOML11_HAS_STD_FILESYSTEM
 
