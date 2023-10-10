@@ -63,7 +63,19 @@ format_key(const std::basic_string<charT, traits, Alloc>& k)
             case '\f': {serialized += "\\f";  break;}
             case '\n': {serialized += "\\n";  break;}
             case '\r': {serialized += "\\r";  break;}
-            default  : {serialized += c;      break;}
+            default: {
+                if (c >= 0x00 && c < 0x20)
+                {
+                    std::array<char, 7> buf;
+                    std::snprintf(buf.data(), buf.size(), "\\u00%02x", static_cast<int>(c));
+                    serialized += buf.data();
+                }
+                else
+                {
+                    serialized += c;
+                }
+                break;
+            }
         }
     }
     serialized += "\"";
