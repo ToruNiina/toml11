@@ -79,9 +79,8 @@ jobs:
       - name: Install
         run: |
             sudo apt-add-repository ppa:ubuntu-toolchain-r/test
-            sudo apt-add-repository ppa:mhier/libboost-latest
             sudo apt-get update
-            sudo apt-get install boost1.70
+            sudo apt-get install libboost-test-dev
             sudo apt-get install language-pack-fr # test serializer w/ locale
             sudo apt-get install ${{ matrix.compiler }}
       - name: Configure
@@ -119,9 +118,8 @@ jobs:
       - name: Install
         run: |
             sudo apt-add-repository ppa:ubuntu-toolchain-r/test
-            sudo apt-add-repository ppa:mhier/libboost-latest
             sudo apt-get update
-            sudo apt-get install boost1.70
+            sudo apt-get install libboost-test-dev
             sudo apt-get install language-pack-fr # test serializer w/ locale
             sudo apt-get install clang-${{ matrix.compiler }}
       - name: Configure
