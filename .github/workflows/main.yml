@@ -39,6 +39,11 @@ jobs:
         compiler: ['15', '14', '13', '12', '11']
         standard: ['11', '14', '17', '20']
         unreleased: ['ON', 'OFF']
+        exclude:
+            - {compiler: '14', standard: '20'} # to avoid using gcc-13 libstdc++
+            - {compiler: '13', standard: '20'} # with older clang
+            - {compiler: '12', standard: '20'}
+            - {compiler: '11', standard: '20'}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
