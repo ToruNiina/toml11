@@ -8,19 +8,19 @@ using namespace detail;
 
 BOOST_AUTO_TEST_CASE(test_inline_table)
 {
-    TOML11_TEST_PARSE_EQUAL(parse_inline_table<toml::value>, "{}", table());
+    TOML11_TEST_PARSE_EQUAL_VAT(parse_inline_table<toml::value>, "{}", table());
     {
         table t;
         t["foo"] = toml::value(42);
         t["bar"] = toml::value("baz");
-        TOML11_TEST_PARSE_EQUAL(parse_inline_table<toml::value>, "{foo = 42, bar = \"baz\"}", t);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_inline_table<toml::value>, "{foo = 42, bar = \"baz\"}", t);
     }
     {
         table t;
         table t_sub;
         t_sub["name"] = toml::value("pug");
         t["type"] = toml::value(t_sub);
-        TOML11_TEST_PARSE_EQUAL(parse_inline_table<toml::value>, "{type.name = \"pug\"}", t);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_inline_table<toml::value>, "{type.name = \"pug\"}", t);
     }
 }
 

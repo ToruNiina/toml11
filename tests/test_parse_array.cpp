@@ -8,30 +8,30 @@ using namespace detail;
 
 BOOST_AUTO_TEST_CASE(test_oneline_array)
 {
-    TOML11_TEST_PARSE_EQUAL(parse_array<toml::value>, "[]", array());
+    TOML11_TEST_PARSE_EQUAL_VAT(parse_array<toml::value>, "[]", array());
     {
         array a(5);
         a[0] = toml::value(3); a[1] = toml::value(1); a[2] = toml::value(4);
         a[3] = toml::value(1); a[4] = toml::value(5);
-        TOML11_TEST_PARSE_EQUAL(parse_array<toml::value>, "[3,1,4,1,5]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<toml::value>, "[3,1,4,1,5]", a);
     }
     {
         array a(3);
         a[0] = toml::value("foo"); a[1] = toml::value("bar");
         a[2] = toml::value("baz");
-        TOML11_TEST_PARSE_EQUAL(parse_array<toml::value>, "[\"foo\", \"bar\",  \"baz\"]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<toml::value>, "[\"foo\", \"bar\",  \"baz\"]", a);
     }
     {
         array a(5);
         a[0] = toml::value(3); a[1] = toml::value(1); a[2] = toml::value(4);
         a[3] = toml::value(1); a[4] = toml::value(5);
-        TOML11_TEST_PARSE_EQUAL(parse_array<toml::value>, "[3,1,4,1,5,]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<toml::value>, "[3,1,4,1,5,]", a);
     }
     {
         array a(3);
         a[0] = toml::value("foo"); a[1] = toml::value("bar");
         a[2] = toml::value("baz");
-        TOML11_TEST_PARSE_EQUAL(parse_array<toml::value>, "[\"foo\", \"bar\",  \"baz\",]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<toml::value>, "[\"foo\", \"bar\",  \"baz\",]", a);
     }
 }
 
@@ -66,8 +66,8 @@ BOOST_AUTO_TEST_CASE(test_oneline_array_value)
 
 BOOST_AUTO_TEST_CASE(test_multiline_array)
 {
-    TOML11_TEST_PARSE_EQUAL(parse_array<basic_value< discard_comments>>, "[\n#comment\n]", typename basic_value< discard_comments>::array_type());
-    TOML11_TEST_PARSE_EQUAL(parse_array<basic_value<preserve_comments>>, "[\n#comment\n]", typename basic_value<preserve_comments>::array_type());
+    TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value< discard_comments>>, "[\n#comment\n]", typename basic_value< discard_comments>::array_type());
+    TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<preserve_comments>>, "[\n#comment\n]", typename basic_value<preserve_comments>::array_type());
 
     {
         typename basic_value<discard_comments>::array_type a(5);
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(test_multiline_array)
         a[2] = basic_value<discard_comments>(4);
         a[3] = basic_value<discard_comments>(1);
         a[4] = basic_value<discard_comments>(5);
-        TOML11_TEST_PARSE_EQUAL(parse_array<basic_value<discard_comments>>, "[3,\n1,\n4,\n1,\n5]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<discard_comments>>, "[3,\n1,\n4,\n1,\n5]", a);
     }
     {
         typename basic_value<preserve_comments>::array_type a(5);
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(test_multiline_array)
         a[2] = basic_value<preserve_comments>(4);
         a[3] = basic_value<preserve_comments>(1);
         a[4] = basic_value<preserve_comments>(5);
-        TOML11_TEST_PARSE_EQUAL(parse_array<basic_value<preserve_comments>>, "[3,\n1,\n4,\n1,\n5]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<preserve_comments>>, "[3,\n1,\n4,\n1,\n5]", a);
     }
 
     {
@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(test_multiline_array)
         a[2] = basic_value<discard_comments>(4);
         a[3] = basic_value<discard_comments>(1);
         a[4] = basic_value<discard_comments>(5);
-        TOML11_TEST_PARSE_EQUAL(parse_array<basic_value<discard_comments>>, "[3,#comment\n1,#comment\n4,#comment\n1,#comment\n5 #comment\n]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<discard_comments>>, "[3,#comment\n1,#comment\n4,#comment\n1,#comment\n5 #comment\n]", a);
     }
     {
         typename basic_value<preserve_comments>::array_type a(5);
@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(test_multiline_array)
         a[2] = basic_value<preserve_comments>(4, {"comment"});
         a[3] = basic_value<preserve_comments>(1, {"comment"});
         a[4] = basic_value<preserve_comments>(5, {"comment"});
-        TOML11_TEST_PARSE_EQUAL(parse_array<basic_value<preserve_comments>>, "[3,#comment\n1,#comment\n4,#comment\n1,#comment\n5 #comment\n]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<preserve_comments>>, "[3,#comment\n1,#comment\n4,#comment\n1,#comment\n5 #comment\n]", a);
     }
 
 
@@ -113,14 +113,14 @@ BOOST_AUTO_TEST_CASE(test_multiline_array)
         a[0] = basic_value<discard_comments>("foo");
         a[1] = basic_value<discard_comments>("bar");
         a[2] = basic_value<discard_comments>("baz");
-        TOML11_TEST_PARSE_EQUAL(parse_array<basic_value<discard_comments>>, "[\"foo\",\n\"bar\",\n\"baz\"]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<discard_comments>>, "[\"foo\",\n\"bar\",\n\"baz\"]", a);
     }
     {
         typename basic_value<preserve_comments>::array_type a(3);
         a[0] = basic_value<preserve_comments>("foo");
         a[1] = basic_value<preserve_comments>("bar");
         a[2] = basic_value<preserve_comments>("baz");
-        TOML11_TEST_PARSE_EQUAL(parse_array<basic_value<preserve_comments>>, "[\"foo\",\n\"bar\",\n\"baz\"]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<preserve_comments>>, "[\"foo\",\n\"bar\",\n\"baz\"]", a);
     }
 
     {
@@ -128,14 +128,14 @@ BOOST_AUTO_TEST_CASE(test_multiline_array)
         a[0] = basic_value<discard_comments>("foo");
         a[1] = basic_value<discard_comments>("b#r");
         a[2] = basic_value<discard_comments>("b#z");
-        TOML11_TEST_PARSE_EQUAL(parse_array<basic_value<discard_comments>>, "[\"foo\",#comment\n\"b#r\",#comment\n\"b#z\"#comment\n]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<discard_comments>>, "[\"foo\",#comment\n\"b#r\",#comment\n\"b#z\"#comment\n]", a);
     }
     {
         typename basic_value<preserve_comments>::array_type a(3);
         a[0] = basic_value<preserve_comments>("foo", {"comment"});
         a[1] = basic_value<preserve_comments>("b#r", {"comment"});
         a[2] = basic_value<preserve_comments>("b#z", {"comment"});
-        TOML11_TEST_PARSE_EQUAL(parse_array<basic_value<preserve_comments>>, "[\"foo\",#comment\n\"b#r\",#comment\n\"b#z\"#comment\n]", a);
+        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<preserve_comments>>, "[\"foo\",#comment\n\"b#r\",#comment\n\"b#z\"#comment\n]", a);
     }
 }
 
