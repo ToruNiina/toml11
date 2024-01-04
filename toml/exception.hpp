@@ -37,13 +37,13 @@ inline std::string str_error(int errnum)
     {
         return std::string(buf.data());
     }
-#elif defined(_GNU_SOURCE)
+#elif defined(_GNU_SOURCE) && !(defined(__DARWIN_C_LEVEL) && __DARWIN_C_LEVEL >= 200112L )
     constexpr std::size_t bufsize = 256;
     std::array<char, bufsize> buf;
     buf.fill('\0');
     const char* result = strerror_r(errnum, buf.data(), bufsize);
     return std::string(result);
-#elif (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
+#elif (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600) || ( defined(__DARWIN_C_LEVEL) && __DARWIN_C_LEVEL >= 200112L ) // macOS 
     constexpr std::size_t bufsize = 256;
     std::array<char, bufsize> buf;
     buf.fill('\0');

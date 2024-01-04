@@ -138,6 +138,56 @@ jobs:
         run: |
             cd build && ctest --output-on-failure
 
+#  build-osx-13-arm64:
+#    runs-on: macos-13-arm64
+#    strategy:
+#      matrix:
+#        standard: ['11', '14', '17', '20']
+#        unreleased: ['ON', 'OFF']
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#        with:
+#          submodules: true
+#      - name: Install
+#        run: |
+#            brew install boost
+#      - name: Configure
+#        run: |
+#            mkdir build && cd build
+#            cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_USE_UNRELEASED_TOML_FEATURES=${{ matrix.unreleased }}
+#      - name: Build
+#        run: |
+#            cd build && cmake --build .
+#      - name: Test
+#        run: |
+#            cd build && ctest --output-on-failure
+
+  build-osx-13:
+    runs-on: macos-13
+    strategy:
+      matrix:
+        standard: ['11', '14', '17', '20']
+        unreleased: ['ON', 'OFF']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Install
+        run: |
+            brew install boost
+      - name: Configure
+        run: |
+            mkdir build && cd build
+            cmake .. -Dtoml11_BUILD_TEST=ON -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_USE_UNRELEASED_TOML_FEATURES=${{ matrix.unreleased }}
+      - name: Build
+        run: |
+            cd build && cmake --build .
+      - name: Test
+        run: |
+            cd build && ctest --output-on-failure
+
   build-osx-12:
     runs-on: macos-12
     strategy:
