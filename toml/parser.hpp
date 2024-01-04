@@ -8,6 +8,7 @@
 
 #include "combinator.hpp"
 #include "lexer.hpp"
+#include "macros.hpp"
 #include "region.hpp"
 #include "result.hpp"
 #include "types.hpp"
@@ -21,6 +22,11 @@
 #endif // has_include(<string_view>)
 #endif // __cpp_lib_filesystem
 #endif // TOML11_DISABLE_STD_FILESYSTEM
+
+// the previous commit works with 500+ recursions. so it may be too small.
+// but in most cases, i think we don't need such a deep recursion of
+// arrays or inline-tables.
+#define TOML11_VALUE_RECURSION_LIMIT 64
 
 namespace toml
 {
@@ -1138,14 +1144,22 @@ parse_key(location& loc)
 
 // forward-decl to implement parse_array and parse_table
 template<typename Value>
-result<Value, std::string> parse_value(location&);
+result<Value, std::string> parse_value(location&, const std::size_t n_rec);
 
 template<typename Value>
 result<std::pair<typename Value::array_type, region>, std::string>
-parse_array(location& loc)
+parse_array(location& loc, const std::size_t n_rec)
 {
     using value_type = Value;
     using array_type = typename value_type::array_type;
+
+    if(n_rec > TOML11_VALUE_RECURSION_LIMIT)
+    {
+        // parse_array does not have any way to handle recursive error currently...
+        throw syntax_error(std::string("toml::parse_array: recursion limit ("
+                TOML11_STRINGIZE(TOML11_VALUE_RECURSION_LIMIT) ") exceeded"),
+                source_location(loc));
+    }
 
     const auto first = loc.iter();
     if(loc.iter() == loc.end())
@@ -1173,7 +1187,7 @@ parse_array(location& loc)
                       region(loc, first, loc.iter())));
         }
 
-        if(auto val = parse_value<value_type>(loc))
+        if(auto val = parse_value<value_type>(loc, n_rec+1))
         {
             // After TOML v1.0.0-rc.1, array becomes to be able to have values
             // with different types. So here we will omit this by default.
@@ -1247,7 +1261,7 @@ parse_array(location& loc)
 
 template<typename Value>
 result<std::pair<std::pair<std::vector<key>, region>, Value>, std::string>
-parse_key_value_pair(location& loc)
+parse_key_value_pair(location& loc, const std::size_t n_rec)
 {
     using value_type = Value;
 
@@ -1294,7 +1308,7 @@ parse_key_value_pair(location& loc)
     }
 
     const auto after_kvsp = loc.iter(); // err msg
-    auto val = parse_value<value_type>(loc);
+    auto val = parse_value<value_type>(loc, n_rec);
     if(!val)
     {
         std::string msg;
@@ -1341,7 +1355,7 @@ result<std::pair<std::vector<key>, region>, std::string>
 parse_array_table_key(location& loc);
 template<typename Value>
 result<std::pair<typename Value::table_type, region>, std::string>
-parse_inline_table(location& loc);
+parse_inline_table(location& loc, const std::size_t n_rec);
 
 // The following toml file is allowed.
 // ```toml
@@ -1379,7 +1393,7 @@ bool is_valid_forward_table_definition(const Value& fwd, const Value& inserting,
         inserting_reg = ptr->str();
     }
     location inserting_def("internal", std::move(inserting_reg));
-    if(const auto inlinetable = parse_inline_table<Value>(inserting_def))
+    if(const auto inlinetable = parse_inline_table<Value>(inserting_def, 0))
     {
         // check if we are overwriting existing table.
         // ```toml
@@ -1810,10 +1824,17 @@ insert_nested_key(typename Value::table_type& root, const Value& v,
 
 template<typename Value>
 result<std::pair<typename Value::table_type, region>, std::string>
-parse_inline_table(location& loc)
+parse_inline_table(location& loc, const std::size_t n_rec)
 {
     using value_type = Value;
     using table_type = typename value_type::table_type;
+
+    if(n_rec > TOML11_VALUE_RECURSION_LIMIT)
+    {
+        throw syntax_error(std::string("toml::parse_inline_table: recursion limit ("
+                TOML11_STRINGIZE(TOML11_VALUE_RECURSION_LIMIT) ") exceeded"),
+                source_location(loc));
+    }
 
     const auto first = loc.iter();
     table_type retval;
@@ -1835,7 +1856,7 @@ parse_inline_table(location& loc)
     // it starts from "{". it should be formatted as inline-table
     while(loc.iter() != loc.end())
     {
-        const auto kv_r = parse_key_value_pair<value_type>(loc);
+        const auto kv_r = parse_key_value_pair<value_type>(loc, n_rec+1);
         if(!kv_r)
         {
             return err(kv_r.unwrap_err());
@@ -2079,7 +2100,7 @@ parse_value_helper(result<std::pair<T, region>, std::string> rslt)
 }
 
 template<typename Value>
-result<Value, std::string> parse_value(location& loc)
+result<Value, std::string> parse_value(location& loc, const std::size_t n_rec)
 {
     const auto first = loc.iter();
     if(first == loc.end())
@@ -2104,8 +2125,8 @@ result<Value, std::string> parse_value(location& loc)
         case value_t::local_datetime : {return parse_value_helper<Value>(parse_local_datetime(loc)     );}
         case value_t::local_date     : {return parse_value_helper<Value>(parse_local_date(loc)         );}
         case value_t::local_time     : {return parse_value_helper<Value>(parse_local_time(loc)         );}
-        case value_t::array          : {return parse_value_helper<Value>(parse_array<Value>(loc)       );}
-        case value_t::table          : {return parse_value_helper<Value>(parse_inline_table<Value>(loc));}
+        case value_t::array          : {return parse_value_helper<Value>(parse_array<Value>(loc, n_rec));}
+        case value_t::table          : {return parse_value_helper<Value>(parse_inline_table<Value>(loc, n_rec));}
         default:
         {
             const auto msg = format_underline("toml::parse_value: "
@@ -2270,7 +2291,7 @@ parse_ml_table(location& loc)
             return ok(tab);
         }
 
-        if(const auto kv = parse_key_value_pair<value_type>(loc))
+        if(const auto kv = parse_key_value_pair<value_type>(loc, 0))
         {
             const auto&              kvpair  = kv.unwrap();
             const std::vector<key>&  keys    = kvpair.first.first;
