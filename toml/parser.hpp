@@ -23,6 +23,9 @@
 #endif // __cpp_lib_filesystem
 #endif // TOML11_DISABLE_STD_FILESYSTEM
 
+// the previous commit works with 500+ recursions. so it may be too small.
+// but in most cases, i think we don't need such a deep recursion of
+// arrays or inline-tables.
 #define TOML11_VALUE_RECURSION_LIMIT 64
 
 namespace toml
