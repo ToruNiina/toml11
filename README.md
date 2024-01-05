@@ -2042,10 +2042,14 @@ I appreciate the help of the contributors who introduced the great feature to th
 - Ken Matsui (@ken-matsui)
   - Support user-defined error message prefix
   - Support dynamic color mode
-- Giel van Schijndel (@GielVanSchijndel-TomTom)
+- Giel van Schijndel (@muggenhor)
   - Remove needless copy in `parse` function
 - Lukáš Hrázký (@lukash)
   - Add a `parse(FILE *)` interface and improve file-related error messages
+- spiderman idog (@spiderman-idog)
+  - Fix typo in README
+- Jajauma's GitHub (@Jajauma)
+  - Avoid possible lexer truncation warnings
 - Moritz Klammler (@ctcmkl)
   - Many patches in (#200) including:
   - Improve CMake scripts, build process, and test file handling
@@ -2053,15 +2057,26 @@ I appreciate the help of the contributors who introduced the great feature to th
   - And more.
 - Chris White (@cxw42)
   - Fix address-sanitizer error when parsing literal strings having invalid UTF-8 characters
+  - Fix function name in error messages
 - offa (@offa)
   - Update checkout action to v3
+  - Update Required CMake version
+  - Cleanup old CI settings
 - Sergey Vidyuk (@VestniK)
   - Fix for case when vector iterator is raw pointer
+- Kfir Gollan (@kfirgollan)
+  - Add installation example with checkinstall and cmake
+- Martin Tournoij (@arp242)
+  - Escape control characters in keys
+- @DavidKorczynski
+  - Add fuzzing test based on ClusterFuzzLite
+- Esonhugh Skyworship (@Esonhugh)
+  - Fix function signature of `strerror_r` on macos
 
 ## Licensing terms
 
 This product is licensed under the terms of the [MIT License](LICENSE).
 
-- Copyright (c) 2017-2022 Toru Niina
+- Copyright (c) 2017-2024 Toru Niina
 
 All rights reserved.
