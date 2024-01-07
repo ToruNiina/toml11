@@ -14,62 +14,14 @@
 namespace toml
 {
 
-namespace detail
-{
-
-inline std::string str_error(int errnum)
-{
-    // C++ standard strerror is not thread-safe.
-    // C11 provides thread-safe version of this function, `strerror_s`, but it
-    // is not available in C++.
-    // To avoid using std::strerror, we need to use platform-specific functions.
-    // If none of the conditions are met, it calls std::strerror as a fallback.
-#ifdef _MSC_VER // MSVC
-    constexpr std::size_t bufsize = 256;
-    std::array<char, bufsize> buf;
-    buf.fill('\0');
-    const auto result = strerror_s(buf.data(), bufsize, errnum);
-    if(result != 0)
-    {
-        return std::string("strerror_s failed");
-    }
-    else
-    {
-        return std::string(buf.data());
-    }
-#elif defined(_GNU_SOURCE) && !(defined(__DARWIN_C_LEVEL) && __DARWIN_C_LEVEL >= 200112L )
-    constexpr std::size_t bufsize = 256;
-    std::array<char, bufsize> buf;
-    buf.fill('\0');
-    const char* result = strerror_r(errnum, buf.data(), bufsize);
-    return std::string(result);
-#elif (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600) || ( defined(__DARWIN_C_LEVEL) && __DARWIN_C_LEVEL >= 200112L ) // macOS 
-    constexpr std::size_t bufsize = 256;
-    std::array<char, bufsize> buf;
-    buf.fill('\0');
-    const int result = strerror_r(errnum, buf.data(), bufsize);
-    if (result != 0)
-    {
-        return std::string("strerror_r failed");
-    }
-    else
-    {
-        return std::string(buf.data());
-    }
-#else // fallback
-    return std::strerror(errnum);
-#endif
-}
-
-} // detail
-
 struct file_io_error : public std::runtime_error
 {
   public:
     file_io_error(int errnum, const std::string& msg, const std::string& fname)
-        : std::runtime_error(msg + " \"" + fname + "\": " + detail::str_error(errnum)),
+        : std::runtime_error(msg + " \"" + fname + "\": errno = " + std::to_string(errnum)),
           errno_(errnum)
     {}
+
     int get_errno() const noexcept {return errno_;}
 
   private:
