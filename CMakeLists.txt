@@ -11,14 +11,6 @@ option(toml11_TEST_WITH_UBSAN "use LLVM undefined behavior sanitizer" OFF)
 option(TOML11_USE_UNRELEASED_TOML_FEATURES
     "use features in toml-lang/toml master while testing" OFF)
 
-set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Boolean specifying whether compiler specific extensions are requested.")
-if(NOT DEFINED CMAKE_CXX_STANDARD)
-    message(FATAL_ERROR "CMAKE_CXX_STANDARD is not defined. \
-The C++ standard whose features are requested to *build* all targets. \
-Remember that toml11 is a header only library that does NOT require compilation to use.")
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Boolean describing whether the value of CXX_STANDARD is a requirement.")
-
 if(MSVC)
 #     add_definitions("/Zc:__cplusplus")  # define __cplusplus value correctly
     add_definitions("/utf-8")           # enable to use u8"" literal
