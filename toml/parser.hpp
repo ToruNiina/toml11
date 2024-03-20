@@ -2453,7 +2453,7 @@ template<typename                     Comment = TOML11_DEFAULT_COMMENT_STRATEGY,
          template<typename ...> class Table   = std::unordered_map,
          template<typename ...> class Array   = std::vector>
 basic_value<Comment, Table, Array>
-parse(std::vector<char>& letters, const std::string& fname)
+parse(std::vector<char> letters, const std::string& fname)
 {
     using value_type = basic_value<Comment, Table, Array>;
 
@@ -2468,7 +2468,7 @@ parse(std::vector<char>& letters, const std::string& fname)
         letters.push_back('\n');
     }
 
-    detail::location loc(std::move(fname), std::move(letters));
+    detail::location loc(fname, std::move(letters));
 
     // skip BOM if exists.
     // XXX component of BOM (like 0xEF) exceeds the representable range of
