@@ -12,38 +12,13 @@ option(TOML11_USE_UNRELEASED_TOML_FEATURES
     "use features in toml-lang/toml master while testing" OFF)
 
 include(CheckCXXCompilerFlag)
-if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
-    set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Boolean specifying whether compiler specific extensions are requested.")
-    if(NOT DEFINED CMAKE_CXX_STANDARD)
-        message(FATAL_ERROR "CMAKE_CXX_STANDARD is not defined. \
+set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Boolean specifying whether compiler specific extensions are requested.")
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+    message(FATAL_ERROR "CMAKE_CXX_STANDARD is not defined. \
 The C++ standard whose features are requested to *build* all targets. \
 Remember that toml11 is a header only library that does NOT require compilation to use.")
-    endif()
-    set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Boolean describing whether the value of CXX_STANDARD is a requirement.")
-else()
-    # Manually check for C++11 compiler flag.
-    CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-    CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-    CHECK_CXX_COMPILER_FLAG("-std=gnu++11" COMPILER_SUPPORTS_GNU11)
-    CHECK_CXX_COMPILER_FLAG("-std=gnu++0x" COMPILER_SUPPORTS_GNU0X)
-    if(COMPILER_SUPPORTS_CXX11)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-    elseif(COMPILER_SUPPORTS_CXXOX)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-    elseif(COMPILER_SUPPORTS_GNU11)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-    elseif(COMPILER_SUPPORTS_GNU0X)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
-    else()
-        if(MSVC)
-            if(MSVC_VERSION LESS 1900)
-                message(SEND_ERROR "MSVC < 14.0 is not supported. Please update your compiler or use mingw")
-            endif()
-        else()
-            message(SEND_ERROR "The ${CMAKE_CXX_COMPILER} compiler lacks C++11 support. Use another compiler.")
-        endif()
-    endif()
 endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Boolean describing whether the value of CXX_STANDARD is a requirement.")
 
 if(MSVC)
 #     add_definitions("/Zc:__cplusplus")  # define __cplusplus value correctly
