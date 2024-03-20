@@ -11,7 +11,6 @@ option(toml11_TEST_WITH_UBSAN "use LLVM undefined behavior sanitizer" OFF)
 option(TOML11_USE_UNRELEASED_TOML_FEATURES
     "use features in toml-lang/toml master while testing" OFF)
 
-include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Boolean specifying whether compiler specific extensions are requested.")
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     message(FATAL_ERROR "CMAKE_CXX_STANDARD is not defined. \
