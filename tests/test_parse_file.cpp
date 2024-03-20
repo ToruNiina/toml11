@@ -12,7 +12,7 @@ BOOST_AUTO_TEST_CASE(test_example)
     const auto data = toml::parse(testinput("example.toml"));
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
-    const auto& owner = toml::find(data, "owner");
+    const auto owner = toml::find(data, "owner");
     {
         BOOST_TEST(toml::find<std::string>(owner, "name") == "Tom Preston-Werner");
         BOOST_TEST(toml::find<std::string>(owner, "organization") == "GitHub");
@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(test_example)
                                                 toml::local_time(7, 32, 0), toml::time_offset(0, 0)));
     }
 
-    const auto& database = toml::find(data, "database");
+    const auto database = toml::find(data, "database");
     {
         BOOST_TEST(toml::find<std::string>(database, "server") == "192.168.1.1");
         const std::vector<int> expected_ports{8001, 8001, 8002};
@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(test_example)
         BOOST_TEST(toml::find<bool>(database, "enabled") == true);
     }
 
-    const auto& servers = toml::find(data, "servers");
+    const auto servers = toml::find(data, "servers");
     {
         toml::table alpha = toml::find<toml::table>(servers, "alpha");
         BOOST_TEST(toml::get<std::string>(alpha.at("ip")) == "10.0.0.1");
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(test_example)
         BOOST_TEST(toml::get<std::string>(beta.at("country")) == "\xE4\xB8\xAD\xE5\x9B\xBD");
     }
 
-    const auto& clients = toml::find(data, "clients");
+    const auto clients = toml::find(data, "clients");
     {
         toml::array clients_data = toml::find<toml::array>(clients, "data");
 
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(test_example_stream)
     const auto data = toml::parse(ifs);
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
-    const auto& owner = toml::find(data, "owner");
+    const auto owner = toml::find(data, "owner");
     {
         BOOST_TEST(toml::find<std::string>(owner, "name") == "Tom Preston-Werner");
         BOOST_TEST(toml::find<std::string>(owner, "organization") == "GitHub");
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(test_example_stream)
                                                 toml::local_time(7, 32, 0), toml::time_offset(0, 0)));
     }
 
-    const auto& database = toml::find(data, "database");
+    const auto database = toml::find(data, "database");
     {
         BOOST_TEST(toml::find<std::string>(database, "server") == "192.168.1.1");
         const std::vector<int> expected_ports{8001, 8001, 8002};
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(test_example_stream)
         BOOST_TEST(toml::find<bool>(database, "enabled") == true);
     }
 
-    const auto& servers = toml::find(data, "servers");
+    const auto servers = toml::find(data, "servers");
     {
         toml::table alpha = toml::find<toml::table>(servers, "alpha");
         BOOST_TEST(toml::get<std::string>(alpha.at("ip")) == "10.0.0.1");
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(test_example_stream)
         BOOST_TEST(toml::get<std::string>(beta.at("country")) == "\xE4\xB8\xAD\xE5\x9B\xBD");
     }
 
-    const auto& clients = toml::find(data, "clients");
+    const auto clients = toml::find(data, "clients");
     {
         toml::array clients_data = toml::find<toml::array>(clients, "data");
         std::vector<std::string> expected_name{"gamma", "delta"};
@@ -145,7 +145,7 @@ BOOST_AUTO_TEST_CASE(test_example_file_pointer)
     fclose(file);
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
-    const auto& owner = toml::find(data, "owner");
+    const auto owner = toml::find(data, "owner");
     {
         BOOST_TEST(toml::find<std::string>(owner, "name") == "Tom Preston-Werner");
         BOOST_TEST(toml::find<std::string>(owner, "organization") == "GitHub");
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(test_example_file_pointer)
                                                 toml::local_time(7, 32, 0), toml::time_offset(0, 0)));
     }
 
-    const auto& database = toml::find(data, "database");
+    const auto database = toml::find(data, "database");
     {
         BOOST_TEST(toml::find<std::string>(database, "server") == "192.168.1.1");
         const std::vector<int> expected_ports{8001, 8001, 8002};
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE(test_example_file_pointer)
         BOOST_TEST(toml::find<bool>(database, "enabled") == true);
     }
 
-    const auto& servers = toml::find(data, "servers");
+    const auto servers = toml::find(data, "servers");
     {
         toml::table alpha = toml::find<toml::table>(servers, "alpha");
         BOOST_TEST(toml::get<std::string>(alpha.at("ip")) == "10.0.0.1");
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(test_example_file_pointer)
         BOOST_TEST(toml::get<std::string>(beta.at("country")) == "\xE4\xB8\xAD\xE5\x9B\xBD");
     }
 
-    const auto& clients = toml::find(data, "clients");
+    const auto clients = toml::find(data, "clients");
     {
         toml::array clients_data = toml::find<toml::array>(clients, "data");
         std::vector<std::string> expected_name{"gamma", "delta"};
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE(test_example_preserve_comment)
     const auto data = toml::parse<toml::preserve_comments>(testinput("example.toml"));
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
-    const auto& owner = toml::find(data, "owner");
+    const auto owner = toml::find(data, "owner");
     {
         BOOST_TEST(toml::find<std::string>(owner, "name") == "Tom Preston-Werner");
         BOOST_TEST(toml::find<std::string>(owner, "organization") == "GitHub");
@@ -299,7 +299,7 @@ BOOST_AUTO_TEST_CASE(test_example_preserve_comment)
                           " First class dates? Why not?");
     }
 
-    const auto& database = toml::find(data, "database");
+    const auto database = toml::find(data, "database");
     {
         BOOST_TEST(toml::find<std::string>(database, "server") == "192.168.1.1");
         const std::vector<int> expected_ports{8001, 8001, 8002};
@@ -308,15 +308,15 @@ BOOST_AUTO_TEST_CASE(test_example_preserve_comment)
         BOOST_TEST(toml::find<bool>(database, "enabled") == true);
     }
 
-    const auto& servers = toml::find(data, "servers");
+    const auto servers = toml::find(data, "servers");
     {
-        const auto& alpha = toml::find(servers, "alpha");
+        const auto alpha = toml::find(servers, "alpha");
         BOOST_TEST(alpha.comments().at(0) ==
             " You can indent as you please. Tabs or spaces. TOML don't care.");
         BOOST_TEST(toml::find<std::string>(alpha, "ip") == "10.0.0.1");
         BOOST_TEST(toml::find<std::string>(alpha, "dc") == "eqdc10");
 
-        const auto& beta = toml::find(servers, "beta");
+        const auto beta = toml::find(servers, "beta");
         BOOST_TEST(toml::find<std::string>(beta, "ip") == "10.0.0.2");
         BOOST_TEST(toml::find<std::string>(beta, "dc") == "eqdc10");
         BOOST_TEST(toml::find<std::string>(beta, "country") ==
@@ -325,7 +325,7 @@ BOOST_AUTO_TEST_CASE(test_example_preserve_comment)
                           " This should be parsed as UTF-8");
     }
 
-    const auto& clients = toml::find(data, "clients");
+    const auto clients = toml::find(data, "clients");
     {
         BOOST_TEST(toml::find(clients, "data").comments().at(0) ==
                 " just an update to make sure parsers support it");
@@ -376,7 +376,7 @@ BOOST_AUTO_TEST_CASE(test_example_preserve_stdmap_stddeque)
             >::value, "");
 
     BOOST_TEST(toml::find<std::string>(data, "title") == "TOML Example");
-    const auto& owner = toml::find(data, "owner");
+    const auto owner = toml::find(data, "owner");
     {
         BOOST_TEST(toml::find<std::string>(owner, "name") == "Tom Preston-Werner");
         BOOST_TEST(toml::find<std::string>(owner, "organization") == "GitHub");
@@ -389,7 +389,7 @@ BOOST_AUTO_TEST_CASE(test_example_preserve_stdmap_stddeque)
                           " First class dates? Why not?");
     }
 
-    const auto& database = toml::find(data, "database");
+    const auto database = toml::find(data, "database");
     {
         BOOST_TEST(toml::find<std::string>(database, "server") == "192.168.1.1");
         const std::vector<int> expected_ports{8001, 8001, 8002};
@@ -398,15 +398,15 @@ BOOST_AUTO_TEST_CASE(test_example_preserve_stdmap_stddeque)
         BOOST_TEST(toml::find<bool>(database, "enabled") == true);
     }
 
-    const auto& servers = toml::find(data, "servers");
+    const auto servers = toml::find(data, "servers");
     {
-        const auto& alpha = toml::find(servers, "alpha");
+        const auto alpha = toml::find(servers, "alpha");
         BOOST_TEST(alpha.comments().at(0) ==
             " You can indent as you please. Tabs or spaces. TOML don't care.");
         BOOST_TEST(toml::find<std::string>(alpha, "ip") == "10.0.0.1");
         BOOST_TEST(toml::find<std::string>(alpha, "dc") == "eqdc10");
 
-        const auto& beta = toml::find(servers, "beta");
+        const auto beta = toml::find(servers, "beta");
         BOOST_TEST(toml::find<std::string>(beta, "ip") == "10.0.0.2");
         BOOST_TEST(toml::find<std::string>(beta, "dc") == "eqdc10");
         BOOST_TEST(toml::find<std::string>(beta, "country") ==
@@ -415,7 +415,7 @@ BOOST_AUTO_TEST_CASE(test_example_preserve_stdmap_stddeque)
                           " This should be parsed as UTF-8");
     }
 
-    const auto& clients = toml::find(data, "clients");
+    const auto clients = toml::find(data, "clients");
     {
         BOOST_TEST(toml::find(clients, "data").comments().at(0) ==
                 " just an update to make sure parsers support it");

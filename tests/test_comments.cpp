@@ -14,8 +14,8 @@ BOOST_AUTO_TEST_CASE(test_comment_before)
         std::istringstream iss(file);
         const auto v = toml::parse<toml::preserve_comments>(iss);
 
-        const auto& a = toml::find(v, "a");
-        const auto& b = toml::find(v, "b");
+        const auto a = toml::find(v, "a");
+        const auto b = toml::find(v, "b");
 
         BOOST_TEST(a.comments().size()  == 1u);
         BOOST_TEST(a.comments().front() == " comment for a.");
@@ -35,8 +35,8 @@ BOOST_AUTO_TEST_CASE(test_comment_before)
         std::istringstream iss(file);
         const auto v = toml::parse<toml::preserve_comments>(iss);
 
-        const auto& a = toml::find(v, "a");
-        const auto& b = toml::find(v, "b");
+        const auto a = toml::find(v, "a");
+        const auto b = toml::find(v, "b");
 
         BOOST_TEST(a.comments().size()  == 2u);
         BOOST_TEST(a.comments().front() == " comment for a.");
@@ -58,8 +58,8 @@ BOOST_AUTO_TEST_CASE(test_comment_inline)
         std::istringstream iss(file);
         const auto v = toml::parse<toml::preserve_comments>(iss);
 
-        const auto& a = toml::find(v, "a");
-        const auto& b = toml::find(v, "b");
+        const auto a = toml::find(v, "a");
+        const auto b = toml::find(v, "b");
 
         BOOST_TEST(a.comments().size()  == 1u);
         BOOST_TEST(a.comments().front() == " comment for a.");
@@ -79,9 +79,9 @@ BOOST_AUTO_TEST_CASE(test_comment_inline)
         std::istringstream iss(file);
         const auto v = toml::parse<toml::preserve_comments>(iss);
 
-        const auto& a  = toml::find(v, "a");
-        const auto& b  = toml::find(v, "b");
-        const auto& b0 = b.as_array().at(0);
+        const auto a  = toml::find(v, "a");
+        const auto b  = toml::find(v, "b");
+        const auto b0 = b.as_array().at(0);
 
         BOOST_TEST(a.comments().size()   == 1u);
         BOOST_TEST(a.comments().front()  == " comment for a.");
@@ -110,10 +110,10 @@ BOOST_AUTO_TEST_CASE(test_comment_both)
         std::istringstream iss(file);
         const auto v = toml::parse<toml::preserve_comments>(iss);
 
-        const auto& a  = toml::find(v, "a");
-        const auto& b  = toml::find(v, "b");
-        const auto& c  = toml::find(v, "c");
-        const auto& c0 = c.as_array().at(0);
+        const auto a  = toml::find(v, "a");
+        const auto b  = toml::find(v, "b");
+        const auto c  = toml::find(v, "c");
+        const auto c0 = c.as_array().at(0);
 
         BOOST_TEST(a.comments().size()  == 2u);
         BOOST_TEST(a.comments().front() == " comment for a.");
@@ -186,10 +186,10 @@ BOOST_AUTO_TEST_CASE(test_discard_comment)
     std::istringstream iss(file);
     const auto v = toml::parse<toml::discard_comments>(iss);
 
-    const auto& a  = toml::find(v, "a");
-    const auto& b  = toml::find(v, "b");
-    const auto& c  = toml::find(v, "c");
-    const auto& c0 = c.as_array().at(0);
+    const auto a  = toml::find(v, "a");
+    const auto b  = toml::find(v, "b");
+    const auto c  = toml::find(v, "c");
+    const auto c0 = c.as_array().at(0);
 
     BOOST_TEST(a.comments().empty());
     BOOST_TEST(b.comments().empty());
