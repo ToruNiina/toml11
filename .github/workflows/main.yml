@@ -177,6 +177,8 @@ jobs:
       - name: Install
         run: |
             brew install boost
+        env:
+          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       - name: Configure
         run: |
             mkdir build && cd build
