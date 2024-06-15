@@ -1872,7 +1872,7 @@ using return_type_of_t = typename std::result_of<F(Args...)>::type;
 #      define TOML11_HAS_BUILTIN_FILE_LINE 1
 #      define TOML11_BUILTIN_LINE_TYPE unsigned int
 #    endif
-#  elif defined(_MSVC_LANG) && defiend(_MSC_VER)
+#  elif defined(_MSVC_LANG) && defined(_MSC_VER)
 #    if _MSC_VER > 1926
 #      define TOML11_HAS_BUILTIN_FILE_LINE 1
 #      define TOML11_BUILTIN_LINE_TYPE int
