@@ -70,7 +70,6 @@ if(BUILD_TESTING)
             )
         target_link_libraries(${TEST_NAME} PUBLIC toml11 toml11_test_utility)
         target_compile_options(${TEST_NAME} PRIVATE
-            -Wfatal-errors
             $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
             $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
             $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
@@ -106,7 +105,6 @@ if(TOML11_BUILD_TOML_TESTS)
         )
     target_link_libraries(toml11_decoder PRIVATE toml11)
     target_compile_options(toml11_decoder PRIVATE
-        -Wfatal-errors
         $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
         $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
         $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
@@ -135,7 +133,6 @@ if(TOML11_BUILD_TOML_TESTS)
     target_compile_definitions(toml11_decoder_v1_1_0 PRIVATE -DTOML11_TO_JSON_USE_V1_1_0)
     target_link_libraries(toml11_decoder_v1_1_0 PRIVATE toml11)
     target_compile_options(toml11_decoder_v1_1_0 PRIVATE
-        -Wfatal-errors
         $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
         $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
         $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
@@ -163,7 +160,6 @@ if(TOML11_BUILD_TOML_TESTS)
         )
     target_link_libraries(toml11_encoder PRIVATE toml11)
     target_compile_options(toml11_encoder PRIVATE
-        -Wfatal-errors
         $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
         $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
         $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
