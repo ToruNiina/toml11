@@ -1,116 +1,147 @@
-#include <toml/parser.hpp>
 
-#include "unit_test.hpp"
-#include "test_parse_aux.hpp"
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.h"
 
-using namespace toml;
-using namespace detail;
+#include "utility.hpp"
 
-BOOST_AUTO_TEST_CASE(test_decimal)
+#include <toml11/parser.hpp>
+#include <toml11/types.hpp>
+
+TEST_CASE("testing decimal_value")
 {
-    TOML11_TEST_PARSE_EQUAL(parse_integer,        "1234",       1234);
-    TOML11_TEST_PARSE_EQUAL(parse_integer,       "+1234",       1234);
-    TOML11_TEST_PARSE_EQUAL(parse_integer,       "-1234",      -1234);
-    TOML11_TEST_PARSE_EQUAL(parse_integer,           "0",          0);
-    TOML11_TEST_PARSE_EQUAL(parse_integer,     "1_2_3_4",       1234);
-    TOML11_TEST_PARSE_EQUAL(parse_integer,    "+1_2_3_4",      +1234);
-    TOML11_TEST_PARSE_EQUAL(parse_integer,    "-1_2_3_4",      -1234);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "123_456_789",  123456789);
+    toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+    const auto decimal_fmt = [](std::size_t w, std::size_t s) {
+        toml::integer_format_info fmt;
+        fmt.fmt = toml::integer_format::dec;
+        fmt.width = w;
+        fmt.spacer = s;
+        return fmt;
+    };
+
+    toml11_test_parse_success<toml::value_t::integer>(          "0",         0, comments(), decimal_fmt(1, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(         "+0",         0, comments(), decimal_fmt(2, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(         "-0",         0, comments(), decimal_fmt(2, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(       "1234",      1234, comments(), decimal_fmt(4, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(      "+1234",      1234, comments(), decimal_fmt(5, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(      "-1234",     -1234, comments(), decimal_fmt(5, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(          "0",         0, comments(), decimal_fmt(1, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(    "1_2_3_4",      1234, comments(), decimal_fmt(4, 1), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(   "+1_2_3_4",     +1234, comments(), decimal_fmt(5, 1), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(   "-1_2_3_4",     -1234, comments(), decimal_fmt(5, 1), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("123_456_789", 123456789, comments(), decimal_fmt(9, 3), ctx);
 }
 
-BOOST_AUTO_TEST_CASE(test_decimal_value)
+TEST_CASE("testing hex_value")
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,        "1234", toml::value(     1234));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,       "+1234", toml::value(     1234));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,       "-1234", toml::value(    -1234));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,           "0", toml::value(        0));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,     "1_2_3_4", toml::value(     1234));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,    "+1_2_3_4", toml::value(    +1234));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,    "-1_2_3_4", toml::value(    -1234));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "123_456_789", toml::value(123456789));
+    toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+    const auto hex_fmt = [](std::size_t w, std::size_t s) {
+        toml::integer_format_info fmt;
+        fmt.fmt = toml::integer_format::hex;
+        fmt.width = w;
+        fmt.spacer = s;
+        return fmt;
+    };
+
+    toml11_test_parse_success<toml::value_t::integer>("0xDEADBEEF",  0xDEADBEEF, comments(), hex_fmt(8, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xdeadbeef",  0xDEADBEEF, comments(), hex_fmt(8, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xDEADbeef",  0xDEADBEEF, comments(), hex_fmt(8, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xDEAD_BEEF", 0xDEADBEEF, comments(), hex_fmt(8, 4), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xdead_beef", 0xDEADBEEF, comments(), hex_fmt(8, 4), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xdead_BEEF", 0xDEADBEEF, comments(), hex_fmt(8, 4), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xFF",        0xFF,       comments(), hex_fmt(2, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0x00FF",      0xFF,       comments(), hex_fmt(4, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0x0000FF",    0xFF,       comments(), hex_fmt(6, 0), ctx);
 }
 
-BOOST_AUTO_TEST_CASE(test_hex)
+TEST_CASE("testing oct_value")
 {
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0xDEADBEEF",  0xDEADBEEF);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0xdeadbeef",  0xDEADBEEF);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0xDEADbeef",  0xDEADBEEF);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0xDEAD_BEEF", 0xDEADBEEF);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0xdead_beef", 0xDEADBEEF);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0xdead_BEEF", 0xDEADBEEF);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0xFF",        0xFF);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0x00FF",      0xFF);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0x0000FF",    0xFF);
+    toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+    const auto oct_fmt = [](std::size_t w, std::size_t s) {
+        toml::integer_format_info fmt;
+        fmt.fmt = toml::integer_format::oct;
+        fmt.width = w;
+        fmt.spacer = s;
+        return fmt;
+    };
+
+    toml11_test_parse_success<toml::value_t::integer>("0o777",   64*7+8*7+7, comments(), oct_fmt(3, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0o7_7_7", 64*7+8*7+7, comments(), oct_fmt(3, 1), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0o007",            7, comments(), oct_fmt(3, 0), ctx);
 }
 
-BOOST_AUTO_TEST_CASE(test_hex_value)
+TEST_CASE("testing bin_value")
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0xDEADBEEF",  value(0xDEADBEEF));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0xdeadbeef",  value(0xDEADBEEF));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0xDEADbeef",  value(0xDEADBEEF));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0xDEAD_BEEF", value(0xDEADBEEF));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0xdead_beef", value(0xDEADBEEF));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0xdead_BEEF", value(0xDEADBEEF));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0xFF",        value(0xFF));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0x00FF",      value(0xFF));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0x0000FF",    value(0xFF));
-}
+    toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+    const auto bin_fmt = [](std::size_t w, std::size_t s) {
+        toml::integer_format_info fmt;
+        fmt.fmt = toml::integer_format::bin;
+        fmt.width = w;
+        fmt.spacer = s;
+        return fmt;
+    };
 
-BOOST_AUTO_TEST_CASE(test_oct)
-{
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0o777",   64*7+8*7+7);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0o7_7_7", 64*7+8*7+7);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0o007",   7);
-}
+    toml11_test_parse_success<toml::value_t::integer>("0b10000",    16, comments(), bin_fmt(5, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0b010000",   16, comments(), bin_fmt(6, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0b01_00_00", 16, comments(), bin_fmt(6, 2), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0b111111",   63, comments(), bin_fmt(6, 0), ctx);
 
-BOOST_AUTO_TEST_CASE(test_oct_value)
-{
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0o777",   value(64*7+8*7+7));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0o7_7_7", value(64*7+8*7+7));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0o007",   value(7));
-}
-
-BOOST_AUTO_TEST_CASE(test_bin)
-{
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0b10000",    16);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0b010000",   16);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0b01_00_00", 16);
-    TOML11_TEST_PARSE_EQUAL(parse_integer, "0b111111",   63);
-}
-
-BOOST_AUTO_TEST_CASE(test_bin_value)
-{
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0b10000",    value(16));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0b010000",   value(16));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0b01_00_00", value(16));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "0b111111",   value(63));
-
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
+    toml11_test_parse_success<toml::value_t::integer>(
         "0b1000_1000_1000_1000_1000_1000_1000_1000_1000_1000_1000_1000_1000_1000_1000",
-        //      1   0   0   0
-        //      0   C   8   4
-        value(0x0888888888888888));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
+        0x0888888888888888, comments(), bin_fmt(60, 4), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(
         "0b01111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111",
-        //      1   0   0   0
-        //      0   C   8   4
-        value(0x7FFFFFFFFFFFFFFF));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>,
+        0x7FFFFFFFFFFFFFFF, comments(), bin_fmt(64, 8), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(
         "0b00000000_01111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111",
-        //      1   0   0   0
-        //      0   C   8   4
-        value(0x7FFFFFFFFFFFFFFF));
+        0x7FFFFFFFFFFFFFFF, comments(), bin_fmt(72, 8), ctx);
 }
 
-BOOST_AUTO_TEST_CASE(test_integer_overflow)
+TEST_CASE("testing integer_overflow")
 {
-    std::istringstream dec_overflow(std::string("dec-overflow = 9223372036854775808"));
-    std::istringstream hex_overflow(std::string("hex-overflow = 0x1_00000000_00000000"));
-    std::istringstream oct_overflow(std::string("oct-overflow = 0o1_000_000_000_000_000_000_000"));
-    //                                                           64       56       48       40       32       24       16        8
-    std::istringstream bin_overflow(std::string("bin-overflow = 0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000"));
-    BOOST_CHECK_THROW(toml::parse(dec_overflow), toml::syntax_error);
-    BOOST_CHECK_THROW(toml::parse(hex_overflow), toml::syntax_error);
-    BOOST_CHECK_THROW(toml::parse(oct_overflow), toml::syntax_error);
-    BOOST_CHECK_THROW(toml::parse(bin_overflow), toml::syntax_error);
+    toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+    {
+        auto loc = toml::detail::make_temporary_location("9223372036854775808");
+        const auto res = toml::detail::parse_dec_integer(loc, ctx);
+        CHECK_UNARY(res.is_err());
+    }
+    {
+        auto loc = toml::detail::make_temporary_location("0x1_00000000_00000000");
+        const auto res = toml::detail::parse_hex_integer(loc, ctx);
+        CHECK_UNARY(res.is_err());
+    }
+    {
+        auto loc = toml::detail::make_temporary_location("0o1_000_000_000_000_000_000_000");
+        const auto res = toml::detail::parse_oct_integer(loc, ctx);
+        CHECK_UNARY(res.is_err());
+    }
+    {
+        //                         64       56       48       40       32       24       16        8
+        auto loc = toml::detail::make_temporary_location("0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000");
+        const auto res = toml::detail::parse_oct_integer(loc, ctx);
+        CHECK_UNARY(res.is_err());
+    }
+}
+
+TEST_CASE("testing decimal_value with suffix extension")
+{
+    auto spec = toml::spec::v(1, 0, 0);
+    spec.ext_num_suffix = true;
+
+    toml::detail::context<toml::type_config> ctx(spec);
+    const auto decimal_fmt = [](std::size_t w, std::size_t s, std::string x) {
+        toml::integer_format_info fmt;
+        fmt.fmt = toml::integer_format::dec;
+        fmt.width = w;
+        fmt.spacer = s;
+        fmt.suffix = std::move(x);
+        return fmt;
+    };
+    toml11_test_parse_success<toml::value_t::integer>(       "1234_μm",      1234, comments(), decimal_fmt(4, 0, "μm"), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(      "+1234_μm",      1234, comments(), decimal_fmt(5, 0, "μm"), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(      "-1234_μm",     -1234, comments(), decimal_fmt(5, 0, "μm"), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(          "0_μm",         0, comments(), decimal_fmt(1, 0, "μm"), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(    "1_2_3_4_μm",      1234, comments(), decimal_fmt(4, 1, "μm"), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(   "+1_2_3_4_μm",     +1234, comments(), decimal_fmt(5, 1, "μm"), ctx);
+    toml11_test_parse_success<toml::value_t::integer>(   "-1_2_3_4_μm",     -1234, comments(), decimal_fmt(5, 1, "μm"), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("123_456_789_μm", 123456789, comments(), decimal_fmt(9, 3, "μm"), ctx);
 }

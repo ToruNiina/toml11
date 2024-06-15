@@ -1,288 +1,142 @@
-#include <toml/parser.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
-#include "unit_test.hpp"
-#include "test_parse_aux.hpp"
+#include <iostream>
+#include "utility.hpp"
+#include <toml11/parser.hpp>
+#include <toml11/types.hpp>
 
-using namespace toml;
-using namespace detail;
+#include "doctest.h"
 
-BOOST_AUTO_TEST_CASE(test_oneline_array)
+TEST_CASE("testing an array")
 {
-    TOML11_TEST_PARSE_EQUAL_VAT(parse_array<toml::value>, "[]", array());
-    {
-        array a(5);
-        a[0] = toml::value(3); a[1] = toml::value(1); a[2] = toml::value(4);
-        a[3] = toml::value(1); a[4] = toml::value(5);
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<toml::value>, "[3,1,4,1,5]", a);
-    }
-    {
-        array a(3);
-        a[0] = toml::value("foo"); a[1] = toml::value("bar");
-        a[2] = toml::value("baz");
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<toml::value>, "[\"foo\", \"bar\",  \"baz\"]", a);
-    }
-    {
-        array a(5);
-        a[0] = toml::value(3); a[1] = toml::value(1); a[2] = toml::value(4);
-        a[3] = toml::value(1); a[4] = toml::value(5);
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<toml::value>, "[3,1,4,1,5,]", a);
-    }
-    {
-        array a(3);
-        a[0] = toml::value("foo"); a[1] = toml::value("bar");
-        a[2] = toml::value("baz");
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<toml::value>, "[\"foo\", \"bar\",  \"baz\",]", a);
-    }
+    toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+    const auto make_format = [](toml::array_format ty, toml::indent_char ic, std::int32_t i, std::int32_t c) {
+        toml::array_format_info fmt;
+        fmt.fmt = ty;
+        fmt.indent_type = ic;
+        fmt.body_indent = i;
+        fmt.closing_indent = c;
+        return fmt;
+    };
+
+    toml11_test_parse_success<toml::value_t::array>("[]",       (toml::array{}),     comments(), make_format(toml::array_format::oneline, toml::indent_char::none, 4, 0), ctx);
+    toml11_test_parse_success<toml::value_t::array>("[1]",      (toml::array{1}),    comments(), make_format(toml::array_format::oneline, toml::indent_char::none, 4, 0), ctx);
+    toml11_test_parse_success<toml::value_t::array>("[1, 2]",   (toml::array{1, 2}), comments(), make_format(toml::array_format::oneline, toml::indent_char::none, 4, 0), ctx);
+    toml11_test_parse_success<toml::value_t::array>("[1, 2, ]", (toml::array{1, 2}), comments(), make_format(toml::array_format::oneline, toml::indent_char::none, 4, 0), ctx);
+
+    toml11_test_parse_success<toml::value_t::array>("[\n  1,\n  2,\n]",   (toml::array{1, 2}), comments(), make_format(toml::array_format::multiline, toml::indent_char::space, 2, 0), ctx);
+    toml11_test_parse_success<toml::value_t::array>("[\n  1,\n  2,\n  ]", (toml::array{1, 2}), comments(), make_format(toml::array_format::multiline, toml::indent_char::space, 2, 2), ctx);
+    toml11_test_parse_success<toml::value_t::array>("[\n\t1,\n\t2,\n]",   (toml::array{1, 2}), comments(), make_format(toml::array_format::multiline, toml::indent_char::tab,   1, 0), ctx);
+    toml11_test_parse_success<toml::value_t::array>("[\n\t1,\n\t2,\n\t]", (toml::array{1, 2}), comments(), make_format(toml::array_format::multiline, toml::indent_char::tab,   1, 1), ctx);
+
+    // comment 3 is before comma, so is a comment for `2`.
+    toml11_test_parse_success<toml::value_t::array>(R"([
+    1, # comment 1
+    2, # comment 2
+# comment 3
+  # comment 4
+# comment 5
+])",
+        (toml::array{
+             toml::value(1, comments("# comment 1")),
+             toml::value(2, comments("# comment 2")),
+         }), comments(), make_format(toml::array_format::multiline, toml::indent_char::space, 4, 0), ctx);
+
+    // comment 3 is before comma, so is a comment for `2`.
+    toml11_test_parse_success<toml::value_t::array>(R"([
+    1, # comment 1
+    2, # comment 2
+# comment 3
+  # comment 4
+# comment 5
+  ])",
+        (toml::array{
+             toml::value(1, comments("# comment 1")),
+             toml::value(2, comments("# comment 2")),
+         }), comments(), make_format(toml::array_format::multiline, toml::indent_char::space, 4, 2), ctx);
+
+    // comment 3 is before comma, so is a comment for `2`.
+    toml11_test_parse_success<toml::value_t::array>(R"([1 # comment 1
+, 2 # comment 2
+# comment 3
+, # comment 4
+# comment 5 (free comment)
+])",
+        (toml::array{
+             toml::value(1, comments("# comment 1")),
+             toml::value(2, comments("# comment 2", "# comment 3", "# comment 4")),
+         }), comments(), make_format(toml::array_format::multiline, toml::indent_char::none, 4, 0), ctx);
+
+
+    toml11_test_parse_success<toml::value_t::array>(R"([1 # comment 1
+, # comment 2
+# comment 3
+# ditto
+
+# comment 4
+2 # comment 5
+# comment 6
+, 3
+# comment 7
+])",
+        (toml::array{
+             toml::value(1, comments("# comment 1", "# comment 2")),
+             toml::value(2, comments("# comment 4", "# comment 5", "# comment 6")),
+             toml::value(3, comments("# comment 7")),
+         }), comments(), make_format(toml::array_format::multiline, toml::indent_char::none, 4, 0), ctx);
 }
 
-BOOST_AUTO_TEST_CASE(test_oneline_array_value)
+TEST_CASE("testing invalid arrays")
 {
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "[]", toml::value(array()));
+    using namespace toml::detail;
     {
-        array a(5);
-        a[0] = toml::value(3); a[1] = toml::value(1); a[2] = toml::value(4);
-        a[3] = toml::value(1); a[4] = toml::value(5);
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "[3,1,4,1,5]", toml::value(a));
-    }
-    {
-        array a(3);
-        a[0] = toml::value("foo"); a[1] = toml::value("bar");
-        a[2] = toml::value("baz");
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "[\"foo\", \"bar\",  \"baz\"]", toml::value(a));
-    }
-    {
-        array a(5);
-        a[0] = toml::value(3); a[1] = toml::value(1); a[2] = toml::value(4);
-        a[3] = toml::value(1); a[4] = toml::value(5);
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "[3,1,4,1,5,]", toml::value(a));
-    }
-    {
-        array a(3);
-        a[0] = toml::value("foo"); a[1] = toml::value("bar");
-        a[2] = toml::value("baz");
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "[\"foo\", \"bar\",  \"baz\",]", toml::value(a));
-    }
-}
+        toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+        auto loc = toml::detail::make_temporary_location("[ 1, hoge ]");
+        const auto res = parse_array(loc, ctx);
+        CHECK_UNARY(res.is_err());
 
-BOOST_AUTO_TEST_CASE(test_multiline_array)
-{
-    TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value< discard_comments>>, "[\n#comment\n]", typename basic_value< discard_comments>::array_type());
-    TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<preserve_comments>>, "[\n#comment\n]", typename basic_value<preserve_comments>::array_type());
-
-    {
-        typename basic_value<discard_comments>::array_type a(5);
-        a[0] = basic_value<discard_comments>(3);
-        a[1] = basic_value<discard_comments>(1);
-        a[2] = basic_value<discard_comments>(4);
-        a[3] = basic_value<discard_comments>(1);
-        a[4] = basic_value<discard_comments>(5);
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<discard_comments>>, "[3,\n1,\n4,\n1,\n5]", a);
-    }
-    {
-        typename basic_value<preserve_comments>::array_type a(5);
-        a[0] = basic_value<preserve_comments>(3);
-        a[1] = basic_value<preserve_comments>(1);
-        a[2] = basic_value<preserve_comments>(4);
-        a[3] = basic_value<preserve_comments>(1);
-        a[4] = basic_value<preserve_comments>(5);
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<preserve_comments>>, "[3,\n1,\n4,\n1,\n5]", a);
+        for(const auto& e : ctx.errors())
+        {
+            std::cerr << toml::format_error(e) << std::endl;
+        }
     }
 
     {
-        typename basic_value<discard_comments>::array_type a(5);
-        a[0] = basic_value<discard_comments>(3);
-        a[1] = basic_value<discard_comments>(1);
-        a[2] = basic_value<discard_comments>(4);
-        a[3] = basic_value<discard_comments>(1);
-        a[4] = basic_value<discard_comments>(5);
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<discard_comments>>, "[3,#comment\n1,#comment\n4,#comment\n1,#comment\n5 #comment\n]", a);
-    }
-    {
-        typename basic_value<preserve_comments>::array_type a(5);
-        a[0] = basic_value<preserve_comments>(3, {"comment"});
-        a[1] = basic_value<preserve_comments>(1, {"comment"});
-        a[2] = basic_value<preserve_comments>(4, {"comment"});
-        a[3] = basic_value<preserve_comments>(1, {"comment"});
-        a[4] = basic_value<preserve_comments>(5, {"comment"});
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<preserve_comments>>, "[3,#comment\n1,#comment\n4,#comment\n1,#comment\n5 #comment\n]", a);
-    }
+        toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+        auto loc = toml::detail::make_temporary_location("[ 1, 2");
+        const auto res = parse_array(loc, ctx);
+        CHECK_UNARY(res.is_err());
+        ctx.report_error(res.unwrap_err());
 
-
-    {
-        typename basic_value<discard_comments>::array_type a(3);
-        a[0] = basic_value<discard_comments>("foo");
-        a[1] = basic_value<discard_comments>("bar");
-        a[2] = basic_value<discard_comments>("baz");
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<discard_comments>>, "[\"foo\",\n\"bar\",\n\"baz\"]", a);
-    }
-    {
-        typename basic_value<preserve_comments>::array_type a(3);
-        a[0] = basic_value<preserve_comments>("foo");
-        a[1] = basic_value<preserve_comments>("bar");
-        a[2] = basic_value<preserve_comments>("baz");
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<preserve_comments>>, "[\"foo\",\n\"bar\",\n\"baz\"]", a);
+        for(const auto& e : ctx.errors())
+        {
+            std::cerr << toml::format_error(e) << std::endl;
+        }
     }
 
     {
-        typename basic_value<discard_comments>::array_type a(3);
-        a[0] = basic_value<discard_comments>("foo");
-        a[1] = basic_value<discard_comments>("b#r");
-        a[2] = basic_value<discard_comments>("b#z");
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<discard_comments>>, "[\"foo\",#comment\n\"b#r\",#comment\n\"b#z\"#comment\n]", a);
-    }
-    {
-        typename basic_value<preserve_comments>::array_type a(3);
-        a[0] = basic_value<preserve_comments>("foo", {"comment"});
-        a[1] = basic_value<preserve_comments>("b#r", {"comment"});
-        a[2] = basic_value<preserve_comments>("b#z", {"comment"});
-        TOML11_TEST_PARSE_EQUAL_VAT(parse_array<basic_value<preserve_comments>>, "[\"foo\",#comment\n\"b#r\",#comment\n\"b#z\"#comment\n]", a);
-    }
-}
+        toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+        auto loc = toml::detail::make_temporary_location("[");
+        const auto res = parse_array(loc, ctx);
+        CHECK_UNARY(res.is_err());
+        ctx.report_error(res.unwrap_err());
 
-BOOST_AUTO_TEST_CASE(test_multiline_array_value)
-{
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value< discard_comments>>, "[\n#comment\n]", basic_value< discard_comments>(typename basic_value< discard_comments>::array_type()));
-    TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<preserve_comments>>, "[\n#comment\n]", basic_value<preserve_comments>(typename basic_value<preserve_comments>::array_type()));
-
-    {
-        typename basic_value<discard_comments>::array_type a(5);
-        a[0] = basic_value<discard_comments>(3);
-        a[1] = basic_value<discard_comments>(1);
-        a[2] = basic_value<discard_comments>(4);
-        a[3] = basic_value<discard_comments>(1);
-        a[4] = basic_value<discard_comments>(5);
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<discard_comments>>, "[3,\n1,\n4,\n1,\n5]", basic_value<discard_comments>(a));
-    }
-    {
-        typename basic_value<preserve_comments>::array_type a(5);
-        a[0] = basic_value<preserve_comments>(3);
-        a[1] = basic_value<preserve_comments>(1);
-        a[2] = basic_value<preserve_comments>(4);
-        a[3] = basic_value<preserve_comments>(1);
-        a[4] = basic_value<preserve_comments>(5);
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<preserve_comments>>, "[3,\n1,\n4,\n1,\n5]", basic_value<preserve_comments>(a));
+        for(const auto& e : ctx.errors())
+        {
+            std::cerr << toml::format_error(e) << std::endl;
+        }
     }
 
     {
-        typename basic_value<discard_comments>::array_type a(5);
-        a[0] = basic_value<discard_comments>(3);
-        a[1] = basic_value<discard_comments>(1);
-        a[2] = basic_value<discard_comments>(4);
-        a[3] = basic_value<discard_comments>(1);
-        a[4] = basic_value<discard_comments>(5);
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<discard_comments>>, "[3,#comment\n1,#comment\n4,#comment\n1,#comment\n5 #comment\n]", basic_value<discard_comments>(a));
-    }
-    {
-        typename basic_value<preserve_comments>::array_type a(5);
-        a[0] = basic_value<preserve_comments>(3, {"comment"});
-        a[1] = basic_value<preserve_comments>(1, {"comment"});
-        a[2] = basic_value<preserve_comments>(4, {"comment"});
-        a[3] = basic_value<preserve_comments>(1, {"comment"});
-        a[4] = basic_value<preserve_comments>(5, {"comment"});
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<preserve_comments>>, "[3,#comment\n1,#comment\n4,#comment\n1,#comment\n5 #comment\n]", basic_value<preserve_comments>(a));
-    }
+        toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+        auto loc = toml::detail::make_temporary_location("[ 1, 2, 3\n a = b");
+        const auto res = parse_array(loc, ctx);
+        CHECK_UNARY(res.is_err());
+        ctx.report_error(res.unwrap_err());
 
-
-    {
-        typename basic_value<discard_comments>::array_type a(3);
-        a[0] = basic_value<discard_comments>("foo");
-        a[1] = basic_value<discard_comments>("bar");
-        a[2] = basic_value<discard_comments>("baz");
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<discard_comments>>, "[\"foo\",\n\"bar\",\n\"baz\"]", basic_value<discard_comments>(a));
+        for(const auto& e : ctx.errors())
+        {
+            std::cerr << toml::format_error(e) << std::endl;
+        }
     }
-    {
-        typename basic_value<preserve_comments>::array_type a(3);
-        a[0] = basic_value<preserve_comments>("foo");
-        a[1] = basic_value<preserve_comments>("bar");
-        a[2] = basic_value<preserve_comments>("baz");
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<preserve_comments>>, "[\"foo\",\n\"bar\",\n\"baz\"]", basic_value<preserve_comments>(a));
-    }
-
-    {
-        typename basic_value<discard_comments>::array_type a(3);
-        a[0] = basic_value<discard_comments>("foo");
-        a[1] = basic_value<discard_comments>("b#r");
-        a[2] = basic_value<discard_comments>("b#z");
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<discard_comments>>, "[\"foo\",#comment\n\"b#r\",#comment\n\"b#z\"#comment\n]", basic_value<discard_comments>(a));
-    }
-    {
-        typename basic_value<preserve_comments>::array_type a(3);
-        a[0] = basic_value<preserve_comments>("foo", {"comment"});
-        a[1] = basic_value<preserve_comments>("b#r", {"comment"});
-        a[2] = basic_value<preserve_comments>("b#z", {"comment"});
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<preserve_comments>>, "[\"foo\",#comment\n\"b#r\",#comment\n\"b#z\"#comment\n]", basic_value<preserve_comments>(a));
-    }
-
-}
-
-BOOST_AUTO_TEST_CASE(test_heterogeneous_array)
-{
-#ifndef TOML11_USE_UNRELEASED_TOML_FEATURES
-    BOOST_TEST_MESSAGE("In strict TOML v0.5.0, heterogeneous arrays are not allowed.");
-#else
-    {
-        array a(5);
-        a[0] = toml::value("foo");
-        a[1] = toml::value(3.14);
-        a[2] = toml::value(42);
-        a[3] = toml::value{toml::value("array"), toml::value("of"), toml::value("hetero-array"), toml::value(1)};
-        a[4] = toml::value{{"key", "value"}};
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "[\"foo\", 3.14, 42, [\"array\", \"of\", \"hetero-array\", 1], {key = \"value\"}]", toml::value(a));
-    }
-    {
-        array a(5);
-        a[0] = toml::value("foo");
-        a[1] = toml::value(3.14);
-        a[2] = toml::value(42);
-        a[3] = toml::value{toml::value("array"), toml::value("of"), toml::value("hetero-array"), toml::value(1)};
-        a[4] = toml::value{{"key", "value"}};
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "[\"foo\",\n 3.14,\n 42,\n [\"array\", \"of\", \"hetero-array\", 1],\n {key = \"value\"},\n]", toml::value(a));
-    }
-    {
-        array a(5);
-        a[0] = toml::value("foo");
-        a[1] = toml::value(3.14);
-        a[2] = toml::value(42);
-        a[3] = toml::value{toml::value("array"), toml::value("of"), toml::value("hetero-array"), toml::value(1)};
-        a[4] = toml::value{{"key", "value"}};
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "[\"foo\",#comment\n 3.14,#comment\n 42,#comment\n [\"array\", \"of\", \"hetero-array\", 1],#comment\n {key = \"value\"},#comment\n]#comment", toml::value(a));
-    }
-    {
-        array a(5);
-        a[0] = toml::value("foo");
-        a[1] = toml::value(3.14);
-        a[2] = toml::value(42);
-        a[3] = toml::value{toml::value("array"), toml::value("of"), toml::value("hetero-array"), toml::value(1)};
-        a[4] = toml::value{{"key", "value"}};
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<toml::value>, "[\"foo\",\n 3.14,\n 42,\n [\"array\",\n \"of\",\n \"hetero-array\",\n 1],\n {key = \"value\"},\n]", toml::value(a));
-    }
-#endif
-}
-
-BOOST_AUTO_TEST_CASE(test_comments_after_comma)
-{
-    {
-        typename basic_value<discard_comments>::array_type a(3);
-        a[0] = basic_value<discard_comments>("foo");
-        a[1] = basic_value<discard_comments>("bar");
-        a[2] = basic_value<discard_comments>("baz");
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<discard_comments>>,
-            "[ \"foo\" # comment\n"
-            ", \"bar\" # comment\n"
-            ", \"baz\" # comment\n"
-            "]", basic_value<discard_comments>(a));
-    }
-
-    {
-        typename basic_value<preserve_comments>::array_type a(3);
-        a[0] = basic_value<preserve_comments>("foo", {" comment"});
-        a[1] = basic_value<preserve_comments>("bar", {" comment"});
-        a[2] = basic_value<preserve_comments>("baz", {" comment"});
-        TOML11_TEST_PARSE_EQUAL_VALUE(parse_value<basic_value<preserve_comments>>,
-            "[ \"foo\" # comment\n"
-            ", \"bar\" # comment\n"
-            ", \"baz\" # comment\n"
-            "]", basic_value<preserve_comments>(a));
-    }
-
 }

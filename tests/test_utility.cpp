@@ -1,11 +1,17 @@
-#include <toml/utility.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.h"
 
-#include "unit_test.hpp"
+#include <toml11/utility.hpp>
 
-#include <array>
-#include <vector>
+TEST_CASE("testing make_unique")
+{
+    const auto v = toml::cxx::make_unique<std::vector<std::string>>(std::size_t(2), "foobar");
+    CHECK_EQ(v->size(), 2);
+    CHECK_EQ(v->at(0),  "foobar");
+    CHECK_EQ(v->at(1),  "foobar");
+}
 
-BOOST_AUTO_TEST_CASE(test_try_reserve)
+TEST_CASE("testing try_reserve")
 {
     {
         // since BOOST_TEST is a macro, it cannot handle commas correctly.
@@ -16,30 +22,149 @@ BOOST_AUTO_TEST_CASE(test_try_reserve)
         // this problem.
         using reservable_type    = std::vector<int>  ;
         using nonreservable_type = std::array<int, 1>;
-        BOOST_TEST( toml::detail::has_reserve_method<reservable_type   >::value);
-        BOOST_TEST(!toml::detail::has_reserve_method<nonreservable_type>::value);
+        CHECK_UNARY( toml::detail::has_reserve_method<reservable_type   >::value);
+        CHECK_UNARY(!toml::detail::has_reserve_method<nonreservable_type>::value);
     }
     {
         std::vector<int> v;
-        toml::try_reserve(v, 100);
-        BOOST_TEST(v.capacity() == 100u);
+        toml::detail::try_reserve(v, 100);
+        CHECK_EQ(v.capacity(), 100u);
+    }
+    {
+        std::array<int, 1> v;
+        toml::detail::try_reserve(v, 100);
+        CHECK_EQ(v.size(), 1);
     }
 }
 
-BOOST_AUTO_TEST_CASE(test_concat_to_string)
-{
-    const std::string cat = toml::concat_to_string("foo", "bar", 42);
-    BOOST_TEST(cat == "foobar42");
-}
-
-BOOST_AUTO_TEST_CASE(test_from_string)
+TEST_CASE("testing from_string")
 {
     {
         const std::string str("123");
-        BOOST_TEST(toml::from_string<int>(str, 0) == 123);
+        REQUIRE_UNARY(toml::detail::from_string<int>(str).is_ok());
+        CHECK_EQ(toml::detail::from_string<int>(str).unwrap(), 123);
     }
     {
         const std::string str("01");
-        BOOST_TEST(toml::from_string<int>(str, 0) == 1);
+        REQUIRE_UNARY(toml::detail::from_string<int>(str).is_ok());
+        CHECK_EQ(toml::detail::from_string<int>(str).unwrap(), 1);
     }
+}
+
+TEST_CASE("testing make_string")
+{
+    const auto s1 = toml::detail::make_string(3, 'a');
+    CHECK_EQ(s1, "aaa");
+
+    const auto s2 = toml::detail::make_string(0, 'a');
+    CHECK_EQ(s2, "");
+
+    const std::string s("bbb");
+
+    const auto s3 = toml::detail::make_string(s.begin(), s.end());
+    CHECK_EQ(s3, "bbb");
+
+    const auto s4 = toml::detail::make_string(s.begin(), s.begin());
+    CHECK_EQ(s4, "");
+}
+
+TEST_CASE("testing make_reverse_iterator")
+{
+    const std::vector<int> v{1, 2, 3, 4, 5};
+
+    const auto iter = toml::cxx::make_reverse_iterator(v.begin());
+    CHECK_EQ(iter, v.rend());
+}
+
+#if defined(TOML11_HAS_STD_SOURCE_LOCATION) || defined(TOML11_HAS_EXPERIMENTAL_SOURCE_LOCATION) || defined(TOML11_HAS_BUILTIN_FILE_LINE)
+TEST_CASE("cxx::source_location")
+{
+    const std::string file = __FILE__;
+    const auto line = __LINE__; const auto loc = toml::cxx::source_location::current();
+
+    CHECK_EQ(file, loc.file_name());
+    CHECK_EQ(line, loc.line());
+}
+#endif
+
+TEST_CASE("cxx::optional")
+{
+    {
+        toml::cxx::optional<int> v(42);
+
+        CHECK_UNARY(static_cast<bool>(v));
+        CHECK_UNARY(v.has_value());
+
+        CHECK_EQ(v.value(), 42);
+        CHECK_EQ(v.value_or(6 * 9), 42);
+
+        v.value() = 6 * 9;
+        CHECK_EQ(v.value(), 54);
+    }
+    {
+        toml::cxx::optional<int> v;
+
+        CHECK_UNARY_FALSE(static_cast<bool>(v));
+        CHECK_UNARY_FALSE(v.has_value());
+        CHECK_THROWS(v.value());
+        CHECK_EQ(v.value_or(6 * 9), 54);
+
+        v = 42;
+        CHECK_UNARY(static_cast<bool>(v));
+        CHECK_UNARY(v.has_value());
+        CHECK_EQ(v.value(), 42);
+    }
+    {
+        toml::cxx::optional<int> v(toml::cxx::make_nullopt());
+
+        CHECK_UNARY_FALSE(static_cast<bool>(v));
+        CHECK_UNARY_FALSE(v.has_value());
+        CHECK_THROWS(v.value());
+        CHECK_EQ(v.value_or(6 * 9), 54);
+
+        v = 42;
+        CHECK_UNARY(static_cast<bool>(v));
+        CHECK_UNARY(v.has_value());
+        CHECK_EQ(v.value(), 42);
+    }
+
+    {
+        toml::cxx::optional<std::vector<int>> v(std::vector<int>{42});
+
+        CHECK_UNARY(static_cast<bool>(v));
+        CHECK_UNARY(v.has_value());
+
+        CHECK_EQ(v.value(), std::vector<int>{42});
+        CHECK_EQ(v.value_or(std::vector<int>{6 * 9}), std::vector<int>{42});
+
+        v.value() = std::vector<int>{6 * 9};
+        CHECK_EQ(v.value(), std::vector<int>{54});
+    }
+    {
+        toml::cxx::optional<std::vector<int>> v;
+
+        CHECK_UNARY_FALSE(static_cast<bool>(v));
+        CHECK_UNARY_FALSE(v.has_value());
+        CHECK_THROWS(v.value());
+        CHECK_EQ(v.value_or(std::vector<int>{6 * 9}), std::vector<int>{54});
+
+        v = std::vector<int>{42};
+        CHECK_UNARY(static_cast<bool>(v));
+        CHECK_UNARY(v.has_value());
+        CHECK_EQ(v.value(), std::vector<int>{42});
+    }
+    {
+        toml::cxx::optional<std::vector<int>> v(toml::cxx::make_nullopt());
+
+        CHECK_UNARY_FALSE(static_cast<bool>(v));
+        CHECK_UNARY_FALSE(v.has_value());
+        CHECK_THROWS(v.value());
+        CHECK_EQ(v.value_or(std::vector<int>{6 * 9}), std::vector<int>{54});
+
+        v = std::vector<int>{42};
+        CHECK_UNARY(static_cast<bool>(v));
+        CHECK_UNARY(v.has_value());
+        CHECK_EQ(v.value(), std::vector<int>{42});
+    }
+
 }

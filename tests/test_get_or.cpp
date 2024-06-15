@@ -1,6 +1,10 @@
-#include <toml.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.h"
 
-#include "unit_test.hpp"
+#include "utility.hpp"
+
+#include <toml11/value.hpp>
+#include <toml11/get.hpp>
 
 #include <array>
 #include <deque>
@@ -13,240 +17,180 @@
 #include <string_view>
 #endif
 
-using test_value_types = std::tuple<
-    toml::basic_value<toml::discard_comments>,
-    toml::basic_value<toml::preserve_comments>,
-    toml::basic_value<toml::discard_comments,  std::map, std::deque>,
-    toml::basic_value<toml::preserve_comments, std::map, std::deque>
->;
+#define TOML11_TEST_GET_OR_EXACT(ty, init_expr, opt_expr)\
+    {                                                    \
+        const ty init init_expr ;                        \
+        const ty opt  opt_expr ;                         \
+        const value_type v(init);                        \
+        CHECK_NE(init, opt);                             \
+        CHECK_EQ(init, toml::get_or(v, opt));            \
+    }
 
-namespace test
+TEST_CASE("testing get_or with exact types")
 {
-// to compare result values in BOOST_TEST().
-//
-// BOOST_TEST outputs the expected and actual values. Thus it includes the
-// output stream operator inside. To compile it, we need operator<<s for
-// containers to compare.
-template<typename charT, typename traits, typename T, typename Alloc>
-std::basic_ostream<charT, traits>&
-operator<<(std::basic_ostream<charT, traits>& os, const std::vector<T, Alloc>& v)
-{
-    os << "[ ";
-    for(const auto& i : v) {os << i << ' ';}
-    os << ']';
-    return os;
-}
-template<typename charT, typename traits, typename T, typename Alloc>
-std::basic_ostream<charT, traits>&
-operator<<(std::basic_ostream<charT, traits>& os, const std::deque<T, Alloc>& v)
-{
-    os << "[ ";
-    for(const auto& i : v) {os << i << ' ';}
-    os << ']';
-    return os;
-}
-template<typename charT, typename traits, typename T, typename Alloc>
-std::basic_ostream<charT, traits>&
-operator<<(std::basic_ostream<charT, traits>& os, const std::list<T, Alloc>& v)
-{
-    os << "[ ";
-    for(const auto& i : v) {os << i << ' ';}
-    os << ']';
-    return os;
-}
-template<typename charT, typename traits,
-         typename Key, typename Value, typename Comp, typename Alloc>
-std::basic_ostream<charT, traits>&
-operator<<(std::basic_ostream<charT, traits>& os,
-           const std::map<Key, Value, Comp, Alloc>& v)
-{
-    os << "[ ";
-    for(const auto& i : v) {os << '{' << i.first << ", " << i.second << "} ";}
-    os << ']';
-    return os;
-}
-template<typename charT, typename traits,
-         typename Key, typename Value, typename Hash, typename Eq, typename Alloc>
-std::basic_ostream<charT, traits>&
-operator<<(std::basic_ostream<charT, traits>& os,
-           const std::unordered_map<Key, Value, Hash, Eq, Alloc>& v)
-{
-    os << "[ ";
-    for(const auto& i : v) {os << '{' << i.first << ", " << i.second << "} ";}
-    os << ']';
-    return os;
-}
-} // test
+    using value_type = toml::value;
+    using boolean_type         = typename value_type::boolean_type        ;
+    using integer_type         = typename value_type::integer_type        ;
+    using floating_type        = typename value_type::floating_type       ;
+    using string_type          = typename value_type::string_type         ;
+    using local_time_type      = typename value_type::local_time_type     ;
+    using local_date_type      = typename value_type::local_date_type     ;
+    using local_datetime_type  = typename value_type::local_datetime_type ;
+    using offset_datetime_type = typename value_type::offset_datetime_type;
+    using array_type           = typename value_type::array_type          ;
+    using table_type           = typename value_type::table_type          ;
 
-#define TOML11_TEST_GET_OR_EXACT(toml_type, init_expr, opt_expr)\
-    {                                                           \
-        using namespace test;                                   \
-        const toml::toml_type init init_expr ;                  \
-        const toml::toml_type opt  opt_expr ;                   \
-        const value_type v(init);                               \
-        BOOST_TEST(init != opt);                                \
-        BOOST_TEST(init == toml::get_or(v, opt));               \
-    }                                                           \
-    /**/
-
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_get_or_exact, value_type, test_value_types)
-{
-    TOML11_TEST_GET_OR_EXACT(boolean,         ( true), (false))
-    TOML11_TEST_GET_OR_EXACT(integer,         (   42), (   54))
-    TOML11_TEST_GET_OR_EXACT(floating,        ( 3.14), ( 2.71))
-    TOML11_TEST_GET_OR_EXACT(string,          ("foo"), ("bar"))
-    TOML11_TEST_GET_OR_EXACT(local_time,      (12, 30, 45), (6, 0, 30))
-    TOML11_TEST_GET_OR_EXACT(local_date,      (2019, toml::month_t::Apr, 1),
-                                              (1999, toml::month_t::Jan, 2))
-    TOML11_TEST_GET_OR_EXACT(local_datetime,
+    TOML11_TEST_GET_OR_EXACT(boolean_type,         ( true), (false))
+    TOML11_TEST_GET_OR_EXACT(integer_type,         (   42), (   54))
+    TOML11_TEST_GET_OR_EXACT(floating_type,        ( 3.14), ( 2.71))
+    TOML11_TEST_GET_OR_EXACT(string_type,          ("foo"), ("bar"))
+    TOML11_TEST_GET_OR_EXACT(local_time_type,      (12, 30, 45), (6, 0, 30))
+    TOML11_TEST_GET_OR_EXACT(local_date_type,      (2019, toml::month_t::Apr, 1),
+                                                   (1999, toml::month_t::Jan, 2))
+    TOML11_TEST_GET_OR_EXACT(local_datetime_type,
             (toml::local_date(2019, toml::month_t::Apr, 1), toml::local_time(12, 30, 45)),
             (toml::local_date(1999, toml::month_t::Jan, 2), toml::local_time( 6,  0, 30))
             )
-    TOML11_TEST_GET_OR_EXACT(offset_datetime,
+    TOML11_TEST_GET_OR_EXACT(offset_datetime_type,
             (toml::local_date(2019, toml::month_t::Apr, 1), toml::local_time(12, 30, 45), toml::time_offset( 9, 0)),
             (toml::local_date(1999, toml::month_t::Jan, 2), toml::local_time( 6,  0, 30), toml::time_offset(-3, 0))
             )
-    {
-        const typename value_type::array_type init{1,2,3,4,5};
-        const typename value_type::array_type opt {6,7,8,9,10};
-        const value_type v(init);
-        BOOST_TEST(init != opt);
-        BOOST_TEST(init == toml::get_or(v, opt));
-    }
-    {
-        const typename value_type::table_type init{{"key1", 42}, {"key2", "foo"}};
-        const typename value_type::table_type opt {{"key1", 54}, {"key2", "bar"}};
-        const value_type v(init);
-        BOOST_TEST(init != opt);
-        BOOST_TEST(init == toml::get_or(v, opt));
-    }
+
+    TOML11_TEST_GET_OR_EXACT(array_type, ({1,2,3,4,5}), ({6,7,8,9,10}));
+    TOML11_TEST_GET_OR_EXACT(table_type, ({{"key1", 42}, {"key2", "foo"}}),
+                                         ({{"key1", 54}, {"key2", "bar"}}));
 }
 #undef TOML11_TEST_GET_OR_EXACT
 
-#define TOML11_TEST_GET_OR_MOVE_EXACT(toml_type, init_expr, opt_expr)\
+#define TOML11_TEST_GET_OR_MOVE_EXACT(ty, init_expr, opt_expr)       \
     {                                                                \
-        using namespace test;                                        \
-        const toml::toml_type init init_expr ;                       \
-        toml::toml_type       opt  opt_expr ;                        \
+        const ty init init_expr ;                                    \
+        ty       opt  opt_expr ;                                     \
         value_type v(init);                                          \
-        BOOST_TEST(init != opt);                                     \
+        CHECK_NE(init, opt);                                         \
         const auto opt_ = toml::get_or(std::move(v), std::move(opt));\
-        BOOST_TEST(init == opt_);                                    \
-    }                                                                \
-    /**/
+        CHECK_EQ(init, opt_);                                        \
+    }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_get_or_move, value_type, test_value_types)
+TEST_CASE("testing toml::get_or with moved argument")
 {
-    TOML11_TEST_GET_OR_MOVE_EXACT(boolean,         ( true), (false))
-    TOML11_TEST_GET_OR_MOVE_EXACT(integer,         (   42), (   54))
-    TOML11_TEST_GET_OR_MOVE_EXACT(floating,        ( 3.14), ( 2.71))
-    TOML11_TEST_GET_OR_MOVE_EXACT(string,          ("foo"), ("bar"))
-    TOML11_TEST_GET_OR_MOVE_EXACT(local_time,      (12, 30, 45), (6, 0, 30))
-    TOML11_TEST_GET_OR_MOVE_EXACT(local_date,      (2019, toml::month_t::Apr, 1),
-                                                   (1999, toml::month_t::Jan, 2))
-    TOML11_TEST_GET_OR_MOVE_EXACT(local_datetime,
+    using value_type = toml::value;
+    using boolean_type         = typename value_type::boolean_type        ;
+    using integer_type         = typename value_type::integer_type        ;
+    using floating_type        = typename value_type::floating_type       ;
+    using string_type          = typename value_type::string_type         ;
+    using local_time_type      = typename value_type::local_time_type     ;
+    using local_date_type      = typename value_type::local_date_type     ;
+    using local_datetime_type  = typename value_type::local_datetime_type ;
+    using offset_datetime_type = typename value_type::offset_datetime_type;
+    using array_type           = typename value_type::array_type          ;
+    using table_type           = typename value_type::table_type          ;
+
+    TOML11_TEST_GET_OR_MOVE_EXACT(boolean_type,         ( true), (false))
+    TOML11_TEST_GET_OR_MOVE_EXACT(integer_type,         (   42), (   54))
+    TOML11_TEST_GET_OR_MOVE_EXACT(floating_type,        ( 3.14), ( 2.71))
+    TOML11_TEST_GET_OR_MOVE_EXACT(string_type,          ("foo"), ("bar"))
+    TOML11_TEST_GET_OR_MOVE_EXACT(local_time_type,      (12, 30, 45), (6, 0, 30))
+    TOML11_TEST_GET_OR_MOVE_EXACT(local_date_type,      (2019, toml::month_t::Apr, 1),
+                                                        (1999, toml::month_t::Jan, 2))
+    TOML11_TEST_GET_OR_MOVE_EXACT(local_datetime_type,
             (toml::local_date(2019, toml::month_t::Apr, 1), toml::local_time(12, 30, 45)),
             (toml::local_date(1999, toml::month_t::Jan, 2), toml::local_time( 6,  0, 30))
-            )
-    TOML11_TEST_GET_OR_MOVE_EXACT(offset_datetime,
+        )
+    TOML11_TEST_GET_OR_MOVE_EXACT(offset_datetime_type,
             (toml::local_date(2019, toml::month_t::Apr, 1), toml::local_time(12, 30, 45), toml::time_offset( 9, 0)),
             (toml::local_date(1999, toml::month_t::Jan, 2), toml::local_time( 6,  0, 30), toml::time_offset(-3, 0))
-            )
-    {
-        const typename value_type::array_type init{1,2,3,4,5};
-        typename value_type::array_type opt {6,7,8,9,10};
-        value_type v(init);
-        BOOST_TEST(init != opt);
-        const auto opt_ = toml::get_or(std::move(v), std::move(opt));
-        BOOST_TEST(init == opt_);
-    }
-    {
-        const typename value_type::table_type init{{"key1", 42}, {"key2", "foo"}};
-        typename value_type::table_type opt {{"key1", 54}, {"key2", "bar"}};
-        value_type v(init);
-        BOOST_TEST(init != opt);
-        const auto opt_ = toml::get_or(std::move(v), std::move(opt));
-        BOOST_TEST(init == opt_);
-    }
+        )
+
+    TOML11_TEST_GET_OR_MOVE_EXACT(array_type, ({1,2,3,4,5}), ({6,7,8,9,10}));
+    TOML11_TEST_GET_OR_MOVE_EXACT(table_type, ({{"key1", 42}, {"key2", "foo"}}),
+                                              ({{"key1", 54}, {"key2", "bar"}}));
+
 }
 #undef TOML11_TEST_GET_OR_MOVE_EXACT
 
 
-#define TOML11_TEST_GET_OR_MODIFY(toml_type, init_expr, opt_expr)\
-    {                                                            \
-        using namespace test;                                    \
-        const toml::toml_type init init_expr ;                   \
-        toml::toml_type       opt1 opt_expr ;                    \
-        toml::toml_type       opt2 opt_expr ;                    \
-        value_type v(init);                                      \
-        BOOST_TEST(init != opt1);                                \
-        toml::get_or(v, opt2) = opt1;                            \
-        BOOST_TEST(opt1 == toml::get<toml::toml_type>(v));       \
-    }                                                            \
-    /**/
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_get_or_modify, value_type, test_value_types)
+#define TOML11_TEST_GET_OR_MODIFY(ty, init_expr, opt_expr)\
+    {                                                     \
+        const ty init init_expr ;                         \
+              ty opt1 opt_expr ;                          \
+              ty opt2 opt_expr ;                          \
+        value_type v(init);                               \
+        CHECK_NE(init, opt1);                             \
+        toml::get_or(v, opt2) = opt1;                     \
+        CHECK_EQ(opt1, toml::get<ty>(v));                 \
+    }
+
+TEST_CASE("testing if get_or can modify value")
 {
-    TOML11_TEST_GET_OR_MODIFY(boolean,         ( true), (false))
-    TOML11_TEST_GET_OR_MODIFY(integer,         (   42), (   54))
-    TOML11_TEST_GET_OR_MODIFY(floating,        ( 3.14), ( 2.71))
-    TOML11_TEST_GET_OR_MODIFY(string,          ("foo"), ("bar"))
-    TOML11_TEST_GET_OR_MODIFY(local_time,      (12, 30, 45), (6, 0, 30))
-    TOML11_TEST_GET_OR_MODIFY(local_date,      (2019, toml::month_t::Apr, 1),
-                                              (1999, toml::month_t::Jan, 2))
-    TOML11_TEST_GET_OR_MODIFY(local_datetime,
+    using value_type = toml::value;
+    using boolean_type         = typename value_type::boolean_type        ;
+    using integer_type         = typename value_type::integer_type        ;
+    using floating_type        = typename value_type::floating_type       ;
+    using string_type          = typename value_type::string_type         ;
+    using local_time_type      = typename value_type::local_time_type     ;
+    using local_date_type      = typename value_type::local_date_type     ;
+    using local_datetime_type  = typename value_type::local_datetime_type ;
+    using offset_datetime_type = typename value_type::offset_datetime_type;
+    using array_type           = typename value_type::array_type          ;
+    using table_type           = typename value_type::table_type          ;
+
+    TOML11_TEST_GET_OR_MODIFY(boolean_type,         ( true), (false))
+    TOML11_TEST_GET_OR_MODIFY(integer_type,         (   42), (   54))
+    TOML11_TEST_GET_OR_MODIFY(floating_type,        ( 3.14), ( 2.71))
+    TOML11_TEST_GET_OR_MODIFY(string_type,          ("foo"), ("bar"))
+    TOML11_TEST_GET_OR_MODIFY(local_time_type,      (12, 30, 45), (6, 0, 30))
+    TOML11_TEST_GET_OR_MODIFY(local_date_type,      (2019, toml::month_t::Apr, 1),
+                                                    (1999, toml::month_t::Jan, 2))
+    TOML11_TEST_GET_OR_MODIFY(local_datetime_type,
             (toml::local_date(2019, toml::month_t::Apr, 1), toml::local_time(12, 30, 45)),
             (toml::local_date(1999, toml::month_t::Jan, 2), toml::local_time( 6,  0, 30))
-            )
-    TOML11_TEST_GET_OR_MODIFY(offset_datetime,
+        )
+    TOML11_TEST_GET_OR_MODIFY(offset_datetime_type,
             (toml::local_date(2019, toml::month_t::Apr, 1), toml::local_time(12, 30, 45), toml::time_offset( 9, 0)),
             (toml::local_date(1999, toml::month_t::Jan, 2), toml::local_time( 6,  0, 30), toml::time_offset(-3, 0))
-            )
-    {
-        typename value_type::array_type init{1,2,3,4,5};
-        typename value_type::array_type opt1{6,7,8,9,10};
-        typename value_type::array_type opt2{6,7,8,9,10};
-        BOOST_TEST(init != opt1);
-        value_type v(init);
-        toml::get_or(v, opt2) = opt1;
-        BOOST_TEST(opt1 == toml::get<typename value_type::array_type>(v));
-    }
-    {
-        typename value_type::table_type init{{"key1", 42}, {"key2", "foo"}};
-        typename value_type::table_type opt1{{"key1", 54}, {"key2", "bar"}};
-        typename value_type::table_type opt2{{"key1", 54}, {"key2", "bar"}};
-        value_type v(init);
-        BOOST_TEST(init != opt1);
-        toml::get_or(v, opt2) = opt1;
-        BOOST_TEST(opt1 == toml::get<typename value_type::table_type>(v));
-    }
+        )
+
+    TOML11_TEST_GET_OR_MODIFY(array_type, ({1,2,3,4,5}), ({6,7,8,9,10}));
+    TOML11_TEST_GET_OR_MODIFY(table_type, ({{"key1", 42}, {"key2", "foo"}}),
+                                          ({{"key1", 54}, {"key2", "bar"}}));
 }
 #undef TOML11_TEST_GET_OR_MODIFY
 
 #define TOML11_TEST_GET_OR_FALLBACK(init_type, opt_type)  \
     {                                                     \
-        using namespace test;                             \
         value_type v(init_type);                          \
-        BOOST_TEST(opt_type == toml::get_or(v, opt_type));\
-    }                                                     \
-    /**/
+        CHECK_EQ(opt_type, toml::get_or(v, opt_type));    \
+    }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_get_or_fallback, value_type, test_value_types)
+TEST_CASE("testing get_or can return optional value on failure")
 {
-    const toml::boolean         boolean        (true);
-    const toml::integer         integer        (42);
-    const toml::floating        floating       (3.14);
-    const toml::string          string         ("foo");
-    const toml::local_time      local_time     (12, 30, 45);
-    const toml::local_date      local_date     (2019, toml::month_t::Apr, 1);
-    const toml::local_datetime  local_datetime (
+    using value_type = toml::value;
+    using boolean_type         = typename value_type::boolean_type        ;
+    using integer_type         = typename value_type::integer_type        ;
+    using floating_type        = typename value_type::floating_type       ;
+    using string_type          = typename value_type::string_type         ;
+    using local_time_type      = typename value_type::local_time_type     ;
+    using local_date_type      = typename value_type::local_date_type     ;
+    using local_datetime_type  = typename value_type::local_datetime_type ;
+    using offset_datetime_type = typename value_type::offset_datetime_type;
+    using array_type           = typename value_type::array_type          ;
+    using table_type           = typename value_type::table_type          ;
+
+    const boolean_type         boolean        (true);
+    const integer_type         integer        (42);
+    const floating_type        floating       (3.14);
+    const string_type          string         ("foo");
+    const local_time_type      local_time     (12, 30, 45);
+    const local_date_type      local_date     (2019, toml::month_t::Apr, 1);
+    const local_datetime_type  local_datetime (
             toml::local_date(2019, toml::month_t::Apr, 1),
-            toml::local_time(12, 30, 45));
-    const toml::offset_datetime offset_datetime(
+            toml::local_time(12, 30, 45)
+        );
+    const offset_datetime_type offset_datetime(
             toml::local_date(2019, toml::month_t::Apr, 1),
             toml::local_time(12, 30, 45), toml::time_offset( 9, 0));
 
-    using array_type = typename value_type::array_type;
-    using table_type = typename value_type::table_type;
     const array_type array{1, 2, 3, 4, 5};
     const table_type table{{"key1", 42}, {"key2", "foo"}};
 
@@ -352,98 +296,52 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_get_or_fallback, value_type, test_value_types
 }
 #undef TOML11_TEST_GET_OR_FALLBACK
 
-BOOST_AUTO_TEST_CASE(test_get_or_integer)
+TEST_CASE("testing get_or with optional integer")
 {
     {
         toml::value v1(42);
         toml::value v2(3.14);
-        BOOST_TEST(42u == toml::get_or(v1, 0u));
-        BOOST_TEST(0u ==  toml::get_or(v2, 0u));
+        CHECK_EQ(42u, toml::get_or(v1, 0u));
+        CHECK_EQ(0u , toml::get_or(v2, 0u));
     }
     {
         toml::value v1(42);
         toml::value v2(3.14);
-        BOOST_TEST(42u == toml::get_or(std::move(v1), 0u));
-        BOOST_TEST(0u ==  toml::get_or(std::move(v2), 0u));
-    }
-
-}
-
-BOOST_AUTO_TEST_CASE(test_get_or_floating)
-{
-    {
-        toml::value v1(42);
-        toml::value v2(3.14);
-        BOOST_TEST(2.71f == toml::get_or(v1, 2.71f));
-        BOOST_TEST(static_cast<float>(v2.as_floating()) == toml::get_or(v2, 2.71f));
-    }
-    {
-        toml::value v1(42);
-        toml::value v2(3.14);
-        BOOST_TEST(2.71f                    == toml::get_or(std::move(v1), 2.71f));
-        BOOST_TEST(static_cast<float>(3.14) == toml::get_or(std::move(v2), 2.71f));
+        CHECK_EQ(42u, toml::get_or(std::move(v1), 0u));
+        CHECK_EQ( 0u, toml::get_or(std::move(v2), 0u));
     }
 }
 
-BOOST_AUTO_TEST_CASE(test_get_or_string)
+TEST_CASE("testing get_or with optional float")
+{
+    {
+        toml::value v1(42);
+        toml::value v2(3.14);
+        CHECK_EQ(2.71f, toml::get_or(v1, 2.71f));
+        CHECK_EQ(static_cast<float>(v2.as_floating()), toml::get_or(v2, 2.71f));
+    }
+    {
+        toml::value v1(42);
+        toml::value v2(3.14);
+        CHECK_EQ(2.71f                   , toml::get_or(std::move(v1), 2.71f));
+        CHECK_EQ(static_cast<float>(3.14), toml::get_or(std::move(v2), 2.71f));
+    }
+}
+
+TEST_CASE("testing get_or with optional string literal")
 {
     {
         toml::value v1("foobar");
         toml::value v2(42);
 
-        std::string       s1("bazqux");
-        const std::string s2("bazqux");
-
-        BOOST_TEST("foobar" == toml::get_or(v1, s1));
-        BOOST_TEST("bazqux" == toml::get_or(v2, s1));
-
-        std::string& v1r = toml::get_or(v1, s1);
-        std::string& s1r = toml::get_or(v2, s1);
-
-        BOOST_TEST("foobar" == v1r);
-        BOOST_TEST("bazqux" == s1r);
-
-        BOOST_TEST("foobar" == toml::get_or(v1, s2));
-        BOOST_TEST("bazqux" == toml::get_or(v2, s2));
-
-        BOOST_TEST("foobar" == toml::get_or(v1, std::move(s1)));
-        BOOST_TEST("bazqux" == toml::get_or(v2, std::move(s1)));
+        CHECK_EQ("foobar", toml::get_or(v1, "bazqux"));
+        CHECK_EQ("bazqux", toml::get_or(v2, "bazqux"));
     }
     {
         toml::value v1("foobar");
         toml::value v2(42);
 
-        std::string       s1("bazqux");
-        const std::string s2("bazqux");
-
-        BOOST_TEST("foobar" == toml::get_or(std::move(v1), s1));
-        BOOST_TEST("bazqux" == toml::get_or(std::move(v2), s1));
+        CHECK_EQ("foobar", toml::get_or(std::move(v1), "bazqux"));
+        CHECK_EQ("bazqux", toml::get_or(std::move(v2), "bazqux"));
     }
-    {
-        toml::value v1("foobar");
-        toml::value v2(42);
-
-        BOOST_TEST("foobar" == toml::get_or(v1, "bazqux"));
-        BOOST_TEST("bazqux" == toml::get_or(v2, "bazqux"));
-
-        const char* lit = "bazqux";
-        BOOST_TEST("foobar" == toml::get_or(v1, lit));
-        BOOST_TEST("bazqux" == toml::get_or(v2, lit));
-    }
-    {
-        toml::value v1("foobar");
-        toml::value v2(42);
-
-        BOOST_TEST("foobar" == toml::get_or(std::move(v1), "bazqux"));
-        BOOST_TEST("bazqux" == toml::get_or(std::move(v2), "bazqux"));
-    }
-    {
-        toml::value v1("foobar");
-        toml::value v2(42);
-
-        const char* lit = "bazqux";
-        BOOST_TEST("foobar" == toml::get_or(v1, lit));
-        BOOST_TEST("bazqux" == toml::get_or(v2, lit));
-    }
-
 }
