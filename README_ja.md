@@ -1,24 +1,22 @@
-# toml11
+# toml11 v4
 
 [![Build Status on GitHub Actions](https://github.com/ToruNiina/toml11/workflows/build/badge.svg)](https://github.com/ToruNiina/toml11/actions)
 [![Version](https://img.shields.io/github/release/ToruNiina/toml11.svg?style=flat)](https://github.com/ToruNiina/toml11/releases)
 [![License](https://img.shields.io/github/license/ToruNiina/toml11.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1209136.svg)](https://doi.org/10.5281/zenodo.1209136)
 
-[日本語版](https://github.com/ToruNiina/toml11/README_ja.md)
+toml11は、C++のための豊富な機能を持つTOML言語ライブラリです。
 
-toml11 is a feature-rich TOML language library for C++.
-
-- It complies with [the latest TOML language specification](https://toml.io/en/v1.0.0).
-- It passes all the standard TOML language [test cases](https://github.com/toml-lang/toml-test).
-- It supports new features merged into the upcoming TOML version (v1.1.0).
-- It provides clear error messages, including the location of the error.
-- It parses and retains comments, associating them with corresponding values.
-- It maintains formatting information such as hex integers and considers these during serialization.
-- It provides exception-less parse function.
-- It supports complex type conversions from TOML values.
-- It allows customization of the types stored in `toml::value`.
-- It provides some extensions not present in the TOML language standard.
+- [TOML言語の最新規格](https://toml.io/ja/v1.0.0)に準拠しています。
+- TOML言語標準のテストケースすべてにパスしています。
+- TOML言語の次期バージョン (v1.1.0) にマージされた新機能のそれぞれを試すことができます。
+- エラーが起きた位置を含めたわかりやすいエラーメッセージを出力します。
+- コメントもパースし、対応する値に保存します。
+- 16進整数やクオートの種類などのフォーマット情報を保持し、シリアライズ時に考慮します。
+- 例外を投げないバージョンをサポートします。
+- TOML値からの複雑な型変換をサポートします。
+- 整数、浮動小数点数、コンテナ等の型を変更可能です。
+- TOML言語にない一部の拡張機能を試すことができます。
 
 ## Example
 
@@ -69,7 +67,7 @@ int main()
 }
 ```
 
-For more details, please refer to the documentation.
+詳細な機能とリファレンスに関しては、ドキュメントを参照してください。
 
 ## Table of Contents
 
@@ -86,22 +84,22 @@ For more details, please refer to the documentation.
 
 ## Integration
 
-There are several ways to use toml11.
+toml11を使うには複数の方法があります。
 
-Here is a brief overview of each method. For more details, please refer to the documentation.
+ここではそれぞれを短く紹介します。詳細は、ドキュメントを参照してください。
 
-### Single Include File
+### Single include file
 
-Copy `single_include/toml.hpp` to your preferred location and add it to your include path.
+`single_include/toml.hpp`を好きなところにコピーして、インクルードパスを通してください。
 
 ### git submodule
 
-By adding toml11 as a subdirectory using `git submodule` (or any other way),
-you can either add `toml11/include` to your include path or use `add_subdirectory(toml11)` in your CMake project.
+git submoduleなどでサブディレクトリにすれば、`toml11/include`にインクルードパスを通すか、
+`add_subdirectory(toml11)` とすることで使用できます。
 
-### Install Using CMake
+### Install using CMake
 
-You can install toml11 using CMake with the following steps:
+以下の手順で、CMakeを使ってインストールすることができます。
 
 ```console
 $ git clone https://github.com/ToruNiina/toml11
@@ -109,33 +107,35 @@ $ cd toml11
 $ git submodule update --init --recursive
 $ cmake -B ./build/
 $ cmake --build ./build/
-$ cmake --install ./build/ --prefix /path/to/toml11
+$ cmake --install ./build --prefix /path/to/toml11
 ```
 
-### Precompile Library
+### Precompile library
 
-By setting `-DTOML11_PRECOMPILE=ON`, you can precompile some of the library functions.
-In this case, the standard library features available will vary with the C++ version, and part of the interface will change.
-Therefore, you need to specify `CMAKE_CXX_STANDARD`.
+`-DTOML11_PRECOMPILE=ON` とすることで、ライブラリの一部の関数をコンパイルできます。
+
+この場合、C++バージョンによって使用できる標準ライブラリ機能が変化し、
+インターフェースの一部が変わるため、`CMAKE_CXX_STANDARD`を指定する必要があります。
 
 ```console
 $ cmake -B ./build/ -DTOML11_PRECOMPILE=ON -DCMAKE_CXX_STANDARD=11/14/17/20
 $ cmake --build ./build/
 ```
 
-### Building Example
+### Building example
 
-To compile the examples in the `examples/` directory, set `-DTOML11_BUILD_EXAMPLES=ON`.
+`-DTOML11_BUILD_EXAMPLES=ON`とすることで、`examples/`をコンパイルできます。
 
 ```console
 $ cmake -B ./build/ -DTOML11_BUILD_EXAMPLES=ON
 $ cmake --build ./build/
 ```
 
-### Building Tests
+### Building example
 
-To compile unit tests, set `-DTOML11_BUILD_TESTS=ON`.
-Additionally, to compile the encoder and decoder for toml-test, set `-DTOML11_BUILD_TOML_TESTS=ON`.
+`-DTOML11_BUILD_TESTS=ON`とすることで、ユニットテストをコンパイルできます。
+
+また、`-DTOML11_BUILD_TOML_TESTS=ON`とすることで、toml-test用の`encoder`と`decoder`をコンパイルできます。
 
 ```console
 $ cmake -B ./build/ -DTOML11_BUILD_EXAMPLES=ON
@@ -144,30 +144,30 @@ $ cmake --build ./build/
 
 ## Features
 
-Here is a brief overview of the features provided by toml11.
+ここでは、toml11の持つ機能を短く紹介します。
 
-For more details, please refer to the documentation.
+詳細についてはドキュメントを参照してください。
 
-### Parsing a File
+### parsing a file
 
-To parse a file, use `toml::parse`.
+ファイルをパースする場合は、`toml::parse`を使います。
 
-The overall type of the file is always a table.
-However, since `toml::value` contains metadata such as comments and formatting information,
-`toml::parse` returns a `toml::value` rather than a `toml::table`.
+ファイル全体の型は常にテーブルですが、 `toml::value` はコメントや
+フォーマット情報などのメタデータを持つので、`toml::parse`からは
+`toml::table` ではなく `toml::value` が返ります。
 
 ```cpp
 const toml::value input = toml::parse("input.toml");
 ```
 
-To parse a string directly, use `toml::parse_str`.
+文字列そのものをパースする場合は、`toml::parse_str`を使います。
 
 ```cpp
 const toml::value input = toml::parse_str("a = 42");
 ```
 
-`toml::parse` throws a `toml::syntax_error` exception on syntax errors.
-To avoid this, use `toml::try_parse`, which returns a `toml::result`.
+`toml::parse`は文法エラーの際に `toml::syntax_error` 例外を投げます。
+これを避けるには、 `toml::result` を返す `toml::try_parse` を使います。
 
 ```cpp
 const auto input = toml::try_parse("input.toml");
@@ -177,9 +177,9 @@ if(input.is_ok())
 }
 ```
 
-Additionally, toml11 allows easy and precise control over the version of the TOML language being used.
+また、使用するTOML言語のバージョンを簡単に、かつ細かく変更できるようになりました。
 
-You can enable specific new features from TOML v1.1.0 while using TOML v1.0.0.
+TOML v1.0.0に加えて、v1.1.0の新機能を一部だけ使用するというような制御が可能です。
 
 ```cpp
 toml::spec s = toml::spec::v(1, 0, 0);
@@ -188,20 +188,20 @@ s.v1_1_0_allow_trailing_comma_in_inline_tables = true;
 const toml::value input = toml::parse("input.toml");
 ```
 
-Moreover, several language extensions not included in the TOML standard are available.
+また、TOML言語自体に含まれない言語拡張もいくつか用意しています。
 
 ```cpp
 toml::spec s = toml::spec::v(1, 0, 0);
-s.ext_hex_float  = true; // this allows hexadecimal floating-point numbers
-s.ext_null_value = true; // this allows `key = null` value
-s.ext_num_suffix = true; // this allows numeric suffixes like `100_msec`
+s.ext_hex_float  = true; // 16進数浮動小数点数を許可
+s.ext_null_value = true; // 空の値 `null` を許可
+s.ext_num_suffix = true; // `100_msec`などのsuffixを許可
 ```
 
-For more detail and reference of each feature, please refer to the documentation.
+各機能の紹介とリファレンスは、ドキュメントを参照してください。
 
 ### finding a value
 
-`toml::value` provides member functions for accessing values, such as `at()`, `is_xxx()`, and `as_xxx()`.
+`toml::value` はアクセス用のメンバ関数、`at()` や `is_xxx()`, `as_xxx()` を持ちます。
 
 ```cpp
 const toml::value input = toml::parse("input.toml");
@@ -211,14 +211,14 @@ if(input.contains("a") && input.at("a").is_integer())
 }
 ```
 
-By using `toml::find`, you can perform type conversion and search simultaneously.
+`toml::find` を使うことで、型変換と検索が同時に行えます。
 
 ```cpp
 const toml::value input = toml::parse("input.toml");
 std::cout << toml::find<int>(input, "a") << std::endl;
 ```
 
-You can perform advanced type conversions on complex TOML values.
+また、複雑なTOML値に対して、高度な型変換を行うことができます。
 
 ```toml
 mixed_array = [
@@ -236,27 +236,26 @@ const auto mixed = toml::find<
     >(input, "mixed_array") << std::endl;
 ```
 
-For more details, please refer to the documentation.
+詳細についてはドキュメントを参照してください。
 
 ### comments
 
-toml11 stores comments related to values within the value itself.
+toml11は、値に関するコメントを値に保存します。
 
-Comments related to a value include a series of comments written immediately before the value
-and any comments written after the value without a newline in between.
+値に関するコメントとは、ある値の直前に書かれた一連のコメントと、値の直後に改行を挟まず書かれたコメントです。
 
 ```toml
-# This is a comment for a.
-# This is also a comment for a.
-a = 42 # This is also a comment for a.
+# これは a のコメントです。
+# これも a のコメントです。
+a = 42 # これも a のコメントです。
 
-# This is separated by a newline, so it is not a comment for b.
+# これは改行で分かれているので、 b のコメントではありません。
 
-# This is a comment for b.
+# これは b のコメントです。
 b = "foo"
 ```
 
-These comments are stored in `toml::value` with an interface similar to `std::vector<std::string>`.
+これは `std::vector<std::string>` と同じインターフェースで `toml::value` に格納されます。
 
 ```cpp
 const toml::value input = toml::parse("input.toml");
@@ -264,13 +263,13 @@ std::cout << input.at("a").comments().size() << std::endl;
 std::cout << input.at("a").comments().at(0) << std::endl;
 ```
 
-For more details, please refer to the documentation.
+詳細についてはドキュメントを参照してください。
 
 ### error messages
 
-One of the goals of toml11 is to provide clear and understandable error messages.
+toml11の目標の一つは、わかりやすいエラーメッセージを出力することです。
 
-For parsing errors, you might see an error message like the following:
+パースエラーに対しては以下のようなエラーメッセージが、
 
 ```
 [error] bad integer: `_` must be surrounded by digits
@@ -282,7 +281,7 @@ Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755
 Hint: invalid: _42, 1__000, 0123
 ```
 
-If you request a type different from the actual stored type, an error message like this will be displayed:
+実際に格納されている型と異なる型を要求した場合には以下のようなエラーメッセージが表示されます。
 
 ```
 [error] toml::value::as_string(): bad_cast to string
@@ -292,7 +291,7 @@ If you request a type different from the actual stored type, an error message li
    |     ^^^^^^^-- the actual type is integer
 ```
 
-Such error messages can also be produced for user-specific algorithm that is not related to TOML syntax.
+このようなエラーメッセージを、TOMLの文法とは関係のないユーザー特有の処理に対しても出力することが可能です。
 
 ```cpp
 const toml::value& a = input.at("a");
@@ -306,18 +305,19 @@ if(a.as_integer() < 0)
 }
 ```
 
-For more details, please refer to the documentation.
+詳細はドキュメントを参照してください。
 
 ### serialization
 
-You can format a `toml::value` into a `std::string` using `toml::format`.
+`toml::format` を使うことで、`toml::value` を `std::string` にフォーマットできます。
 
 ```cpp
 const toml::value input = toml::parse("input.toml");
 std::cout << toml::format(input) << std::endl;
 ```
 
-`toml::format` references the formatting information, allowing you to change the formatting method.
+`toml::format` はフォーマット情報を参照します。
+なので、フォーマット方法を変更することが可能です。
 
 ```cpp
 toml::value output(toml::table{ {"a", 0xDEADBEEF} });
@@ -327,49 +327,49 @@ output.at("a").as_integer_fmt().spacer = 4;
 std::cout << toml::format(input) << std::endl;
 ```
 
-For details on possible formatting specifications, please refer to the documentation.
+どのような指定が可能かなどの詳細はドキュメントを参照してください。
 
 ### compilcated configurations
 
-The examples directory provides complex usage examples, such as using
-arbitrary-precision integers, normalizing Unicode, and integrating with external reflection libraries.
+`examples`ディレクトリには、多倍長整数を使用する場合やユニコードを正規化する場合、
+外部のリフレクションライブラリと連携する場合などの複雑な使用例を用意しています。
 
-Please refer to these examples for implementation guidance in such scenarios.
+そのような状況での実装例として参照してください。
 
 ## Changes from v3
 
-toml11 v4 introduces several breaking changes.
+toml11 v3からは複数の破壊的変更が追加されています。
 
-Efforts have been made to minimize the need for changes for those using simple functionality.
-However, if you were utilizing advanced features, some adjustments may be necessary.
+シンプルな使い方をしている場合にはほとんど変更せずに済むように努力はしていますが、
+高度な機能を利用していた場合は多少の変更が必要になります。
 
-Nevertheless, we believe that the added or streamlined features will provide enhanced convenience in return.
+しかし、追加された機能や整理された機能は、その分の利便性を提供できると考えています。
 
-### Breaking Changes
+### 破壊的な変更
 
-- Changed branch from `master` to `main`.
-- Changed template arguments of `toml::basic_value`.
-- Removed `toml::string` and explicitly store formatting information of all the values.
-- Modified arguments of `toml::format` to accommodate formatting information.
-- Changed default arguments of `toml::parse` to take `toml::spec` for specifying TOML version information.
-- Updated the interface of `toml::source_location` to accommodate multiline regions.
-- Modified arguments of `toml::format_error`.
-- Renamed `toml::format_underline` to `toml::format_location`.
-- Unified control method of `toml::color` to `toml::color::enable/disable()`.
+- ブランチを `master` から `main` に変更
+- `toml::basic_value` の `template` 引数を変更
+- フォーマット情報を陽に格納するため`toml::string` を廃止
+- フォーマット情報を使用するため`toml::format`の引数を変更
+- TOMLバージョン情報を格納する`toml::spec`を追加するため`toml::parse`のデフォルト引数を変更
+- `toml::source_location` のインターフェースを複数行を前提とした形に変更
+- `toml::format_error` の引数を変更
+- `toml::format_underline` の名称を `toml::format_location` に変更
+- `toml::color` の制御方法を `toml::color::enable()`に統一
 
-### Added features
+### 破壊的でない変更
 
-- Added `toml::parse_str`.
-- Added `toml::try_parse`.
-- Added support for parsing byte sequences.
-- Added formatting information to `toml::value`.
-- Changed to saving comments in `toml::value` by default.
-- Added `single_include/toml.hpp`.
-- Enabled to use as a precompiled library.
+- `toml::parse_str`の追加
+- `toml::try_parse`の追加
+- バイト列のパースをサポート
+- `toml::value` にフォーマット情報を追加
+- コメントをデフォルトで保存するよう変更
+- `single_include/toml.hpp`の追加
+- コンパイル済みライブラリとしての使用を可能に
 
 ## Contributors
 
-I appreciate the help of the contributors who introduced the great feature to this library.
+このライブラリに新機能を追加、あるいはバグを修正してくださったコントリビュータの方々に感謝します。
 
 - Guillaume Fraux (@Luthaf)
   - Windows support and CI on Appvayor
