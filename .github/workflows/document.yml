@@ -21,6 +21,8 @@ jobs:
       - name: Build Webpage
         working-directory: ./docs/
         run: |
+            hugo mod init github.com/repo/path
+            hugo mod get -u
             hugo --minify
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
