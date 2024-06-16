@@ -157,9 +157,15 @@ parse_boolean(location& loc, const context<TC>& ctx)
     // it matches. gen value
     const auto str = reg.as_string();
     const auto val = [&str]() {
-        if     (str == "true")  { return true; }
-        else if(str == "false") { return false; }
-        else {assert("never reach here" && false);}
+        if(str == "true")
+        {
+            return true;
+        }
+        else
+        {
+            assert(str == "false");
+            return false;
+        }
     }();
 
     // ----------------------------------------------------------------------

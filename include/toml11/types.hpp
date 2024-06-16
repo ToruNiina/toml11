@@ -147,9 +147,12 @@ read_int(const std::string& str, const source_location src, const std::uint8_t b
     {
         case  2: { return read_bin_int<T>(str, src); }
         case  8: { return read_oct_int<T>(str, src); }
-        case 10: { return read_dec_int<T>(str, src); }
         case 16: { return read_hex_int<T>(str, src); }
-        default: { assert(false); }
+        default:
+        {
+            assert(base == 10);
+            return read_dec_int<T>(str, src);
+        }
     }
 }
 
