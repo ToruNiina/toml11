@@ -434,8 +434,12 @@ struct result
 #if defined(__GNUC__) && ! defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wduplicated-branches"
+#endif
+
         if(this->is_ok_) {this->succ.~success_type();}
         else             {this->fail.~failure_type();}
+
+#if defined(__GNUC__) && ! defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
         return;
