@@ -4026,14 +4026,16 @@ struct result
     result(success_type s): is_ok_(true),  succ(std::move(s)) {}
     result(failure_type f): is_ok_(false), fail(std::move(f)) {}
 
-    template<typename U, cxx::enable_if_t<
-        std::is_convertible<cxx::remove_cvref_t<U>, value_type>::value,
-        std::nullptr_t> = nullptr>
+    template<typename U, cxx::enable_if_t<cxx::conjunction<
+            cxx::negation<std::is_same<cxx::remove_cvref_t<U>, value_type>>,
+            std::is_convertible<cxx::remove_cvref_t<U>, value_type>
+        >::value, std::nullptr_t> = nullptr>
     result(success<U> s): is_ok_(true),  succ(std::move(s.value)) {}
 
-    template<typename U, cxx::enable_if_t<
-        std::is_convertible<cxx::remove_cvref_t<U>, error_type>::value,
-        std::nullptr_t> = nullptr>
+    template<typename U, cxx::enable_if_t<cxx::conjunction<
+            cxx::negation<std::is_same<cxx::remove_cvref_t<U>, error_type>>,
+            std::is_convertible<cxx::remove_cvref_t<U>, error_type>
+        >::value, std::nullptr_t> = nullptr>
     result(failure<U> f): is_ok_(false), fail(std::move(f.value)) {}
 
     result& operator=(success_type s)
@@ -4146,7 +4148,12 @@ struct result
         return *this;
     }
 
-    template<typename U, typename F>
+    template<typename U, typename F, cxx::enable_if_t<cxx::conjunction<
+            cxx::negation<std::is_same<cxx::remove_cvref_t<U>, value_type>>,
+            cxx::negation<std::is_same<cxx::remove_cvref_t<F>, error_type>>,
+            std::is_convertible<cxx::remove_cvref_t<U>, value_type>,
+            std::is_convertible<cxx::remove_cvref_t<F>, error_type>
+        >::value, std::nullptr_t> = nullptr>
     result(result<U, F> other): is_ok_(other.is_ok())
     {
         if(other.is_ok())
@@ -4162,7 +4169,13 @@ struct result
             (void)tmp;
         }
     }
-    template<typename U, typename F>
+
+    template<typename U, typename F, cxx::enable_if_t<cxx::conjunction<
+            cxx::negation<std::is_same<cxx::remove_cvref_t<U>, value_type>>,
+            cxx::negation<std::is_same<cxx::remove_cvref_t<F>, error_type>>,
+            std::is_convertible<cxx::remove_cvref_t<U>, value_type>,
+            std::is_convertible<cxx::remove_cvref_t<F>, error_type>
+        >::value, std::nullptr_t> = nullptr>
     result& operator=(result<U, F> other)
     {
         this->cleanup();
@@ -4261,8 +4274,12 @@ struct result
 #if defined(__GNUC__) && ! defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wduplicated-branches"
+#endif
+
         if(this->is_ok_) {this->succ.~success_type();}
         else             {this->fail.~failure_type();}
+
+#if defined(__GNUC__) && ! defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
         return;
