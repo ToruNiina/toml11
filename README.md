@@ -1,6 +1,7 @@
 # toml11
 
 [![Build Status on GitHub Actions](https://github.com/ToruNiina/toml11/workflows/build/badge.svg)](https://github.com/ToruNiina/toml11/actions)
+[![Build status](https://ci.appveyor.com/api/projects/status/m2n08a926asvg5mg/branch/main?svg=true)](https://ci.appveyor.com/project/ToruNiina/toml11/branch/main)
 [![Version](https://img.shields.io/github/release/ToruNiina/toml11.svg?style=flat)](https://github.com/ToruNiina/toml11/releases)
 [![License](https://img.shields.io/github/license/ToruNiina/toml11.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1209136.svg)](https://doi.org/10.5281/zenodo.1209136)

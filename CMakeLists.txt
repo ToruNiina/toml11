@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.16)
 project(toml11 LANGUAGES CXX VERSION 4.0.0)
 
 include(CMakeDependentOption)

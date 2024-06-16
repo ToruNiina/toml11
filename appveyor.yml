@@ -1,0 +1,26 @@
+version: "{build}"
+
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      generator: Visual Studio 16 2019
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+      generator: Visual Studio 17 2022
+
+configuration:
+  - Release
+  - Debug
+
+clone_depth: 10
+clone_folder: c:\toml11
+
+install:
+- git submodule update --init --recursive
+
+build_script:
+  - cd C:\toml11
+  - cmake -B build -G"%generator%" -A x64 -DCMAKE_CXX_STANDARD=11 -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=ON
+  - cmake --build build --config "%configuration%"
+
+test_script:
+  - ctest --test-dir build --build-config "%configuration%" --timeout 300 --output-on-failure
