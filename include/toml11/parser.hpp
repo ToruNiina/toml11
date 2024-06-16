@@ -610,6 +610,10 @@ parse_floating(location& loc, const context<TC>& ctx)
                 fmt.prec -= 1;
             }
         }
+        else if(fmt.fmt == floating_format::hex)
+        {
+            fmt.prec = std::numeric_limits<floating_type>::max_digits10;
+        }
         else
         {
             // width after decimal point
