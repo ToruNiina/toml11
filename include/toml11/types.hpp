@@ -15,6 +15,7 @@
 #include <vector>
 
 #include <cstdint>
+#include <cstdio>
 
 namespace toml
 {
@@ -155,7 +156,11 @@ read_int(const std::string& str, const source_location src, const std::uint8_t b
 inline result<float, error_info>
 read_hex_float(const std::string& str, const source_location src, float val)
 {
+#if defined(_MSC_VER) && ! defined(__clang__)
+    const auto res = ::sscanf_s(str.c_str(), "%a", std::addressof(val));
+#else
     const auto res = std::sscanf(str.c_str(), "%a", std::addressof(val));
+#endif
     if(res != 1)
     {
         return err(make_error_info("toml::parse_floating: "
@@ -167,7 +172,11 @@ read_hex_float(const std::string& str, const source_location src, float val)
 inline result<double, error_info>
 read_hex_float(const std::string& str, const source_location src, double val)
 {
+#if defined(_MSC_VER) && ! defined(__clang__)
+    const auto res = ::sscanf_s(str.c_str(), "%la", std::addressof(val));
+#else
     const auto res = std::sscanf(str.c_str(), "%la", std::addressof(val));
+#endif
     if(res != 1)
     {
         return err(make_error_info("toml::parse_floating: "
