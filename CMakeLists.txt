@@ -43,7 +43,7 @@ if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
         set(CMAKE_CXX_STANDARD_REQUIRED ON)
     endif()
 
-    if(${TOML11_BUILD_TESTS})
+    if(${TOML11_BUILD_TESTS} OR ${TOML11_BUILD_TOML_TESTS})
         add_subdirectory(tests)
     endif()
 
