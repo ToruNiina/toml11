@@ -329,7 +329,7 @@ std::cout << toml::format(input) << std::endl;
 
 どのような指定が可能かなどの詳細はドキュメントを参照してください。
 
-### compilcated configurations
+### configuring types
 
 `examples`ディレクトリには、多倍長整数を使用する場合やユニコードを正規化する場合、
 外部のリフレクションライブラリと連携する場合などの複雑な使用例を用意しています。

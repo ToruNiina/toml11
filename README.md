@@ -330,10 +330,10 @@ std::cout << toml::format(input) << std::endl;
 
 For details on possible formatting specifications, please refer to the documentation.
 
-### compilcated configurations
+### configuring types
 
-The examples directory provides complex usage examples, such as using
-arbitrary-precision integers, normalizing Unicode, and integrating with external reflection libraries.
+The examples directory provides usage examples, such as using
+arbitrary-precision integers, normalizing Unicode, and integrating with an external reflection library.
 
 Please refer to these examples for implementation guidance in such scenarios.
 
