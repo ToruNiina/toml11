@@ -1,4 +1,4 @@
-name: build
+name: toml-test
 
 on: [push, pull_request]
 
