@@ -21,8 +21,6 @@ jobs:
       - name: Build Webpage
         working-directory: ./docs/
         run: |
-            hugo mod init github.com/alex-shpak/hugo-book
-            hugo mod get -u
             hugo --minify
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3

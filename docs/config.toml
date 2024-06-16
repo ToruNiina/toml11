@@ -1,12 +1,8 @@
 baseURL      = "https://toruniina.github.io/toml11"
 title        = "toml11"
 languageCode = "en-us"
-
+theme        = "hugo-book"
 disablePathToLower = true
-
-[module]
-[[module.imports]]
-path = 'github.com/alex-shpak/hugo-book'
 
 [languages]
 [languages.en]
