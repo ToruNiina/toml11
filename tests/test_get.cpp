@@ -488,9 +488,7 @@ TEST_CASE("testing toml::get<time_point>(offset_datetime)")
         const auto timet = std::chrono::system_clock::to_time_t(date);
 
         // get time_t as gmtime (2018-04-01T03:30:00Z)
-        const auto tmp = std::gmtime(std::addressof(timet)); // XXX not threadsafe!
-        CHECK_UNARY(tmp);
-        const auto tm = *tmp;
+        const auto tm = toml::detail::gmtime_s(std::addressof(timet));
         CHECK_EQ(tm.tm_year + 1900, 2018);
         CHECK_EQ(tm.tm_mon  + 1,       4);
         CHECK_EQ(tm.tm_mday,           1);
@@ -511,9 +509,7 @@ TEST_CASE("testing toml::get<time_point>(offset_datetime)")
         const auto timet = std::chrono::system_clock::to_time_t(date);
 
         // get time_t as gmtime (2018-04-01T03:30:00Z)
-        const auto tmp = std::gmtime(std::addressof(timet)); // XXX not threadsafe!
-        CHECK_UNARY(tmp);
-        const auto tm = *tmp;
+        const auto tm = toml::detail::gmtime_s(std::addressof(timet));
         CHECK_EQ(tm.tm_year + 1900, 2018);
         CHECK_EQ(tm.tm_mon  + 1,       4);
         CHECK_EQ(tm.tm_mday,           1);
