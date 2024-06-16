@@ -21,7 +21,7 @@
 //      https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
 //
 
-#if defined(_MSVC_LANG) && defined(_MSC_VER) && 1910 <= _MSC_VER
+#if defined(_MSVC_LANG) && defined(_MSC_VER) && 190024210 <= _MSC_FULL_VER
 #  define TOML11_CPLUSPLUS_STANDARD_VERSION _MSVC_LANG
 #else
 #  define TOML11_CPLUSPLUS_STANDARD_VERSION __cplusplus
@@ -4315,6 +4315,7 @@ inline failure<detail::none_t> err() noexcept
 #include <sstream>
 
 #include <cassert>
+#include <cctype>
 #include <cstring>
 
 namespace toml
@@ -5174,6 +5175,8 @@ std::string format_location(
 #include <string>
 #include <vector>
 
+#include <cctype>
+
 namespace toml
 {
 
@@ -5572,19 +5575,20 @@ class basic_value
 {
   public:
 
-    using key_type             = typename TypeConfig::string_type;
-    using value_type           = basic_value<TypeConfig>;
-    using boolean_type         = typename TypeConfig::boolean_type;
-    using integer_type         = typename TypeConfig::integer_type;
-    using floating_type        = typename TypeConfig::floating_type;
-    using string_type          = typename TypeConfig::string_type;
+    using config_type          = TypeConfig;
+    using key_type             = typename config_type::string_type;
+    using value_type           = basic_value<config_type>;
+    using boolean_type         = typename config_type::boolean_type;
+    using integer_type         = typename config_type::integer_type;
+    using floating_type        = typename config_type::floating_type;
+    using string_type          = typename config_type::string_type;
     using local_time_type      = ::toml::local_time;
     using local_date_type      = ::toml::local_date;
     using local_datetime_type  = ::toml::local_datetime;
     using offset_datetime_type = ::toml::offset_datetime;
-    using array_type           = typename TypeConfig::template array_type<value_type>;
-    using table_type           = typename TypeConfig::template table_type<key_type, value_type>;
-    using comment_type         = typename TypeConfig::comment_type;
+    using array_type           = typename config_type::template array_type<value_type>;
+    using table_type           = typename config_type::template table_type<key_type, value_type>;
+    using comment_type         = typename config_type::comment_type;
 
   private:
 
@@ -6001,8 +6005,8 @@ class basic_value
 
     template<typename T>
     using enable_if_floating_like_t = cxx::enable_if_t<cxx::conjunction<
-        cxx::negation<std::is_same<cxx::remove_cvref_t<T>, floating_type>>,
-        std::is_floating_point<cxx::remove_cvref_t<T>>
+            cxx::negation<std::is_same<cxx::remove_cvref_t<T>, floating_type>>,
+            std::is_floating_point<cxx::remove_cvref_t<T>>
         >::value, std::nullptr_t>;
 
   public:
@@ -6011,23 +6015,28 @@ class basic_value
     basic_value(T x)
         : basic_value(x, floating_format_info{}, std::vector<std::string>{}, region_type{})
     {}
+
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, floating_format_info fmt)
         : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{})
     {}
+
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, std::vector<std::string> com)
         : basic_value(x, floating_format_info{}, std::move(com), region_type{})
     {}
+
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, floating_format_info fmt, std::vector<std::string> com)
         : basic_value(x, std::move(fmt), std::move(com), region_type{})
     {}
+
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, floating_format_info fmt, std::vector<std::string> com, region_type reg)
         : type_(value_t::floating), floating_(floating_storage(x, std::move(fmt))),
           region_(std::move(reg)), comments_(std::move(com))
     {}
+
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value& operator=(T x)
     {
@@ -6550,20 +6559,20 @@ class basic_value
         detail::has_specialized_into<T>::value, std::nullptr_t> = nullptr>
     basic_value(const T& ud)
         : basic_value(
-            into<cxx::remove_cvref_t<T>>::template into_toml<TypeConfig>(ud))
+            into<cxx::remove_cvref_t<T>>::template into_toml<config_type>(ud))
     {}
     template<typename T, cxx::enable_if_t<
         detail::has_specialized_into<T>::value, std::nullptr_t> = nullptr>
     basic_value(const T& ud, std::vector<std::string> com)
         : basic_value(
-            into<cxx::remove_cvref_t<T>>::template into_toml<TypeConfig>(ud),
+            into<cxx::remove_cvref_t<T>>::template into_toml<config_type>(ud),
             std::move(com))
     {}
     template<typename T, cxx::enable_if_t<
         detail::has_specialized_into<T>::value, std::nullptr_t> = nullptr>
     basic_value& operator=(const T& ud)
     {
-        *this = into<cxx::remove_cvref_t<T>>::template into_toml<TypeConfig>(ud);
+        *this = into<cxx::remove_cvref_t<T>>::template into_toml<config_type>(ud);
         return *this;
     }
 
@@ -6651,16 +6660,16 @@ class basic_value
     // as_xxx (noexcept) version ========================================== {{{
 
     template<value_t T>
-    detail::enum_to_type_t<T, basic_value<TypeConfig>> const&
+    detail::enum_to_type_t<T, basic_value<config_type>> const&
     as(const std::nothrow_t&) const noexcept
     {
-        return detail::getter<TypeConfig, T>::get_nothrow(*this);
+        return detail::getter<config_type, T>::get_nothrow(*this);
     }
     template<value_t T>
-    detail::enum_to_type_t<T, basic_value<TypeConfig>>&
+    detail::enum_to_type_t<T, basic_value<config_type>>&
     as(const std::nothrow_t&) noexcept
     {
-        return detail::getter<TypeConfig, T>::get_nothrow(*this);
+        return detail::getter<config_type, T>::get_nothrow(*this);
     }
 
     boolean_type         const& as_boolean        (const std::nothrow_t&) const noexcept {return this->boolean_.value;}
@@ -6690,14 +6699,14 @@ class basic_value
     // as_xxx (throw) ===================================================== {{{
 
     template<value_t T>
-    detail::enum_to_type_t<T, basic_value<TypeConfig>> const& as() const
+    detail::enum_to_type_t<T, basic_value<config_type>> const& as() const
     {
-        return detail::getter<TypeConfig, T>::get(*this);
+        return detail::getter<config_type, T>::get(*this);
     }
     template<value_t T>
-    detail::enum_to_type_t<T, basic_value<TypeConfig>>& as()
+    detail::enum_to_type_t<T, basic_value<config_type>>& as()
     {
-        return detail::getter<TypeConfig, T>::get(*this);
+        return detail::getter<config_type, T>::get(*this);
     }
 
     boolean_type const& as_boolean() const
@@ -6873,13 +6882,13 @@ class basic_value
     detail::enum_to_fmt_type_t<T> const&
     as_fmt(const std::nothrow_t&) const noexcept
     {
-        return detail::getter<TypeConfig, T>::get_fmt_nothrow(*this);
+        return detail::getter<config_type, T>::get_fmt_nothrow(*this);
     }
     template<value_t T>
     detail::enum_to_fmt_type_t<T>&
     as_fmt(const std::nothrow_t&) noexcept
     {
-        return detail::getter<TypeConfig, T>::get_fmt_nothrow(*this);
+        return detail::getter<config_type, T>::get_fmt_nothrow(*this);
     }
 
     boolean_format_info        & as_boolean_fmt        (const std::nothrow_t&) noexcept {return this->boolean_.format;}
@@ -6911,12 +6920,12 @@ class basic_value
     template<value_t T>
     detail::enum_to_fmt_type_t<T> const& as_fmt() const
     {
-        return detail::getter<TypeConfig, T>::get_fmt(*this);
+        return detail::getter<config_type, T>::get_fmt(*this);
     }
     template<value_t T>
     detail::enum_to_fmt_type_t<T>& as_fmt()
     {
-        return detail::getter<TypeConfig, T>::get_fmt(*this);
+        return detail::getter<config_type, T>::get_fmt(*this);
     }
 
     boolean_format_info const& as_boolean_fmt() const
@@ -7749,6 +7758,7 @@ visit(Visitor&& visitor, basic_value<TC>&& v)
 #include <vector>
 
 #include <cstdint>
+#include <cstdio>
 
 namespace toml
 {
@@ -7880,16 +7890,23 @@ read_int(const std::string& str, const source_location src, const std::uint8_t b
     {
         case  2: { return read_bin_int<T>(str, src); }
         case  8: { return read_oct_int<T>(str, src); }
-        case 10: { return read_dec_int<T>(str, src); }
         case 16: { return read_hex_int<T>(str, src); }
-        default: { assert(false); }
+        default:
+        {
+            assert(base == 10);
+            return read_dec_int<T>(str, src);
+        }
     }
 }
 
 inline result<float, error_info>
 read_hex_float(const std::string& str, const source_location src, float val)
 {
+#if defined(_MSC_VER) && ! defined(__clang__)
+    const auto res = ::sscanf_s(str.c_str(), "%a", std::addressof(val));
+#else
     const auto res = std::sscanf(str.c_str(), "%a", std::addressof(val));
+#endif
     if(res != 1)
     {
         return err(make_error_info("toml::parse_floating: "
@@ -7901,7 +7918,11 @@ read_hex_float(const std::string& str, const source_location src, float val)
 inline result<double, error_info>
 read_hex_float(const std::string& str, const source_location src, double val)
 {
+#if defined(_MSC_VER) && ! defined(__clang__)
+    const auto res = ::sscanf_s(str.c_str(), "%la", std::addressof(val));
+#else
     const auto res = std::sscanf(str.c_str(), "%la", std::addressof(val));
+#endif
     if(res != 1)
     {
         return err(make_error_info("toml::parse_floating: "
@@ -11620,9 +11641,15 @@ parse_boolean(location& loc, const context<TC>& ctx)
     // it matches. gen value
     const auto str = reg.as_string();
     const auto val = [&str]() {
-        if     (str == "true")  { return true; }
-        else if(str == "false") { return false; }
-        else {assert("never reach here" && false);}
+        if(str == "true")
+        {
+            return true;
+        }
+        else
+        {
+            assert(str == "false");
+            return false;
+        }
     }();
 
     // ----------------------------------------------------------------------
@@ -12072,6 +12099,10 @@ parse_floating(location& loc, const context<TC>& ctx)
             {
                 fmt.prec -= 1;
             }
+        }
+        else if(fmt.fmt == floating_format::hex)
+        {
+            fmt.prec = std::numeric_limits<floating_type>::max_digits10;
         }
         else
         {
