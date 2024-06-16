@@ -31,6 +31,6 @@ jobs:
             go install github.com/toml-lang/toml-test/cmd/toml-test@latest
             toml-test ./build/tests/toml11_decoder
             # skipped tests does not conform the latest commit in toml-lang/toml
-            toml-test -toml 1.1.0 ./tests/toml11_decoder_v1_1_0 -skip invalid/control/comment-del,invalid/control/comment-lf,invalid/control/comment-us
+            toml-test -toml 1.1.0 ./build/tests/toml11_decoder_v1_1_0 -skip invalid/control/comment-del,invalid/control/comment-lf,invalid/control/comment-us
             toml-test ./build/tests/toml11_encoder
 
