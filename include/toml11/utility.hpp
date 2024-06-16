@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include <cassert>
+#include <cctype>
 #include <cstring>
 
 namespace toml
