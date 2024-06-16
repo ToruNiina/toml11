@@ -21,7 +21,7 @@
 //      https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
 //
 
-#if defined(_MSVC_LANG) && defined(_MSC_VER) && 1910 <= _MSC_VER
+#if defined(_MSVC_LANG) && defined(_MSC_VER) && 190024210 <= _MSC_FULL_VER
 #  define TOML11_CPLUSPLUS_STANDARD_VERSION _MSVC_LANG
 #else
 #  define TOML11_CPLUSPLUS_STANDARD_VERSION __cplusplus
