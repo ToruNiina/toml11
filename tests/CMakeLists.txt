@@ -69,26 +69,30 @@ if(BUILD_TESTING)
             PRIVATE ${PROJECT_SOURCE_DIR}/tests/extlib/doctest/doctest/
             )
         target_link_libraries(${TEST_NAME} PUBLIC toml11 toml11_test_utility)
-        target_compile_options(${TEST_NAME} PRIVATE
-            $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
-            $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
-            $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
-            $<$<BOOL:${COMPILER_SUPPORTS_WSIGN_CONVERSION}>:     -Wsign-conversion    >
-            $<$<BOOL:${COMPILER_SUPPORTS_WCONVERSION}>:          -Wconversion         >
-            $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_COND}>:     -Wduplicated-cond    >
-            $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_BRANCHES}>: -Wduplicated-branches>
-            $<$<BOOL:${COMPILER_SUPPORTS_WLOGICAL_OP}>:          -Wlogical-op         >
-            $<$<BOOL:${COMPILER_SUPPORTS_WDOUBLE_PROMOTION}>:    -Wdouble-promotion   >
-            $<$<BOOL:${COMPILER_SUPPORTS_WRANGE_LOOP_ANALYSIS}>: -Wrange-loop-analysis>
-            $<$<BOOL:${COMPILER_SUPPORTS_WUNDEF}>:               -Wundef              >
-            $<$<BOOL:${COMPILER_SUPPORTS_WSHADOW}>:              -Wshadow             >
-            $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
-            $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
-            )
-        target_link_options(${TEST_NAME} PRIVATE
-            $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
-            $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
-            )
+        if(MSVC)
+            target_compile_options(${TEST_NAME} PRIVATE /W3)
+        else()
+            target_compile_options(${TEST_NAME} PRIVATE
+                $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
+                $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
+                $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
+                $<$<BOOL:${COMPILER_SUPPORTS_WSIGN_CONVERSION}>:     -Wsign-conversion    >
+                $<$<BOOL:${COMPILER_SUPPORTS_WCONVERSION}>:          -Wconversion         >
+                $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_COND}>:     -Wduplicated-cond    >
+                $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_BRANCHES}>: -Wduplicated-branches>
+                $<$<BOOL:${COMPILER_SUPPORTS_WLOGICAL_OP}>:          -Wlogical-op         >
+                $<$<BOOL:${COMPILER_SUPPORTS_WDOUBLE_PROMOTION}>:    -Wdouble-promotion   >
+                $<$<BOOL:${COMPILER_SUPPORTS_WRANGE_LOOP_ANALYSIS}>: -Wrange-loop-analysis>
+                $<$<BOOL:${COMPILER_SUPPORTS_WUNDEF}>:               -Wundef              >
+                $<$<BOOL:${COMPILER_SUPPORTS_WSHADOW}>:              -Wshadow             >
+                $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
+                $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
+                )
+            target_link_options(${TEST_NAME} PRIVATE
+                $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
+                $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
+                )
+        endif()
         add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
     endforeach(TEST_NAME)
 endif(BUILD_TESTING)
@@ -104,26 +108,30 @@ if(TOML11_BUILD_TOML_TESTS)
         PRIVATE ${PROJECT_SOURCE_DIR}/tests/extlib/json/include/
         )
     target_link_libraries(toml11_decoder PRIVATE toml11)
-    target_compile_options(toml11_decoder PRIVATE
-        $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
-        $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
-        $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
-        $<$<BOOL:${COMPILER_SUPPORTS_WSIGN_CONVERSION}>:     -Wsign-conversion    >
-        $<$<BOOL:${COMPILER_SUPPORTS_WCONVERSION}>:          -Wconversion         >
-        $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_COND}>:     -Wduplicated-cond    >
-        $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_BRANCHES}>: -Wduplicated-branches>
-        $<$<BOOL:${COMPILER_SUPPORTS_WLOGICAL_OP}>:          -Wlogical-op         >
-        $<$<BOOL:${COMPILER_SUPPORTS_WDOUBLE_PROMOTION}>:    -Wdouble-promotion   >
-        $<$<BOOL:${COMPILER_SUPPORTS_WRANGE_LOOP_ANALYSIS}>: -Wrange-loop-analysis>
-        $<$<BOOL:${COMPILER_SUPPORTS_WUNDEF}>:               -Wundef              >
-        $<$<BOOL:${COMPILER_SUPPORTS_WSHADOW}>:              -Wshadow             >
-        $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
-        $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
-        )
-    target_link_options(toml11_decoder PRIVATE
-        $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
-        $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
-        )
+    if(MSVC)
+        target_compile_options(${TEST_NAME} PRIVATE /W3)
+    else()
+        target_compile_options(toml11_decoder PRIVATE
+            $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
+            $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
+            $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
+            $<$<BOOL:${COMPILER_SUPPORTS_WSIGN_CONVERSION}>:     -Wsign-conversion    >
+            $<$<BOOL:${COMPILER_SUPPORTS_WCONVERSION}>:          -Wconversion         >
+            $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_COND}>:     -Wduplicated-cond    >
+            $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_BRANCHES}>: -Wduplicated-branches>
+            $<$<BOOL:${COMPILER_SUPPORTS_WLOGICAL_OP}>:          -Wlogical-op         >
+            $<$<BOOL:${COMPILER_SUPPORTS_WDOUBLE_PROMOTION}>:    -Wdouble-promotion   >
+            $<$<BOOL:${COMPILER_SUPPORTS_WRANGE_LOOP_ANALYSIS}>: -Wrange-loop-analysis>
+            $<$<BOOL:${COMPILER_SUPPORTS_WUNDEF}>:               -Wundef              >
+            $<$<BOOL:${COMPILER_SUPPORTS_WSHADOW}>:              -Wshadow             >
+            $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
+            $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
+            )
+        target_link_options(toml11_decoder PRIVATE
+            $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
+            $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
+            )
+    endif()
 
     add_executable(toml11_decoder_v1_1_0 to_json.cpp)
     target_include_directories(toml11_decoder_v1_1_0
@@ -132,26 +140,30 @@ if(TOML11_BUILD_TOML_TESTS)
         )
     target_compile_definitions(toml11_decoder_v1_1_0 PRIVATE -DTOML11_TO_JSON_USE_V1_1_0)
     target_link_libraries(toml11_decoder_v1_1_0 PRIVATE toml11)
-    target_compile_options(toml11_decoder_v1_1_0 PRIVATE
-        $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
-        $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
-        $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
-        $<$<BOOL:${COMPILER_SUPPORTS_WSIGN_CONVERSION}>:     -Wsign-conversion    >
-        $<$<BOOL:${COMPILER_SUPPORTS_WCONVERSION}>:          -Wconversion         >
-        $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_COND}>:     -Wduplicated-cond    >
-        $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_BRANCHES}>: -Wduplicated-branches>
-        $<$<BOOL:${COMPILER_SUPPORTS_WLOGICAL_OP}>:          -Wlogical-op         >
-        $<$<BOOL:${COMPILER_SUPPORTS_WDOUBLE_PROMOTION}>:    -Wdouble-promotion   >
-        $<$<BOOL:${COMPILER_SUPPORTS_WRANGE_LOOP_ANALYSIS}>: -Wrange-loop-analysis>
-        $<$<BOOL:${COMPILER_SUPPORTS_WUNDEF}>:               -Wundef              >
-        $<$<BOOL:${COMPILER_SUPPORTS_WSHADOW}>:              -Wshadow             >
-        $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
-        $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
-        )
-    target_link_options(toml11_decoder_v1_1_0 PRIVATE
-        $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
-        $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
-        )
+    if(MSVC)
+        target_compile_options(${TEST_NAME} PRIVATE /W3)
+    else()
+        target_compile_options(toml11_decoder_v1_1_0 PRIVATE
+            $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
+            $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
+            $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
+            $<$<BOOL:${COMPILER_SUPPORTS_WSIGN_CONVERSION}>:     -Wsign-conversion    >
+            $<$<BOOL:${COMPILER_SUPPORTS_WCONVERSION}>:          -Wconversion         >
+            $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_COND}>:     -Wduplicated-cond    >
+            $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_BRANCHES}>: -Wduplicated-branches>
+            $<$<BOOL:${COMPILER_SUPPORTS_WLOGICAL_OP}>:          -Wlogical-op         >
+            $<$<BOOL:${COMPILER_SUPPORTS_WDOUBLE_PROMOTION}>:    -Wdouble-promotion   >
+            $<$<BOOL:${COMPILER_SUPPORTS_WRANGE_LOOP_ANALYSIS}>: -Wrange-loop-analysis>
+            $<$<BOOL:${COMPILER_SUPPORTS_WUNDEF}>:               -Wundef              >
+            $<$<BOOL:${COMPILER_SUPPORTS_WSHADOW}>:              -Wshadow             >
+            $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
+            $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
+            )
+        target_link_options(toml11_decoder_v1_1_0 PRIVATE
+            $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
+            $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
+            )
+    endif()
 
     add_executable(toml11_encoder to_toml.cpp)
     target_include_directories(toml11_encoder
@@ -159,24 +171,28 @@ if(TOML11_BUILD_TOML_TESTS)
         PRIVATE ${PROJECT_SOURCE_DIR}/tests/extlib/json/include/
         )
     target_link_libraries(toml11_encoder PRIVATE toml11)
-    target_compile_options(toml11_encoder PRIVATE
-        $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
-        $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
-        $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
-        $<$<BOOL:${COMPILER_SUPPORTS_WSIGN_CONVERSION}>:     -Wsign-conversion    >
-        $<$<BOOL:${COMPILER_SUPPORTS_WCONVERSION}>:          -Wconversion         >
-        $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_COND}>:     -Wduplicated-cond    >
-        $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_BRANCHES}>: -Wduplicated-branches>
-        $<$<BOOL:${COMPILER_SUPPORTS_WLOGICAL_OP}>:          -Wlogical-op         >
-        $<$<BOOL:${COMPILER_SUPPORTS_WDOUBLE_PROMOTION}>:    -Wdouble-promotion   >
-        $<$<BOOL:${COMPILER_SUPPORTS_WRANGE_LOOP_ANALYSIS}>: -Wrange-loop-analysis>
-        $<$<BOOL:${COMPILER_SUPPORTS_WUNDEF}>:               -Wundef              >
-        $<$<BOOL:${COMPILER_SUPPORTS_WSHADOW}>:              -Wshadow             >
-        $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
-        $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
-        )
-    target_link_options(toml11_encoder PRIVATE
-        $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
-        $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
-        )
+    if(MSVC)
+        target_compile_options(${TEST_NAME} PRIVATE /W3)
+    else()
+        target_compile_options(toml11_encoder PRIVATE
+            $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
+            $<$<BOOL:${COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
+            $<$<BOOL:${COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
+            $<$<BOOL:${COMPILER_SUPPORTS_WSIGN_CONVERSION}>:     -Wsign-conversion    >
+            $<$<BOOL:${COMPILER_SUPPORTS_WCONVERSION}>:          -Wconversion         >
+            $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_COND}>:     -Wduplicated-cond    >
+            $<$<BOOL:${COMPILER_SUPPORTS_WDUPLICATED_BRANCHES}>: -Wduplicated-branches>
+            $<$<BOOL:${COMPILER_SUPPORTS_WLOGICAL_OP}>:          -Wlogical-op         >
+            $<$<BOOL:${COMPILER_SUPPORTS_WDOUBLE_PROMOTION}>:    -Wdouble-promotion   >
+            $<$<BOOL:${COMPILER_SUPPORTS_WRANGE_LOOP_ANALYSIS}>: -Wrange-loop-analysis>
+            $<$<BOOL:${COMPILER_SUPPORTS_WUNDEF}>:               -Wundef              >
+            $<$<BOOL:${COMPILER_SUPPORTS_WSHADOW}>:              -Wshadow             >
+            $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
+            $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
+            )
+        target_link_options(toml11_encoder PRIVATE
+            $<$<BOOL:${TOML11_TEST_WITH_ASAN}>:                  -fsanitize=address   >
+            $<$<BOOL:${TOML11_TEST_WITH_UBSAN}>:                 -fsanitize=undefined >
+            )
+    endif()
 endif(TOML11_BUILD_TOML_TESTS)
