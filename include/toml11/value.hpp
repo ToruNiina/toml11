@@ -54,19 +54,20 @@ class basic_value
 {
   public:
 
-    using key_type             = typename TypeConfig::string_type;
-    using value_type           = basic_value<TypeConfig>;
-    using boolean_type         = typename TypeConfig::boolean_type;
-    using integer_type         = typename TypeConfig::integer_type;
-    using floating_type        = typename TypeConfig::floating_type;
-    using string_type          = typename TypeConfig::string_type;
+    using config_type          = TypeConfig;
+    using key_type             = typename config_type::string_type;
+    using value_type           = basic_value<config_type>;
+    using boolean_type         = typename config_type::boolean_type;
+    using integer_type         = typename config_type::integer_type;
+    using floating_type        = typename config_type::floating_type;
+    using string_type          = typename config_type::string_type;
     using local_time_type      = ::toml::local_time;
     using local_date_type      = ::toml::local_date;
     using local_datetime_type  = ::toml::local_datetime;
     using offset_datetime_type = ::toml::offset_datetime;
-    using array_type           = typename TypeConfig::template array_type<value_type>;
-    using table_type           = typename TypeConfig::template table_type<key_type, value_type>;
-    using comment_type         = typename TypeConfig::comment_type;
+    using array_type           = typename config_type::template array_type<value_type>;
+    using table_type           = typename config_type::template table_type<key_type, value_type>;
+    using comment_type         = typename config_type::comment_type;
 
   private:
 
@@ -483,8 +484,8 @@ class basic_value
 
     template<typename T>
     using enable_if_floating_like_t = cxx::enable_if_t<cxx::conjunction<
-        cxx::negation<std::is_same<cxx::remove_cvref_t<T>, floating_type>>,
-        std::is_floating_point<cxx::remove_cvref_t<T>>
+            cxx::negation<std::is_same<cxx::remove_cvref_t<T>, floating_type>>,
+            std::is_floating_point<cxx::remove_cvref_t<T>>
         >::value, std::nullptr_t>;
 
   public:
@@ -493,23 +494,28 @@ class basic_value
     basic_value(T x)
         : basic_value(x, floating_format_info{}, std::vector<std::string>{}, region_type{})
     {}
+
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, floating_format_info fmt)
         : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{})
     {}
+
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, std::vector<std::string> com)
         : basic_value(x, floating_format_info{}, std::move(com), region_type{})
     {}
+
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, floating_format_info fmt, std::vector<std::string> com)
         : basic_value(x, std::move(fmt), std::move(com), region_type{})
     {}
+
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, floating_format_info fmt, std::vector<std::string> com, region_type reg)
         : type_(value_t::floating), floating_(floating_storage(x, std::move(fmt))),
           region_(std::move(reg)), comments_(std::move(com))
     {}
+
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value& operator=(T x)
     {
@@ -1032,20 +1038,20 @@ class basic_value
         detail::has_specialized_into<T>::value, std::nullptr_t> = nullptr>
     basic_value(const T& ud)
         : basic_value(
-            into<cxx::remove_cvref_t<T>>::template into_toml<TypeConfig>(ud))
+            into<cxx::remove_cvref_t<T>>::template into_toml<config_type>(ud))
     {}
     template<typename T, cxx::enable_if_t<
         detail::has_specialized_into<T>::value, std::nullptr_t> = nullptr>
     basic_value(const T& ud, std::vector<std::string> com)
         : basic_value(
-            into<cxx::remove_cvref_t<T>>::template into_toml<TypeConfig>(ud),
+            into<cxx::remove_cvref_t<T>>::template into_toml<config_type>(ud),
             std::move(com))
     {}
     template<typename T, cxx::enable_if_t<
         detail::has_specialized_into<T>::value, std::nullptr_t> = nullptr>
     basic_value& operator=(const T& ud)
     {
-        *this = into<cxx::remove_cvref_t<T>>::template into_toml<TypeConfig>(ud);
+        *this = into<cxx::remove_cvref_t<T>>::template into_toml<config_type>(ud);
         return *this;
     }
 
@@ -1133,16 +1139,16 @@ class basic_value
     // as_xxx (noexcept) version ========================================== {{{
 
     template<value_t T>
-    detail::enum_to_type_t<T, basic_value<TypeConfig>> const&
+    detail::enum_to_type_t<T, basic_value<config_type>> const&
     as(const std::nothrow_t&) const noexcept
     {
-        return detail::getter<TypeConfig, T>::get_nothrow(*this);
+        return detail::getter<config_type, T>::get_nothrow(*this);
     }
     template<value_t T>
-    detail::enum_to_type_t<T, basic_value<TypeConfig>>&
+    detail::enum_to_type_t<T, basic_value<config_type>>&
     as(const std::nothrow_t&) noexcept
     {
-        return detail::getter<TypeConfig, T>::get_nothrow(*this);
+        return detail::getter<config_type, T>::get_nothrow(*this);
     }
 
     boolean_type         const& as_boolean        (const std::nothrow_t&) const noexcept {return this->boolean_.value;}
@@ -1172,14 +1178,14 @@ class basic_value
     // as_xxx (throw) ===================================================== {{{
 
     template<value_t T>
-    detail::enum_to_type_t<T, basic_value<TypeConfig>> const& as() const
+    detail::enum_to_type_t<T, basic_value<config_type>> const& as() const
     {
-        return detail::getter<TypeConfig, T>::get(*this);
+        return detail::getter<config_type, T>::get(*this);
     }
     template<value_t T>
-    detail::enum_to_type_t<T, basic_value<TypeConfig>>& as()
+    detail::enum_to_type_t<T, basic_value<config_type>>& as()
     {
-        return detail::getter<TypeConfig, T>::get(*this);
+        return detail::getter<config_type, T>::get(*this);
     }
 
     boolean_type const& as_boolean() const
@@ -1355,13 +1361,13 @@ class basic_value
     detail::enum_to_fmt_type_t<T> const&
     as_fmt(const std::nothrow_t&) const noexcept
     {
-        return detail::getter<TypeConfig, T>::get_fmt_nothrow(*this);
+        return detail::getter<config_type, T>::get_fmt_nothrow(*this);
     }
     template<value_t T>
     detail::enum_to_fmt_type_t<T>&
     as_fmt(const std::nothrow_t&) noexcept
     {
-        return detail::getter<TypeConfig, T>::get_fmt_nothrow(*this);
+        return detail::getter<config_type, T>::get_fmt_nothrow(*this);
     }
 
     boolean_format_info        & as_boolean_fmt        (const std::nothrow_t&) noexcept {return this->boolean_.format;}
@@ -1393,12 +1399,12 @@ class basic_value
     template<value_t T>
     detail::enum_to_fmt_type_t<T> const& as_fmt() const
     {
-        return detail::getter<TypeConfig, T>::get_fmt(*this);
+        return detail::getter<config_type, T>::get_fmt(*this);
     }
     template<value_t T>
     detail::enum_to_fmt_type_t<T>& as_fmt()
     {
-        return detail::getter<TypeConfig, T>::get_fmt(*this);
+        return detail::getter<config_type, T>::get_fmt(*this);
     }
 
     boolean_format_info const& as_boolean_fmt() const
