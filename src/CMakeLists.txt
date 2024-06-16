@@ -95,13 +95,40 @@ if(TOML11_PRECOMPILE)
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
         )
+
+    # required options to use toml11 with MSVC
+    if(MSVC)
+        target_compile_options(toml11 PUBLIC "/utf-8")
+        if(MSVC_VERSION LESS 1910)
+            message(STATUS "MSVC < 1910. DEFINE_CONVERSION_NON_INTRUSIVE is disabled")
+            target_compile_definitions(toml11 PUBLIC -DTOML11_WITHOUT_DEFINE_NON_INTRUSIVE)
+        elseif(MSVC_VERSION LESS 1920) # MSVC 2017
+            target_compile_options(toml11 PUBLIC "/experimental:preprocessor")
+        else() # MSVC 2019
+            target_compile_options(toml11 PUBLIC "/Zc:preprocessor")
+        endif()
+    endif()
 else()
     add_library(toml11 INTERFACE)
     target_include_directories(toml11 INTERFACE
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
         )
+
+    # required options to use toml11 with MSVC
+    if(MSVC)
+        target_compile_options(toml11 INTERFACE "/utf-8")
+        if(MSVC_VERSION LESS 1910)
+            message(STATUS "MSVC < 1910. DEFINE_CONVERSION_NON_INTRUSIVE is disabled")
+            target_compile_definitions(toml11 PUBLIC -DTOML11_WITHOUT_DEFINE_NON_INTRUSIVE)
+        elseif(MSVC_VERSION LESS 1920) # MSVC 2017
+            target_compile_options(toml11 INTERFACE "/experimental:preprocessor")
+        else() # MSVC 2019
+            target_compile_options(toml11 INTERFACE "/Zc:preprocessor")
+        endif()
+    endif()
 endif()
+
 
 if(TOML11_INSTALL)
 
