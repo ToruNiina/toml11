@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-go@v5
       - name: Configure
         run: |
-            cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TOML_TESTS=ON
+            cmake -B build/ -DBUILD_TEST=OFF -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TOML_TESTS=ON
       - name: Build
         run: |
             cmake --build build/
