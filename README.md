@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/github/license/ToruNiina/toml11.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1209136.svg)](https://doi.org/10.5281/zenodo.1209136)
 
-[日本語版](https://github.com/ToruNiina/toml11/README_ja.md)
+[日本語版](https://github.com/ToruNiina/toml11/blob/main/README_ja.md)
 
 toml11 is a feature-rich TOML language library for C++.
 
@@ -70,7 +70,7 @@ int main()
 }
 ```
 
-For more details, please refer to the documentation.
+For more details, please refer to the [documentation](https://toruniina.github.io/toml11/).
 
 ## Table of Contents
 
@@ -89,7 +89,7 @@ For more details, please refer to the documentation.
 
 There are several ways to use toml11.
 
-Here is a brief overview of each method. For more details, please refer to the documentation.
+Here is a brief overview of each method. For more details, please refer to the [documentation](https://toruniina.github.io/toml11/docs/installation/).
 
 ### Single Include File
 
@@ -147,7 +147,7 @@ $ cmake --build ./build/
 
 Here is a brief overview of the features provided by toml11.
 
-For more details, please refer to the documentation.
+For more details, please refer to the [documentation](https://toruniina.github.io/toml11/docs/features/).
 
 ### Parsing a File
 
@@ -198,7 +198,7 @@ s.ext_null_value = true; // this allows `key = null` value
 s.ext_num_suffix = true; // this allows numeric suffixes like `100_msec`
 ```
 
-For more detail and reference of each feature, please refer to the documentation.
+For more detail and reference of each feature, please refer to the [documentation](https://toruniina.github.io/toml11/docs/features/).
 
 ### finding a value
 
@@ -237,7 +237,7 @@ const auto mixed = toml::find<
     >(input, "mixed_array") << std::endl;
 ```
 
-For more details, please refer to the documentation.
+For more details, please refer to the [documentation](https://toruniina.github.io/toml11/docs/features/value/).
 
 ### comments
 
@@ -265,7 +265,7 @@ std::cout << input.at("a").comments().size() << std::endl;
 std::cout << input.at("a").comments().at(0) << std::endl;
 ```
 
-For more details, please refer to the documentation.
+For more details, please refer to the [documentation](https://toruniina.github.io/toml11/docs/features/value/#accessing-comments).
 
 ### error messages
 
@@ -307,7 +307,7 @@ if(a.as_integer() < 0)
 }
 ```
 
-For more details, please refer to the documentation.
+For more details, please refer to the [documentation](https://toruniina.github.io/toml11/docs/features/error_message/).
 
 ### serialization
 
@@ -328,7 +328,7 @@ output.at("a").as_integer_fmt().spacer = 4;
 std::cout << toml::format(input) << std::endl;
 ```
 
-For details on possible formatting specifications, please refer to the documentation.
+For details on possible formatting specifications, please refer to the [documentation](https://toruniina.github.io/toml11/docs/features/serialize/).
 
 ### configuring types
 

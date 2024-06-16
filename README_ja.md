@@ -67,7 +67,7 @@ int main()
 }
 ```
 
-詳細な機能とリファレンスに関しては、ドキュメントを参照してください。
+詳細な機能とリファレンスに関しては、[ドキュメント](https://toruniina.github.io/toml11/ja/)を参照してください。
 
 ## Table of Contents
 
@@ -86,7 +86,7 @@ int main()
 
 toml11を使うには複数の方法があります。
 
-ここではそれぞれを短く紹介します。詳細は、ドキュメントを参照してください。
+ここではそれぞれを短く紹介します。詳細は、[ドキュメント](https://toruniina.github.io/toml11/ja/docs/installation/)を参照してください。
 
 ### Single include file
 
@@ -146,7 +146,7 @@ $ cmake --build ./build/
 
 ここでは、toml11の持つ機能を短く紹介します。
 
-詳細についてはドキュメントを参照してください。
+詳細については[ドキュメント](https://toruniina.github.io/toml11/ja/docs/features/)を参照してください。
 
 ### parsing a file
 
@@ -197,7 +197,7 @@ s.ext_null_value = true; // 空の値 `null` を許可
 s.ext_num_suffix = true; // `100_msec`などのsuffixを許可
 ```
 
-各機能の紹介とリファレンスは、ドキュメントを参照してください。
+各機能の紹介とリファレンスは、[ドキュメント](https://toruniina.github.io/toml11/ja/docs/features/)を参照してください。
 
 ### finding a value
 
@@ -236,7 +236,7 @@ const auto mixed = toml::find<
     >(input, "mixed_array") << std::endl;
 ```
 
-詳細についてはドキュメントを参照してください。
+詳細については[ドキュメント](https://toruniina.github.io/toml11/ja/docs/features/value/)を参照してください。
 
 ### comments
 
@@ -263,7 +263,7 @@ std::cout << input.at("a").comments().size() << std::endl;
 std::cout << input.at("a").comments().at(0) << std::endl;
 ```
 
-詳細についてはドキュメントを参照してください。
+詳細については[ドキュメント](https://toruniina.github.io/toml11/ja/docs/features/value/#%E3%82%B3%E3%83%A1%E3%83%B3%E3%83%88%E3%81%AB%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%99%E3%82%8B)を参照してください。
 
 ### error messages
 
@@ -305,7 +305,7 @@ if(a.as_integer() < 0)
 }
 ```
 
-詳細はドキュメントを参照してください。
+詳細は[ドキュメント](https://toruniina.github.io/toml11/ja/docs/features/error_message/)を参照してください。
 
 ### serialization
 
@@ -327,7 +327,7 @@ output.at("a").as_integer_fmt().spacer = 4;
 std::cout << toml::format(input) << std::endl;
 ```
 
-どのような指定が可能かなどの詳細はドキュメントを参照してください。
+どのような指定が可能かなどの詳細は[ドキュメント](https://toruniina.github.io/toml11/ja/docs/features/serialize/)を参照してください。
 
 ### configuring types
 
