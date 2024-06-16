@@ -41,7 +41,7 @@ toml::value convert_to_toml(const nlohmann::json& j)
             {
                 return f_r.unwrap();
             }
-            else
+            else // not conform TOML floating-point syntax.
             {
                 // toml-test converts "inf" into "Inf"
                 if(value == "Inf" || value == "+Inf")
@@ -52,9 +52,11 @@ toml::value convert_to_toml(const nlohmann::json& j)
                 {
                     return toml::value(-std::numeric_limits<double>::infinity());
                 }
-                else
+                else // sometimes toml-test uses large int with type:float
                 {
-                    return toml::value(toml::detail::from_string<double>(value).unwrap());
+                    toml::floating_format_info fmt;
+                    fmt.prec = value.size();
+                    return toml::value(toml::detail::from_string<double>(value).unwrap(), fmt);
                 }
             }
         }
