@@ -17,7 +17,9 @@ jobs:
       - name: Install
         run: |
             sudo apt update
-            sudo apt install -y ${{ matrix.compiler }} golang-go
+            sudo apt install -y ${{ matrix.compiler }}
+      - name: Setup Go
+        uses: actions/setup-go@v5
       - name: Configure
         run: |
             cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TOML_TESTS=ON
