@@ -106,7 +106,7 @@ TEST_CASE("cxx::optional")
 
         CHECK_UNARY_FALSE(static_cast<bool>(v));
         CHECK_UNARY_FALSE(v.has_value());
-        CHECK_THROWS(v.value());
+        CHECK_THROWS((void)v.value());
         CHECK_EQ(v.value_or(6 * 9), 54);
 
         v = 42;
@@ -119,7 +119,7 @@ TEST_CASE("cxx::optional")
 
         CHECK_UNARY_FALSE(static_cast<bool>(v));
         CHECK_UNARY_FALSE(v.has_value());
-        CHECK_THROWS(v.value());
+        CHECK_THROWS((void)v.value());
         CHECK_EQ(v.value_or(6 * 9), 54);
 
         v = 42;
@@ -145,7 +145,7 @@ TEST_CASE("cxx::optional")
 
         CHECK_UNARY_FALSE(static_cast<bool>(v));
         CHECK_UNARY_FALSE(v.has_value());
-        CHECK_THROWS(v.value());
+        CHECK_THROWS((void)v.value());
         CHECK_EQ(v.value_or(std::vector<int>{6 * 9}), std::vector<int>{54});
 
         v = std::vector<int>{42};
@@ -158,7 +158,7 @@ TEST_CASE("cxx::optional")
 
         CHECK_UNARY_FALSE(static_cast<bool>(v));
         CHECK_UNARY_FALSE(v.has_value());
-        CHECK_THROWS(v.value());
+        CHECK_THROWS((void)v.value());
         CHECK_EQ(v.value_or(std::vector<int>{6 * 9}), std::vector<int>{54});
 
         v = std::vector<int>{42};
