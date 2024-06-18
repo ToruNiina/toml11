@@ -12,7 +12,7 @@ namespace toml
 struct semantic_version
 {
     constexpr semantic_version(std::uint32_t mjr, std::uint32_t mnr, std::uint32_t p) noexcept
-        : major(mjr), minor(mnr), patch(p)
+        : major{mjr}, minor{mnr}, patch{p}
     {}
 
     std::uint32_t major;
@@ -87,17 +87,17 @@ struct spec
     }
 
     constexpr explicit spec(const semantic_version& semver) noexcept
-        : version(semver),
-          v1_1_0_allow_control_characters_in_comments (semantic_version(1, 1, 0) <= semver),
-          v1_1_0_allow_newlines_in_inline_tables      (semantic_version(1, 1, 0) <= semver),
-          v1_1_0_allow_trailing_comma_in_inline_tables(semantic_version(1, 1, 0) <= semver),
-          v1_1_0_allow_non_english_in_bare_keys       (semantic_version(1, 1, 0) <= semver),
-          v1_1_0_add_escape_sequence_e                (semantic_version(1, 1, 0) <= semver),
-          v1_1_0_add_escape_sequence_x                (semantic_version(1, 1, 0) <= semver),
-          v1_1_0_make_seconds_optional                (semantic_version(1, 1, 0) <= semver),
-          ext_hex_float (false),
-          ext_num_suffix(false),
-          ext_null_value(false)
+        : version{semver},
+          v1_1_0_allow_control_characters_in_comments {semantic_version{1, 1, 0} <= semver},
+          v1_1_0_allow_newlines_in_inline_tables      {semantic_version{1, 1, 0} <= semver},
+          v1_1_0_allow_trailing_comma_in_inline_tables{semantic_version{1, 1, 0} <= semver},
+          v1_1_0_allow_non_english_in_bare_keys       {semantic_version{1, 1, 0} <= semver},
+          v1_1_0_add_escape_sequence_e                {semantic_version{1, 1, 0} <= semver},
+          v1_1_0_add_escape_sequence_x                {semantic_version{1, 1, 0} <= semver},
+          v1_1_0_make_seconds_optional                {semantic_version{1, 1, 0} <= semver},
+          ext_hex_float {false},
+          ext_num_suffix{false},
+          ext_null_value{false}
     {}
 
     semantic_version version; // toml version
