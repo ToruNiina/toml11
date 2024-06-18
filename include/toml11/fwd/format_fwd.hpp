@@ -232,12 +232,12 @@ struct value_with_format
     value_with_format& operator=(value_with_format&&)      = default;
 
     value_with_format(value_type v, format_type f)
-        : value(std::move(v)), format(std::move(f))
+        : value{std::move(v)}, format{std::move(f)}
     {}
 
     template<typename U>
     value_with_format(value_with_format<U, format_type> other)
-        : value(std::move(other.value)), format(std::move(other.format))
+        : value{std::move(other.value)}, format{std::move(other.format)}
     {}
 
     value_type  value;
