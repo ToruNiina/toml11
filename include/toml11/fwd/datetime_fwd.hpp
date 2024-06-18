@@ -48,15 +48,15 @@ struct local_date
     std::uint8_t day{0};    // [1, 31]
 
     local_date(int y, month_t m, int d)
-        : year (static_cast<std::int16_t>(y)),
-          month(static_cast<std::uint8_t>(m)),
-          day  (static_cast<std::uint8_t>(d))
+        : year {static_cast<std::int16_t>(y)},
+          month{static_cast<std::uint8_t>(m)},
+          day  {static_cast<std::uint8_t>(d)}
     {}
 
     explicit local_date(const std::tm& t)
-        : year (static_cast<std::int16_t>(t.tm_year + 1900)),
-          month(static_cast<std::uint8_t>(t.tm_mon)),
-          day  (static_cast<std::uint8_t>(t.tm_mday))
+        : year {static_cast<std::int16_t>(t.tm_year + 1900)},
+          month{static_cast<std::uint8_t>(t.tm_mon)},
+          day  {static_cast<std::uint8_t>(t.tm_mday)}
     {}
 
     explicit local_date(const std::chrono::system_clock::time_point& tp);
@@ -95,19 +95,19 @@ struct local_time
 
     local_time(int h, int m, int s,
                int ms = 0, int us = 0, int ns = 0)
-        : hour  (static_cast<std::uint8_t>(h)),
-          minute(static_cast<std::uint8_t>(m)),
-          second(static_cast<std::uint8_t>(s)),
-          millisecond(static_cast<std::uint16_t>(ms)),
-          microsecond(static_cast<std::uint16_t>(us)),
-          nanosecond (static_cast<std::uint16_t>(ns))
+        : hour  {static_cast<std::uint8_t>(h)},
+          minute{static_cast<std::uint8_t>(m)},
+          second{static_cast<std::uint8_t>(s)},
+          millisecond{static_cast<std::uint16_t>(ms)},
+          microsecond{static_cast<std::uint16_t>(us)},
+          nanosecond {static_cast<std::uint16_t>(ns)}
     {}
 
     explicit local_time(const std::tm& t)
-        : hour  (static_cast<std::uint8_t>(t.tm_hour)),
-          minute(static_cast<std::uint8_t>(t.tm_min)),
-          second(static_cast<std::uint8_t>(t.tm_sec)),
-          millisecond(0), microsecond(0), nanosecond(0)
+        : hour  {static_cast<std::uint8_t>(t.tm_hour)},
+          minute{static_cast<std::uint8_t>(t.tm_min )},
+          second{static_cast<std::uint8_t>(t.tm_sec )},
+          millisecond{0}, microsecond{0}, nanosecond{0}
     {}
 
     template<typename Rep, typename Period>
@@ -160,8 +160,8 @@ struct time_offset
     std::int8_t minute{0}; // [-59, 59]
 
     time_offset(int h, int m)
-        : hour  (static_cast<std::int8_t>(h)),
-          minute(static_cast<std::int8_t>(m))
+        : hour  {static_cast<std::int8_t>(h)},
+          minute{static_cast<std::int8_t>(m)}
     {}
 
     operator std::chrono::minutes() const;
@@ -192,9 +192,9 @@ struct local_datetime
     local_date date{};
     local_time time{};
 
-    local_datetime(local_date d, local_time t): date(d), time(t) {}
+    local_datetime(local_date d, local_time t): date{d}, time{t} {}
 
-    explicit local_datetime(const std::tm& t): date(t), time(t){}
+    explicit local_datetime(const std::tm& t): date{t}, time{t}{}
 
     explicit local_datetime(const std::chrono::system_clock::time_point& tp);
     explicit local_datetime(const std::time_t t);
@@ -230,10 +230,10 @@ struct offset_datetime
     time_offset offset{};
 
     offset_datetime(local_date d, local_time t, time_offset o)
-        : date(d), time(t), offset(o)
+        : date{d}, time{t}, offset{o}
     {}
     offset_datetime(const local_datetime& dt, time_offset o)
-        : date(dt.date), time(dt.time), offset(o)
+        : date{dt.date}, time{dt.time}, offset{o}
     {}
     // use the current local timezone offset
     explicit offset_datetime(const local_datetime& ld);

@@ -78,7 +78,7 @@ TOML11_INLINE local_date::local_date(const std::chrono::system_clock::time_point
 }
 
 TOML11_INLINE local_date::local_date(const std::time_t t)
-    : local_date(std::chrono::system_clock::from_time_t(t))
+    : local_date{std::chrono::system_clock::from_time_t(t)}
 {}
 
 TOML11_INLINE local_date::operator std::chrono::system_clock::time_point() const
@@ -294,7 +294,7 @@ TOML11_INLINE local_datetime::local_datetime(const std::chrono::system_clock::ti
 }
 
 TOML11_INLINE local_datetime::local_datetime(const std::time_t t)
-    : local_datetime(std::chrono::system_clock::from_time_t(t))
+    : local_datetime{std::chrono::system_clock::from_time_t(t)}
 {}
 
 TOML11_INLINE local_datetime::operator std::chrono::system_clock::time_point() const
@@ -380,11 +380,11 @@ TOML11_INLINE std::string to_string(const local_datetime& dt)
 
 
 TOML11_INLINE offset_datetime::offset_datetime(const local_datetime& ld)
-    : date(ld.date), time(ld.time), offset(get_local_offset(nullptr))
+    : date{ld.date}, time{ld.time}, offset{get_local_offset(nullptr)}
       // use the current local timezone offset
 {}
 TOML11_INLINE offset_datetime::offset_datetime(const std::chrono::system_clock::time_point& tp)
-    : offset(0, 0) // use gmtime
+    : offset{0, 0} // use gmtime
 {
     const auto timet = std::chrono::system_clock::to_time_t(tp);
     const auto tm    = detail::gmtime_s(&timet);
@@ -392,14 +392,14 @@ TOML11_INLINE offset_datetime::offset_datetime(const std::chrono::system_clock::
     this->time = local_time(tm);
 }
 TOML11_INLINE offset_datetime::offset_datetime(const std::time_t& t)
-    : offset(0, 0) // use gmtime
+    : offset{0, 0} // use gmtime
 {
     const auto tm    = detail::gmtime_s(&t);
     this->date = local_date(tm);
     this->time = local_time(tm);
 }
 TOML11_INLINE offset_datetime::offset_datetime(const std::tm& t)
-    : offset(0, 0) // assume gmtime
+    : offset{0, 0} // assume gmtime
 {
     this->date = local_date(t);
     this->time = local_time(t);
