@@ -183,27 +183,27 @@ struct result
     using value_type = typename success_type::value_type;
     using error_type = typename failure_type::value_type;
 
-    result(success_type s): is_ok_(true),  succ(std::move(s)) {}
-    result(failure_type f): is_ok_(false), fail(std::move(f)) {}
+    result(success_type s): is_ok_(true),  succ_(std::move(s)) {}
+    result(failure_type f): is_ok_(false), fail_(std::move(f)) {}
 
     template<typename U, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<U>, value_type>>,
             std::is_convertible<cxx::remove_cvref_t<U>, value_type>
         >::value, std::nullptr_t> = nullptr>
-    result(success<U> s): is_ok_(true),  succ(std::move(s.value)) {}
+    result(success<U> s): is_ok_(true),  succ_(std::move(s.value)) {}
 
     template<typename U, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<U>, error_type>>,
             std::is_convertible<cxx::remove_cvref_t<U>, error_type>
         >::value, std::nullptr_t> = nullptr>
-    result(failure<U> f): is_ok_(false), fail(std::move(f.value)) {}
+    result(failure<U> f): is_ok_(false), fail_(std::move(f.value)) {}
 
     result& operator=(success_type s)
     {
         this->cleanup();
         this->is_ok_ = true;
-        auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(s));
-        assert(tmp == std::addressof(this->succ));
+        auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(s));
+        assert(tmp == std::addressof(this->succ_));
         (void)tmp;
         return *this;
     }
@@ -211,8 +211,8 @@ struct result
     {
         this->cleanup();
         this->is_ok_ = false;
-        auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(f));
-        assert(tmp == std::addressof(this->fail));
+        auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(f));
+        assert(tmp == std::addressof(this->fail_));
         (void)tmp;
         return *this;
     }
@@ -222,8 +222,8 @@ struct result
     {
         this->cleanup();
         this->is_ok_ = true;
-        auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(s.value));
-        assert(tmp == std::addressof(this->succ));
+        auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(s.value));
+        assert(tmp == std::addressof(this->succ_));
         (void)tmp;
         return *this;
     }
@@ -232,8 +232,8 @@ struct result
     {
         this->cleanup();
         this->is_ok_ = false;
-        auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(f.value));
-        assert(tmp == std::addressof(this->fail));
+        auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(f.value));
+        assert(tmp == std::addressof(this->fail_));
         (void)tmp;
         return *this;
     }
@@ -244,14 +244,14 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(other.as_ok());
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.as_ok());
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(other.as_err());
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.as_err());
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
     }
@@ -259,14 +259,14 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
     }
@@ -276,14 +276,14 @@ struct result
         this->cleanup();
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(other.as_ok());
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.as_ok());
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(other.as_err());
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.as_err());
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
         is_ok_ = other.is_ok();
@@ -294,14 +294,14 @@ struct result
         this->cleanup();
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
         is_ok_ = other.is_ok();
@@ -318,14 +318,14 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
     }
@@ -341,14 +341,14 @@ struct result
         this->cleanup();
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
         is_ok_ = other.is_ok();
@@ -366,7 +366,7 @@ struct result
         {
             throw bad_result_access("toml::result: bad unwrap" + cxx::to_string(loc));
         }
-        return this->succ.get();
+        return this->succ_.get();
     }
     value_type const& unwrap(cxx::source_location loc = cxx::source_location::current()) const
     {
@@ -374,18 +374,18 @@ struct result
         {
             throw bad_result_access("toml::result: bad unwrap" + cxx::to_string(loc));
         }
-        return this->succ.get();
+        return this->succ_.get();
     }
 
     value_type& unwrap_or(value_type& opt) noexcept
     {
         if(this->is_err()) {return opt;}
-        return this->succ.get();
+        return this->succ_.get();
     }
     value_type const& unwrap_or(value_type const& opt) const noexcept
     {
         if(this->is_err()) {return opt;}
-        return this->succ.get();
+        return this->succ_.get();
     }
 
     error_type& unwrap_err(cxx::source_location loc = cxx::source_location::current())
@@ -394,7 +394,7 @@ struct result
         {
             throw bad_result_access("toml::result: bad unwrap_err" + cxx::to_string(loc));
         }
-        return this->fail.get();
+        return this->fail_.get();
     }
     error_type const& unwrap_err(cxx::source_location loc = cxx::source_location::current()) const
     {
@@ -402,29 +402,29 @@ struct result
         {
             throw bad_result_access("toml::result: bad unwrap_err" + cxx::to_string(loc));
         }
-        return this->fail.get();
+        return this->fail_.get();
     }
 
     value_type& as_ok() noexcept
     {
         assert(this->is_ok());
-        return this->succ.get();
+        return this->succ_.get();
     }
     value_type const& as_ok() const noexcept
     {
         assert(this->is_ok());
-        return this->succ.get();
+        return this->succ_.get();
     }
 
     error_type& as_err() noexcept
     {
         assert(this->is_err());
-        return this->fail.get();
+        return this->fail_.get();
     }
     error_type const& as_err() const noexcept
     {
         assert(this->is_err());
-        return this->fail.get();
+        return this->fail_.get();
     }
 
   private:
@@ -436,8 +436,8 @@ struct result
 #pragma GCC diagnostic ignored "-Wduplicated-branches"
 #endif
 
-        if(this->is_ok_) {this->succ.~success_type();}
-        else             {this->fail.~failure_type();}
+        if(this->is_ok_) {this->succ_.~success_type();}
+        else             {this->fail_.~failure_type();}
 
 #if defined(__GNUC__) && ! defined(__clang__)
 #pragma GCC diagnostic pop
@@ -450,8 +450,8 @@ struct result
     bool      is_ok_;
     union
     {
-        success_type succ;
-        failure_type fail;
+        success_type succ_;
+        failure_type fail_;
     };
 };
 

@@ -23,25 +23,25 @@ struct storage
 {
     using value_type = T;
 
-    explicit storage(value_type v): ptr(cxx::make_unique<T>(std::move(v))) {}
+    explicit storage(value_type v): ptr_(cxx::make_unique<T>(std::move(v))) {}
     ~storage() = default;
 
-    storage(const storage& rhs): ptr(cxx::make_unique<T>(*rhs.ptr)) {}
+    storage(const storage& rhs): ptr_(cxx::make_unique<T>(*rhs.ptr_)) {}
     storage& operator=(const storage& rhs)
     {
-        this->ptr = cxx::make_unique<T>(*rhs.ptr);
+        this->ptr_ = cxx::make_unique<T>(*rhs.ptr_);
         return *this;
     }
 
     storage(storage&&) = default;
     storage& operator=(storage&&) = default;
 
-    bool is_ok() const noexcept {return static_cast<bool>(ptr);}
+    bool is_ok() const noexcept {return static_cast<bool>(ptr_);}
 
-    value_type& get() const noexcept {return *ptr;}
+    value_type& get() const noexcept {return *ptr_;}
 
   private:
-    std::unique_ptr<value_type> ptr;
+    std::unique_ptr<value_type> ptr_;
 };
 
 } // detail
