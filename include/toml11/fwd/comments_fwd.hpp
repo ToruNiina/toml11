@@ -444,7 +444,7 @@ inline bool operator>=(const discard_comments&, const discard_comments&) noexcep
 
 inline void swap(const discard_comments&, const discard_comments&) noexcept {return;}
 
-inline std::ostream& operator<<(std::ostream&& os, const discard_comments&) {return os;}
+inline std::ostream& operator<<(std::ostream& os, const discard_comments&) {return os;}
 
 } // toml11
 #endif // TOML11_COMMENTS_FWD_HPP
