@@ -107,10 +107,8 @@ std::string format_location(
 {
     const auto lnw = detail::line_width(loc, msg, tail...);
 
-    std::ostringstream oss;
-    detail::format_filename(oss, loc);
-
-    return oss.str() + detail::format_location_rec(lnw, loc.file_name(), loc, msg, tail...);
+    const std::string f(""); // at the 1st iteration, no prev_filename is given
+    return detail::format_location_rec(lnw, f, loc, msg, tail...);
 }
 
 } // toml
