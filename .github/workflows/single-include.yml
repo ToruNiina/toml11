@@ -21,7 +21,7 @@ jobs:
         run: |
             diff single_include.hpp single_include/toml.hpp
       - name: Commit and Push
-        if: steps.check-diff.outcome == "failure"
+        if: steps.check-diff.outcome == 'failure'
         run: |
             mv single_include.hpp single_include/toml.hpp
             git config user.name "ToruNiina"
