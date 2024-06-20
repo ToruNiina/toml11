@@ -29,3 +29,5 @@ jobs:
             git add single_include/toml.hpp
             git commit -m "feat [skip ci]: update single_include"
             git push origin main
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
