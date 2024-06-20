@@ -345,12 +345,12 @@ struct value_with_format
     value_with_format& operator=(value_with_format&&)      = default;
 
     value_with_format(value_type v, format_type f)
-        : value(std::move(v)), format(std::move(f))
+        : value{std::move(v)}, format{std::move(f)}
     {}
 
     template<typename U>
     value_with_format(value_with_format<U, format_type> other)
-        : value(std::move(other.value)), format(std::move(other.format))
+        : value{std::move(other.value)}, format{std::move(other.format)}
     {}
 
     value_type  value;
@@ -712,15 +712,15 @@ struct local_date
     std::uint8_t day{0};    // [1, 31]
 
     local_date(int y, month_t m, int d)
-        : year (static_cast<std::int16_t>(y)),
-          month(static_cast<std::uint8_t>(m)),
-          day  (static_cast<std::uint8_t>(d))
+        : year {static_cast<std::int16_t>(y)},
+          month{static_cast<std::uint8_t>(m)},
+          day  {static_cast<std::uint8_t>(d)}
     {}
 
     explicit local_date(const std::tm& t)
-        : year (static_cast<std::int16_t>(t.tm_year + 1900)),
-          month(static_cast<std::uint8_t>(t.tm_mon)),
-          day  (static_cast<std::uint8_t>(t.tm_mday))
+        : year {static_cast<std::int16_t>(t.tm_year + 1900)},
+          month{static_cast<std::uint8_t>(t.tm_mon)},
+          day  {static_cast<std::uint8_t>(t.tm_mday)}
     {}
 
     explicit local_date(const std::chrono::system_clock::time_point& tp);
@@ -759,19 +759,19 @@ struct local_time
 
     local_time(int h, int m, int s,
                int ms = 0, int us = 0, int ns = 0)
-        : hour  (static_cast<std::uint8_t>(h)),
-          minute(static_cast<std::uint8_t>(m)),
-          second(static_cast<std::uint8_t>(s)),
-          millisecond(static_cast<std::uint16_t>(ms)),
-          microsecond(static_cast<std::uint16_t>(us)),
-          nanosecond (static_cast<std::uint16_t>(ns))
+        : hour  {static_cast<std::uint8_t>(h)},
+          minute{static_cast<std::uint8_t>(m)},
+          second{static_cast<std::uint8_t>(s)},
+          millisecond{static_cast<std::uint16_t>(ms)},
+          microsecond{static_cast<std::uint16_t>(us)},
+          nanosecond {static_cast<std::uint16_t>(ns)}
     {}
 
     explicit local_time(const std::tm& t)
-        : hour  (static_cast<std::uint8_t>(t.tm_hour)),
-          minute(static_cast<std::uint8_t>(t.tm_min)),
-          second(static_cast<std::uint8_t>(t.tm_sec)),
-          millisecond(0), microsecond(0), nanosecond(0)
+        : hour  {static_cast<std::uint8_t>(t.tm_hour)},
+          minute{static_cast<std::uint8_t>(t.tm_min )},
+          second{static_cast<std::uint8_t>(t.tm_sec )},
+          millisecond{0}, microsecond{0}, nanosecond{0}
     {}
 
     template<typename Rep, typename Period>
@@ -824,8 +824,8 @@ struct time_offset
     std::int8_t minute{0}; // [-59, 59]
 
     time_offset(int h, int m)
-        : hour  (static_cast<std::int8_t>(h)),
-          minute(static_cast<std::int8_t>(m))
+        : hour  {static_cast<std::int8_t>(h)},
+          minute{static_cast<std::int8_t>(m)}
     {}
 
     operator std::chrono::minutes() const;
@@ -856,9 +856,9 @@ struct local_datetime
     local_date date{};
     local_time time{};
 
-    local_datetime(local_date d, local_time t): date(d), time(t) {}
+    local_datetime(local_date d, local_time t): date{d}, time{t} {}
 
-    explicit local_datetime(const std::tm& t): date(t), time(t){}
+    explicit local_datetime(const std::tm& t): date{t}, time{t}{}
 
     explicit local_datetime(const std::chrono::system_clock::time_point& tp);
     explicit local_datetime(const std::time_t t);
@@ -894,10 +894,10 @@ struct offset_datetime
     time_offset offset{};
 
     offset_datetime(local_date d, local_time t, time_offset o)
-        : date(d), time(t), offset(o)
+        : date{d}, time{t}, offset{o}
     {}
     offset_datetime(const local_datetime& dt, time_offset o)
-        : date(dt.date), time(dt.time), offset(o)
+        : date{dt.date}, time{dt.time}, offset{o}
     {}
     // use the current local timezone offset
     explicit offset_datetime(const local_datetime& ld);
@@ -1014,7 +1014,7 @@ TOML11_INLINE local_date::local_date(const std::chrono::system_clock::time_point
 }
 
 TOML11_INLINE local_date::local_date(const std::time_t t)
-    : local_date(std::chrono::system_clock::from_time_t(t))
+    : local_date{std::chrono::system_clock::from_time_t(t)}
 {}
 
 TOML11_INLINE local_date::operator std::chrono::system_clock::time_point() const
@@ -1230,7 +1230,7 @@ TOML11_INLINE local_datetime::local_datetime(const std::chrono::system_clock::ti
 }
 
 TOML11_INLINE local_datetime::local_datetime(const std::time_t t)
-    : local_datetime(std::chrono::system_clock::from_time_t(t))
+    : local_datetime{std::chrono::system_clock::from_time_t(t)}
 {}
 
 TOML11_INLINE local_datetime::operator std::chrono::system_clock::time_point() const
@@ -1316,11 +1316,11 @@ TOML11_INLINE std::string to_string(const local_datetime& dt)
 
 
 TOML11_INLINE offset_datetime::offset_datetime(const local_datetime& ld)
-    : date(ld.date), time(ld.time), offset(get_local_offset(nullptr))
+    : date{ld.date}, time{ld.time}, offset{get_local_offset(nullptr)}
       // use the current local timezone offset
 {}
 TOML11_INLINE offset_datetime::offset_datetime(const std::chrono::system_clock::time_point& tp)
-    : offset(0, 0) // use gmtime
+    : offset{0, 0} // use gmtime
 {
     const auto timet = std::chrono::system_clock::to_time_t(tp);
     const auto tm    = detail::gmtime_s(&timet);
@@ -1328,14 +1328,14 @@ TOML11_INLINE offset_datetime::offset_datetime(const std::chrono::system_clock::
     this->time = local_time(tm);
 }
 TOML11_INLINE offset_datetime::offset_datetime(const std::time_t& t)
-    : offset(0, 0) // use gmtime
+    : offset{0, 0} // use gmtime
 {
     const auto tm    = detail::gmtime_s(&t);
     this->date = local_date(tm);
     this->time = local_time(tm);
 }
 TOML11_INLINE offset_datetime::offset_datetime(const std::tm& t)
-    : offset(0, 0) // assume gmtime
+    : offset{0, 0} // assume gmtime
 {
     this->date = local_date(t);
     this->time = local_time(t);
@@ -2391,25 +2391,25 @@ struct storage
 {
     using value_type = T;
 
-    explicit storage(value_type v): ptr(cxx::make_unique<T>(std::move(v))) {}
+    explicit storage(value_type v): ptr_(cxx::make_unique<T>(std::move(v))) {}
     ~storage() = default;
 
-    storage(const storage& rhs): ptr(cxx::make_unique<T>(*rhs.ptr)) {}
+    storage(const storage& rhs): ptr_(cxx::make_unique<T>(*rhs.ptr_)) {}
     storage& operator=(const storage& rhs)
     {
-        this->ptr = cxx::make_unique<T>(*rhs.ptr);
+        this->ptr_ = cxx::make_unique<T>(*rhs.ptr_);
         return *this;
     }
 
     storage(storage&&) = default;
     storage& operator=(storage&&) = default;
 
-    bool is_ok() const noexcept {return static_cast<bool>(ptr);}
+    bool is_ok() const noexcept {return static_cast<bool>(ptr_);}
 
-    value_type& get() const noexcept {return *ptr;}
+    value_type& get() const noexcept {return *ptr_;}
 
   private:
-    std::unique_ptr<value_type> ptr;
+    std::unique_ptr<value_type> ptr_;
 };
 
 } // detail
@@ -2863,7 +2863,7 @@ inline bool operator>=(const discard_comments&, const discard_comments&) noexcep
 
 inline void swap(const discard_comments&, const discard_comments&) noexcept {return;}
 
-inline std::ostream& operator<<(std::ostream&& os, const discard_comments&) {return os;}
+inline std::ostream& operator<<(std::ostream& os, const discard_comments&) {return os;}
 
 } // toml11
 #endif // TOML11_COMMENTS_FWD_HPP
@@ -3095,7 +3095,7 @@ namespace toml
 struct semantic_version
 {
     constexpr semantic_version(std::uint32_t mjr, std::uint32_t mnr, std::uint32_t p) noexcept
-        : major(mjr), minor(mnr), patch(p)
+        : major{mjr}, minor{mnr}, patch{p}
     {}
 
     std::uint32_t major;
@@ -3170,17 +3170,17 @@ struct spec
     }
 
     constexpr explicit spec(const semantic_version& semver) noexcept
-        : version(semver),
-          v1_1_0_allow_control_characters_in_comments (semantic_version(1, 1, 0) <= semver),
-          v1_1_0_allow_newlines_in_inline_tables      (semantic_version(1, 1, 0) <= semver),
-          v1_1_0_allow_trailing_comma_in_inline_tables(semantic_version(1, 1, 0) <= semver),
-          v1_1_0_allow_non_english_in_bare_keys       (semantic_version(1, 1, 0) <= semver),
-          v1_1_0_add_escape_sequence_e                (semantic_version(1, 1, 0) <= semver),
-          v1_1_0_add_escape_sequence_x                (semantic_version(1, 1, 0) <= semver),
-          v1_1_0_make_seconds_optional                (semantic_version(1, 1, 0) <= semver),
-          ext_hex_float (false),
-          ext_num_suffix(false),
-          ext_null_value(false)
+        : version{semver},
+          v1_1_0_allow_control_characters_in_comments {semantic_version{1, 1, 0} <= semver},
+          v1_1_0_allow_newlines_in_inline_tables      {semantic_version{1, 1, 0} <= semver},
+          v1_1_0_allow_trailing_comma_in_inline_tables{semantic_version{1, 1, 0} <= semver},
+          v1_1_0_allow_non_english_in_bare_keys       {semantic_version{1, 1, 0} <= semver},
+          v1_1_0_add_escape_sequence_e                {semantic_version{1, 1, 0} <= semver},
+          v1_1_0_add_escape_sequence_x                {semantic_version{1, 1, 0} <= semver},
+          v1_1_0_make_seconds_optional                {semantic_version{1, 1, 0} <= semver},
+          ext_hex_float {false},
+          ext_num_suffix{false},
+          ext_null_value{false}
     {}
 
     semantic_version version; // toml version
@@ -4023,27 +4023,27 @@ struct result
     using value_type = typename success_type::value_type;
     using error_type = typename failure_type::value_type;
 
-    result(success_type s): is_ok_(true),  succ(std::move(s)) {}
-    result(failure_type f): is_ok_(false), fail(std::move(f)) {}
+    result(success_type s): is_ok_(true),  succ_(std::move(s)) {}
+    result(failure_type f): is_ok_(false), fail_(std::move(f)) {}
 
     template<typename U, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<U>, value_type>>,
             std::is_convertible<cxx::remove_cvref_t<U>, value_type>
         >::value, std::nullptr_t> = nullptr>
-    result(success<U> s): is_ok_(true),  succ(std::move(s.value)) {}
+    result(success<U> s): is_ok_(true),  succ_(std::move(s.value)) {}
 
     template<typename U, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<U>, error_type>>,
             std::is_convertible<cxx::remove_cvref_t<U>, error_type>
         >::value, std::nullptr_t> = nullptr>
-    result(failure<U> f): is_ok_(false), fail(std::move(f.value)) {}
+    result(failure<U> f): is_ok_(false), fail_(std::move(f.value)) {}
 
     result& operator=(success_type s)
     {
         this->cleanup();
         this->is_ok_ = true;
-        auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(s));
-        assert(tmp == std::addressof(this->succ));
+        auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(s));
+        assert(tmp == std::addressof(this->succ_));
         (void)tmp;
         return *this;
     }
@@ -4051,8 +4051,8 @@ struct result
     {
         this->cleanup();
         this->is_ok_ = false;
-        auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(f));
-        assert(tmp == std::addressof(this->fail));
+        auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(f));
+        assert(tmp == std::addressof(this->fail_));
         (void)tmp;
         return *this;
     }
@@ -4062,8 +4062,8 @@ struct result
     {
         this->cleanup();
         this->is_ok_ = true;
-        auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(s.value));
-        assert(tmp == std::addressof(this->succ));
+        auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(s.value));
+        assert(tmp == std::addressof(this->succ_));
         (void)tmp;
         return *this;
     }
@@ -4072,8 +4072,8 @@ struct result
     {
         this->cleanup();
         this->is_ok_ = false;
-        auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(f.value));
-        assert(tmp == std::addressof(this->fail));
+        auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(f.value));
+        assert(tmp == std::addressof(this->fail_));
         (void)tmp;
         return *this;
     }
@@ -4084,14 +4084,14 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(other.as_ok());
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.as_ok());
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(other.as_err());
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.as_err());
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
     }
@@ -4099,14 +4099,14 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
     }
@@ -4116,14 +4116,14 @@ struct result
         this->cleanup();
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(other.as_ok());
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.as_ok());
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(other.as_err());
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.as_err());
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
         is_ok_ = other.is_ok();
@@ -4134,14 +4134,14 @@ struct result
         this->cleanup();
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
         is_ok_ = other.is_ok();
@@ -4158,14 +4158,14 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
     }
@@ -4181,14 +4181,14 @@ struct result
         this->cleanup();
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ)) success_type(std::move(other.as_ok()));
-            assert(tmp == std::addressof(this->succ));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail)) failure_type(std::move(other.as_err()));
-            assert(tmp == std::addressof(this->fail));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
         is_ok_ = other.is_ok();
@@ -4206,7 +4206,7 @@ struct result
         {
             throw bad_result_access("toml::result: bad unwrap" + cxx::to_string(loc));
         }
-        return this->succ.get();
+        return this->succ_.get();
     }
     value_type const& unwrap(cxx::source_location loc = cxx::source_location::current()) const
     {
@@ -4214,18 +4214,18 @@ struct result
         {
             throw bad_result_access("toml::result: bad unwrap" + cxx::to_string(loc));
         }
-        return this->succ.get();
+        return this->succ_.get();
     }
 
     value_type& unwrap_or(value_type& opt) noexcept
     {
         if(this->is_err()) {return opt;}
-        return this->succ.get();
+        return this->succ_.get();
     }
     value_type const& unwrap_or(value_type const& opt) const noexcept
     {
         if(this->is_err()) {return opt;}
-        return this->succ.get();
+        return this->succ_.get();
     }
 
     error_type& unwrap_err(cxx::source_location loc = cxx::source_location::current())
@@ -4234,7 +4234,7 @@ struct result
         {
             throw bad_result_access("toml::result: bad unwrap_err" + cxx::to_string(loc));
         }
-        return this->fail.get();
+        return this->fail_.get();
     }
     error_type const& unwrap_err(cxx::source_location loc = cxx::source_location::current()) const
     {
@@ -4242,29 +4242,29 @@ struct result
         {
             throw bad_result_access("toml::result: bad unwrap_err" + cxx::to_string(loc));
         }
-        return this->fail.get();
+        return this->fail_.get();
     }
 
     value_type& as_ok() noexcept
     {
         assert(this->is_ok());
-        return this->succ.get();
+        return this->succ_.get();
     }
     value_type const& as_ok() const noexcept
     {
         assert(this->is_ok());
-        return this->succ.get();
+        return this->succ_.get();
     }
 
     error_type& as_err() noexcept
     {
         assert(this->is_err());
-        return this->fail.get();
+        return this->fail_.get();
     }
     error_type const& as_err() const noexcept
     {
         assert(this->is_err());
-        return this->fail.get();
+        return this->fail_.get();
     }
 
   private:
@@ -4276,8 +4276,8 @@ struct result
 #pragma GCC diagnostic ignored "-Wduplicated-branches"
 #endif
 
-        if(this->is_ok_) {this->succ.~success_type();}
-        else             {this->fail.~failure_type();}
+        if(this->is_ok_) {this->succ_.~success_type();}
+        else             {this->fail_.~failure_type();}
 
 #if defined(__GNUC__) && ! defined(__clang__)
 #pragma GCC diagnostic pop
@@ -4290,8 +4290,8 @@ struct result
     bool      is_ok_;
     union
     {
-        success_type succ;
-        failure_type fail;
+        success_type succ_;
+        failure_type fail_;
     };
 };
 
@@ -5035,16 +5035,53 @@ TOML11_INLINE std::vector<std::string> region::as_lines() const
     assert(this->is_ok());
     if(this->length_ == 0)
     {
-        return {""};
+        return std::vector<std::string>{""};
     }
 
-    const auto begin = std::next(this->source_->cbegin(), static_cast<difference_type>(this->first_));
-    const auto end   = std::next(this->source_->cbegin(), static_cast<difference_type>(this->last_ ));
+    // Consider the following toml file
+    // ```
+    // array = [
+    // ] # comment
+    // ```
+    // and the region represnets
+    // ```
+    //         [
+    // ]
+    // ```
+    // but we want to show the following.
+    // ```
+    // array = [
+    // ] # comment
+    // ```
+    // So we need to find LFs before `begin` and after `end`.
+    //
+    // But, if region ends with LF, it should not include the next line.
+    // ```
+    // a = 42
+    //     ^^^- with the last LF
+    // ```
+    // So we start from `end-1` when looking for LF.
 
-    const auto line_begin = std::find(cxx::make_reverse_iterator(begin), this->source_->crend(), char_type('\n'));
+    const auto begin_idx = static_cast<difference_type>(this->first_);
+    const auto end_idx   = static_cast<difference_type>(this->last_) - 1;
+
+    // length_ != 0, so begin < end. then begin <= end-1
+    assert(begin_idx <= end_idx);
+
+    const auto begin = std::next(this->source_->cbegin(), begin_idx);
+    const auto end   = std::next(this->source_->cbegin(), end_idx);
+
+    const auto line_begin = std::find(cxx::make_reverse_iterator(begin), this->source_->crend(), char_type('\n')).base();
     const auto line_end   = std::find(end, this->source_->cend(), char_type('\n'));
 
-    std::istringstream iss(make_string(line_begin.base(), line_end));
+    const auto reg_lines = make_string(line_begin, line_end);
+
+    if(reg_lines == "") // the region is an empty line that only contains LF
+    {
+        return std::vector<std::string>{""};
+    }
+
+    std::istringstream iss(reg_lines);
 
     std::vector<std::string> lines;
     std::string line;
@@ -5172,10 +5209,8 @@ std::string format_location(
 {
     const auto lnw = detail::line_width(loc, msg, tail...);
 
-    std::ostringstream oss;
-    detail::format_filename(oss, loc);
-
-    return oss.str() + detail::format_location_rec(lnw, loc.file_name(), loc, msg, tail...);
+    const std::string f(""); // at the 1st iteration, no prev_filename is given
+    return detail::format_location_rec(lnw, f, loc, msg, tail...);
 }
 
 } // toml
