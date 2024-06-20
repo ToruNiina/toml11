@@ -126,16 +126,53 @@ TOML11_INLINE std::vector<std::string> region::as_lines() const
     assert(this->is_ok());
     if(this->length_ == 0)
     {
-        return {""};
+        return std::vector<std::string>{""};
     }
 
-    const auto begin = std::next(this->source_->cbegin(), static_cast<difference_type>(this->first_));
-    const auto end   = std::next(this->source_->cbegin(), static_cast<difference_type>(this->last_ ));
+    // Consider the following toml file
+    // ```
+    // array = [
+    // ] # comment
+    // ```
+    // and the region represnets
+    // ```
+    //         [
+    // ]
+    // ```
+    // but we want to show the following.
+    // ```
+    // array = [
+    // ] # comment
+    // ```
+    // So we need to find LFs before `begin` and after `end`.
+    //
+    // But, if region ends with LF, it should not include the next line.
+    // ```
+    // a = 42
+    //     ^^^- with the last LF
+    // ```
+    // So we start from `end-1` when looking for LF.
 
-    const auto line_begin = std::find(cxx::make_reverse_iterator(begin), this->source_->crend(), char_type('\n'));
+    const auto begin_idx = static_cast<difference_type>(this->first_);
+    const auto end_idx   = static_cast<difference_type>(this->last_) - 1;
+
+    // length_ != 0, so begin < end. then begin <= end-1
+    assert(begin_idx <= end_idx);
+
+    const auto begin = std::next(this->source_->cbegin(), begin_idx);
+    const auto end   = std::next(this->source_->cbegin(), end_idx);
+
+    const auto line_begin = std::find(cxx::make_reverse_iterator(begin), this->source_->crend(), char_type('\n')).base();
     const auto line_end   = std::find(end, this->source_->cend(), char_type('\n'));
 
-    std::istringstream iss(make_string(line_begin.base(), line_end));
+    const auto reg_lines = make_string(line_begin, line_end);
+
+    if(reg_lines == "") // the region is an empty line that only contains LF
+    {
+        return std::vector<std::string>{""};
+    }
+
+    std::istringstream iss(reg_lines);
 
     std::vector<std::string> lines;
     std::string line;
