@@ -81,7 +81,7 @@ For more details, please refer to the [documentation](https://toruniina.github.i
   - [comments](#comments)
   - [error messages](#error-messages)
   - [serialization](#serialization)
-- [Breaking Changes from v3](breaking-changes-from-v3)
+- [Breaking Changes from v3](#changes-from-v3)
 - [Contributors](#contributors)
 - [Licensing Terms](#licensing-terms)
 
@@ -332,7 +332,7 @@ For details on possible formatting specifications, please refer to the [document
 
 ### configuring types
 
-The examples directory provides usage examples, such as using
+[The examples directory](https://github.com/ToruNiina/toml11/tree/main/examples) provides usage examples, such as using
 arbitrary-precision integers, normalizing Unicode, and integrating with an external reflection library.
 
 Please refer to these examples for implementation guidance in such scenarios.

@@ -78,7 +78,7 @@ int main()
   - [comments](#comments)
   - [error messages](#error-messages)
   - [serialization](#serialization)
-- [Breaking Changes from v3](breaking-changes-from-v3)
+- [Breaking Changes from v3](#changes-from-v3)
 - [Contributors](#contributors)
 - [Licensing Terms](#licensing-terms)
 
@@ -331,7 +331,7 @@ std::cout << toml::format(input) << std::endl;
 
 ### configuring types
 
-`examples`ディレクトリには、多倍長整数を使用する場合やユニコードを正規化する場合、
+[`examples`ディレクトリ](https://github.com/ToruNiina/toml11/tree/main/examples)には、多倍長整数を使用する場合やユニコードを正規化する場合、
 外部のリフレクションライブラリと連携する場合などの複雑な使用例を用意しています。
 
 そのような状況での実装例として参照してください。
