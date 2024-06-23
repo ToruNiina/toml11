@@ -12,17 +12,6 @@
 namespace toml
 {
 
-// To avoid non-threadsafe std::localtime. In C11 (not C++11!), localtime_s is
-// provided in the absolutely same purpose, but C++11 is actually not compatible
-// with C11. We need to dispatch the function depending on the OS.
-namespace detail
-{
-std::tm localtime_s(const std::time_t* src);
-std::tm gmtime_s(const std::time_t* src);
-} // detail
-
-// ----------------------------------------------------------------------------
-
 enum class month_t : std::uint8_t
 {
     Jan =  0,

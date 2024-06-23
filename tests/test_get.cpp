@@ -17,6 +17,15 @@
 #include <string_view>
 #endif
 
+namespace toml
+{
+namespace detail
+{
+std::tm localtime_s(const std::time_t* src);
+std::tm gmtime_s(const std::time_t* src);
+} // detail
+} // toml
+
 TEST_CASE("testing toml::get with toml types")
 {
     using value_type = toml::value;
