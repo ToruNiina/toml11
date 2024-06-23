@@ -6,7 +6,22 @@ weight = 4
 
 # Change Log
 
-# v3からの変化
+# v4.0.1
+
+## Fixed
+
+- `sematic_version::{major, minor}` と `<sys/sysmacro.h>` 内で定義されるマクロの衝突を解消
+- `discard_comments` の `operator<<` の定義を修正
+- `format_location`を使用した際に最初の空行が出ない問題を解決
+- 改行文字のみを含む行を指す`source_location`でエラーメッセージを生成した際に、同じ行が二回表示される問題を解決
+- `README.md`内のリンクを修正
+- `example/unicode`のREADMEのタイトルを修正
+
+## Added
+
+- `main`に変更があったとき、`single_include/toml.hpp`を自動生成するようCIを設定
+
+# v3からv4への変化
 
 ## 破壊的変更
 

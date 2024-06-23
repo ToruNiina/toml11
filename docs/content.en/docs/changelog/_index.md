@@ -6,7 +6,22 @@ weight = 4
 
 # Change Log
 
-# Changes from v3
+# v4.0.1
+
+## Fixed
+
+- Resolved naming conflict of `sematic_version::{major, minor}` with macros defined in `<sys/sysmacro.h>`
+- Fixed the definition of `operator<<` in `discard_comments`
+- Fixed the issue where the first blank line was not output in `format_location`
+- Fixed the issue where error messages pointing to `source_location` referring to lines containing only newline characters were displayed in two lines
+- Corrected links in the README
+- Corrected the title of the README in `example/unicode`
+
+## Added
+
+- Configured CI to automatically update `single_include/toml.hpp` when changes are made to `main`
+
+# Changes from v3 to v4
 
 ## Breaking Changes
 
