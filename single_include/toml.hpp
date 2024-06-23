@@ -676,17 +676,6 @@ TOML11_INLINE bool operator!=(const table_format_info& lhs, const table_format_i
 namespace toml
 {
 
-// To avoid non-threadsafe std::localtime. In C11 (not C++11!), localtime_s is
-// provided in the absolutely same purpose, but C++11 is actually not compatible
-// with C11. We need to dispatch the function depending on the OS.
-namespace detail
-{
-std::tm localtime_s(const std::time_t* src);
-std::tm gmtime_s(const std::time_t* src);
-} // detail
-
-// ----------------------------------------------------------------------------
-
 enum class month_t : std::uint8_t
 {
     Jan =  0,
@@ -5594,6 +5583,8 @@ TOML11_INLINE std::ostream& operator<<(std::ostream& os, const error_info& e)
 
 namespace toml
 {
+template<typename TypeConfig>
+class basic_value;
 
 struct type_error final : public ::toml::exception
 {
@@ -5615,6 +5606,12 @@ struct type_error final : public ::toml::exception
 // only for internal use
 namespace detail
 {
+template<typename TC>
+error_info make_type_error(const basic_value<TC>&, const std::string&, const value_t);
+
+template<typename TC>
+error_info make_not_found_error(const basic_value<TC>&, const std::string&, const std::string&);
+
 template<typename TC>
 void change_region_of_value(basic_value<TC>&, const basic_value<TC>&);
 
@@ -6765,7 +6762,7 @@ class basic_value
     {
         if(this->type_ != value_t::boolean)
         {
-            this->throw_bad_cast("toml::value::as_boolean(): ", value_t::boolean);
+            this->throw_bad_cast("toml::value::as_boolean()", value_t::boolean);
         }
         return this->boolean_.value;
     }
@@ -6773,7 +6770,7 @@ class basic_value
     {
         if(this->type_ != value_t::integer)
         {
-            this->throw_bad_cast("toml::value::as_integer(): ", value_t::integer);
+            this->throw_bad_cast("toml::value::as_integer()", value_t::integer);
         }
         return this->integer_.value;
     }
@@ -6781,7 +6778,7 @@ class basic_value
     {
         if(this->type_ != value_t::floating)
         {
-            this->throw_bad_cast("toml::value::as_floating(): ", value_t::floating);
+            this->throw_bad_cast("toml::value::as_floating()", value_t::floating);
         }
         return this->floating_.value;
     }
@@ -6789,7 +6786,7 @@ class basic_value
     {
         if(this->type_ != value_t::string)
         {
-            this->throw_bad_cast("toml::value::as_string(): ", value_t::string);
+            this->throw_bad_cast("toml::value::as_string()", value_t::string);
         }
         return this->string_.value;
     }
@@ -6797,7 +6794,7 @@ class basic_value
     {
         if(this->type_ != value_t::offset_datetime)
         {
-            this->throw_bad_cast("toml::value::as_offset_datetime(): ", value_t::offset_datetime);
+            this->throw_bad_cast("toml::value::as_offset_datetime()", value_t::offset_datetime);
         }
         return this->offset_datetime_.value;
     }
@@ -6805,7 +6802,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_datetime)
         {
-            this->throw_bad_cast("toml::value::as_local_datetime(): ", value_t::local_datetime);
+            this->throw_bad_cast("toml::value::as_local_datetime()", value_t::local_datetime);
         }
         return this->local_datetime_.value;
     }
@@ -6813,7 +6810,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_date)
         {
-            this->throw_bad_cast("toml::value::as_local_date(): ", value_t::local_date);
+            this->throw_bad_cast("toml::value::as_local_date()", value_t::local_date);
         }
         return this->local_date_.value;
     }
@@ -6821,7 +6818,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_time)
         {
-            this->throw_bad_cast("toml::value::as_local_time(): ", value_t::local_time);
+            this->throw_bad_cast("toml::value::as_local_time()", value_t::local_time);
         }
         return this->local_time_.value;
     }
@@ -6829,7 +6826,7 @@ class basic_value
     {
         if(this->type_ != value_t::array)
         {
-            this->throw_bad_cast("toml::value::as_array(): ", value_t::array);
+            this->throw_bad_cast("toml::value::as_array()", value_t::array);
         }
         return this->array_.value.get();
     }
@@ -6837,7 +6834,7 @@ class basic_value
     {
         if(this->type_ != value_t::table)
         {
-            this->throw_bad_cast("toml::value::as_table(): ", value_t::table);
+            this->throw_bad_cast("toml::value::as_table()", value_t::table);
         }
         return this->table_.value.get();
     }
@@ -6849,7 +6846,7 @@ class basic_value
     {
         if(this->type_ != value_t::boolean)
         {
-            this->throw_bad_cast("toml::value::as_boolean(): ", value_t::boolean);
+            this->throw_bad_cast("toml::value::as_boolean()", value_t::boolean);
         }
         return this->boolean_.value;
     }
@@ -6857,7 +6854,7 @@ class basic_value
     {
         if(this->type_ != value_t::integer)
         {
-            this->throw_bad_cast("toml::value::as_integer(): ", value_t::integer);
+            this->throw_bad_cast("toml::value::as_integer()", value_t::integer);
         }
         return this->integer_.value;
     }
@@ -6865,7 +6862,7 @@ class basic_value
     {
         if(this->type_ != value_t::floating)
         {
-            this->throw_bad_cast("toml::value::as_floating(): ", value_t::floating);
+            this->throw_bad_cast("toml::value::as_floating()", value_t::floating);
         }
         return this->floating_.value;
     }
@@ -6873,7 +6870,7 @@ class basic_value
     {
         if(this->type_ != value_t::string)
         {
-            this->throw_bad_cast("toml::value::as_string(): ", value_t::string);
+            this->throw_bad_cast("toml::value::as_string()", value_t::string);
         }
         return this->string_.value;
     }
@@ -6881,7 +6878,7 @@ class basic_value
     {
         if(this->type_ != value_t::offset_datetime)
         {
-            this->throw_bad_cast("toml::value::as_offset_datetime(): ", value_t::offset_datetime);
+            this->throw_bad_cast("toml::value::as_offset_datetime()", value_t::offset_datetime);
         }
         return this->offset_datetime_.value;
     }
@@ -6889,7 +6886,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_datetime)
         {
-            this->throw_bad_cast("toml::value::as_local_datetime(): ", value_t::local_datetime);
+            this->throw_bad_cast("toml::value::as_local_datetime()", value_t::local_datetime);
         }
         return this->local_datetime_.value;
     }
@@ -6897,7 +6894,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_date)
         {
-            this->throw_bad_cast("toml::value::as_local_date(): ", value_t::local_date);
+            this->throw_bad_cast("toml::value::as_local_date()", value_t::local_date);
         }
         return this->local_date_.value;
     }
@@ -6905,7 +6902,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_time)
         {
-            this->throw_bad_cast("toml::value::as_local_time(): ", value_t::local_time);
+            this->throw_bad_cast("toml::value::as_local_time()", value_t::local_time);
         }
         return this->local_time_.value;
     }
@@ -6913,7 +6910,7 @@ class basic_value
     {
         if(this->type_ != value_t::array)
         {
-            this->throw_bad_cast("toml::value::as_array(): ", value_t::array);
+            this->throw_bad_cast("toml::value::as_array()", value_t::array);
         }
         return this->array_.value.get();
     }
@@ -6921,7 +6918,7 @@ class basic_value
     {
         if(this->type_ != value_t::table)
         {
-            this->throw_bad_cast("toml::value::as_table(): ", value_t::table);
+            this->throw_bad_cast("toml::value::as_table()", value_t::table);
         }
         return this->table_.value.get();
     }
@@ -6984,7 +6981,7 @@ class basic_value
     {
         if(this->type_ != value_t::boolean)
         {
-            this->throw_bad_cast("toml::value::as_boolean_fmt(): ", value_t::boolean);
+            this->throw_bad_cast("toml::value::as_boolean_fmt()", value_t::boolean);
         }
         return this->boolean_.format;
     }
@@ -6992,7 +6989,7 @@ class basic_value
     {
         if(this->type_ != value_t::integer)
         {
-            this->throw_bad_cast("toml::value::as_integer_fmt(): ", value_t::integer);
+            this->throw_bad_cast("toml::value::as_integer_fmt()", value_t::integer);
         }
         return this->integer_.format;
     }
@@ -7000,7 +6997,7 @@ class basic_value
     {
         if(this->type_ != value_t::floating)
         {
-            this->throw_bad_cast("toml::value::as_floating_fmt(): ", value_t::floating);
+            this->throw_bad_cast("toml::value::as_floating_fmt()", value_t::floating);
         }
         return this->floating_.format;
     }
@@ -7008,7 +7005,7 @@ class basic_value
     {
         if(this->type_ != value_t::string)
         {
-            this->throw_bad_cast("toml::value::as_string_fmt(): ", value_t::string);
+            this->throw_bad_cast("toml::value::as_string_fmt()", value_t::string);
         }
         return this->string_.format;
     }
@@ -7016,7 +7013,7 @@ class basic_value
     {
         if(this->type_ != value_t::offset_datetime)
         {
-            this->throw_bad_cast("toml::value::as_offset_datetime_fmt(): ", value_t::offset_datetime);
+            this->throw_bad_cast("toml::value::as_offset_datetime_fmt()", value_t::offset_datetime);
         }
         return this->offset_datetime_.format;
     }
@@ -7024,7 +7021,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_datetime)
         {
-            this->throw_bad_cast("toml::value::as_local_datetime_fmt(): ", value_t::local_datetime);
+            this->throw_bad_cast("toml::value::as_local_datetime_fmt()", value_t::local_datetime);
         }
         return this->local_datetime_.format;
     }
@@ -7032,7 +7029,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_date)
         {
-            this->throw_bad_cast("toml::value::as_local_date_fmt(): ", value_t::local_date);
+            this->throw_bad_cast("toml::value::as_local_date_fmt()", value_t::local_date);
         }
         return this->local_date_.format;
     }
@@ -7040,7 +7037,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_time)
         {
-            this->throw_bad_cast("toml::value::as_local_time_fmt(): ", value_t::local_time);
+            this->throw_bad_cast("toml::value::as_local_time_fmt()", value_t::local_time);
         }
         return this->local_time_.format;
     }
@@ -7048,7 +7045,7 @@ class basic_value
     {
         if(this->type_ != value_t::array)
         {
-            this->throw_bad_cast("toml::value::as_array_fmt(): ", value_t::array);
+            this->throw_bad_cast("toml::value::as_array_fmt()", value_t::array);
         }
         return this->array_.format;
     }
@@ -7056,7 +7053,7 @@ class basic_value
     {
         if(this->type_ != value_t::table)
         {
-            this->throw_bad_cast("toml::value::as_table_fmt(): ", value_t::table);
+            this->throw_bad_cast("toml::value::as_table_fmt()", value_t::table);
         }
         return this->table_.format;
     }
@@ -7068,7 +7065,7 @@ class basic_value
     {
         if(this->type_ != value_t::boolean)
         {
-            this->throw_bad_cast("toml::value::as_boolean_fmt(): ", value_t::boolean);
+            this->throw_bad_cast("toml::value::as_boolean_fmt()", value_t::boolean);
         }
         return this->boolean_.format;
     }
@@ -7076,7 +7073,7 @@ class basic_value
     {
         if(this->type_ != value_t::integer)
         {
-            this->throw_bad_cast("toml::value::as_integer_fmt(): ", value_t::integer);
+            this->throw_bad_cast("toml::value::as_integer_fmt()", value_t::integer);
         }
         return this->integer_.format;
     }
@@ -7084,7 +7081,7 @@ class basic_value
     {
         if(this->type_ != value_t::floating)
         {
-            this->throw_bad_cast("toml::value::as_floating_fmt(): ", value_t::floating);
+            this->throw_bad_cast("toml::value::as_floating_fmt()", value_t::floating);
         }
         return this->floating_.format;
     }
@@ -7092,7 +7089,7 @@ class basic_value
     {
         if(this->type_ != value_t::string)
         {
-            this->throw_bad_cast("toml::value::as_string_fmt(): ", value_t::string);
+            this->throw_bad_cast("toml::value::as_string_fmt()", value_t::string);
         }
         return this->string_.format;
     }
@@ -7100,7 +7097,7 @@ class basic_value
     {
         if(this->type_ != value_t::offset_datetime)
         {
-            this->throw_bad_cast("toml::value::as_offset_datetime_fmt(): ", value_t::offset_datetime);
+            this->throw_bad_cast("toml::value::as_offset_datetime_fmt()", value_t::offset_datetime);
         }
         return this->offset_datetime_.format;
     }
@@ -7108,7 +7105,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_datetime)
         {
-            this->throw_bad_cast("toml::value::as_local_datetime_fmt(): ", value_t::local_datetime);
+            this->throw_bad_cast("toml::value::as_local_datetime_fmt()", value_t::local_datetime);
         }
         return this->local_datetime_.format;
     }
@@ -7116,7 +7113,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_date)
         {
-            this->throw_bad_cast("toml::value::as_local_date_fmt(): ", value_t::local_date);
+            this->throw_bad_cast("toml::value::as_local_date_fmt()", value_t::local_date);
         }
         return this->local_date_.format;
     }
@@ -7124,7 +7121,7 @@ class basic_value
     {
         if(this->type_ != value_t::local_time)
         {
-            this->throw_bad_cast("toml::value::as_local_time_fmt(): ", value_t::local_time);
+            this->throw_bad_cast("toml::value::as_local_time_fmt()", value_t::local_time);
         }
         return this->local_time_.format;
     }
@@ -7132,7 +7129,7 @@ class basic_value
     {
         if(this->type_ != value_t::array)
         {
-            this->throw_bad_cast("toml::value::as_array_fmt(): ", value_t::array);
+            this->throw_bad_cast("toml::value::as_array_fmt()", value_t::array);
         }
         return this->array_.format;
     }
@@ -7140,7 +7137,7 @@ class basic_value
     {
         if(this->type_ != value_t::table)
         {
-            this->throw_bad_cast("toml::value::as_table_fmt(): ", value_t::table);
+            this->throw_bad_cast("toml::value::as_table_fmt()", value_t::table);
         }
         return this->table_.format;
     }
@@ -7152,13 +7149,13 @@ class basic_value
     {
         if(!this->is_table())
         {
-            this->throw_bad_cast("toml::value::at(key_type): ", value_t::table);
+            this->throw_bad_cast("toml::value::at(key_type)", value_t::table);
         }
         auto& table = this->as_table(std::nothrow);
         const auto found = table.find(k);
         if(found == table.end())
         {
-            this->throw_key_not_found_error(k);
+            this->throw_key_not_found_error("toml::value::at", k);
         }
         assert(found->first == k);
         return found->second;
@@ -7167,13 +7164,13 @@ class basic_value
     {
         if(!this->is_table())
         {
-            this->throw_bad_cast("toml::value::at(key_type): ", value_t::table);
+            this->throw_bad_cast("toml::value::at(key_type)", value_t::table);
         }
         const auto& table = this->as_table(std::nothrow);
         const auto found = table.find(k);
         if(found == table.end())
         {
-            this->throw_key_not_found_error(k);
+            this->throw_key_not_found_error("toml::value::at", k);
         }
         assert(found->first == k);
         return found->second;
@@ -7186,7 +7183,7 @@ class basic_value
         }
         else if( ! this->is_table()) // initialized, but not a table
         {
-            this->throw_bad_cast("toml::value::operator[](key_type): ", value_t::table);
+            this->throw_bad_cast("toml::value::operator[](key_type)", value_t::table);
         }
         return (this->as_table(std::nothrow))[k];
     }
@@ -7194,7 +7191,7 @@ class basic_value
     {
         if(!this->is_table())
         {
-            this->throw_bad_cast("toml::value::count(key_type): ", value_t::table);
+            this->throw_bad_cast("toml::value::count(key_type)", value_t::table);
         }
         return this->as_table(std::nothrow).count(k);
     }
@@ -7202,7 +7199,7 @@ class basic_value
     {
         if(!this->is_table())
         {
-            this->throw_bad_cast("toml::value::contains(key_type): ", value_t::table);
+            this->throw_bad_cast("toml::value::contains(key_type)", value_t::table);
         }
         const auto& table = this->as_table(std::nothrow);
         return table.find(k) != table.end();
@@ -7215,7 +7212,7 @@ class basic_value
     {
         if(!this->is_array())
         {
-            this->throw_bad_cast("toml::value::at(idx): ", value_t::array);
+            this->throw_bad_cast("toml::value::at(idx)", value_t::array);
         }
         auto& ar = this->as_array(std::nothrow);
 
@@ -7235,7 +7232,7 @@ class basic_value
     {
         if(!this->is_array())
         {
-            this->throw_bad_cast("toml::value::at(idx): ", value_t::array);
+            this->throw_bad_cast("toml::value::at(idx)", value_t::array);
         }
         const auto& ar = this->as_array(std::nothrow);
 
@@ -7268,7 +7265,7 @@ class basic_value
     {
         if(!this->is_array())
         {
-            this->throw_bad_cast("toml::value::push_back(idx): ", value_t::array);
+            this->throw_bad_cast("toml::value::push_back(idx)", value_t::array);
         }
         this->as_array(std::nothrow).push_back(x);
         return;
@@ -7277,7 +7274,7 @@ class basic_value
     {
         if(!this->is_array())
         {
-            this->throw_bad_cast("toml::value::push_back(idx): ", value_t::array);
+            this->throw_bad_cast("toml::value::push_back(idx)", value_t::array);
         }
         this->as_array(std::nothrow).push_back(std::move(x));
         return;
@@ -7288,7 +7285,7 @@ class basic_value
     {
         if(!this->is_array())
         {
-            this->throw_bad_cast("toml::value::emplace_back(idx): ", value_t::array);
+            this->throw_bad_cast("toml::value::emplace_back(idx)", value_t::array);
         }
         auto& ar = this->as_array(std::nothrow);
         ar.emplace_back(std::forward<Ts>(args) ...);
@@ -7366,52 +7363,15 @@ class basic_value
     [[noreturn]]
     void throw_bad_cast(const std::string& funcname, const value_t ty) const
     {
-        throw type_error(format_error(make_error_info(
-            funcname + "bad_cast to " + to_string(ty),
-            this->location(), "the actual type is " + to_string(this->type()))),
-            this->location());
+        throw type_error(format_error(detail::make_type_error(*this, funcname, ty)),
+                         this->location());
     }
 
     [[noreturn]]
-    void throw_key_not_found_error(const key_type& key) const
+    void throw_key_not_found_error(const std::string& funcname, const key_type& key) const
     {
-        const auto loc = this->location();
-
-        std::ostringstream oss;
-        oss << color::red << "[error] " << color::reset
-            << "key \"" << key << "\" not found";
-
-        // the value is not from a file. no information can be appended.
-        if( ! loc.is_ok())
-        {
-            throw std::out_of_range(oss.str());
-        }
-
-        // The top-level table has its region at the 0th character of the file.
-        // That means that, in the case when a key is not found in the top-level
-        // table, the error message points to the first character. If the file has
-        // the first table at the first line, the error message would be like this.
-        // ```console
-        // [error] key "a" not found
-        //  --> example.toml
-        //    |
-        //  1 | [table]
-        //    | ^------ in this table
-        // ```
-        // It actually points to the top-level table at the first character, not
-        // `[table]`. But it is too confusing. To avoid the confusion, the error
-        // message should explicitly say "key not found in the top-level table".
-        if(loc.first_line_number() == 1 && loc.length() == 0)
-        {
-            oss << " at the top-level table in \"" << loc.file_name() << "\"";
-            throw std::out_of_range(oss.str());
-        }
-        else
-        {
-            // normal table.
-            oss << format_location(loc, "in this table");
-            throw std::out_of_range(oss.str());
-        }
+        throw std::out_of_range(format_error(
+                    detail::make_not_found_error(*this, funcname, key)));
     }
 
     template<typename TC>
@@ -7651,6 +7611,49 @@ std::string format_error(std::string title,
 
 namespace detail
 {
+
+template<typename TC>
+error_info make_type_error(const basic_value<TC>& v, const std::string& fname, const value_t ty)
+{
+    return make_error_info(fname + ": bad_cast to " + to_string(ty),
+        v.location(), "the actual type is " + to_string(v.type()));
+}
+template<typename TC>
+error_info make_not_found_error(const basic_value<TC>& v, const std::string& fname, const std::string& key)
+{
+    const auto loc = v.location();
+    const std::string title = fname + ": key \"" + key + "\" not found";
+
+    std::vector<std::pair<source_location, std::string>> locs;
+    if( ! loc.is_ok())
+    {
+        return error_info(title, locs);
+    }
+
+    if(loc.first_line_number() == 1 && loc.first_column_number() == 1 && loc.length() == 1)
+    {
+        // The top-level table has its region at the 0th character of the file.
+        // That means that, in the case when a key is not found in the top-level
+        // table, the error message points to the first character. If the file has
+        // the first table at the first line, the error message would be like this.
+        // ```console
+        // [error] key "a" not found
+        //  --> example.toml
+        //    |
+        //  1 | [table]
+        //    | ^------ in this table
+        // ```
+        // It actually points to the top-level table at the first character, not
+        // `[table]`. But it is too confusing. To avoid the confusion, the error
+        // message should explicitly say "key not found in the top-level table".
+        locs.emplace_back(v.location(), "at the top-level table");
+    }
+    else
+    {
+        locs.emplace_back(v.location(), "in this table");
+    }
+    return error_info(title, locs);
+}
 
 #define TOML11_DETAIL_GENERATE_COMPTIME_GETTER(ty)                              \
     template<typename TC>                                                       \
