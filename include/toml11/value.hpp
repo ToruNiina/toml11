@@ -51,6 +51,9 @@ template<typename TC>
 error_info make_not_found_error(const basic_value<TC>&, const std::string&, const std::string&);
 
 template<typename TC>
+error_info make_not_found_error(const basic_value<TC>&, const std::string&, const std::size_t);
+
+template<typename TC>
 void change_region_of_value(basic_value<TC>&, const basic_value<TC>&);
 
 template<typename TC, value_t V>
@@ -1613,6 +1616,44 @@ class basic_value
         assert(found->first == k);
         return found->second;
     }
+
+    result<std::reference_wrapper<value_type>, error_info>
+    try_at(const key_type& k) noexcept
+    {
+        if(!this->is_table())
+        {
+            return err(detail::make_type_error(*this,
+                        "toml::value::try_at(key_type)", value_t::table));
+        }
+        auto& table = this->as_table(std::nothrow);
+        const auto found = table.find(k);
+        if(found == table.end())
+        {
+            return err(detail::make_not_found_error(*this,
+                        "toml::value::try_at(key_type)", k));
+        }
+        assert(found->first == k);
+        return ok(std::ref(found->second));
+    }
+    result<std::reference_wrapper<const value_type>, error_info>
+    try_at(const key_type& k) const noexcept
+    {
+        if(!this->is_table())
+        {
+            return err(detail::make_type_error(*this,
+                        "toml::value::try_at(key_type)", value_t::table));
+        }
+        const auto& table = this->as_table(std::nothrow);
+        const auto found = table.find(k);
+        if(found == table.end())
+        {
+            return err(detail::make_not_found_error(*this,
+                        "toml::value::try_at(key_type)", k));
+        }
+        assert(found->first == k);
+        return ok(std::cref(found->second));
+    }
+
     value_type& operator[](const key_type& k)
     {
         if(this->is_empty())
@@ -1686,6 +1727,41 @@ class basic_value
                 ));
         }
         return ar.at(idx);
+    }
+
+    result<std::reference_wrapper<value_type>, error_info>
+    try_at(const std::size_t& idx) noexcept
+    {
+        if(!this->is_array())
+        {
+            return err(detail::make_type_error(*this,
+                        "toml::value::try_at(key_type)", value_t::array));
+        }
+        auto& ar = this->as_array(std::nothrow);
+
+        if(ar.size() <= idx)
+        {
+            return err(detail::make_not_found_error(*this,
+                "toml::value::try_at(idx)", idx));
+        }
+        return ok(std::ref(ar[idx]));
+    }
+    result<std::reference_wrapper<const value_type>, error_info>
+    try_at(const std::size_t idx) const noexcept
+    {
+        if(!this->is_array())
+        {
+            return err(detail::make_type_error(*this,
+                        "toml::value::try_at(key_type)", value_t::array));
+        }
+        const auto& ar = this->as_array(std::nothrow);
+
+        if(ar.size() <= idx)
+        {
+            return err(detail::make_not_found_error(*this,
+                "toml::value::try_at(idx)", idx));
+        }
+        return ok(std::cref(ar[idx]));
     }
 
     value_type&       operator[](const std::size_t idx) noexcept
@@ -2091,6 +2167,19 @@ error_info make_not_found_error(const basic_value<TC>& v, const std::string& fna
         locs.emplace_back(v.location(), "in this table");
     }
     return error_info(title, locs);
+}
+template<typename TC>
+error_info make_not_found_error(const basic_value<TC>& v, const std::string& fname, const std::size_t idx)
+{
+    if( ! v.is_array())
+    {
+        return make_type_error(v, fname, toml::value_t::array);
+    }
+    std::ostringstream oss;
+    oss << "actual length (" << v.as_array(std::nothrow).size()
+        << ") is shorter than the specified index (" << idx << ").";
+    return make_error_info(fname + ": no element corresponding to the index",
+            v, oss.str());
 }
 
 #define TOML11_DETAIL_GENERATE_COMPTIME_GETTER(ty)                              \
