@@ -585,6 +585,27 @@ Throws `std::out_of_range` if the `table` does not contain the specified element
 
 -----
 
+### `try_at(key)`
+
+```cpp
+result<std::reference_wrapper<value_type>,       error_info> try_at(const key_type& key)       noexcept;
+result<std::reference_wrapper<const value_type>, error_info> try_at(const key_type& key) const noexcept;
+```
+
+#### Return Value
+
+After casting the current `value` to a `table`, it returns the element specified by the `key`.
+
+If successful, it returns a `reference_wrapper` holding a reference to that element.
+
+If unsuccessful, it returns an `error_info` corresponding to `type_error` or `out_of_range`.
+
+#### Exceptions
+
+Does not throw.
+
+-----
+
 #### `operator[](key)`
 
 ```cpp
@@ -652,6 +673,26 @@ Throws `toml::type_error` if the stored value is not an `array`.
 
 Throws `std::out_of_range` if the specified element does not exist in the `array`.
 
+-----
+
+### `try_at(idx)`
+
+```cpp
+result<std::reference_wrapper<value_type>,       error_info> try_at(const std::size_t idx)       noexcept;
+result<std::reference_wrapper<const value_type>, error_info> try_at(const std::size_t idx) const noexcept;
+```
+
+#### Return Value
+
+After casting the current `value` to an `array`, it returns the element specified by the `idx`.
+
+If successful, it returns a `reference_wrapper` holding a reference to that element.
+
+If unsuccessful, it returns an `error_info` corresponding to `type_error` or `out_of_range`.
+
+#### Exceptions
+
+Does not throw.
 
 -----
 

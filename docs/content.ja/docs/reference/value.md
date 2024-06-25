@@ -583,6 +583,27 @@ value_type const& at(const key_type& key) const;
 
 -----
 
+### `try_at(key)`
+
+```cpp
+result<std::reference_wrapper<value_type>,       error_info> try_at(const key_type& key)       noexcept;
+result<std::reference_wrapper<const value_type>, error_info> try_at(const key_type& key) const noexcept;
+```
+
+#### 戻り値
+
+今の`value`を`table`にキャストしたあと、`key`によって指定される要素を返します。
+
+成功した場合、その要素への参照を持つ`reference_wrapper`を返します。
+
+失敗した場合、 `type_error` または `out_of_range` に対応する `error_info` を返します。
+
+#### 例外
+
+投げません。
+
+-----
+
 #### `operator[](key)`
 
 ```cpp
@@ -649,6 +670,27 @@ value_type const& at(const std::size_t idx) const;
 もし格納している値が`array`ではなかった場合、`toml::type_error`を送出します。
 
 もし格納している`array`が指定された要素を持っていなかった場合、`std::out_of_range`を送出します。
+
+-----
+
+### `try_at(idx)`
+
+```cpp
+result<std::reference_wrapper<value_type>,       error_info> try_at(const std::size_t idx)       noexcept;
+result<std::reference_wrapper<const value_type>, error_info> try_at(const std::size_t idx) const noexcept;
+```
+
+#### 戻り値
+
+今の`value`を`array`にキャストしたあと、`idx`によって指定される要素を返します。
+
+成功した場合、その要素への参照を持つ`reference_wrapper`を返します。
+
+失敗した場合、 `type_error` または `out_of_range` に対応する `error_info` を返します。
+
+#### 例外
+
+投げません。
 
 -----
 
