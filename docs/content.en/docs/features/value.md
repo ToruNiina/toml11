@@ -92,6 +92,32 @@ std::cout << v.at(1);
 
 If the stored type is not `array_type`, a `type_error` is thrown.
 
+### `try_at(std::size_t i)`
+
+Performs the same operation as `at(i)`, but instead of throwing an exception on failure, it always returns a [`toml::result<T&, error_info>`]({{<ref "docs/reference/result">}}). It does not throw an exception on failure.
+
+```cpp
+toml::value v(toml::array{1,2,3});
+
+auto res1 = v.try_at(1);
+assert(res1.is_ok());
+std::cout << res1.unwrap() << std::endl;
+
+auto res5 = v.try_at(5);
+assert(res1.is_err());
+std::cout << toml::format_error(res1.unwrap_err()) << std::endl;
+```
+
+Additionally, since this `toml::result` holds a reference, it is possible to update the value.
+
+```cpp
+toml::value v(toml::array{1,2,3});
+
+auto res1 = v.try_at(1);
+assert(res1.is_ok());
+res1.unwrap() = 42;
+```
+
 #### `at(std::string key)`, `operator[](std::string key)`
 
 These are equivalent to `as_table().at(key)` and `as_table()[key]`.
@@ -104,6 +130,32 @@ v["a"] = 42;
 ```
 
 If the stored type is not `table_type`, a `type_error` is thrown.
+
+### `try_at(std::string key)`
+
+Performs the same operation as `at(key)`, but instead of throwing an exception on failure, it always returns a [`toml::result<T&, error_info>`]({{<ref "docs/reference/result">}}). It does not throw an exception on failure.
+
+```cpp
+toml::value v(toml::table{ {"a", 42}, {"b", "foo"} });
+
+auto res_a = v.try_at("a");
+assert(res_a.is_ok());
+std::cout << res_a.unwrap() << std::endl;
+
+auto res_c = v.try_at("c");
+assert(res_c.is_err());
+std::cout << toml::format_error(res_c.unwrap_err()) << std::endl;
+```
+
+Additionally, since this `toml::result` holds a reference, it is possible to update the value.
+
+```cpp
+toml::value v(toml::table{ {"a", 42}, {"b", "foo"} });
+
+auto res_a = v.try_at("a");
+assert(res_a.is_ok());
+res_a.unwrap() = 6 * 9;
+```
 
 #### `size()`
 

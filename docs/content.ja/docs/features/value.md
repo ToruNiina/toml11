@@ -96,6 +96,32 @@ std::cout << v.at(1);
 
 格納している型が `array_type` ではなかった場合、 `type_error` を送出します。
 
+#### `try_at(std::size_t i)`
+
+`at(i)`と同様の操作をしますが、失敗時に例外を投げる代わりに、常に[`toml::result<T&, error_info>`]({{<ref "docs/reference/result">}})を返します。失敗時に例外は投げません。
+
+```cpp
+toml::value v(toml::array{1,2,3});
+
+auto res1 = v.try_at(1);
+assert(res1.is_ok());
+std::cout << res1.unwrap() << std::endl;
+
+auto res5 = v.try_at(5);
+assert(res1.is_err());
+std::cout << toml::format_error(res1.unwrap_err()) << std::endl;
+```
+
+また、この`toml::result`は成功値として参照を持つので、値を更新することも可能です。
+
+```cpp
+toml::value v(toml::array{1,2,3});
+
+auto res1 = v.try_at(1);
+assert(res1.is_ok());
+res1.unwrap() = 42;
+```
+
 #### `at(std::string key)`, `operator[](std::string key)`
 
 `as_table().at(key)`, `as_table()[key]` と同等です。
@@ -110,6 +136,32 @@ v["a"] = 42;
 ```
 
 格納している型が `table_type` ではなかった場合、 `type_error` を送出します。
+
+#### `try_at(std::string key)`
+
+`at(key)`と同様の操作をしますが、失敗時に例外を投げる代わりに、常に[`toml::result<T&, error_info>`]({{<ref "docs/reference/result">}})を返します。失敗時に例外は投げません。
+
+```cpp
+toml::value v(toml::table{ {"a", 42}, {"b", "foo"} });
+
+auto res_a = v.try_at("a");
+assert(res_a.is_ok());
+std::cout << res_a.unwrap() << std::endl;
+
+auto res_c = v.try_at("c");
+assert(res_c.is_err());
+std::cout << toml::format_error(res_c.unwrap_err()) << std::endl;
+```
+
+また、この`toml::result`は成功値として参照を持つので、値を更新することも可能です。
+
+```cpp
+toml::value v(toml::table{ {"a", 42}, {"b", "foo"} });
+
+auto res_a = v.try_at("a");
+assert(res_a.is_ok());
+res_a.unwrap() = 6 * 9;
+```
 
 #### `size()`
 
