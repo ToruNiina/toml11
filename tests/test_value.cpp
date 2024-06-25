@@ -1062,21 +1062,89 @@ TEST_CASE("testing array-accessors")
 {
     toml::value x({true, 42, "hoge"});
 
+    // at
+
     CHECK_UNARY(x.at(0).is_boolean());
     CHECK_UNARY(x.at(1).is_integer());
     CHECK_UNARY(x.at(2).is_string());
+    CHECK_EQ(x.at(0).as_boolean(), true);
+    CHECK_EQ(x.at(1).as_integer(), 42);
+    CHECK_EQ(x.at(2).as_string(),  std::string("hoge"));
+    CHECK_THROWS_AS(x.at(3), std::out_of_range);
 
     CHECK_UNARY(as_const(x).at(0).is_boolean());
     CHECK_UNARY(as_const(x).at(1).is_integer());
     CHECK_UNARY(as_const(x).at(2).is_string());
-
-    CHECK_EQ(x.at(0).as_boolean(), true);
-    CHECK_EQ(x.at(1).as_integer(), 42);
-    CHECK_EQ(x.at(2).as_string(),  std::string("hoge"));
-
     CHECK_EQ(as_const(x).at(0).as_boolean(), true);
     CHECK_EQ(as_const(x).at(1).as_integer(), 42);
     CHECK_EQ(as_const(x).at(2).as_string(),  std::string("hoge"));
+    CHECK_THROWS_AS(as_const(x).at(3), std::out_of_range);
+
+    // update through at
+
+    x.at(0) = false;
+    x.at(1) = 6 * 9;
+    x.at(2) = 3.14;
+
+    CHECK_UNARY(x.at(0).is_boolean());
+    CHECK_UNARY(x.at(1).is_integer());
+    CHECK_UNARY(x.at(2).is_floating());
+    CHECK_EQ(x.at(0).as_boolean(), false);
+    CHECK_EQ(x.at(1).as_integer(), 6*9);
+    CHECK_EQ(x.at(2).as_floating(),  3.14);
+
+    x.at(0) = true;
+    x.at(1) = 42;
+    x.at(2) = "hoge";
+
+    // try_at
+
+    CHECK_UNARY(x.try_at(0).is_ok());
+    CHECK_UNARY(x.try_at(1).is_ok());
+    CHECK_UNARY(x.try_at(2).is_ok());
+    CHECK_UNARY(x.try_at(0).as_ok().is_boolean());
+    CHECK_UNARY(x.try_at(1).as_ok().is_integer());
+    CHECK_UNARY(x.try_at(2).as_ok().is_string());
+    CHECK_UNARY_FALSE(x.try_at(0).is_err());
+    CHECK_UNARY_FALSE(x.try_at(1).is_err());
+    CHECK_UNARY_FALSE(x.try_at(2).is_err());
+    CHECK_EQ(x.try_at(0).as_ok().as_boolean(), true);
+    CHECK_EQ(x.try_at(1).as_ok().as_integer(), 42);
+    CHECK_EQ(x.try_at(2).as_ok().as_string(),  std::string("hoge"));
+    CHECK_UNARY(x.try_at(3).is_err());
+
+    CHECK_UNARY(as_const(x).try_at(0).is_ok());
+    CHECK_UNARY(as_const(x).try_at(1).is_ok());
+    CHECK_UNARY(as_const(x).try_at(2).is_ok());
+    CHECK_UNARY(as_const(x).try_at(0).as_ok().is_boolean());
+    CHECK_UNARY(as_const(x).try_at(1).as_ok().is_integer());
+    CHECK_UNARY(as_const(x).try_at(2).as_ok().is_string());
+    CHECK_UNARY_FALSE(as_const(x).try_at(0).is_err());
+    CHECK_UNARY_FALSE(as_const(x).try_at(1).is_err());
+    CHECK_UNARY_FALSE(as_const(x).try_at(2).is_err());
+    CHECK_EQ(as_const(x).try_at(0).as_ok().as_boolean(), true);
+    CHECK_EQ(as_const(x).try_at(1).as_ok().as_integer(), 42);
+    CHECK_EQ(as_const(x).try_at(2).as_ok().as_string(),  std::string("hoge"));
+    CHECK_UNARY(as_const(x).try_at(3).is_err());
+
+    // update through try_at
+
+    x.try_at(0).as_ok() = false;
+    x.try_at(1).as_ok() = 6 * 9;
+    x.try_at(2).as_ok() = 3.14;
+
+    CHECK_UNARY(x.at(0).is_boolean());
+    CHECK_UNARY(x.at(1).is_integer());
+    CHECK_UNARY(x.at(2).is_floating());
+    CHECK_EQ(x.at(0).as_boolean(), false);
+    CHECK_EQ(x.at(1).as_integer(), 6*9);
+    CHECK_EQ(x.at(2).as_floating(),  3.14);
+
+    x.try_at(0).as_ok() = true;
+    x.try_at(1).as_ok() = 42;
+    x.try_at(2).as_ok() = "hoge";
+
+    // operator[]
 
     CHECK_UNARY(x[0].is_boolean());
     CHECK_UNARY(x[1].is_integer());
@@ -1085,6 +1153,8 @@ TEST_CASE("testing array-accessors")
     CHECK_EQ(x[0].as_boolean(), true);
     CHECK_EQ(x[1].as_integer(), 42);
     CHECK_EQ(x[2].as_string(),  std::string("hoge"));
+
+    // -----------------------------------------------------------------------
 
     const toml::value v1(3.14);
     toml::value v2(2.71);
@@ -1143,13 +1213,83 @@ TEST_CASE("testing table-accessors")
     CHECK_EQ(x.count("d"), 0);
     CHECK_EQ(x.count("e"), 0);
 
+    // at
+
     CHECK_UNARY(x.at("a").is_boolean());
     CHECK_UNARY(x.at("b").is_integer());
     CHECK_UNARY(x.at("c").is_string());
-
     CHECK_EQ(x.at("a").as_boolean(), true);
     CHECK_EQ(x.at("b").as_integer(), 42);
     CHECK_EQ(x.at("c").as_string(),  std::string("hoge"));
+    CHECK_THROWS_AS(x.at("d"), std::out_of_range);
+
+    CHECK_UNARY(as_const(x).at("a").is_boolean());
+    CHECK_UNARY(as_const(x).at("b").is_integer());
+    CHECK_UNARY(as_const(x).at("c").is_string());
+    CHECK_EQ(as_const(x).at("a").as_boolean(), true);
+    CHECK_EQ(as_const(x).at("b").as_integer(), 42);
+    CHECK_EQ(as_const(x).at("c").as_string(),  std::string("hoge"));
+    CHECK_THROWS_AS(as_const(x).at("d"), std::out_of_range);
+
+    // rewrite using at
+
+    x.at("a") = false;
+    x.at("b") = 6*9;
+    x.at("c") = 3.14;
+
+    CHECK_UNARY(x.at("a").is_boolean());
+    CHECK_UNARY(x.at("b").is_integer());
+    CHECK_UNARY(x.at("c").is_floating());
+    CHECK_EQ(x.at("a").as_boolean(), false);
+    CHECK_EQ(x.at("b").as_integer(), 6*9);
+    CHECK_EQ(x.at("c").as_floating(), 3.14);
+
+    x.at("a") = true;
+    x.at("b") = 42;
+    x.at("c") = "hoge";
+
+    // try_at
+
+    CHECK_UNARY(x.try_at("a").is_ok());
+    CHECK_UNARY(x.try_at("b").is_ok());
+    CHECK_UNARY(x.try_at("c").is_ok());
+    CHECK_UNARY(x.try_at("a").as_ok().is_boolean());
+    CHECK_UNARY(x.try_at("b").as_ok().is_integer());
+    CHECK_UNARY(x.try_at("c").as_ok().is_string());
+    CHECK_EQ(x.try_at("a").as_ok().as_boolean(), true);
+    CHECK_EQ(x.try_at("b").as_ok().as_integer(), 42);
+    CHECK_EQ(x.try_at("c").as_ok().as_string(),  std::string("hoge"));
+    CHECK_UNARY(x.try_at("d").is_err());
+
+    CHECK_UNARY(as_const(x).try_at("a").is_ok());
+    CHECK_UNARY(as_const(x).try_at("b").is_ok());
+    CHECK_UNARY(as_const(x).try_at("c").is_ok());
+    CHECK_UNARY(as_const(x).try_at("a").as_ok().is_boolean());
+    CHECK_UNARY(as_const(x).try_at("b").as_ok().is_integer());
+    CHECK_UNARY(as_const(x).try_at("c").as_ok().is_string());
+    CHECK_EQ(as_const(x).try_at("a").as_ok().as_boolean(), true);
+    CHECK_EQ(as_const(x).try_at("b").as_ok().as_integer(), 42);
+    CHECK_EQ(as_const(x).try_at("c").as_ok().as_string(),  std::string("hoge"));
+    CHECK_UNARY(as_const(x).try_at("d").is_err());
+
+    // rewrite using try_at
+
+    x.try_at("a").as_ok() = false;
+    x.try_at("b").as_ok() = 6*9;
+    x.try_at("c").as_ok() = 3.14;
+
+    CHECK_UNARY(x.at("a").is_boolean());
+    CHECK_UNARY(x.at("b").is_integer());
+    CHECK_UNARY(x.at("c").is_floating());
+    CHECK_EQ(x.at("a").as_boolean(), false);
+    CHECK_EQ(x.at("b").as_integer(), 6*9);
+    CHECK_EQ(x.at("c").as_floating(), 3.14);
+
+    x.try_at("a").as_ok() = true;
+    x.try_at("b").as_ok() = 42;
+    x.try_at("c").as_ok() = "hoge";
+
+    // operator[]
 
     CHECK_UNARY(x["a"].is_boolean());
     CHECK_UNARY(x["b"].is_integer());
