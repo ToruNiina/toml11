@@ -244,13 +244,13 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.as_ok());
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.succ_);
             assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.as_err());
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.fail_);
             assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
@@ -259,13 +259,13 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.succ_));
             assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.fail_));
             assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
@@ -276,13 +276,13 @@ struct result
         this->cleanup();
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.as_ok());
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.succ_);
             assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.as_err());
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.fail_);
             assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
@@ -294,13 +294,13 @@ struct result
         this->cleanup();
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.succ_));
             assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.fail_));
             assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
