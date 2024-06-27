@@ -90,6 +90,13 @@ struct has_specialized_from_impl
     template<typename T, std::size_t S = sizeof(::toml::from<T>)>
     static std::true_type check(::toml::from<T>*);
 };
+struct has_specialized_try_from_impl
+{
+    template<typename T>
+    static std::false_type check(...);
+    template<typename T, std::size_t S = sizeof(::toml::try_from<T>)>
+    static std::true_type check(::toml::try_from<T>*);
+};
 struct has_specialized_into_impl
 {
     template<typename T>
@@ -130,6 +137,8 @@ template<typename T>
 struct has_specialized_from: decltype(has_specialized_from_impl::check<T>(nullptr)){};
 template<typename T>
 struct has_specialized_into: decltype(has_specialized_into_impl::check<T>(nullptr)){};
+template<typename T>
+struct has_specialized_try_from: decltype(has_specialized_try_from_impl::check<T>(nullptr)){};
 
 #ifdef __INTEL_COMPILER
 #undef decltype

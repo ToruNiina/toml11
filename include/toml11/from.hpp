@@ -7,7 +7,18 @@ namespace toml
 template<typename T>
 struct from;
 // {
-//     static T from_toml(const toml::value& v)
+//     template<typename TC>
+//     static T from_toml(const toml::basic_value<TC>& v)
+//     {
+//         // User-defined conversions ...
+//     }
+// };
+
+template<typename T>
+struct try_from;
+// {
+//     template<typename TC>
+//     static result<T, error_info> try_from_toml(const toml::basic_value<TC>& v) noexcept
 //     {
 //         // User-defined conversions ...
 //     }
