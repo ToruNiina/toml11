@@ -391,7 +391,7 @@ template<typename T, std::size_t I>
 struct try_get_tuple_impl<T, I, I>
 {
     template<typename Array>
-    static result<T, error_info> invoke(const Array& a, T x) noexcept
+    static result<T, error_info> invoke(const Array&, T x) noexcept
     {
         return ok(std::move(x));
     }
