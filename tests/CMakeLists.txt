@@ -2,11 +2,13 @@ set(TOML11_TEST_NAMES
     test_comments
     test_datetime
     test_find
+    test_try_find
     test_find_or
     test_format_integer
     test_format_floating
     test_format_table
     test_get
+    test_try_get
     test_get_or
     test_location
     test_literal
