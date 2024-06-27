@@ -95,7 +95,7 @@ struct has_specialized_into_impl
     template<typename T>
     static std::false_type check(...);
     template<typename T, std::size_t S = sizeof(::toml::into<T>)>
-    static std::true_type check(::toml::from<T>*);
+    static std::true_type check(::toml::into<T>*);
 };
 
 
