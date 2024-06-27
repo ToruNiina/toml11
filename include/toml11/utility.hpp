@@ -99,6 +99,47 @@ inline std::string make_string(std::size_t len, char c)
     return std::string(len, c);
 }
 
+// ---------------------------------------------------------------------------
+
+// It suppresses warnings by -Wsign-conversion when we pass integer literal
+// to toml::find. integer literal `0` is deduced as an int, and will be
+// converted to std::size_t. This causes sign-conversion.
+
+template<typename TC>
+std::size_t key_cast(const std::size_t& v) noexcept
+{
+    return v;
+}
+template<typename TC, typename T>
+cxx::enable_if_t<std::is_integral<cxx::remove_cvref_t<T>>::value, std::size_t>
+key_cast(const T& v) noexcept
+{
+    return static_cast<std::size_t>(v);
+}
+
+// for string-like (string, string literal, string_view)
+
+template<typename TC>
+typename basic_value<TC>::key_type const&
+key_cast(const typename basic_value<TC>::key_type& v) noexcept
+{
+    return v;
+}
+template<typename TC>
+typename basic_value<TC>::key_type
+key_cast(const typename basic_value<TC>::key_type::value_type* v)
+{
+    return typename basic_value<TC>::key_type(v);
+}
+#if defined(TOML11_HAS_STRING_VIEW)
+template<typename TC>
+typename basic_value<TC>::key_type
+key_cast(const std::string_view v)
+{
+    return typename basic_value<TC>::key_type(v);
+}
+#endif // string_view
+
 } // namespace detail
 } // namespace toml
 #endif // TOML11_UTILITY_HPP

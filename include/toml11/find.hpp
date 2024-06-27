@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "get.hpp"
+#include "utility.hpp"
 #include "value.hpp"
 
 #if defined(TOML11_HAS_STRING_VIEW)
@@ -101,54 +102,7 @@ find(basic_value<TC>&& v, const std::size_t idx)
 }
 
 // --------------------------------------------------------------------------
-// toml::find(toml::value, toml::key, Ts&& ... keys)
-
-namespace detail
-{
-
-// It suppresses warnings by -Wsign-conversion when we pass integer literal
-// to toml::find. integer literal `0` is deduced as an int, and will be
-// converted to std::size_t. This causes sign-conversion.
-
-template<typename TC>
-std::size_t key_cast(const std::size_t& v) noexcept
-{
-    return v;
-}
-template<typename TC, typename T>
-cxx::enable_if_t<std::is_integral<cxx::remove_cvref_t<T>>::value, std::size_t>
-key_cast(const T& v) noexcept
-{
-    return static_cast<std::size_t>(v);
-}
-
-// for string-like (string, string literal, string_view)
-
-template<typename TC>
-typename basic_value<TC>::key_type const&
-key_cast(const typename basic_value<TC>::key_type& v) noexcept
-{
-    return v;
-}
-template<typename TC>
-typename basic_value<TC>::key_type
-key_cast(const typename basic_value<TC>::key_type::value_type* v)
-{
-    return typename basic_value<TC>::key_type(v);
-}
-#if defined(TOML11_HAS_STRING_VIEW)
-template<typename TC>
-typename basic_value<TC>::key_type
-key_cast(const std::string_view v)
-{
-    return typename basic_value<TC>::key_type(v);
-}
-#endif // string_view
-
-} // detail
-
-// ----------------------------------------------------------------------------
-// find(v, keys...)
+// toml::find(toml::value, toml::key, Ts&& ... keys) w/o conversion
 
 template<typename TC, typename K1, typename K2, typename ... Ks>
 cxx::enable_if_t<detail::is_type_config<TC>::value, basic_value<TC>> const&
