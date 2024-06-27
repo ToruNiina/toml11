@@ -219,7 +219,7 @@ try_get(const basic_value<TC>& v) noexcept
             const auto loc = v.location();
             return err(make_error_info("toml::try_get(): bad_cast to "
                 "std::chrono::system_clock::time_point", loc,
-                "the actual type is " + to_string(v.type())), loc);
+                "the actual type is " + to_string(v.type())));
         }
     }
 }
