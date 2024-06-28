@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/github/license/ToruNiina/toml11.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1209136.svg)](https://doi.org/10.5281/zenodo.1209136)
 
-toml11は、C++のための豊富な機能を持つTOML言語ライブラリです。
+toml11は、C++11,14,17,20のための豊富な機能を持つTOML言語ライブラリです。
 
 - [TOML言語の最新規格](https://toml.io/ja/v1.0.0)に準拠しています。
 - TOML言語標準のテストケースすべてにパスしています。
@@ -121,6 +121,14 @@ $ cmake --install ./build --prefix /path/to/toml11
 $ cmake -B ./build/ -DTOML11_PRECOMPILE=ON -DCMAKE_CXX_STANDARD=11/14/17/20
 $ cmake --build ./build/
 ```
+
+ライブラリをリンクする場合は、CMakeで
+
+```cmake
+target_link_libraries(your_target PUBLIC toml11::toml11)
+```
+
+とするか、コンパイラに`-DTOML11_COMPILE_SOURCES`を渡してください。
 
 ### Building example
 

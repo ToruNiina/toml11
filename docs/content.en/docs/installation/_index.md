@@ -54,6 +54,14 @@ By defining `-DTOML11_PRECOMPILE=ON` when running cmake, you can precompile some
 $ cmake -B ./build/ -DTOML11_PRECOMPILE=ON
 ```
 
+When linking the library, use `target_link_libraries` in CMake
+
+```cmake
+target_link_libraries(your_target PUBLIC toml11::toml11)
+```
+
+or pass `-DTOML11_COMPILE_SOURCES` to the compiler to suppress header-only features.
+
 However, since toml11 supports multiple C++ versions and may switch types based on the value of `__cplusplus`,
 there is a possibility of link failures if the version used during build differs from the version used during usage.
 If you encounter issues, set the required version using `CMAKE_CXX_STANDARD` during compilation.
