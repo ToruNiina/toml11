@@ -3715,7 +3715,7 @@ try_parse(FILE* fp, std::string filename, spec s = spec::default_version())
     assert(fsize >= 0);
     std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize));
     const auto actual = std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
-    if(actual != fsize)
+    if(actual != static_cast<std::size_t>(fsize))
     {
         return err(std::vector<error_info>{error_info(
             std::string("File size changed: \"") + filename +
@@ -3761,7 +3761,7 @@ parse(FILE* fp, std::string filename, spec s = spec::default_version())
     assert(fsize >= 0);
     std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize));
     const auto actual = std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
-    if(actual != fsize)
+    if(actual != static_cast<std::size_t>(fsize))
     {
         throw file_io_error(errno, "File size changed; make sure that "
             "FILE* is in binary mode to avoid LF <-> CRLF conversion", filename);
