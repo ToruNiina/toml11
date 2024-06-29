@@ -42,9 +42,17 @@ int main()
 }
 ```
 
+#### Specifying a File with `std::filesystem::path`
+
+[`toml::parse`]({{< ref "docs/reference/parser#parse" >}}) can accept a `std::filesystem::path`.
+
+This requires C++17 or later, as it relies on the `<filesystem>` support.
+
 #### Specifying an Input Stream with `std::istream`
 
 [`toml::parse`]({{< ref "docs/reference/parser#parse" >}}) can also accept an `std::istream`.
+
+Open a stream in binary mode by passing `std::ios::binary` to avoid inconsistency between the file size and the number of characters due to automatic conversion of newline characters by the standard library.
 
 Without the filename information, error messages will display `"unknown file"`. To avoid this, you can pass the filename as a `std::string` in the second argument when using `std::istream`.
 
@@ -64,15 +72,11 @@ int main()
 }
 ```
 
-#### Specifying a File with `std::filesystem::path`
-
-[`toml::parse`]({{< ref "docs/reference/parser#parse" >}}) can accept a `std::filesystem::path`.
-
-This requires C++17 or later, as it relies on the `<filesystem>` support.
-
 #### Specifying a File with `FILE*`
 
 [`toml::parse`]({{< ref "docs/reference/parser#parse" >}}) can also accept a `FILE*`.
+
+Open a stream in binary mode by passing `"rb"` to avoid inconsistency between the file size and the number of characters due to automatic conversion of newline characters by the standard library.
 
 As with `std::istream`, you need to provide the filename as a string in the second argument.
 

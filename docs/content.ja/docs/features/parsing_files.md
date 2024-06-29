@@ -44,10 +44,20 @@ int main()
 }
 ```
 
+#### `std::filesystem::path`でファイルを指定する
+
+[`toml::parse`]({{< ref "docs/reference/parser#parse" >}})
+には、`std::filesystem::path`を渡すことも可能です。
+
+当然ですが、`<filesystem>`がサポートされるC++17以降でなければ使用できません。
+
 #### `std::istream`で入力ストリームを指定する
 
 [`toml::parse`]({{< ref "docs/reference/parser#parse" >}})
 には、`std::istream`を渡すことも可能です。
+
+標準ライブラリが改行文字を自動変換することによるファイルサイズと文字数との不整合を避けるため、
+`std::ios::binary`を使ってバイナリモードで開いてください。
 
 その際、ファイル名の情報がなくなるため、エラーメッセージ中では `"unknown file"` となります。
 
@@ -70,17 +80,13 @@ int main()
 }
 ```
 
-#### `std::filesystem::path`でファイルを指定する
-
-[`toml::parse`]({{< ref "docs/reference/parser#parse" >}})
-には、`std::filesystem::path`を渡すことも可能です。
-
-当然ですが、`<filesystem>`がサポートされるC++17以降でなければ使用できません。
-
 #### `FILE*`でファイルを指定する
 
 [`toml::parse`]({{< ref "docs/reference/parser#parse" >}})
 には、`FILE*`を渡すことも可能です。
+
+標準ライブラリによる改行文字の自動変換によるファイルサイズと文字数との不整合を避けるため、
+`fopen("example.toml", "rb")`のようにしてバイナリモードで開いてください。
 
 この場合も、`std::istream`のときと同様に、第二引数に文字列でファイル名を与える必要があります。
 
