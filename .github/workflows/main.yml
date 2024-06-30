@@ -53,7 +53,7 @@ jobs:
             sudo apt-get install clang-${{ matrix.compiler }}
       - name: Configure
         run: |
-            cmake -B build/ -DCMAKE_VERBOSE_MAKEFILE=1 -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+            cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
       - name: Build
         run: |
             cmake --build build/
