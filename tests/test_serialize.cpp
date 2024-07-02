@@ -3,6 +3,8 @@
 
 #include <toml.hpp>
 
+#include <clocale>
+
 TEST_CASE("testing serialization")
 {
     using namespace toml::literals::toml_literals;
