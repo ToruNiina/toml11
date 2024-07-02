@@ -22,6 +22,7 @@ set(TOML11_TEST_NAMES
     test_parse_table
     test_result
     test_scanner
+    test_serialize
     test_syntax_boolean
     test_syntax_integer
     test_syntax_floating
