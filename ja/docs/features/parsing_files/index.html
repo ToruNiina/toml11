@@ -1,0 +1,188 @@
+<!doctype html><html lang=ja dir=ltr><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content='ファイル・文字列をパースする # toml11では、toml::parse や toml::try_parse を使って、ファイルや文字列、バイト列をパースすることができます。
+これらは成功時に toml::value を返します。 ファイルは常にテーブルになりますが、返り値が toml::table でないことに気を付けてください。 toml::value はファイルに関するメタデータを持っており、 toml::table は std::unordered_map<std::stirng, toml::value> のエイリアスでしかありません。 メタデータを返すために、 toml::table ではなく toml::value を返しています。 ファイルのルートに対応する toml::value は常に table_type を持ちます。
+ファイルをパースする # ファイルをパースする際は、 toml::parse または toml::try_parse を使います。
+toml::parse # std::stringでファイル名を指定する # toml::parse は、文字列でファイル名を受け取り、そのファイルを開いてパースします。
+以下のサンプルは、input.tomlというファイルをパースし、titleという変数を文字列として取り出し、出力するコードです。
+#include <toml.hpp> #include <iostream> int main() { const toml::value input = toml::parse("input.toml"); std::cout << input.at("title").as_string() << std::endl; return 0; } std::filesystem::pathでファイルを指定する # toml::parse には、std::filesystem::pathを渡すことも可能です。
+当然ですが、<filesystem>がサポートされるC++17以降でなければ使用できません。
+std::istreamで入力ストリームを指定する # toml::parse には、std::istreamを渡すことも可能です。'><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#343a40"><meta name=color-scheme content="light dark"><meta property="og:url" content="https://toruniina.github.io/toml11/ja/docs/features/parsing_files/"><meta property="og:site_name" content="toml11"><meta property="og:title" content="parsing files"><meta property="og:description" content='ファイル・文字列をパースする # toml11では、toml::parse や toml::try_parse を使って、ファイルや文字列、バイト列をパースすることができます。
+これらは成功時に toml::value を返します。 ファイルは常にテーブルになりますが、返り値が toml::table でないことに気を付けてください。 toml::value はファイルに関するメタデータを持っており、 toml::table は std::unordered_map<std::stirng, toml::value> のエイリアスでしかありません。 メタデータを返すために、 toml::table ではなく toml::value を返しています。 ファイルのルートに対応する toml::value は常に table_type を持ちます。
+ファイルをパースする # ファイルをパースする際は、 toml::parse または toml::try_parse を使います。
+toml::parse # std::stringでファイル名を指定する # toml::parse は、文字列でファイル名を受け取り、そのファイルを開いてパースします。
+以下のサンプルは、input.tomlというファイルをパースし、titleという変数を文字列として取り出し、出力するコードです。
+#include <toml.hpp> #include <iostream> int main() { const toml::value input = toml::parse("input.toml"); std::cout << input.at("title").as_string() << std::endl; return 0; } std::filesystem::pathでファイルを指定する # toml::parse には、std::filesystem::pathを渡すことも可能です。
+当然ですが、<filesystem>がサポートされるC++17以降でなければ使用できません。
+std::istreamで入力ストリームを指定する # toml::parse には、std::istreamを渡すことも可能です。'><meta property="og:locale" content="ja"><meta property="og:type" content="article"><meta property="article:section" content="docs"><title>parsing files | toml11</title>
+<link rel=manifest href=/toml11/manifest.json><link rel=icon href=/toml11/favicon.png><link rel=canonical href=https://toruniina.github.io/toml11/ja/docs/features/parsing_files/><link rel=alternate hreflang=en href=https://toruniina.github.io/toml11/docs/features/parsing_files/ title="parsing files"><link rel=stylesheet href=/toml11/book.min.4964903a822a7acb10dac6d1ab524833c97fb5f99b141976bcb8a47d539be9c0.css integrity="sha256-SWSQOoIqessQ2sbRq1JIM8l/tfmbFBl2vLikfVOb6cA=" crossorigin=anonymous><script defer src=/toml11/fuse.min.js></script><script defer src=/toml11/ja.search.min.dc752d0fabcec576cf9ad0d6ded0a254c55b50a3dd2b8d1f0a118e1b83dfe532.js integrity="sha256-3HUtD6vOxXbPmtDW3tCiVMVbUKPdK40fChGOG4Pf5TI=" crossorigin=anonymous></script></head><body dir=ltr><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/toml11/ja/><span>toml11</span></a></h2><div class="book-search hidden"><input type=text id=book-search-input placeholder=検索 aria-label=検索 maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><script>document.querySelector(".book-search").classList.remove("hidden")</script><ul class=book-languages><li><input type=checkbox id=languages class=toggle>
+<label for=languages class="flex justify-between"><a role=button class="flex align-center"><img src=/toml11/svg/translate.svg class=book-icon alt=Languages>
+日本語</a></label><ul><li><a href=https://toruniina.github.io/toml11/docs/features/parsing_files/>English</a></li></ul></li></ul><ul><li><a href=/toml11/ja/docs/installation/>installation</a><ul></ul></li><li><input type=checkbox id=section-6a81babc375c2a1e1b5f2c3cef357642 class=toggle checked>
+<label for=section-6a81babc375c2a1e1b5f2c3cef357642 class="flex justify-between"><a href=/toml11/ja/docs/features/>features</a></label><ul><li><a href=/toml11/ja/docs/features/parsing_files/ class=active>parsing files</a></li><li><a href=/toml11/ja/docs/features/value/>getting values</a></li><li><a href=/toml11/ja/docs/features/error_message/>error message</a></li><li><a href=/toml11/ja/docs/features/serialize/>serializing values</a></li><li><a href=/toml11/ja/docs/features/configure_types/>configuring types</a></li><li><a href=/toml11/ja/docs/features/literal/>toml literal</a></li><li><a href=/toml11/ja/docs/features/toml_spec/>toml spec</a></li><li><a href=/toml11/ja/docs/features/extension/>extension</a></li></ul></li><li><input type=checkbox id=section-13b92d0d0bccf417c5d521db76c99b37 class=toggle>
+<label for=section-13b92d0d0bccf417c5d521db76c99b37 class="flex justify-between"><a href=/toml11/ja/docs/reference/>reference</a></label><ul><li><a href=/toml11/ja/docs/reference/color/>color.hpp</a></li><li><a href=/toml11/ja/docs/reference/comments/>comments.hpp</a></li><li><a href=/toml11/ja/docs/reference/conversion/>conversion.hpp</a></li><li><a href=/toml11/ja/docs/reference/datetime/>datetime.hpp</a></li><li><a href=/toml11/ja/docs/reference/error_info/>error_info.hpp</a></li><li><a href=/toml11/ja/docs/reference/exception/>exception.hpp</a></li><li><a href=/toml11/ja/docs/reference/find/>find.hpp</a></li><li><a href=/toml11/ja/docs/reference/format/>format.hpp</a></li><li><a href=/toml11/ja/docs/reference/from/>from.hpp</a></li><li><a href=/toml11/ja/docs/reference/get/>get.hpp</a></li><li><a href=/toml11/ja/docs/reference/into/>into.hpp</a></li><li><a href=/toml11/ja/docs/reference/literal/>literal.hpp</a></li><li><a href=/toml11/ja/docs/reference/ordered_map/>ordered_map.hpp</a></li><li><a href=/toml11/ja/docs/reference/parser/>parser.hpp</a></li><li><a href=/toml11/ja/docs/reference/result/>result.hpp</a></li><li><a href=/toml11/ja/docs/reference/serializer/>serializer.hpp</a></li><li><a href=/toml11/ja/docs/reference/source_location/>source_location.hpp</a></li><li><a href=/toml11/ja/docs/reference/spec/>spec.hpp</a></li><li><a href=/toml11/ja/docs/reference/toml_fwd/>toml_fwd.hpp</a></li><li><a href=/toml11/ja/docs/reference/toml/>toml.hpp</a></li><li><a href=/toml11/ja/docs/reference/types/>types.hpp</a></li><li><a href=/toml11/ja/docs/reference/value_t/>value_t.hpp</a></li><li><a href=/toml11/ja/docs/reference/value/>value.hpp</a></li><li><a href=/toml11/ja/docs/reference/version/>version.hpp</a></li><li><a href=/toml11/ja/docs/reference/visit/>visit.hpp</a></li></ul></li><li><a href=/toml11/ja/docs/changelog/>changelog</a><ul></ul></li></ul><ul><li><a href=https://github.com/ToruNiina/toml11 target=_blank rel=noopener>GitHub</a></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class=book-header><div class="flex align-center justify-between"><label for=menu-control><img src=/toml11/svg/menu.svg class=book-icon alt=Menu>
+</label><strong>parsing files</strong>
+<label for=toc-control><img src=/toml11/svg/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class="hidden clearfix"><nav id=TableOfContents><ul><li><a href=#ファイル文字列をパースする>ファイル・文字列をパースする</a><ul><li><a href=#ファイルをパースする>ファイルをパースする</a><ul><li><a href=#tomlparse><code>toml::parse</code></a></li><li><a href=#tomltry_parse><code>toml::try_parse</code></a></li></ul></li><li><a href=#文字列をパースする>文字列をパースする</a><ul><li><a href=#tomlparse_str><code>toml::parse_str</code></a></li><li><a href=#tomltry_parse_str><code>toml::try_parse_str</code></a></li></ul></li><li><a href=#バイト列をパースする>バイト列をパースする</a><ul><li><a href=#tomlparsestdvectorunsigned-char><code>toml::parse(std::vector&lt;unsigned char>)</code></a></li><li><a href=#tomltry_parsestdvectorunsigned-char><code>toml::try_parse(std::vector&lt;unsigned char>)</code></a></li></ul></li></ul></li></ul></nav></aside></header><article class="markdown book-article"><h1 id=ファイル文字列をパースする>ファイル・文字列をパースする
+<a class=anchor href=#%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e6%96%87%e5%ad%97%e5%88%97%e3%82%92%e3%83%91%e3%83%bc%e3%82%b9%e3%81%99%e3%82%8b>#</a></h1><p>toml11では、<code>toml::parse</code> や <code>toml::try_parse</code> を使って、ファイルや文字列、バイト列をパースすることができます。</p><p>これらは成功時に <code>toml::value</code> を返します。
+ファイルは常にテーブルになりますが、返り値が <code>toml::table</code> でないことに気を付けてください。
+<code>toml::value</code> はファイルに関するメタデータを持っており、
+<code>toml::table</code> は <code>std::unordered_map&lt;std::stirng, toml::value></code> のエイリアスでしかありません。
+メタデータを返すために、 <code>toml::table</code> ではなく <code>toml::value</code> を返しています。
+ファイルのルートに対応する <code>toml::value</code> は常に <code>table_type</code> を持ちます。</p><h2 id=ファイルをパースする>ファイルをパースする
+<a class=anchor href=#%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e3%82%92%e3%83%91%e3%83%bc%e3%82%b9%e3%81%99%e3%82%8b>#</a></h2><p>ファイルをパースする際は、
+<a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse><code>toml::parse</code></a>
+または
+<a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#try_parse><code>toml::try_parse</code></a>
+を使います。</p><h3 id=tomlparse><code>toml::parse</code>
+<a class=anchor href=#tomlparse>#</a></h3><h4 id=stdstringでファイル名を指定する><code>std::string</code>でファイル名を指定する
+<a class=anchor href=#stdstring%e3%81%a7%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e5%90%8d%e3%82%92%e6%8c%87%e5%ae%9a%e3%81%99%e3%82%8b>#</a></h4><p><a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse><code>toml::parse</code></a>
+は、文字列でファイル名を受け取り、そのファイルを開いてパースします。</p><p>以下のサンプルは、<code>input.toml</code>というファイルをパースし、<code>title</code>という変数を文字列として取り出し、出力するコードです。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>value input <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>parse(<span style=color:#e6db74>&#34;input.toml&#34;</span>);
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>cout <span style=color:#f92672>&lt;&lt;</span> input.at(<span style=color:#e6db74>&#34;title&#34;</span>).as_string() <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=stdfilesystempathでファイルを指定する><code>std::filesystem::path</code>でファイルを指定する
+<a class=anchor href=#stdfilesystempath%e3%81%a7%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e3%82%92%e6%8c%87%e5%ae%9a%e3%81%99%e3%82%8b>#</a></h4><p><a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse><code>toml::parse</code></a>
+には、<code>std::filesystem::path</code>を渡すことも可能です。</p><p>当然ですが、<code>&lt;filesystem></code>がサポートされるC++17以降でなければ使用できません。</p><h4 id=stdistreamで入力ストリームを指定する><code>std::istream</code>で入力ストリームを指定する
+<a class=anchor href=#stdistream%e3%81%a7%e5%85%a5%e5%8a%9b%e3%82%b9%e3%83%88%e3%83%aa%e3%83%bc%e3%83%a0%e3%82%92%e6%8c%87%e5%ae%9a%e3%81%99%e3%82%8b>#</a></h4><p><a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse><code>toml::parse</code></a>
+には、<code>std::istream</code>を渡すことも可能です。</p><p>標準ライブラリが改行文字を自動変換することによるファイルサイズと文字数との不整合を避けるため、
+<code>std::ios::binary</code>を使ってバイナリモードで開いてください。</p><p>その際、ファイル名の情報がなくなるため、エラーメッセージ中では <code>"unknown file"</code> となります。</p><p>これを避けるため、 <code>std::istream</code> を取る場合は第二引数に <code>std::string</code> でファイル名を取ることもできます。</p><p><code>std::ifstream</code> 以外にも、 <code>std::istringstream</code> 等の別の<code>istream</code>を受け取ることができます。
+ただし、呼び出した時点で内容が全て読み込める必要があります。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>string filename(<span style=color:#e6db74>&#34;input.toml&#34;</span>);
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>ifstream ifs(filename);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>value input <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>parse(ifs, filename);
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>cout <span style=color:#f92672>&lt;&lt;</span> input.at(<span style=color:#e6db74>&#34;title&#34;</span>).as_string() <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=fileでファイルを指定する><code>FILE*</code>でファイルを指定する
+<a class=anchor href=#file%e3%81%a7%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e3%82%92%e6%8c%87%e5%ae%9a%e3%81%99%e3%82%8b>#</a></h4><p><a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse><code>toml::parse</code></a>
+には、<code>FILE*</code>を渡すことも可能です。</p><p>標準ライブラリによる改行文字の自動変換によるファイルサイズと文字数との不整合を避けるため、
+<code>fopen("example.toml", "rb")</code>のようにしてバイナリモードで開いてください。</p><p>この場合も、<code>std::istream</code>のときと同様に、第二引数に文字列でファイル名を与える必要があります。</p><p><code>FILE*</code>を渡した場合、ファイルの読み込みに失敗した際には<code>errno</code>が報告されます。</p><h4 id=エラー時の挙動>エラー時の挙動
+<a class=anchor href=#%e3%82%a8%e3%83%a9%e3%83%bc%e6%99%82%e3%81%ae%e6%8c%99%e5%8b%95>#</a></h4><p><a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse><code>toml::parse</code></a>
+は、文法エラーを発見した場合
+<a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#syntax_error><code>toml::syntax_error</code></a>
+を送出します。</p><p><a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#syntax_error><code>toml::syntax_error</code></a>
+は、
+<a href=https://toruniina.github.io/toml11/ja/docs/reference/exception/><code>toml::exception</code></a>
+から派生しており、またそれは<code>std::exception</code>から派生します。</p><p>よって、
+<a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#syntax_error><code>toml::syntax_error</code></a>
+からは <code>what()</code> メンバ関数を使ってエラーメッセージを取り出すことができます。</p><p>また、
+<a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#syntax_error><code>toml::syntax_error</code></a>
+は
+<a href=https://toruniina.github.io/toml11/ja/docs/reference/error_info/><code>std::vector&lt;toml::error_info></code></a>
+を持っており、<code>errors()</code>メンバ関数を使ってそれにアクセスすることもできます。</p><p><code>toml::parse</code> はごく簡単なエラーならスキップして復帰し、複数のエラーを報告しようと努めます。
+数値のフォーマットエラー程度なら復帰できることが多いですが、
+配列やテーブルの中のエラーは復帰できずに似たようなエラーを複数回報告することもあります。
+冗長であると感じた場合は、 <code>std::vector&lt;toml::error_info></code> の <code>front()</code> だけを使用するようにすると、
+確実に問題のある個所に関するメッセージを得られます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// parse
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>value input <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>parse(<span style=color:#e6db74>&#34;input.toml&#34;</span>);
+</span></span><span style=display:flex><span>        std<span style=color:#f92672>::</span>cout <span style=color:#f92672>&lt;&lt;</span> input.at(<span style=color:#e6db74>&#34;title&#34;</span>).as_string() <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span>(<span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>syntax_error<span style=color:#f92672>&amp;</span> err) {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 全てのエラーを報告
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> err.what() <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 最初のエラーのみ報告
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> err.errors().front() <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=tomltry_parse><code>toml::try_parse</code>
+<a class=anchor href=#tomltry_parse>#</a></h3><p><code>toml::parse</code> は失敗時に例外を送出しますが、 <code>toml::try_parse</code> は失敗時に例外を投げません。</p><p>その代わり、返り値が <code>toml::value</code> ではなく <a href=https://toruniina.github.io/toml11/ja/docs/reference/result/#result><code>toml::result&lt;toml::value, std::vector&lt;toml::error_info>></code></a> になります。</p><p><a href=https://toruniina.github.io/toml11/ja/docs/reference/result/#result><code>result</code></a> 型は成功値または失敗値のどちらかを持つ型です。
+Rustの <code>Result</code> やHaskellの <code>Either</code> に相当します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>auto</span> parse_result <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>try_parse(<span style=color:#e6db74>&#34;input.toml&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(parse_result.is_ok())
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        std<span style=color:#f92672>::</span>cout <span style=color:#f92672>&lt;&lt;</span> parse_result.unwrap().at(<span style=color:#e6db74>&#34;title&#34;</span>).as_string() <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> parse_result.unwrap_err().at(<span style=color:#ae81ff>0</span>) <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><a href=https://toruniina.github.io/toml11/ja/docs/reference/result/#result><code>result</code></a> 型がどちらの値を保持しているかは
+<code>is_ok()</code>, <code>is_err()</code> 関数を使って確認できます。
+また、 <code>unwrap()</code>, <code>unwrap_err()</code> によって成功値、失敗値をそれぞれ取り出せます。
+<code>unwrap</code> が失敗した場合は、 <code>bad_result_access</code> 例外が送出されます。
+<code>as_ok()</code> と <code>as_err()</code> 関数を使用すると、失敗時には例外が送出されず、未定義動作となります。</p><blockquote class="book-hint warning"><p><code>try_parse</code> は <code>syntax_error</code> や <code>file_io_error</code> を投げず、同じ <code>toml::error_info</code> を
+<code>result</code> の失敗型として返しますが、絶対に例外を投げないわけではありません。</p><p>標準ライブラリ内部でエラーが発生した場合、例えばメモリ不足の際に <code>vector</code> の
+<code>allocate</code> が失敗した場合などには <code>std::bad_alloc</code> が送出されますが、
+<code>toml::try_parse</code> はこれが送出された場合は <code>catch</code> せずに通します。
+そのため、それらのような標準ライブラリの内部で発生する例外は送出される恐れがあります。</p></blockquote><h2 id=文字列をパースする>文字列をパースする
+<a class=anchor href=#%e6%96%87%e5%ad%97%e5%88%97%e3%82%92%e3%83%91%e3%83%bc%e3%82%b9%e3%81%99%e3%82%8b>#</a></h2><h3 id=tomlparse_str><code>toml::parse_str</code>
+<a class=anchor href=#tomlparse_str>#</a></h3><p><a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse_str><code>toml::parse_str</code></a>
+は、ファイル名ではなくパースする文字列そのものを受け取ります。</p><p>また、エラーメッセージのTOMLファイルの名前に相当する部分には、<code>std::source_location</code>
+相当のコンパイラ拡張機能が使用できる場合、 <code>parse_str</code> を呼び出したC++ファイルの名前と行数が代わりに使用されます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>value input <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>parse_str(<span style=color:#e6db74>&#34;title = </span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>parse_str</span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>&#34;</span>);
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>cout <span style=color:#f92672>&lt;&lt;</span> input.at(<span style=color:#e6db74>&#34;title&#34;</span>).as_string() <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=tomltry_parse_str><code>toml::try_parse_str</code>
+<a class=anchor href=#tomltry_parse_str>#</a></h3><p><a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#try_parse_str><code>toml::try_parse_str</code></a>
+は、 <code>parse_str</code> と同じくパースする文字列そのものを受け取り、
+<code>try_parse</code> と同じくエラーの報告に
+<a href=https://toruniina.github.io/toml11/ja/docs/reference/result/#result><code>toml::result</code></a>
+を使用します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>auto</span> parse_result <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>try_parse_str(<span style=color:#e6db74>&#34;title = </span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>parse_str</span><span style=color:#ae81ff>\&#34;</span><span style=color:#e6db74>&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(parse_result.is_ok())
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        std<span style=color:#f92672>::</span>cout <span style=color:#f92672>&lt;&lt;</span> parse_result.unwrap().at(<span style=color:#e6db74>&#34;title&#34;</span>).as_string() <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> parse_result.unwrap_err().at(<span style=color:#ae81ff>0</span>) <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=バイト列をパースする>バイト列をパースする
+<a class=anchor href=#%e3%83%90%e3%82%a4%e3%83%88%e5%88%97%e3%82%92%e3%83%91%e3%83%bc%e3%82%b9%e3%81%99%e3%82%8b>#</a></h2><p>ファイルではなくバイト列をパースすることも可能です。</p><p>UTF-8でエンコードされている必要があるため、<code>unsigned char</code>を使っています。</p><h3 id=tomlparsestdvectorunsigned-char><code>toml::parse(std::vector&lt;unsigned char>)</code>
+<a class=anchor href=#tomlparsestdvectorunsigned-char>#</a></h3><p>挙動は <a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse><code>toml::parse</code></a> と同一です。</p><p>バイト列をパースする際は、 <code>filename</code> を要求します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>vector<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>char</span><span style=color:#f92672>&gt;</span> bytes{<span style=color:#75715e>/* ... */</span>};
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>value input <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>parse(bytes, <span style=color:#e6db74>&#34;internal bytes&#34;</span>);
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>cout <span style=color:#f92672>&lt;&lt;</span> input.at(<span style=color:#e6db74>&#34;title&#34;</span>).as_string() <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=tomltry_parsestdvectorunsigned-char><code>toml::try_parse(std::vector&lt;unsigned char>)</code>
+<a class=anchor href=#tomltry_parsestdvectorunsigned-char>#</a></h3><p>挙動は <a href=https://toruniina.github.io/toml11/ja/docs/reference/parser/#try_parse><code>toml::try_parse</code></a> と同一です。</p><p>バイト列をパースする際は、 <code>filename</code> を要求します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;iostream&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>vector<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>char</span><span style=color:#f92672>&gt;</span> bytes{<span style=color:#75715e>/* ... */</span>};
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>auto</span> parse_result <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>try_parse(bytes, <span style=color:#e6db74>&#34;internal bytes&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(parse_result.is_ok())
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        std<span style=color:#f92672>::</span>cout <span style=color:#f92672>&lt;&lt;</span> parse_result.unwrap().at(<span style=color:#e6db74>&#34;title&#34;</span>).as_string() <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> parse_result.unwrap_err().at(<span style=color:#ae81ff>0</span>) <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></article><footer class=book-footer><div class="flex flex-wrap justify-between"></div><script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#ファイル文字列をパースする>ファイル・文字列をパースする</a><ul><li><a href=#ファイルをパースする>ファイルをパースする</a><ul><li><a href=#tomlparse><code>toml::parse</code></a></li><li><a href=#tomltry_parse><code>toml::try_parse</code></a></li></ul></li><li><a href=#文字列をパースする>文字列をパースする</a><ul><li><a href=#tomlparse_str><code>toml::parse_str</code></a></li><li><a href=#tomltry_parse_str><code>toml::try_parse_str</code></a></li></ul></li><li><a href=#バイト列をパースする>バイト列をパースする</a><ul><li><a href=#tomlparsestdvectorunsigned-char><code>toml::parse(std::vector&lt;unsigned char>)</code></a></li><li><a href=#tomltry_parsestdvectorunsigned-char><code>toml::try_parse(std::vector&lt;unsigned char>)</code></a></li></ul></li></ul></li></ul></nav></div></aside></main></body></html>

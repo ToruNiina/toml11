@@ -1,0 +1,95 @@
+<!doctype html><html lang=ja dir=ltr><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content='TOML言語拡張 # TOML言語は現在 v1.0.0 が最新版ですが、その後もいくつかの新機能が議論の末マージされ、 v1.1.0に向けて議論が続いています。
+そこで議論された機能の中には、有用なケースが少ないと考えられたものや、 提案された際の方向性では導入が難しいもの、導入がされなかったものも多くあります。
+toml11では、そのような機能のなかからいくつかを選んで、実験的に実装を行っています。 これらはtoml11ではサポートされていますが、他のパーサではサポートされておらず、また サポートされる予定もないことに注意してください。
+また、これらの機能はデフォルトで使用されない設定になっており、 使用するためには機能フラグをそれぞれ true にしなければなりません。 非標準の機能なので、あえて明示的に書かなければ使えないように設計しています。
+いくつかの機能は今後TOML言語自体に新機能としてマージされる可能性があります。 もし以下の拡張機能を完全に置き換えられる機能が導入された場合、拡張機能は 本来の機能の実装後にマイナーバージョンアップで削除される可能性があります。
+null # TOMLファイル内で値としてnullを使えるようになります。
+a = null b = [ 1, 2, 3, null, 5] これを使用するには、 toml::spec の ext_null_value を true にします。
+パースすると、デフォルト構築した場合と同様の toml::value_t::empty となります。 ただし、ファイル内の位置情報は設定されます。
+null は値の文脈でのみパースされるので、キーに null を使用した際はこれまで通り "null" という文字列のキーとして解釈されます。
+#include <toml.hpp> int main() { toml::spec spec; spec.ext_null_value = true; const auto v = toml::parse_str("a = null", spec); assert(v.at("a").is_empty()); assert(v.'><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#343a40"><meta name=color-scheme content="light dark"><meta property="og:url" content="https://toruniina.github.io/toml11/ja/docs/features/extension/"><meta property="og:site_name" content="toml11"><meta property="og:title" content="extension"><meta property="og:description" content='TOML言語拡張 # TOML言語は現在 v1.0.0 が最新版ですが、その後もいくつかの新機能が議論の末マージされ、 v1.1.0に向けて議論が続いています。
+そこで議論された機能の中には、有用なケースが少ないと考えられたものや、 提案された際の方向性では導入が難しいもの、導入がされなかったものも多くあります。
+toml11では、そのような機能のなかからいくつかを選んで、実験的に実装を行っています。 これらはtoml11ではサポートされていますが、他のパーサではサポートされておらず、また サポートされる予定もないことに注意してください。
+また、これらの機能はデフォルトで使用されない設定になっており、 使用するためには機能フラグをそれぞれ true にしなければなりません。 非標準の機能なので、あえて明示的に書かなければ使えないように設計しています。
+いくつかの機能は今後TOML言語自体に新機能としてマージされる可能性があります。 もし以下の拡張機能を完全に置き換えられる機能が導入された場合、拡張機能は 本来の機能の実装後にマイナーバージョンアップで削除される可能性があります。
+null # TOMLファイル内で値としてnullを使えるようになります。
+a = null b = [ 1, 2, 3, null, 5] これを使用するには、 toml::spec の ext_null_value を true にします。
+パースすると、デフォルト構築した場合と同様の toml::value_t::empty となります。 ただし、ファイル内の位置情報は設定されます。
+null は値の文脈でのみパースされるので、キーに null を使用した際はこれまで通り "null" という文字列のキーとして解釈されます。
+#include <toml.hpp> int main() { toml::spec spec; spec.ext_null_value = true; const auto v = toml::parse_str("a = null", spec); assert(v.at("a").is_empty()); assert(v.'><meta property="og:locale" content="ja"><meta property="og:type" content="article"><meta property="article:section" content="docs"><title>extension | toml11</title>
+<link rel=manifest href=/toml11/manifest.json><link rel=icon href=/toml11/favicon.png><link rel=canonical href=https://toruniina.github.io/toml11/ja/docs/features/extension/><link rel=alternate hreflang=en href=https://toruniina.github.io/toml11/docs/features/extension/ title=extension><link rel=stylesheet href=/toml11/book.min.4964903a822a7acb10dac6d1ab524833c97fb5f99b141976bcb8a47d539be9c0.css integrity="sha256-SWSQOoIqessQ2sbRq1JIM8l/tfmbFBl2vLikfVOb6cA=" crossorigin=anonymous><script defer src=/toml11/fuse.min.js></script><script defer src=/toml11/ja.search.min.dc752d0fabcec576cf9ad0d6ded0a254c55b50a3dd2b8d1f0a118e1b83dfe532.js integrity="sha256-3HUtD6vOxXbPmtDW3tCiVMVbUKPdK40fChGOG4Pf5TI=" crossorigin=anonymous></script></head><body dir=ltr><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/toml11/ja/><span>toml11</span></a></h2><div class="book-search hidden"><input type=text id=book-search-input placeholder=検索 aria-label=検索 maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><script>document.querySelector(".book-search").classList.remove("hidden")</script><ul class=book-languages><li><input type=checkbox id=languages class=toggle>
+<label for=languages class="flex justify-between"><a role=button class="flex align-center"><img src=/toml11/svg/translate.svg class=book-icon alt=Languages>
+日本語</a></label><ul><li><a href=https://toruniina.github.io/toml11/docs/features/extension/>English</a></li></ul></li></ul><ul><li><a href=/toml11/ja/docs/installation/>installation</a><ul></ul></li><li><input type=checkbox id=section-6a81babc375c2a1e1b5f2c3cef357642 class=toggle checked>
+<label for=section-6a81babc375c2a1e1b5f2c3cef357642 class="flex justify-between"><a href=/toml11/ja/docs/features/>features</a></label><ul><li><a href=/toml11/ja/docs/features/parsing_files/>parsing files</a></li><li><a href=/toml11/ja/docs/features/value/>getting values</a></li><li><a href=/toml11/ja/docs/features/error_message/>error message</a></li><li><a href=/toml11/ja/docs/features/serialize/>serializing values</a></li><li><a href=/toml11/ja/docs/features/configure_types/>configuring types</a></li><li><a href=/toml11/ja/docs/features/literal/>toml literal</a></li><li><a href=/toml11/ja/docs/features/toml_spec/>toml spec</a></li><li><a href=/toml11/ja/docs/features/extension/ class=active>extension</a></li></ul></li><li><input type=checkbox id=section-13b92d0d0bccf417c5d521db76c99b37 class=toggle>
+<label for=section-13b92d0d0bccf417c5d521db76c99b37 class="flex justify-between"><a href=/toml11/ja/docs/reference/>reference</a></label><ul><li><a href=/toml11/ja/docs/reference/color/>color.hpp</a></li><li><a href=/toml11/ja/docs/reference/comments/>comments.hpp</a></li><li><a href=/toml11/ja/docs/reference/conversion/>conversion.hpp</a></li><li><a href=/toml11/ja/docs/reference/datetime/>datetime.hpp</a></li><li><a href=/toml11/ja/docs/reference/error_info/>error_info.hpp</a></li><li><a href=/toml11/ja/docs/reference/exception/>exception.hpp</a></li><li><a href=/toml11/ja/docs/reference/find/>find.hpp</a></li><li><a href=/toml11/ja/docs/reference/format/>format.hpp</a></li><li><a href=/toml11/ja/docs/reference/from/>from.hpp</a></li><li><a href=/toml11/ja/docs/reference/get/>get.hpp</a></li><li><a href=/toml11/ja/docs/reference/into/>into.hpp</a></li><li><a href=/toml11/ja/docs/reference/literal/>literal.hpp</a></li><li><a href=/toml11/ja/docs/reference/ordered_map/>ordered_map.hpp</a></li><li><a href=/toml11/ja/docs/reference/parser/>parser.hpp</a></li><li><a href=/toml11/ja/docs/reference/result/>result.hpp</a></li><li><a href=/toml11/ja/docs/reference/serializer/>serializer.hpp</a></li><li><a href=/toml11/ja/docs/reference/source_location/>source_location.hpp</a></li><li><a href=/toml11/ja/docs/reference/spec/>spec.hpp</a></li><li><a href=/toml11/ja/docs/reference/toml_fwd/>toml_fwd.hpp</a></li><li><a href=/toml11/ja/docs/reference/toml/>toml.hpp</a></li><li><a href=/toml11/ja/docs/reference/types/>types.hpp</a></li><li><a href=/toml11/ja/docs/reference/value_t/>value_t.hpp</a></li><li><a href=/toml11/ja/docs/reference/value/>value.hpp</a></li><li><a href=/toml11/ja/docs/reference/version/>version.hpp</a></li><li><a href=/toml11/ja/docs/reference/visit/>visit.hpp</a></li></ul></li><li><a href=/toml11/ja/docs/changelog/>changelog</a><ul></ul></li></ul><ul><li><a href=https://github.com/ToruNiina/toml11 target=_blank rel=noopener>GitHub</a></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class=book-header><div class="flex align-center justify-between"><label for=menu-control><img src=/toml11/svg/menu.svg class=book-icon alt=Menu>
+</label><strong>extension</strong>
+<label for=toc-control><img src=/toml11/svg/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class="hidden clearfix"><nav id=TableOfContents><ul><li><a href=#toml言語拡張>TOML言語拡張</a><ul><li><a href=#null><code>null</code></a></li><li><a href=#浮動小数点数の16進数フォーマット>浮動小数点数の16進数フォーマット</a></li><li><a href=#整数浮動小数点数のsuffix>整数・浮動小数点数のsuffix</a></li></ul></li></ul></nav></aside></header><article class="markdown book-article"><h1 id=toml言語拡張>TOML言語拡張
+<a class=anchor href=#toml%e8%a8%80%e8%aa%9e%e6%8b%a1%e5%bc%b5>#</a></h1><p>TOML言語は現在 v1.0.0 が最新版ですが、その後もいくつかの新機能が議論の末マージされ、
+v1.1.0に向けて議論が続いています。</p><p>そこで議論された機能の中には、有用なケースが少ないと考えられたものや、
+提案された際の方向性では導入が難しいもの、導入がされなかったものも多くあります。</p><p>toml11では、そのような機能のなかからいくつかを選んで、実験的に実装を行っています。
+これらはtoml11ではサポートされていますが、他のパーサではサポートされておらず、また
+サポートされる予定もないことに注意してください。</p><p>また、これらの機能はデフォルトで使用されない設定になっており、
+使用するためには機能フラグをそれぞれ <code>true</code> にしなければなりません。
+非標準の機能なので、あえて明示的に書かなければ使えないように設計しています。</p><p>いくつかの機能は今後TOML言語自体に新機能としてマージされる可能性があります。
+もし以下の拡張機能を完全に置き換えられる機能が導入された場合、拡張機能は
+本来の機能の実装後にマイナーバージョンアップで削除される可能性があります。</p><h2 id=null><code>null</code>
+<a class=anchor href=#null>#</a></h2><p>TOMLファイル内で値として<code>null</code>を使えるようになります。</p><pre tabindex=0><code>a = null
+b = [ 1, 2, 3, null, 5]
+</code></pre><p>これを使用するには、 <code>toml::spec</code> の <code>ext_null_value</code> を <code>true</code> にします。</p><p>パースすると、デフォルト構築した場合と同様の <code>toml::value_t::empty</code> となります。
+ただし、ファイル内の位置情報は設定されます。</p><p><code>null</code> は値の文脈でのみパースされるので、キーに <code>null</code> を使用した際はこれまで通り
+<code>"null"</code> という文字列のキーとして解釈されます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    toml<span style=color:#f92672>::</span>spec spec;
+</span></span><span style=display:flex><span>    spec.ext_null_value <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>auto</span> v <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>parse_str(<span style=color:#e6db74>&#34;a = null&#34;</span>, spec);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    assert(v.at(<span style=color:#e6db74>&#34;a&#34;</span>).is_empty());
+</span></span><span style=display:flex><span>    assert(v.at(<span style=color:#e6db74>&#34;a&#34;</span>).is(toml<span style=color:#f92672>::</span>value_t<span style=color:#f92672>::</span>empty));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=浮動小数点数の16進数フォーマット>浮動小数点数の16進数フォーマット
+<a class=anchor href=#%e6%b5%ae%e5%8b%95%e5%b0%8f%e6%95%b0%e7%82%b9%e6%95%b0%e3%81%ae16%e9%80%b2%e6%95%b0%e3%83%95%e3%82%a9%e3%83%bc%e3%83%9e%e3%83%83%e3%83%88>#</a></h2><p>TOMLファイル内で浮動小数点数に16進数フォーマットを使用できるようになります。</p><pre tabindex=0><code>a = 0x1.91eb851eb851fp+1 # 3.14
+</code></pre><p>これを使用するには、 <code>toml::spec</code> の <code>ext_hex_float</code> を <code>true</code> にします。</p><p>フォーマットは <code>printf</code> で <code>%a/%A</code> を指定した場合に準拠します。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    toml<span style=color:#f92672>::</span>spec spec;
+</span></span><span style=display:flex><span>    spec.ext_hex_float <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>auto</span> v <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>parse_str(<span style=color:#e6db74>&#34;a = 0x1.91eb851eb851fp+1&#34;</span>, spec);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    assert(v.at(<span style=color:#e6db74>&#34;a&#34;</span>).is_floating());
+</span></span><span style=display:flex><span>    assert(v.at(<span style=color:#e6db74>&#34;a&#34;</span>).as_floating() <span style=color:#f92672>==</span> <span style=color:#ae81ff>3.14</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=整数浮動小数点数のsuffix>整数・浮動小数点数のsuffix
+<a class=anchor href=#%e6%95%b4%e6%95%b0%e6%b5%ae%e5%8b%95%e5%b0%8f%e6%95%b0%e7%82%b9%e6%95%b0%e3%81%aesuffix>#</a></h2><p>TOMLファイル内で数値の後ろにsuffixをつけられるようになります。
+10進数表記の整数と浮動小数点数で使用できます。</p><p>単位を表示するときなどに便利です。</p><pre tabindex=0><code>a = 86_400_sec
+b = 3.1416_rad
+c = 10_μm
+</code></pre><p>ですが、これらはあくまで単なる <code>suffix</code> であり、単位換算は行われません。
+単位換算が必要な場合は、ユーザーが <code>suffix</code> を参照して実装してください。</p><p>これを使用するには、 <code>toml::spec</code> の <code>ext_num_suffix</code> を <code>true</code> にします。</p><p>数値と接尾辞の間は<code>_</code>で区切られている必要があります。</p><p>数値部分との区別のため、suffixは数値で始まることはできません。</p><pre tabindex=0><code>distance = 100_m  # valid
+distance = 10_0m  # invalid
+distance = 10_0_m # valid
+</code></pre><p>接尾辞は<code>std::string suffix</code>としてフォーマット情報に保持されます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;toml.hpp&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    toml<span style=color:#f92672>::</span>spec spec;
+</span></span><span style=display:flex><span>    spec.ext_hex_float <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>auto</span> v <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>parse_str(<span style=color:#e6db74>&#34;a = 86_400_sec&#34;</span>, spec);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    assert(v.at(<span style=color:#e6db74>&#34;a&#34;</span>).is_integer());
+</span></span><span style=display:flex><span>    assert(v.at(<span style=color:#e6db74>&#34;a&#34;</span>).as_integer() <span style=color:#f92672>==</span> <span style=color:#ae81ff>86400</span>);
+</span></span><span style=display:flex><span>    assert(v.at(<span style=color:#e6db74>&#34;a&#34;</span>).as_integer_fmt().suffix <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;sec&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></article><footer class=book-footer><div class="flex flex-wrap justify-between"></div><script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#toml言語拡張>TOML言語拡張</a><ul><li><a href=#null><code>null</code></a></li><li><a href=#浮動小数点数の16進数フォーマット>浮動小数点数の16進数フォーマット</a></li><li><a href=#整数浮動小数点数のsuffix>整数・浮動小数点数のsuffix</a></li></ul></li></ul></nav></div></aside></main></body></html>

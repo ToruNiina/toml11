@@ -1,0 +1,140 @@
+<!doctype html><html lang=ja dir=ltr><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="エラーメッセージを出力する # toml11は toml::parse や toml::get<T>/find<T>, as_integer() などから ファイル内の位置情報を含んだエラーメッセージを出力します。
+例えば、パース時に整数の文法エラーを発見した場合、
+[error] bad integer: `_` must be surrounded by digits --> internal string at line 64 in file main.cpp | 1 | a = 123__456 | ^-- invalid underscore Hint: valid : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755 Hint: invalid: _42, 1__000, 0123 あるいは実際に格納されている型と異なる型を要求した場合
+[error] toml::value::as_string(): bad_cast to string --> input.toml | 1 | a = 123_456 | ^^^^^^^-- the actual type is integer toml11は toml::value からこのようなエラーメッセージを作成する方法を提供します。"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#343a40"><meta name=color-scheme content="light dark"><meta property="og:url" content="https://toruniina.github.io/toml11/ja/docs/features/error_message/"><meta property="og:site_name" content="toml11"><meta property="og:title" content="error message"><meta property="og:description" content="エラーメッセージを出力する # toml11は toml::parse や toml::get<T>/find<T>, as_integer() などから ファイル内の位置情報を含んだエラーメッセージを出力します。
+例えば、パース時に整数の文法エラーを発見した場合、
+[error] bad integer: `_` must be surrounded by digits --> internal string at line 64 in file main.cpp | 1 | a = 123__456 | ^-- invalid underscore Hint: valid : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755 Hint: invalid: _42, 1__000, 0123 あるいは実際に格納されている型と異なる型を要求した場合
+[error] toml::value::as_string(): bad_cast to string --> input.toml | 1 | a = 123_456 | ^^^^^^^-- the actual type is integer toml11は toml::value からこのようなエラーメッセージを作成する方法を提供します。"><meta property="og:locale" content="ja"><meta property="og:type" content="article"><meta property="article:section" content="docs"><title>error message | toml11</title>
+<link rel=manifest href=/toml11/manifest.json><link rel=icon href=/toml11/favicon.png><link rel=canonical href=https://toruniina.github.io/toml11/ja/docs/features/error_message/><link rel=alternate hreflang=en href=https://toruniina.github.io/toml11/docs/features/error_message/ title="error message"><link rel=stylesheet href=/toml11/book.min.4964903a822a7acb10dac6d1ab524833c97fb5f99b141976bcb8a47d539be9c0.css integrity="sha256-SWSQOoIqessQ2sbRq1JIM8l/tfmbFBl2vLikfVOb6cA=" crossorigin=anonymous><script defer src=/toml11/fuse.min.js></script><script defer src=/toml11/ja.search.min.dc752d0fabcec576cf9ad0d6ded0a254c55b50a3dd2b8d1f0a118e1b83dfe532.js integrity="sha256-3HUtD6vOxXbPmtDW3tCiVMVbUKPdK40fChGOG4Pf5TI=" crossorigin=anonymous></script></head><body dir=ltr><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/toml11/ja/><span>toml11</span></a></h2><div class="book-search hidden"><input type=text id=book-search-input placeholder=検索 aria-label=検索 maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><script>document.querySelector(".book-search").classList.remove("hidden")</script><ul class=book-languages><li><input type=checkbox id=languages class=toggle>
+<label for=languages class="flex justify-between"><a role=button class="flex align-center"><img src=/toml11/svg/translate.svg class=book-icon alt=Languages>
+日本語</a></label><ul><li><a href=https://toruniina.github.io/toml11/docs/features/error_message/>English</a></li></ul></li></ul><ul><li><a href=/toml11/ja/docs/installation/>installation</a><ul></ul></li><li><input type=checkbox id=section-6a81babc375c2a1e1b5f2c3cef357642 class=toggle checked>
+<label for=section-6a81babc375c2a1e1b5f2c3cef357642 class="flex justify-between"><a href=/toml11/ja/docs/features/>features</a></label><ul><li><a href=/toml11/ja/docs/features/parsing_files/>parsing files</a></li><li><a href=/toml11/ja/docs/features/value/>getting values</a></li><li><a href=/toml11/ja/docs/features/error_message/ class=active>error message</a></li><li><a href=/toml11/ja/docs/features/serialize/>serializing values</a></li><li><a href=/toml11/ja/docs/features/configure_types/>configuring types</a></li><li><a href=/toml11/ja/docs/features/literal/>toml literal</a></li><li><a href=/toml11/ja/docs/features/toml_spec/>toml spec</a></li><li><a href=/toml11/ja/docs/features/extension/>extension</a></li></ul></li><li><input type=checkbox id=section-13b92d0d0bccf417c5d521db76c99b37 class=toggle>
+<label for=section-13b92d0d0bccf417c5d521db76c99b37 class="flex justify-between"><a href=/toml11/ja/docs/reference/>reference</a></label><ul><li><a href=/toml11/ja/docs/reference/color/>color.hpp</a></li><li><a href=/toml11/ja/docs/reference/comments/>comments.hpp</a></li><li><a href=/toml11/ja/docs/reference/conversion/>conversion.hpp</a></li><li><a href=/toml11/ja/docs/reference/datetime/>datetime.hpp</a></li><li><a href=/toml11/ja/docs/reference/error_info/>error_info.hpp</a></li><li><a href=/toml11/ja/docs/reference/exception/>exception.hpp</a></li><li><a href=/toml11/ja/docs/reference/find/>find.hpp</a></li><li><a href=/toml11/ja/docs/reference/format/>format.hpp</a></li><li><a href=/toml11/ja/docs/reference/from/>from.hpp</a></li><li><a href=/toml11/ja/docs/reference/get/>get.hpp</a></li><li><a href=/toml11/ja/docs/reference/into/>into.hpp</a></li><li><a href=/toml11/ja/docs/reference/literal/>literal.hpp</a></li><li><a href=/toml11/ja/docs/reference/ordered_map/>ordered_map.hpp</a></li><li><a href=/toml11/ja/docs/reference/parser/>parser.hpp</a></li><li><a href=/toml11/ja/docs/reference/result/>result.hpp</a></li><li><a href=/toml11/ja/docs/reference/serializer/>serializer.hpp</a></li><li><a href=/toml11/ja/docs/reference/source_location/>source_location.hpp</a></li><li><a href=/toml11/ja/docs/reference/spec/>spec.hpp</a></li><li><a href=/toml11/ja/docs/reference/toml_fwd/>toml_fwd.hpp</a></li><li><a href=/toml11/ja/docs/reference/toml/>toml.hpp</a></li><li><a href=/toml11/ja/docs/reference/types/>types.hpp</a></li><li><a href=/toml11/ja/docs/reference/value_t/>value_t.hpp</a></li><li><a href=/toml11/ja/docs/reference/value/>value.hpp</a></li><li><a href=/toml11/ja/docs/reference/version/>version.hpp</a></li><li><a href=/toml11/ja/docs/reference/visit/>visit.hpp</a></li></ul></li><li><a href=/toml11/ja/docs/changelog/>changelog</a><ul></ul></li></ul><ul><li><a href=https://github.com/ToruNiina/toml11 target=_blank rel=noopener>GitHub</a></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class=book-header><div class="flex align-center justify-between"><label for=menu-control><img src=/toml11/svg/menu.svg class=book-icon alt=Menu>
+</label><strong>error message</strong>
+<label for=toc-control><img src=/toml11/svg/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class="hidden clearfix"><nav id=TableOfContents><ul><li><a href=#エラーメッセージを出力する>エラーメッセージを出力する</a><ul><li><a href=#tomlvalue-の位置情報からエラーメッセージを作成する><code>toml::value</code> の位置情報からエラーメッセージを作成する</a></li><li><a href=#文字列に色を付ける>文字列に色を付ける</a></li><li><a href=#エラーメッセージのprefixをerrorから変更する>エラーメッセージのprefixを<code>[error]</code>から変更する</a></li><li><a href=#複数の-tomlvalue-を指すエラーメッセージを作成する>複数の <code>toml::value</code> を指すエラーメッセージを作成する</a></li></ul></li></ul></nav></aside></header><article class="markdown book-article"><h1 id=エラーメッセージを出力する>エラーメッセージを出力する
+<a class=anchor href=#%e3%82%a8%e3%83%a9%e3%83%bc%e3%83%a1%e3%83%83%e3%82%bb%e3%83%bc%e3%82%b8%e3%82%92%e5%87%ba%e5%8a%9b%e3%81%99%e3%82%8b>#</a></h1><p>toml11は <code>toml::parse</code> や <code>toml::get&lt;T>/find&lt;T></code>, <code>as_integer()</code> などから
+ファイル内の位置情報を含んだエラーメッセージを出力します。</p><p>例えば、パース時に整数の文法エラーを発見した場合、</p><pre tabindex=0><code>[error] bad integer: `_` must be surrounded by digits
+ --&gt; internal string at line 64 in file main.cpp
+   |
+ 1 | a = 123__456
+   |        ^-- invalid underscore
+Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755
+Hint: invalid: _42, 1__000, 0123
+</code></pre><p>あるいは実際に格納されている型と異なる型を要求した場合</p><pre tabindex=0><code>[error] toml::value::as_string(): bad_cast to string
+ --&gt; input.toml
+   |
+ 1 | a = 123_456
+   |     ^^^^^^^-- the actual type is integer
+</code></pre><p>toml11は <code>toml::value</code> からこのようなエラーメッセージを作成する方法を提供します。</p><p>この機能を利用することで、TOMLの文法エラーだけでなく、
+例えば正の値でなければならないところに負数が現れた場合などの
+アプリケーション固有のエラーメッセージを、TOMLファイル内の位置を指摘しながら
+ユーザーに伝えられるということです。</p><h2 id=tomlvalue-の位置情報からエラーメッセージを作成する><code>toml::value</code> の位置情報からエラーメッセージを作成する
+<a class=anchor href=#tomlvalue-%e3%81%ae%e4%bd%8d%e7%bd%ae%e6%83%85%e5%a0%b1%e3%81%8b%e3%82%89%e3%82%a8%e3%83%a9%e3%83%bc%e3%83%a1%e3%83%83%e3%82%bb%e3%83%bc%e3%82%b8%e3%82%92%e4%bd%9c%e6%88%90%e3%81%99%e3%82%8b>#</a></h2><p><code>toml::value</code> はそれがパースされた位置の情報を持っています。</p><p>その情報は <code>toml::source_location</code> にまとめられ、<code>toml::value::location()</code> で取得できます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>value<span style=color:#f92672>&amp;</span> a <span style=color:#f92672>=</span> input.at(<span style=color:#e6db74>&#34;a&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>source_location src <span style=color:#f92672>=</span> a.location();
+</span></span></code></pre></div><p>ファイルを <code>toml::parse</code> でパースした場合、そのTOMLファイル名と行数が保存されています。</p><p><code>toml::parse_str</code> でパースした場合TOMLファイル名はありませんが、代わりに
+<code>toml::parse_str</code> を呼び出したC++ソースコードのファイル名と行数がTOMLファイル名として保存されています。
+このページの最初の例は <code>toml::parse_str</code> から出力された例でした。
+ファイル名の部分に注目してください。</p><p>詳細は <a href=https://toruniina.github.io/toml11/ja/docs/reference/source_location/>reference</a> を参照してください。</p><p><code>toml::source_location</code> または <code>toml::value</code> とそれに付随するエラーメッセージを
+<code>toml::make_error_info</code> に渡すことで、エラー情報を構築できます。
+これを<code>toml::format_error</code> に渡すと、エラーメッセージが <code>std::string</code> にフォーマットされます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>value<span style=color:#f92672>&amp;</span> a <span style=color:#f92672>=</span> input.at(<span style=color:#e6db74>&#34;a&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(a.as_integer() <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>error_info err <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>make_error_info(
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;positive integer is required&#34;</span>, <span style=color:#75715e>// エラーのタイトル
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            a, <span style=color:#e6db74>&#34;but got negative value&#34;</span>     <span style=color:#75715e>// 値の横に書くメッセージ
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        );
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> toml<span style=color:#f92672>::</span>format_error(err) <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>これは以下のようになります。</p><pre tabindex=0><code>[error] positive integer is required
+ --&gt; input.toml
+   |
+ 1 | a = -123456
+   |     ^^^^^^^-- but got negative value
+</code></pre><p>最後に補足をつけ足すこともできます。これはインデントされません。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>value<span style=color:#f92672>&amp;</span> a <span style=color:#f92672>=</span> input.at(<span style=color:#e6db74>&#34;a&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(a.as_integer() <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>error_info err <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>make_error_info(
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;positive integer is required&#34;</span>,      <span style=color:#75715e>// エラーのタイトル
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            a, <span style=color:#e6db74>&#34;but got negative value&#34;</span>,         <span style=color:#75715e>// 値の横に書くメッセージ
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#e6db74>&#34;Hint: `a` means length of the data&#34;</span> <span style=color:#75715e>// 補足
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        );
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> toml<span style=color:#f92672>::</span>format_error(err) <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><pre tabindex=0><code>[error] positive integer is required
+ --&gt; input.toml
+   |
+ 1 | a = -123456
+   |     ^^^^^^^-- but got negative value
+Hint: `a` means length of the data
+</code></pre><blockquote class="book-hint info"><p><code>toml::value</code> からファイル内の行を出力できるのは、
+パースしたファイルが文字列としてメモリの中に残されているからです。</p><p>パースした文字列はその全体が <code>std::shared_ptr</code> で <code>toml::value</code> に共有されています。
+コピーしてもファイル文字列全体がコピーされることはありません。
+また、そのファイルをパースして構築された <code>toml::value</code> が全てデストラクトされた時点で、
+ファイル情報もメモリ上から解放されます。</p><p>ですので、アプリケーションで使用する際には、 <code>toml::value</code> を直接保存するのではなく
+読み込み中に必要な値を全て取り出して、変換した値を保存した方がよいでしょう。</p></blockquote><h2 id=文字列に色を付ける>文字列に色を付ける
+<a class=anchor href=#%e6%96%87%e5%ad%97%e5%88%97%e3%81%ab%e8%89%b2%e3%82%92%e4%bb%98%e3%81%91%e3%82%8b>#</a></h2><p>エラーメッセージにはANSIエスケープコードを使って色を付けることができます。</p><p><code>TOML11_COLORIZE_ERROR_MESSAGE</code> をコンパイル時に定義していれば、
+toml11の出力するエラーメッセージはデフォルトで色が付くようになります。</p><p>そうでない場合は、 <code>toml::color::enable()</code> を呼び出すことにより、それ以降で出力される
+エラーメッセージには色が付くようになります。
+逆に出力先がコンソールではないなどの理由で色をつけたくない場合は、
+<code>toml::color::disable()</code> を呼び出してください。
+その時点で色が付くようになっているかどうかは、
+<code>toml::color::should_color()</code> の返り値で判定できます。</p><p>詳細は <a href=https://toruniina.github.io/toml11/ja/docs/reference/color/>reference</a> を参照してください。</p><p>また、エラーのタイトルやエラーメッセージ、補足にはデフォルトで色が付きませんが、
+<code>toml::color</code> にあるマニピュレータを使って色を付けることも可能です。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>std<span style=color:#f92672>::</span>ostringstream oss;
+</span></span><span style=display:flex><span>oss <span style=color:#f92672>&lt;&lt;</span> toml<span style=color:#f92672>::</span>color<span style=color:#f92672>::</span>red <span style=color:#f92672>&lt;&lt;</span> <span style=color:#e6db74>&#34;but got negative value&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>error_info err <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>make_error_info(
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;positive integer is required&#34;</span>,      <span style=color:#75715e>// Error title
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        a, oss.str(),                        <span style=color:#75715e>// Message next to the value
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#e6db74>&#34;Hint: `a` means length of the data&#34;</span> <span style=color:#75715e>// Supplementary message
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    );
+</span></span></code></pre></div><p>こちらも、詳細は <a href=https://toruniina.github.io/toml11/ja/docs/reference/color/>reference</a> を参照してください。</p><h2 id=エラーメッセージのprefixをerrorから変更する>エラーメッセージのprefixを<code>[error]</code>から変更する
+<a class=anchor href=#%e3%82%a8%e3%83%a9%e3%83%bc%e3%83%a1%e3%83%83%e3%82%bb%e3%83%bc%e3%82%b8%e3%81%aeprefix%e3%82%92error%e3%81%8b%e3%82%89%e5%a4%89%e6%9b%b4%e3%81%99%e3%82%8b>#</a></h2><p>エラーには種類があり、デフォルトの <code>[error]</code> ではよくない場合もあるでしょう。</p><p><code>toml::format_error</code> では、 <code>toml::error_info</code> の前に <code>std::string</code> を取って、それを
+<code>[error]</code> の代わりに出力することができます。</p><p>例えば、</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>value<span style=color:#f92672>&amp;</span> a <span style=color:#f92672>=</span> input.at(<span style=color:#e6db74>&#34;a&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(a.as_integer() <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>error_info err <span style=color:#f92672>=</span> toml<span style=color:#f92672>::</span>make_error_info(
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;positive integer is required&#34;</span>,      <span style=color:#75715e>// エラーのタイトル
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            a, <span style=color:#e6db74>&#34;but got negative value&#34;</span>          <span style=color:#75715e>// 値の横に書くメッセージ
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>ostringstream prefix;
+</span></span><span style=display:flex><span>    prefix <span style=color:#f92672>&lt;&lt;</span> toml<span style=color:#f92672>::</span>color<span style=color:#f92672>::</span>bold <span style=color:#f92672>&lt;&lt;</span> toml<span style=color:#f92672>::</span>color<span style=color:#f92672>::</span>yellow <span style=color:#f92672>&lt;&lt;</span> <span style=color:#e6db74>&#34;[warn]&#34;</span>;
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> toml<span style=color:#f92672>::</span>format_error(prefix.str(), err) <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> a.as_integer()
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>このようにすると、 <code>[warn]</code> から始まる警告を出力することができます。</p><p>他にも、<code>toml::format_error</code> に直接 <code>error_info</code> の構成要素を渡すことで、
+<code>[error]</code> なしのエラーメッセージを作成できます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>const</span> toml<span style=color:#f92672>::</span>value<span style=color:#f92672>&amp;</span> a <span style=color:#f92672>=</span> input.at(<span style=color:#e6db74>&#34;a&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(a.as_integer() <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> toml<span style=color:#f92672>::</span>format_error(
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;[warn] positive integer is required&#34;</span>,      <span style=color:#75715e>// エラーのタイトル
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            a, <span style=color:#e6db74>&#34;but got negative value&#34;</span>          <span style=color:#75715e>// 値の横に書くメッセージ
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        ) <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>else</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> a.as_integer()
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=複数の-tomlvalue-を指すエラーメッセージを作成する>複数の <code>toml::value</code> を指すエラーメッセージを作成する
+<a class=anchor href=#%e8%a4%87%e6%95%b0%e3%81%ae-tomlvalue-%e3%82%92%e6%8c%87%e3%81%99%e3%82%a8%e3%83%a9%e3%83%bc%e3%83%a1%e3%83%83%e3%82%bb%e3%83%bc%e3%82%b8%e3%82%92%e4%bd%9c%e6%88%90%e3%81%99%e3%82%8b>#</a></h2><p>アプリケーションの設定では、先に読み込んだ値によって後に読み込んだ値が取れる範囲が変わることがあるでしょう。</p><p>そのような場合には、エラーの原因となる別の値を同時に出力したいはずです。</p><p><code>toml::format_error</code> と <code>toml::make_error_info</code> は、 <code>toml::value</code> とそれに対応するエラーメッセージ <code>std::string</code> のペアを任意個取ることができます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> toml<span style=color:#f92672>::</span>format_error(
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;[error] invalid range&#34;</span>,
+</span></span><span style=display:flex><span>        a, <span style=color:#e6db74>&#34;minimum value is defined here&#34;</span>,
+</span></span><span style=display:flex><span>        b, <span style=color:#e6db74>&#34;maximum value is defined here&#34;</span>,
+</span></span><span style=display:flex><span>        c, <span style=color:#e6db74>&#34;and it exceeds the range&#34;</span>
+</span></span><span style=display:flex><span>    ) <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span></code></pre></div><p>こちらも末尾に補足を追加することができます。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>std<span style=color:#f92672>::</span>cerr <span style=color:#f92672>&lt;&lt;</span> toml<span style=color:#f92672>::</span>format_error(
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;[error] invalid range&#34;</span>,
+</span></span><span style=display:flex><span>        a, <span style=color:#e6db74>&#34;minimum value is defined here&#34;</span>,
+</span></span><span style=display:flex><span>        b, <span style=color:#e6db74>&#34;maximum value is defined here&#34;</span>,
+</span></span><span style=display:flex><span>        c, <span style=color:#e6db74>&#34;and it exceeds the range&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Hint: all the value must be in the range, [a, b)&#34;</span>
+</span></span><span style=display:flex><span>    ) <span style=color:#f92672>&lt;&lt;</span> std<span style=color:#f92672>::</span>endl;
+</span></span></code></pre></div><p><code>toml::value</code> または <code>toml::source_location</code> を渡した場合、必ずそれに関する
+エラーメッセージが続く必要があります。
+そうしない場合、非常にわかりにくいコンパイルエラーになります。</p></article><footer class=book-footer><div class="flex flex-wrap justify-between"></div><script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#エラーメッセージを出力する>エラーメッセージを出力する</a><ul><li><a href=#tomlvalue-の位置情報からエラーメッセージを作成する><code>toml::value</code> の位置情報からエラーメッセージを作成する</a></li><li><a href=#文字列に色を付ける>文字列に色を付ける</a></li><li><a href=#エラーメッセージのprefixをerrorから変更する>エラーメッセージのprefixを<code>[error]</code>から変更する</a></li><li><a href=#複数の-tomlvalue-を指すエラーメッセージを作成する>複数の <code>toml::value</code> を指すエラーメッセージを作成する</a></li></ul></li></ul></nav></div></aside></main></body></html>
