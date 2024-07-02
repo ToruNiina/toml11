@@ -1,6 +1,7 @@
 set(TOML11_TEST_NAMES
     test_comments
     test_datetime
+    test_error_message
     test_find
     test_find_or
     test_format_integer
