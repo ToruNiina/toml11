@@ -52,8 +52,7 @@ struct local_time_format_info;
 struct array_format_info;
 struct table_format_info;
 
-template<typename Key, typename Val, typename Cmp = std::equal_to<Key>,
-         typename Allocator = std::allocator<std::pair<Key, Val>>>
+template<typename Key, typename Val, typename Cmp, typename Allocator>
 class ordered_map;
 
 struct syntax_error;

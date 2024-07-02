@@ -17,23 +17,6 @@ type  = "docs"
 
 `basic_value`の持つ型情報は`template`で、TOML言語のバージョンは`toml::spec`で指定します。
 
-### `parse(std::istream&, std::string filename, toml::spec)`
-
-```cpp
-namespace toml
-{
-template<typename TC = type_config>
-basic_value<TC>
-parse(std::istream& is,
-      std::string fname = "unknown file",
-      spec s = spec::default_version());
-}
-```
-
-`std::istream&`を受け取ってその内容をパースします。
-
-ファイル名の情報は第三引数で受け取ります。ファイル名が渡されなかった場合、`"unknown file"`になります。
-
 ### `parse(std::string filename, toml::spec)`
 
 ```cpp
@@ -90,6 +73,25 @@ parse(const std::filesystem::path& fpath,
 
 パースに失敗した場合、`syntax_error`が送出されます。
 
+### `parse(std::istream&, std::string filename, toml::spec)`
+
+```cpp
+namespace toml
+{
+template<typename TC = type_config>
+basic_value<TC>
+parse(std::istream& is,
+      std::string fname = "unknown file",
+      spec s = spec::default_version());
+}
+```
+
+`std::istream&`を受け取ってその内容をパースします。
+
+標準ライブラリが改行文字を自動変換することによるファイルサイズと文字数との不整合を避けるため、
+`std::ios::binary`を使ってバイナリモードで開いてください。
+
+ファイル名の情報は第三引数で受け取ります。ファイル名が渡されなかった場合、`"unknown file"`になります。
 
 ### `parse(FILE*, std::string filename, toml::spec)`
 
@@ -105,6 +107,9 @@ parse(FILE* fp,
 ```
 
 `FILE*`が指すファイルを読み込んでパースします。
+
+標準ライブラリが改行文字を自動変換することによるファイルサイズと文字数との不整合を避けるため、
+`fopen`には`"rb"`などを渡してバイナリモードで開いてください。
 
 ファイルの読み込みに失敗した場合、`errno`が含まれた`file_io_error`が送出されます。
 
@@ -167,28 +172,6 @@ parse_str(std::string content,
 
 {{< /hint >}}
 
-
-### `try_parse(std::istream&, std::string filename, toml::spec)`
-
-```cpp
-namespace toml
-{
-template<typename TC = type_config>
-result<basic_value<TC>, std::vector<error_info>>
-try_parse(std::istream& is,
-          std::string fname = "unknown file",
-          spec s = spec::default_version());
-}
-```
-
-`std::istream&`を受け取ってその内容をパースします。
-
-ファイル名の情報は第二引数で受け取ります。ファイル名が渡されなかった場合、`"unknown file"`になります。
-
-パースに失敗した場合、エラー型である`std::vector<error_info>`を持つ`result`が返されます。
-
-成功した場合、`basic_value`を持つ`result`が返されます。
-
 ### `try_parse(std::string filename, toml::spec)`
 
 ```cpp
@@ -244,6 +227,30 @@ try_parse(const std::filesystem::path& fpath,
 
 成功した場合、`basic_value`を持つ`result`が返されます。
 
+### `try_parse(std::istream&, std::string filename, toml::spec)`
+
+```cpp
+namespace toml
+{
+template<typename TC = type_config>
+result<basic_value<TC>, std::vector<error_info>>
+try_parse(std::istream& is,
+          std::string fname = "unknown file",
+          spec s = spec::default_version());
+}
+```
+
+`std::istream&`を受け取ってその内容をパースします。
+
+標準ライブラリが改行文字を自動変換することによるファイルサイズと文字数との不整合を避けるため、
+`std::ios::binary`を使ってバイナリモードで開いてください。
+
+ファイル名の情報は第二引数で受け取ります。ファイル名が渡されなかった場合、`"unknown file"`になります。
+
+パースに失敗した場合、エラー型である`std::vector<error_info>`を持つ`result`が返されます。
+
+成功した場合、`basic_value`を持つ`result`が返されます。
+
 ### `try_parse(FILE*, std::string filename, toml::spec)`
 
 ```cpp
@@ -258,6 +265,9 @@ try_parse(FILE* fp,
 ```
 
 `FILE*`を受け取って、そのファイルの内容をパースします。
+
+標準ライブラリが改行文字を自動変換することによるファイルサイズと文字数との不整合を避けるため、
+`fopen`には`"rb"`などを渡してバイナリモードで開いてください。
 
 パースに失敗した場合、エラー型である`std::vector<error_info>`を持つ`result`が返されます。
 

@@ -8,7 +8,7 @@
 
 [日本語版](https://github.com/ToruNiina/toml11/blob/main/README_ja.md)
 
-toml11 is a feature-rich TOML language library for C++.
+toml11 is a feature-rich TOML language library for C++11/14/17/20.
 
 - It complies with [the latest TOML language specification](https://toml.io/en/v1.0.0).
 - It passes all the standard TOML language [test cases](https://github.com/toml-lang/toml-test).
@@ -123,6 +123,14 @@ Therefore, you need to specify `CMAKE_CXX_STANDARD`.
 $ cmake -B ./build/ -DTOML11_PRECOMPILE=ON -DCMAKE_CXX_STANDARD=11/14/17/20
 $ cmake --build ./build/
 ```
+
+When linking the library, use `target_link_libraries` in CMake
+
+```cmake
+target_link_libraries(your_target PUBLIC toml11::toml11)
+```
+
+or pass `-DTOML11_COMPILE_SOURCES` to the compiler.
 
 ### Building Example
 
