@@ -5447,6 +5447,10 @@ struct error_info
     std::string suffix_; // hint or something like that
 };
 
+// forward decl
+template<typename TypeConfig>
+class basic_value;
+
 namespace detail
 {
 inline error_info make_error_info_rec(error_info e)
@@ -5458,6 +5462,10 @@ inline error_info make_error_info_rec(error_info e, std::string s)
     e.suffix() = s;
     return e;
 }
+
+template<typename TC, typename ... Ts>
+error_info make_error_info_rec(error_info e,
+        const basic_value<TC>& v, std::string msg, Ts&& ... tail);
 
 template<typename ... Ts>
 error_info make_error_info_rec(error_info e,
@@ -7588,12 +7596,16 @@ operator>=(const basic_value<TC>& lhs, const basic_value<TC>& rhs)
 }
 
 // error_info helper
+namespace detail
+{
 template<typename TC, typename ... Ts>
 error_info make_error_info_rec(error_info e,
         const basic_value<TC>& v, std::string msg, Ts&& ... tail)
 {
     return make_error_info_rec(std::move(e), v.location(), std::move(msg), std::forward<Ts>(tail)...);
 }
+} // detail
+
 template<typename TC, typename ... Ts>
 error_info make_error_info(
         std::string title, const basic_value<TC>& v, std::string msg, Ts&& ... tail)
