@@ -3,7 +3,7 @@
 
 #define TOML11_VERSION_MAJOR 4
 #define TOML11_VERSION_MINOR 0
-#define TOML11_VERSION_PATCH 1
+#define TOML11_VERSION_PATCH 2
 
 #ifndef __cplusplus
 #    error "__cplusplus is not defined"
@@ -3584,7 +3584,7 @@ struct has_specialized_into_impl
     template<typename T>
     static std::false_type check(...);
     template<typename T, std::size_t S = sizeof(::toml::into<T>)>
-    static std::true_type check(::toml::from<T>*);
+    static std::true_type check(::toml::into<T>*);
 };
 
 
@@ -5447,6 +5447,10 @@ struct error_info
     std::string suffix_; // hint or something like that
 };
 
+// forward decl
+template<typename TypeConfig>
+class basic_value;
+
 namespace detail
 {
 inline error_info make_error_info_rec(error_info e)
@@ -5458,6 +5462,10 @@ inline error_info make_error_info_rec(error_info e, std::string s)
     e.suffix() = s;
     return e;
 }
+
+template<typename TC, typename ... Ts>
+error_info make_error_info_rec(error_info e,
+        const basic_value<TC>& v, std::string msg, Ts&& ... tail);
 
 template<typename ... Ts>
 error_info make_error_info_rec(error_info e,
@@ -7588,12 +7596,16 @@ operator>=(const basic_value<TC>& lhs, const basic_value<TC>& rhs)
 }
 
 // error_info helper
+namespace detail
+{
 template<typename TC, typename ... Ts>
 error_info make_error_info_rec(error_info e,
         const basic_value<TC>& v, std::string msg, Ts&& ... tail)
 {
     return make_error_info_rec(std::move(e), v.location(), std::move(msg), std::forward<Ts>(tail)...);
 }
+} // detail
+
 template<typename TC, typename ... Ts>
 error_info make_error_info(
         std::string title, const basic_value<TC>& v, std::string msg, Ts&& ... tail)
@@ -15063,7 +15075,7 @@ try_parse(std::istream& is, std::string fname = "unknown file", spec s = spec::d
 
     // read whole file as a sequence of char
     assert(fsize >= 0);
-    std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize));
+    std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize), '\0');
     is.read(reinterpret_cast<char*>(letters.data()), fsize);
 
     return detail::parse_impl<TC>(std::move(letters), std::move(fname), std::move(s));
@@ -15253,7 +15265,15 @@ try_parse(FILE* fp, std::string filename, spec s = spec::default_version())
     // read whole file as a sequence of char
     assert(fsize >= 0);
     std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize));
-    std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
+    const auto actual = std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
+    if(actual != static_cast<std::size_t>(fsize))
+    {
+        return err(std::vector<error_info>{error_info(
+            std::string("File size changed: \"") + filename +
+            std::string("\" make sure that FILE* is in binary mode "
+                        "to avoid LF <-> CRLF conversion"), {}
+        )});
+    }
 
     return detail::parse_impl<TC>(std::move(letters), std::move(filename), std::move(s));
 }
@@ -15291,7 +15311,12 @@ parse(FILE* fp, std::string filename, spec s = spec::default_version())
     // read whole file as a sequence of char
     assert(fsize >= 0);
     std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize));
-    std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
+    const auto actual = std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
+    if(actual != static_cast<std::size_t>(fsize))
+    {
+        throw file_io_error(errno, "File size changed; make sure that "
+            "FILE* is in binary mode to avoid LF <-> CRLF conversion", filename);
+    }
 
     auto res = detail::parse_impl<TC>(std::move(letters), std::move(filename), std::move(s));
     if(res.is_ok())

@@ -1,6 +1,7 @@
 set(TOML11_TEST_NAMES
     test_comments
     test_datetime
+    test_error_message
     test_find
     test_try_find
     test_find_or
@@ -24,6 +25,7 @@ set(TOML11_TEST_NAMES
     test_parse_table
     test_result
     test_scanner
+    test_serialize
     test_syntax_boolean
     test_syntax_integer
     test_syntax_floating

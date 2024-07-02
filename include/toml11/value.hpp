@@ -2102,12 +2102,16 @@ operator>=(const basic_value<TC>& lhs, const basic_value<TC>& rhs)
 }
 
 // error_info helper
+namespace detail
+{
 template<typename TC, typename ... Ts>
 error_info make_error_info_rec(error_info e,
         const basic_value<TC>& v, std::string msg, Ts&& ... tail)
 {
     return make_error_info_rec(std::move(e), v.location(), std::move(msg), std::forward<Ts>(tail)...);
 }
+} // detail
+
 template<typename TC, typename ... Ts>
 error_info make_error_info(
         std::string title, const basic_value<TC>& v, std::string msg, Ts&& ... tail)

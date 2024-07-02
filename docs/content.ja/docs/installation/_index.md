@@ -54,6 +54,14 @@ target_link_libraries(main PRIVATE toml11::toml11)
 $ cmake -B ./build/ -DTOML11_PRECOMPILE=ON
 ```
 
+ライブラリをリンクする場合は、CMakeで
+
+```cmake
+target_link_libraries(your_target PUBLIC toml11::toml11)
+```
+
+とするか、ヘッダ内の関数の`inline`化を避けるためにコンパイラに`-DTOML11_COMPILE_SOURCES`を渡してください。
+
 ただし、toml11は複数のC++バージョンに対応するため、`__cplusplus`の値などによって型を切り替えることがあります。
 そのため、ビルドした際のバージョンと使用時のバージョンが異なる場合、リンクに失敗する可能性があります。
 問題が生じた場合は`CMAKE_CXX_STANDARD`によって必要なバージョンを設定してコンパイルしてください。

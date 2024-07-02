@@ -3524,7 +3524,7 @@ try_parse(std::istream& is, std::string fname = "unknown file", spec s = spec::d
 
     // read whole file as a sequence of char
     assert(fsize >= 0);
-    std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize));
+    std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize), '\0');
     is.read(reinterpret_cast<char*>(letters.data()), fsize);
 
     return detail::parse_impl<TC>(std::move(letters), std::move(fname), std::move(s));
@@ -3714,7 +3714,15 @@ try_parse(FILE* fp, std::string filename, spec s = spec::default_version())
     // read whole file as a sequence of char
     assert(fsize >= 0);
     std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize));
-    std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
+    const auto actual = std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
+    if(actual != static_cast<std::size_t>(fsize))
+    {
+        return err(std::vector<error_info>{error_info(
+            std::string("File size changed: \"") + filename +
+            std::string("\" make sure that FILE* is in binary mode "
+                        "to avoid LF <-> CRLF conversion"), {}
+        )});
+    }
 
     return detail::parse_impl<TC>(std::move(letters), std::move(filename), std::move(s));
 }
@@ -3752,7 +3760,12 @@ parse(FILE* fp, std::string filename, spec s = spec::default_version())
     // read whole file as a sequence of char
     assert(fsize >= 0);
     std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize));
-    std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
+    const auto actual = std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
+    if(actual != static_cast<std::size_t>(fsize))
+    {
+        throw file_io_error(errno, "File size changed; make sure that "
+            "FILE* is in binary mode to avoid LF <-> CRLF conversion", filename);
+    }
 
     auto res = detail::parse_impl<TC>(std::move(letters), std::move(filename), std::move(s));
     if(res.is_ok())

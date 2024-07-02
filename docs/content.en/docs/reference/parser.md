@@ -17,23 +17,6 @@ In case of failure, `toml::syntax_error` is thrown.
 
 The type information of `basic_value` is provided by a `template`, and the TOML language version is specified by `toml::spec`.
 
-### `parse(std::istream&, std::string filename, toml::spec)`
-
-```cpp
-namespace toml
-{
-template<typename TC = type_config>
-basic_value<TC>
-parse(std::istream& is,
-      std::string fname = "unknown file",
-      spec s = spec::default_version());
-}
-```
-
-Parses the content of the given `std::istream&`.
-
-The filename information is taken as the third argument. If the filename is not provided, it defaults to `"unknown file"`.
-
 ### `parse(std::string filename, toml::spec)`
 
 ```cpp
@@ -90,6 +73,25 @@ If reading the file fails, `toml::file_io_error` is thrown.
 
 If parsing fails, `toml::syntax_error` is thrown.
 
+### `parse(std::istream&, std::string filename, toml::spec)`
+
+```cpp
+namespace toml
+{
+template<typename TC = type_config>
+basic_value<TC>
+parse(std::istream& is,
+      std::string fname = "unknown file",
+      spec s = spec::default_version());
+}
+```
+
+Parses the content of the given `std::istream&`.
+
+Open a stream in binary mode by passing `std::ios::binary` to avoid inconsistency between the file size and the number of characters due to automatic conversion of newline characters by the standard library.
+
+The filename information is taken as the third argument. If the filename is not provided, it defaults to `"unknown file"`.
+
 ### `parse(FILE*, std::string filename, toml::spec)`
 
 ```cpp
@@ -104,6 +106,8 @@ parse(FILE* fp,
 ```
 
 Parses the content of the file pointed to by `FILE*`.
+
+Open a stream in binary mode by passing `"rb"` to avoid inconsistency between the file size and the number of characters due to automatic conversion of newline characters by the standard library.
 
 If reading the file fails, `file_io_error` containing `errno` is thrown.
 
@@ -166,27 +170,6 @@ For instance, errors occurring internally within `std::ifstream` or memory exhau
 
 {{< /hint >}}
 
-### `try_parse(std::istream&, std::string filename, toml::spec)`
-
-```cpp
-namespace toml
-{
-template<typename TC = type_config>
-result<basic_value<TC>, std::vector<error_info>>
-try_parse(std::istream& is,
-          std::string fname = "unknown file",
-          spec s = spec::default_version());
-}
-```
-
-Takes a `std::istream&` and parses its content.
-
-The file name information is taken as the second argument. If a file name is not provided, it defaults to `"unknown file"`.
-
-If parsing fails, a `result` holding the error type `std::vector<error_info>` is returned.
-
-If successful, a `result` holding a `basic_value` is returned.
-
 ### `try_parse(std::string filename, toml::spec)`
 
 ```cpp
@@ -241,6 +224,29 @@ If parsing fails, a `result` holding the error type `std::vector<error_info>` is
 
 If successful, a `result` holding a `basic_value` is returned.
 
+### `try_parse(std::istream&, std::string filename, toml::spec)`
+
+```cpp
+namespace toml
+{
+template<typename TC = type_config>
+result<basic_value<TC>, std::vector<error_info>>
+try_parse(std::istream& is,
+          std::string fname = "unknown file",
+          spec s = spec::default_version());
+}
+```
+
+Takes a `std::istream&` and parses its content.
+
+Open a stream in binary mode by passing `std::ios::binary` to avoid inconsistency between the file size and the number of characters due to automatic conversion of newline characters by the standard library.
+
+The file name information is taken as the second argument. If a file name is not provided, it defaults to `"unknown file"`.
+
+If parsing fails, a `result` holding the error type `std::vector<error_info>` is returned.
+
+If successful, a `result` holding a `basic_value` is returned.
+
 ### `try_parse(FILE*, std::string filename, toml::spec)`
 
 ```cpp
@@ -255,6 +261,8 @@ try_parse(FILE* fp,
 ```
 
 Takes a `FILE*` and parses its content.
+
+Open a stream in binary mode by passing `"rb"` to avoid inconsistency between the file size and the number of characters due to automatic conversion of newline characters by the standard library.
 
 If parsing fails, a `result` holding the error type `std::vector<error_info>` is returned.
 
