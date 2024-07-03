@@ -2702,7 +2702,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                 return ok(value_t::floating);
             }
             auto src = source_location(region(loc));
-            return err(make_error_info(error_kind::syntax_error, 
+            return err(make_error_info(error_kind::syntax_error,
                 "bad float: `_` must be surrounded by digits",
                 std::move(src), "invalid underscore",
                 "Hint: valid  : +1.0, -2e-2, 3.141_592_653_589, inf, nan\n"
@@ -2723,7 +2723,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                     return ok(value_t::floating);
                 }
                 auto src = source_location(region(loc));
-                return err(make_error_info(error_kind::syntax_error, 
+                return err(make_error_info(error_kind::syntax_error,
                     "bad float: `_` must be surrounded by digits",
                     std::move(src), "invalid underscore",
                     "Hint: valid  : +1.0, -2e-2, 3.141_592_653_589, inf, nan\n"
@@ -2750,7 +2750,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                     int_reg.as_string() == "-0" || int_reg.as_string() == "+0"))
                 {
                     auto src = source_location(region(loc));
-                    return err(make_error_info(error_kind::syntax_error, 
+                    return err(make_error_info(error_kind::syntax_error,
                         "bad integer: leading zero is not allowed in decimal int",
                         std::move(src), "leading zero",
                         "Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755\n"
@@ -2759,7 +2759,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                 else
                 {
                     auto src = source_location(region(loc));
-                    return err(make_error_info(error_kind::syntax_error, 
+                    return err(make_error_info(error_kind::syntax_error,
                         "bad integer: `_` must be surrounded by digits",
                         std::move(src), "invalid underscore",
                         "Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755\n"
@@ -2771,7 +2771,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                 if(loc.current() == '0')
                 {
                     loc.retrace();
-                    return err(make_error_info(error_kind::syntax_error, 
+                    return err(make_error_info(error_kind::syntax_error,
                         "bad integer: leading zero",
                         source_location(region(loc)), "leading zero is not allowed",
                         std::string("Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755\n"
@@ -2780,7 +2780,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                 }
                 else // invalid digits, especially in oct/bin ints.
                 {
-                    return err(make_error_info(error_kind::syntax_error, 
+                    return err(make_error_info(error_kind::syntax_error,
                         "bad integer: invalid digit after an integer",
                         source_location(region(loc)), "this digit is not allowed",
                         std::string("Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755\n"
