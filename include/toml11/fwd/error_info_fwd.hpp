@@ -7,17 +7,41 @@
 namespace toml
 {
 
+enum class error_kind : std::uint8_t
+{
+    runtime_error,
+    out_of_range,
+    type_error,
+    syntax_error,
+    file_io_error
+};
+
 // error info returned from parser.
 struct error_info
 {
     error_info(std::string t, source_location l, std::string m, std::string s = "")
-        : title_(std::move(t)), locations_{std::make_pair(std::move(l), std::move(m))},
+        : kind_(error_kind::runtime_error), title_(std::move(t)),
+          locations_{std::make_pair(std::move(l), std::move(m))},
           suffix_(std::move(s))
     {}
 
     error_info(std::string t, std::vector<std::pair<source_location, std::string>> l,
                std::string s = "")
-        : title_(std::move(t)), locations_(std::move(l)), suffix_(std::move(s))
+        : kind_(error_kind::runtime_error), title_(std::move(t)),
+          locations_(std::move(l)), suffix_(std::move(s))
+    {}
+
+    error_info(error_kind k, std::string t, source_location l, std::string m, std::string s = "")
+        : kind_(k), title_(std::move(t)),
+          locations_{std::make_pair(std::move(l), std::move(m))},
+          suffix_(std::move(s))
+    {}
+
+    error_info(error_kind k, std::string t,
+               std::vector<std::pair<source_location, std::string>> l,
+               std::string s = "")
+        : kind_(k), title_(std::move(t)),
+          locations_(std::move(l)), suffix_(std::move(s))
     {}
 
     std::string const& title() const noexcept {return title_;}
@@ -36,6 +60,7 @@ struct error_info
 
   private:
 
+    error_kind kind_;
     std::string title_;
     std::vector<std::pair<source_location, std::string>> locations_;
     std::string suffix_; // hint or something like that
@@ -76,6 +101,13 @@ error_info make_error_info(
     std::string title, source_location loc, std::string msg, Ts&& ... tail)
 {
     error_info ei(std::move(title), std::move(loc), std::move(msg));
+    return detail::make_error_info_rec(ei, std::forward<Ts>(tail) ... );
+}
+template<typename ... Ts>
+error_info make_error_info(error_kind k,
+    std::string title, source_location loc, std::string msg, Ts&& ... tail)
+{
+    error_info ei(k, std::move(title), std::move(loc), std::move(msg));
     return detail::make_error_info_rec(ei, std::forward<Ts>(tail) ... );
 }
 

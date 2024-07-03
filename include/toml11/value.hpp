@@ -2120,6 +2120,13 @@ error_info make_error_info(
             v.location(), std::move(msg), std::forward<Ts>(tail)...);
 }
 template<typename TC, typename ... Ts>
+error_info make_error_info(error_kind k,
+        std::string title, const basic_value<TC>& v, std::string msg, Ts&& ... tail)
+{
+    return make_error_info(k, std::move(title),
+            v.location(), std::move(msg), std::forward<Ts>(tail)...);
+}
+template<typename TC, typename ... Ts>
 std::string format_error(std::string title,
         const basic_value<TC>& v, std::string msg, Ts&& ... tail)
 {
