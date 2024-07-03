@@ -84,7 +84,7 @@ error_info make_syntax_error(std::string title,
 {
     auto msg = std::string("expected ") + scanner.expected_chars(loc);
     auto src = source_location(region(loc));
-    return make_error_info(
+    return make_error_info(error_kind::syntax_error,
         std::move(title), std::move(src), std::move(msg), std::move(suffix));
 }
 
@@ -116,8 +116,8 @@ parse_comment_line(location& loc, context<TC>& ctx)
                 loc.advance();
                 if(loc.current() == '\n') { /*skip LF*/ loc.advance(); break; }
             }
-            return err(make_error_info("toml::parse_comment_line: "
-                "newline (LF / CRLF) or EOF is expected",
+            return err(make_error_info(error_kind::syntax_error,
+                "toml::parse_comment_line: newline (LF / CRLF) or EOF is expected",
                 source_location(region(loc)), "but got this",
                 "Hint: most of the control characters are not allowed in comments"));
         }
@@ -383,7 +383,7 @@ parse_dec_integer(location& loc, const context<TC>& ctx)
         if( ! sfx_reg.is_ok())
         {
             loc = first;
-            return err(make_error_info("toml::parse_dec_integer: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_dec_integer: "
                 "invalid suffix: should be `_ non-digit-graph (graph | _graph)`",
                 source_location(region(loc)), "here"));
         }
@@ -433,7 +433,7 @@ parse_integer(location& loc, const context<TC>& ctx)
         if(std::isdigit(prefix))
         {
             auto src = source_location(region(loc));
-            return err(make_error_info("toml::parse_integer: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_integer: "
                 "leading zero in an decimal integer is not allowed",
                 std::move(src), "leading zero"));
         }
@@ -526,7 +526,7 @@ parse_floating(location& loc, const context<TC>& ctx)
         }
         else
         {
-            return err(make_error_info("toml::parse_floating: inf value found"
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_floating: inf value found"
                 " but the current environment does not support inf. Please"
                 " make sure that the floating-point implementation conforms"
                 " IEEE 754/ISO 60559 international standard.",
@@ -542,7 +542,7 @@ parse_floating(location& loc, const context<TC>& ctx)
         }
         else
         {
-            return err(make_error_info("toml::parse_floating: inf value found"
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_floating: inf value found"
                 " but the current environment does not support inf. Please"
                 " make sure that the floating-point implementation conforms"
                 " IEEE 754/ISO 60559 international standard.",
@@ -562,7 +562,7 @@ parse_floating(location& loc, const context<TC>& ctx)
         }
         else
         {
-            return err(make_error_info("toml::parse_floating: NaN value found"
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_floating: NaN value found"
                 " but the current environment does not support NaN. Please"
                 " make sure that the floating-point implementation conforms"
                 " IEEE 754/ISO 60559 international standard.",
@@ -583,7 +583,7 @@ parse_floating(location& loc, const context<TC>& ctx)
         }
         else
         {
-            return err(make_error_info("toml::parse_floating: NaN value found"
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_floating: NaN value found"
                 " but the current environment does not support NaN. Please"
                 " make sure that the floating-point implementation conforms"
                 " IEEE 754/ISO 60559 international standard.",
@@ -648,7 +648,7 @@ parse_floating(location& loc, const context<TC>& ctx)
         {
             auto src = source_location(region(loc));
             loc = first;
-            return err(make_error_info("toml::parse_floating: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_floating: "
                 "invalid suffix: should be `_ non-digit-graph (graph | _graph)`",
                 std::move(src), "here"));
         }
@@ -702,21 +702,21 @@ parse_local_date_only(location& loc, const context<TC>& ctx)
     if(year_r.is_err())
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_date: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_date: "
             "failed to read year `" + str.substr(0, 4) + "`",
             std::move(src), "here"));
     }
     if(month_r.is_err())
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_date: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_date: "
             "failed to read month `" + str.substr(5, 2) + "`",
             std::move(src), "here"));
     }
     if(day_r.is_err())
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_date: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_date: "
             "failed to read day `" + str.substr(8, 2) + "`",
             std::move(src), "here"));
     }
@@ -751,7 +751,7 @@ parse_local_date_only(location& loc, const context<TC>& ctx)
         if((month < 1 || 12 < month) || (day < 1 || max_day < day))
         {
             auto src = source_location(region(first));
-            return err(make_error_info("toml::parse_local_date: invalid date.",
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_local_date: invalid date.",
                 std::move(src), "month must be 01-12, day must be any of "
                 "01-28,29,30,31 depending on the month/year."));
         }
@@ -822,14 +822,14 @@ parse_local_time_only(location& loc, const context<TC>& ctx)
     if(hour_r.is_err())
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_time: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_time: "
             "failed to read hour `" + str.substr(0, 2) + "`",
             std::move(src), "here"));
     }
     if(minute_r.is_err())
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_time: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_time: "
             "failed to read minute `" + str.substr(3, 2) + "`",
             std::move(src), "here"));
     }
@@ -840,7 +840,7 @@ parse_local_time_only(location& loc, const context<TC>& ctx)
     if((hour < 0 || 24 <= hour) || (minute < 0 || 60 <= minute))
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_time: invalid time.",
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_time: invalid time.",
             std::move(src), "hour must be 00-23, minute must be 00-59."));
     }
 
@@ -866,7 +866,7 @@ parse_local_time_only(location& loc, const context<TC>& ctx)
     if(sec_r.is_err())
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_time: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_time: "
             "failed to read second `" + str.substr(6, 2) + "`",
             std::move(src), "here"));
     }
@@ -875,7 +875,7 @@ parse_local_time_only(location& loc, const context<TC>& ctx)
     if(sec < 0 || 60 < sec) // :60 is allowed
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_time: invalid time.",
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_time: invalid time.",
                     std::move(src), "second must be 00-60."));
     }
 
@@ -905,21 +905,21 @@ parse_local_time_only(location& loc, const context<TC>& ctx)
     if(ms_r.is_err())
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_time: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_time: "
             "failed to read milliseconds `" + secfrac.substr(0, 3) + "`",
             std::move(src), "here"));
     }
     if(us_r.is_err())
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_time: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_time: "
             "failed to read microseconds`" + str.substr(3, 3) + "`",
             std::move(src), "here"));
     }
     if(ns_r.is_err())
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_local_time: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_time: "
             "failed to read nanoseconds`" + str.substr(6, 3) + "`",
             std::move(src), "here"));
     }
@@ -985,7 +985,7 @@ parse_local_datetime(location& loc, const context<TC>& ctx)
     else
     {
         auto src = source_location(region(loc));
-        return err(make_error_info("toml::parse_local_datetime: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_local_datetime: "
             "expect date-time delimiter `T`, `t` or ` `(space).",
             std::move(src), "here"));
     }
@@ -1049,7 +1049,7 @@ parse_offset_datetime(location& loc, const context<TC>& ctx)
     else
     {
         auto src = source_location(region(loc));
-        return err(make_error_info("toml::parse_offset_datetime: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_offset_datetime: "
             "expect date-time delimiter `T` or ` `(space).", std::move(src), "here"
         ));
     }
@@ -1090,13 +1090,13 @@ parse_offset_datetime(location& loc, const context<TC>& ctx)
         if(hour_r.is_err())
         {
             auto src = source_location(region(loc));
-            return err(make_error_info("toml::parse_offset_datetime: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_offset_datetime: "
                 "Failed to read offset hour part", std::move(src), "here"));
         }
         if(minute_r.is_err())
         {
             auto src = source_location(region(loc));
-            return err(make_error_info("toml::parse_offset_datetime: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_offset_datetime: "
                 "Failed to read offset minute part", std::move(src), "here"));
         }
         const auto hour   = hour_r.unwrap();
@@ -1119,7 +1119,7 @@ parse_offset_datetime(location& loc, const context<TC>& ctx)
     if (offset.hour   < -24 || 24 < offset.hour ||
         offset.minute < -60 || 60 < offset.minute)
     {
-        return err(make_error_info("toml::parse_offset_datetime: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_offset_datetime: "
             "too large offset: |hour| <= 24, |minute| <= 60",
             source_location(region(first, loc)), "here"));
     }
@@ -1181,7 +1181,7 @@ parse_utf8_codepoint(const region& reg)
         if(0xD800 <= codepoint && codepoint <= 0xDFFF)
         {
             auto src = source_location(reg);
-            return err(make_error_info("toml::parse_utf8_codepoint: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_utf8_codepoint: "
                 "[0xD800, 0xDFFF] is not a valid UTF-8",
                 std::move(src), "here"));
         }
@@ -1202,7 +1202,7 @@ parse_utf8_codepoint(const region& reg)
     else // out of UTF-8 region
     {
         auto src = source_location(reg);
-        return err(make_error_info("toml::parse_utf8_codepoint: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_utf8_codepoint: "
             "input codepoint is too large.",
             std::move(src), "must be in range [0x00, 0x10FFFF]"));
     }
@@ -1243,7 +1243,7 @@ parse_escape_sequence(location& loc, const context<TC>& ctx)
         if( ! reg.is_ok())
         {
             auto src = source_location(region(loc));
-            return err(make_error_info("toml::parse_escape_sequence: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_escape_sequence: "
                    "invalid token found in UTF-8 codepoint \\xhh",
                    std::move(src), "here"));
         }
@@ -1261,7 +1261,7 @@ parse_escape_sequence(location& loc, const context<TC>& ctx)
         if( ! reg.is_ok())
         {
             auto src = source_location(region(loc));
-            return err(make_error_info("toml::parse_escape_sequence: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_escape_sequence: "
                    "invalid token found in UTF-8 codepoint \\uhhhh",
                    std::move(src), "here"));
         }
@@ -1279,7 +1279,7 @@ parse_escape_sequence(location& loc, const context<TC>& ctx)
         if( ! reg.is_ok())
         {
             auto src = source_location(region(loc));
-            return err(make_error_info("toml::parse_escape_sequence: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_escape_sequence: "
                    "invalid token found in UTF-8 codepoint \\Uhhhhhhhh",
                    std::move(src), "here"));
         }
@@ -1304,7 +1304,7 @@ parse_escape_sequence(location& loc, const context<TC>& ctx)
         }
         escape_seqs += ", \\uhhhh, or \\Uhhhhhhhh";
 
-        return err(make_error_info("toml::parse_escape_sequence: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_escape_sequence: "
                "unknown escape sequence.", std::move(src), escape_seqs));
     }
     return ok(retval);
@@ -1612,7 +1612,7 @@ parse_string(location& loc, const context<TC>& ctx)
     else
     {
         auto src = source_location(region(loc));
-        return err(make_error_info("toml::parse_string: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_string: "
             "not a string", std::move(src), "here"));
     }
 }
@@ -1624,7 +1624,7 @@ parse_null(location& loc, const context<TC>& ctx)
     const auto& spec = ctx.toml_spec();
     if( ! spec.ext_null_value)
     {
-        return err(make_error_info("toml::parse_null: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_null: "
             "invalid spec: spec.ext_null_value must be true.",
             source_location(region(loc)), "here"));
     }
@@ -1754,7 +1754,7 @@ parse_key(location& loc, const context<TC>& ctx)
     if(keys.empty())
     {
         auto src = source_location(region(first));
-        return err(make_error_info("toml::parse_key: expected a new key, "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_key: expected a new key, "
                     "but got nothing", std::move(src), "reached EOF"));
     }
 
@@ -1906,7 +1906,7 @@ parse_array(location& loc, context<TC>& ctx)
     if(loc.eof() || loc.current() != '[')
     {
         auto src = source_location(region(loc));
-        return err(make_error_info("toml::parse_array: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_array: "
                 "The next token is not an array", std::move(src), "here"));
     }
     loc.advance();
@@ -1940,7 +1940,7 @@ parse_array(location& loc, context<TC>& ctx)
         if( ! comma_found)
         {
             auto src = source_location(region(loc));
-            return err(make_error_info("toml::parse_array: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_array: "
                     "expected value-separator `,` or closing `]`",
                     std::move(src), "here"));
         }
@@ -2033,7 +2033,7 @@ parse_array(location& loc, context<TC>& ctx)
     if(loc.current() != ']')
     {
         auto src = source_location(region(loc));
-        return err(make_error_info("toml::parse_array: missing closing bracket `]`",
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_array: missing closing bracket `]`",
             std::move(src), "expected `]`, reached EOF"));
     }
     else
@@ -2216,7 +2216,7 @@ insert_value(const inserting_value_kind kind,
                 if(fmt == table_format::oneline || fmt == table_format::multiline_oneline)
                 {
                     // foo = {bar = "baz"} or foo = { \n bar = "baz" \n }
-                    return err(make_error_info("toml::insert_value: "
+                    return err(make_error_info(error_kind::syntax_error, "toml::insert_value: "
                         "failed to insert a value: inline table is immutable",
                         key_loc, "inserting this",
                         found->second.location(), "to this table"));
@@ -2224,7 +2224,7 @@ insert_value(const inserting_value_kind kind,
                 // dotted key cannot reopen a table.
                 if(kind ==inserting_value_kind::dotted_keys && fmt != table_format::dotted)
                 {
-                    return err(make_error_info("toml::insert_value: "
+                    return err(make_error_info(error_kind::syntax_error, "toml::insert_value: "
                         "reopening a table using dotted keys",
                         key_loc, "dotted key cannot reopen a table",
                         found->second.location(), "this table is already closed"));
@@ -2237,7 +2237,7 @@ insert_value(const inserting_value_kind kind,
                 // aot = [{this = "type", of = "aot"}] # cannot be reopened
                 if(found->second.as_array_fmt().fmt != array_format::array_of_tables)
                 {
-                    return err(make_error_info("toml::insert_value:"
+                    return err(make_error_info(error_kind::syntax_error, "toml::insert_value:"
                         "inline array of tables are immutable",
                         key_loc, "inserting this",
                         found->second.location(), "inline array of tables"));
@@ -2249,7 +2249,7 @@ insert_value(const inserting_value_kind kind,
                     // [[array.of.tables]]
                     // [array.of]          # reopening supertable is okay
                     // tables.x = "foo"    # appending `x` to the first table
-                    return err(make_error_info("toml::insert_value:"
+                    return err(make_error_info(error_kind::syntax_error, "toml::insert_value:"
                         "dotted key cannot reopen an array-of-tables",
                         key_loc, "inserting this",
                         found->second.location(), "to this array-of-tables."));
@@ -2269,7 +2269,7 @@ insert_value(const inserting_value_kind kind,
             }
             else
             {
-                return err(make_error_info("toml::insert_value: "
+                return err(make_error_info(error_kind::syntax_error, "toml::insert_value: "
                     "failed to insert a value, value already exists",
                     key_loc, "while inserting this",
                     found->second.location(), "non-table value already exists"));
@@ -2283,7 +2283,7 @@ insert_value(const inserting_value_kind kind,
                 {
                     if(current_table.find(key) != current_table.end())
                     {
-                        return err(make_error_info("toml::insert_value: "
+                        return err(make_error_info(error_kind::syntax_error, "toml::insert_value: "
                             "failed to insert a value, value already exists",
                             key_loc, "inserting this",
                             current_table.at(key).location(), "but value already exists"));
@@ -2307,7 +2307,7 @@ insert_value(const inserting_value_kind kind,
                         if( ! target.is_table() || // could be an array-of-tables
                             target.as_table_fmt().fmt != table_format::implicit)
                         {
-                            return err(make_error_info("toml::insert_value: "
+                            return err(make_error_info(error_kind::syntax_error, "toml::insert_value: "
                                 "failed to insert a table, table already defined",
                                 key_loc, "inserting this",
                                 target.location(), "this table is explicitly defined"));
@@ -2322,7 +2322,7 @@ insert_value(const inserting_value_kind kind,
                                 // w = "foo"
                                 // [x]
                                 // y = "bar"
-                                return err(make_error_info("toml::insert_value: "
+                                return err(make_error_info(error_kind::syntax_error, "toml::insert_value: "
                                     "failed to insert a table, table keys conflict to each other",
                                     key_loc, "inserting this table",
                                     kv.second.location(), "having this value",
@@ -2362,14 +2362,14 @@ insert_value(const inserting_value_kind kind,
                     {
                         if( ! found->second.is_array_of_tables())
                         {
-                            return err(make_error_info("toml::insert_value: "
+                            return err(make_error_info(error_kind::syntax_error, "toml::insert_value: "
                                 "failed to insert an array of tables, value already exists",
                                 key_loc, "while inserting this",
                                 found->second.location(), "non-table value already exists"));
                         }
                         if(found->second.as_array_fmt().fmt != array_format::array_of_tables)
                         {
-                            return err(make_error_info("toml::insert_value: "
+                            return err(make_error_info(error_kind::syntax_error, "toml::insert_value: "
                                 "failed to insert a table, inline array of tables is immutable",
                                 key_loc, "while inserting this",
                                 found->second.location(), "this is inline array-of-tables"));
@@ -2383,7 +2383,7 @@ insert_value(const inserting_value_kind kind,
             }
         }
     }
-    return err(make_error_info("toml::insert_key: no keys found",
+    return err(make_error_info(error_kind::syntax_error, "toml::insert_key: no keys found",
                 std::move(key_loc), "here"));
 }
 
@@ -2403,7 +2403,7 @@ parse_inline_table(location& loc, context<TC>& ctx)
     if(loc.eof() || loc.current() != '{')
     {
         auto src = source_location(region(loc));
-        return err(make_error_info("toml::parse_inline_table: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_inline_table: "
             "The next token is not an inline table", std::move(src), "here"));
     }
     loc.advance();
@@ -2438,7 +2438,7 @@ parse_inline_table(location& loc, context<TC>& ctx)
             if(comma_found && ! spec.v1_1_0_allow_trailing_comma_in_inline_tables)
             {
                 auto src = source_location(region(loc));
-                return err(make_error_info("toml::parse_inline_table: trailing "
+                return err(make_error_info(error_kind::syntax_error, "toml::parse_inline_table: trailing "
                     "comma is not allowed in TOML-v1.0.0)", std::move(src), "here"));
             }
 
@@ -2458,7 +2458,7 @@ parse_inline_table(location& loc, context<TC>& ctx)
         if( ! comma_found && ! still_empty)
         {
             auto src = source_location(region(loc));
-            return err(make_error_info("toml::parse_inline_table: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_inline_table: "
                     "expected value-separator `,` or closing `}`",
                     std::move(src), "here"));
         }
@@ -2586,7 +2586,7 @@ parse_inline_table(location& loc, context<TC>& ctx)
     if(loc.current() != '}')
     {
         auto src = source_location(region(loc));
-        return err(make_error_info("toml::parse_inline_table: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_inline_table: "
             "missing closing bracket `}`",
             std::move(src), "expected `}`, reached line end"));
     }
@@ -2702,7 +2702,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                 return ok(value_t::floating);
             }
             auto src = source_location(region(loc));
-            return err(make_error_info(
+            return err(make_error_info(error_kind::syntax_error, 
                 "bad float: `_` must be surrounded by digits",
                 std::move(src), "invalid underscore",
                 "Hint: valid  : +1.0, -2e-2, 3.141_592_653_589, inf, nan\n"
@@ -2723,7 +2723,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                     return ok(value_t::floating);
                 }
                 auto src = source_location(region(loc));
-                return err(make_error_info(
+                return err(make_error_info(error_kind::syntax_error, 
                     "bad float: `_` must be surrounded by digits",
                     std::move(src), "invalid underscore",
                     "Hint: valid  : +1.0, -2e-2, 3.141_592_653_589, inf, nan\n"
@@ -2750,7 +2750,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                     int_reg.as_string() == "-0" || int_reg.as_string() == "+0"))
                 {
                     auto src = source_location(region(loc));
-                    return err(make_error_info(
+                    return err(make_error_info(error_kind::syntax_error, 
                         "bad integer: leading zero is not allowed in decimal int",
                         std::move(src), "leading zero",
                         "Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755\n"
@@ -2759,7 +2759,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                 else
                 {
                     auto src = source_location(region(loc));
-                    return err(make_error_info(
+                    return err(make_error_info(error_kind::syntax_error, 
                         "bad integer: `_` must be surrounded by digits",
                         std::move(src), "invalid underscore",
                         "Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755\n"
@@ -2771,7 +2771,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                 if(loc.current() == '0')
                 {
                     loc.retrace();
-                    return err(make_error_info(
+                    return err(make_error_info(error_kind::syntax_error, 
                         "bad integer: leading zero",
                         source_location(region(loc)), "leading zero is not allowed",
                         std::string("Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755\n"
@@ -2780,7 +2780,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
                 }
                 else // invalid digits, especially in oct/bin ints.
                 {
-                    return err(make_error_info(
+                    return err(make_error_info(error_kind::syntax_error, 
                         "bad integer: invalid digit after an integer",
                         source_location(region(loc)), "this digit is not allowed",
                         std::string("Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755\n"
@@ -2791,7 +2791,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
             if(c == ':' || c == '-')
             {
                 auto src = source_location(region(loc));
-                return err(make_error_info("bad datetime: invalid format",
+                return err(make_error_info(error_kind::syntax_error, "bad datetime: invalid format",
                     std::move(src), "here",
                     std::string("Hint: valid  : 1979-05-27T07:32:00-07:00, 1979-05-27 07:32:00.999999Z\n"
                                 "Hint: invalid: 1979-05-27T7:32:00-7:00, 1979-05-27 7:32-00:30")
@@ -2800,7 +2800,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
             if(c == '.' || c == 'e' || c == 'E')
             {
                 auto src = source_location(region(loc));
-                return err(make_error_info("bad float: invalid format",
+                return err(make_error_info(error_kind::syntax_error, "bad float: invalid format",
                     std::move(src), "here", std::string(
                     "Hint: valid  : +1.0, -2e-2, 3.141_592_653_589, inf, nan\n"
                     "Hint: invalid: .0, 1., _1.0, 1.0_, 1_.0, 1.0__0\n")));
@@ -2811,7 +2811,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
     if( ! loc.eof() && loc.current() == '.')
     {
         auto src = source_location(region(loc));
-        return err(make_error_info("bad float: integer part is required before decimal point",
+        return err(make_error_info(error_kind::syntax_error, "bad float: integer part is required before decimal point",
             std::move(src), "missing integer part", std::string(
             "Hint: valid  : +1.0, -2e-2, 3.141_592_653_589, inf, nan\n"
             "Hint: invalid: .0, 1., _1.0, 1.0_, 1_.0, 1.0__0\n")
@@ -2820,7 +2820,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
     if( ! loc.eof() && loc.current() == '_')
     {
         auto src = source_location(region(loc));
-        return err(make_error_info("bad number: `_` must be surrounded by digits",
+        return err(make_error_info(error_kind::syntax_error, "bad number: `_` must be surrounded by digits",
             std::move(src), "digits required before `_`", std::string(
             "Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755\n"
             "Hint: invalid: _42, 1__000, 0123\n")
@@ -2828,7 +2828,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
     }
 
     auto src = source_location(region(loc));
-    return err(make_error_info("bad format: unknown value appeared",
+    return err(make_error_info(error_kind::syntax_error, "bad format: unknown value appeared",
                 std::move(src), "here"));
 }
 
@@ -2968,7 +2968,7 @@ parse_value(location& loc, context<TC>& ctx)
             else
             {
                 auto src = source_location(region(loc));
-                return err(make_error_info("toml::parse_value: unknown value appeared",
+                return err(make_error_info(error_kind::syntax_error, "toml::parse_value: unknown value appeared",
                             std::move(src), "here"));
             }
         }
@@ -2985,7 +2985,7 @@ parse_value(location& loc, context<TC>& ctx)
         default:
         {
             auto src = source_location(region(loc));
-            return err(make_error_info("toml::parse_value: unknown value appeared",
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_value: unknown value appeared",
                         std::move(src), "here"));
         }
     }
@@ -3097,7 +3097,7 @@ parse_table(location& loc, context<TC>& ctx, basic_value<TC>& table)
         newline_found = newline_found || (sp.has_value() && sp.value().newline_found);
         if( ! newline_found)
         {
-            return err(make_error_info("toml::parse_table: "
+            return err(make_error_info(error_kind::syntax_error, "toml::parse_table: "
                 "newline (LF / CRLF) or EOF is expected",
                 source_location(region(loc)), "here"));
         }
@@ -3560,7 +3560,8 @@ try_parse(std::string fname, spec s = spec::default_version())
     if(!ifs.good())
     {
         std::vector<error_info> e;
-        e.push_back(error_info("toml::parse: Error opening file \"" + fname + "\"", {}));
+        e.push_back(error_info(error_kind::file_io_error,
+                    "toml::parse: Error opening file \"" + fname + "\"", {}));
         return err(std::move(e));
     }
     ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -3641,7 +3642,8 @@ try_parse(const FSPATH& fpath, spec s = spec::default_version())
     if(!ifs.good())
     {
         std::vector<error_info> e;
-        e.push_back(error_info("toml::parse: Error opening file \"" + fpath.string() + "\"", {}));
+        e.push_back(error_info(error_kind::file_io_error,
+                    "toml::parse: Error opening file \"" + fpath.string() + "\"", {}));
         return err(std::move(e));
     }
     ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -3675,7 +3677,7 @@ try_parse(FILE* fp, std::string filename, spec s = spec::default_version())
     const long beg = std::ftell(fp);
     if (beg == -1L)
     {
-        return err(std::vector<error_info>{error_info(
+        return err(std::vector<error_info>{error_info(error_kind::file_io_error,
             std::string("Failed to access: \"") + filename +
             "\", errno = " + std::to_string(errno), {}
         )});
@@ -3684,7 +3686,7 @@ try_parse(FILE* fp, std::string filename, spec s = spec::default_version())
     const int res_seekend = std::fseek(fp, 0, SEEK_END);
     if (res_seekend != 0)
     {
-        return err(std::vector<error_info>{error_info(
+        return err(std::vector<error_info>{error_info(error_kind::file_io_error,
             std::string("Failed to seek: \"") + filename +
             "\", errno = " + std::to_string(errno), {}
         )});
@@ -3693,7 +3695,7 @@ try_parse(FILE* fp, std::string filename, spec s = spec::default_version())
     const long end = std::ftell(fp);
     if (end == -1L)
     {
-        return err(std::vector<error_info>{error_info(
+        return err(std::vector<error_info>{error_info(error_kind::file_io_error,
             std::string("Failed to access: \"") + filename +
             "\", errno = " + std::to_string(errno), {}
         )});
@@ -3704,7 +3706,7 @@ try_parse(FILE* fp, std::string filename, spec s = spec::default_version())
     const auto res_seekbeg = std::fseek(fp, beg, SEEK_SET);
     if (res_seekbeg != 0)
     {
-        return err(std::vector<error_info>{error_info(
+        return err(std::vector<error_info>{error_info(error_kind::file_io_error,
             std::string("Failed to seek: \"") + filename +
             "\", errno = " + std::to_string(errno), {}
         )});
@@ -3717,7 +3719,7 @@ try_parse(FILE* fp, std::string filename, spec s = spec::default_version())
     const auto actual = std::fread(letters.data(), sizeof(char), static_cast<std::size_t>(fsize), fp);
     if(actual != static_cast<std::size_t>(fsize))
     {
-        return err(std::vector<error_info>{error_info(
+        return err(std::vector<error_info>{error_info(error_kind::file_io_error,
             std::string("File size changed: \"") + filename +
             std::string("\" make sure that FILE* is in binary mode "
                         "to avoid LF <-> CRLF conversion"), {}

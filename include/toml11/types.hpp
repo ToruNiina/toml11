@@ -44,7 +44,7 @@ read_dec_int(const std::string& str, const source_location src)
     iss >> val;
     if(iss.fail())
     {
-        return err(make_error_info("toml::parse_dec_integer: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_dec_integer: "
             "too large integer: current max digits = 2^" + std::to_string(max_digits),
             std::move(src), "must be < 2^" + std::to_string(max_digits)));
     }
@@ -63,7 +63,7 @@ read_hex_int(const std::string& str, const source_location src)
     iss >> std::hex >> val;
     if(iss.fail())
     {
-        return err(make_error_info("toml::parse_hex_integer: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_hex_integer: "
             "too large integer: current max value = 2^" + std::to_string(max_digits),
             std::move(src), "must be < 2^" + std::to_string(max_digits)));
     }
@@ -82,7 +82,7 @@ read_oct_int(const std::string& str, const source_location src)
     iss >> std::oct >> val;
     if(iss.fail())
     {
-        return err(make_error_info("toml::parse_oct_integer: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_oct_integer: "
             "too large integer: current max value = 2^" + std::to_string(max_digits),
             std::move(src), "must be < 2^" + std::to_string(max_digits)));
     }
@@ -131,7 +131,7 @@ read_bin_int(const std::string& str, const source_location src)
     }
     if(base == 0)
     {
-        return err(make_error_info("toml::parse_bin_integer: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_bin_integer: "
             "too large integer: current max value = 2^" + std::to_string(max_digits),
             std::move(src), "must be < 2^" + std::to_string(max_digits)));
     }
@@ -166,7 +166,7 @@ read_hex_float(const std::string& str, const source_location src, float val)
 #endif
     if(res != 1)
     {
-        return err(make_error_info("toml::parse_floating: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_floating: "
             "failed to read hexadecimal floating point value ",
             std::move(src), "here"));
     }
@@ -182,7 +182,7 @@ read_hex_float(const std::string& str, const source_location src, double val)
 #endif
     if(res != 1)
     {
-        return err(make_error_info("toml::parse_floating: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_floating: "
             "failed to read hexadecimal floating point value ",
             std::move(src), "here"));
     }
@@ -195,7 +195,7 @@ cxx::enable_if_t<cxx::conjunction<
     >::value, result<T, error_info>>
 read_hex_float(const std::string&, const source_location src, T)
 {
-    return err(make_error_info("toml::parse_floating: failed to read "
+    return err(make_error_info(error_kind::syntax_error, "toml::parse_floating: failed to read "
         "floating point value because of unknown type in type_config",
         std::move(src), "here"));
 }
@@ -209,7 +209,7 @@ read_dec_float(const std::string& str, const source_location src)
     iss >> val;
     if(iss.fail())
     {
-        return err(make_error_info("toml::parse_floating: "
+        return err(make_error_info(error_kind::syntax_error, "toml::parse_floating: "
             "failed to read floating point value from stream",
             std::move(src), "here"));
     }

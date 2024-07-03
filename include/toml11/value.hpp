@@ -2140,7 +2140,8 @@ namespace detail
 template<typename TC>
 error_info make_type_error(const basic_value<TC>& v, const std::string& fname, const value_t ty)
 {
-    return make_error_info(fname + ": bad_cast to " + to_string(ty),
+    return make_error_info(error_kind::type_error,
+        fname + ": bad_cast to " + to_string(ty),
         v.location(), "the actual type is " + to_string(v.type()));
 }
 template<typename TC>
@@ -2152,7 +2153,7 @@ error_info make_not_found_error(const basic_value<TC>& v, const std::string& fna
     std::vector<std::pair<source_location, std::string>> locs;
     if( ! loc.is_ok())
     {
-        return error_info(title, locs);
+        return error_info(error_kind::out_of_range, title, locs);
     }
 
     if(loc.first_line_number() == 1 && loc.first_column_number() == 1 && loc.length() == 1)
@@ -2177,7 +2178,7 @@ error_info make_not_found_error(const basic_value<TC>& v, const std::string& fna
     {
         locs.emplace_back(v.location(), "in this table");
     }
-    return error_info(title, locs);
+    return error_info(error_kind::out_of_range, title, locs);
 }
 template<typename TC>
 error_info make_not_found_error(const basic_value<TC>& v, const std::string& fname, const std::size_t idx)
@@ -2189,7 +2190,8 @@ error_info make_not_found_error(const basic_value<TC>& v, const std::string& fna
     std::ostringstream oss;
     oss << "actual length (" << v.as_array(std::nothrow).size()
         << ") is shorter than the specified index (" << idx << ").";
-    return make_error_info(fname + ": no element corresponding to the index",
+    return make_error_info(error_kind::out_of_range,
+            fname + ": no element corresponding to the index",
             v, oss.str());
 }
 

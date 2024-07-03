@@ -217,7 +217,7 @@ try_get(const basic_value<TC>& v) noexcept
         default:
         {
             const auto loc = v.location();
-            return err(make_error_info("toml::try_get(): bad_cast to "
+            return err(make_error_info(error_kind::type_error, "toml::try_get(): bad_cast to "
                 "std::chrono::system_clock::time_point", loc,
                 "the actual type is " + to_string(v.type())));
         }
@@ -280,7 +280,7 @@ try_get(const basic_value<TC>& v) noexcept
     if(a.size() != container.size())
     {
         const auto loc = v.location();
-        return err(make_error_info("toml::try_get: while converting to an array: "
+        return err(make_error_info(error_kind::out_of_range, "toml::try_get: while converting to an array: "
             " array size is " + std::to_string(container.size()) +
             " but there are " + std::to_string(a.size()) + " elements in toml array.",
             loc, "here"));
@@ -344,7 +344,7 @@ try_get(const basic_value<TC>& v) noexcept
     if(ar.size() != 2)
     {
         const auto loc = v.location();
-        return err(make_error_info("toml::try_get: while converting std::pair: "
+        return err(make_error_info(error_kind::out_of_range, "toml::try_get: while converting std::pair: "
             " but there are " + std::to_string(ar.size()) +
             " > 2 elements in toml array.",
             loc, "here"));
@@ -411,7 +411,8 @@ try_get(const basic_value<TC>& v) noexcept
     if(ar.size() != std::tuple_size<T>::value)
     {
         const auto loc = v.location();
-        return err(make_error_info("toml::try_get: while converting std::tuple: "
+        return err(make_error_info(error_kind::out_of_range,
+            "toml::try_get: while converting std::tuple: "
             " there are " + std::to_string(ar.size()) + " > " +
             std::to_string(std::tuple_size<T>::value) + " elements in toml array.",
             loc, "here"));
