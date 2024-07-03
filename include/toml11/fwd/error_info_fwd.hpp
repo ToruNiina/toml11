@@ -13,7 +13,8 @@ enum class error_kind : std::uint8_t
     out_of_range,
     type_error,
     syntax_error,
-    file_io_error
+    file_io_error,
+    serialization_error
 };
 
 // error info returned from parser.
@@ -43,6 +44,9 @@ struct error_info
         : kind_(k), title_(std::move(t)),
           locations_(std::move(l)), suffix_(std::move(s))
     {}
+
+    error_kind& kind()       noexcept {return kind_;}
+    error_kind  kind() const noexcept {return kind_;}
 
     std::string const& title() const noexcept {return title_;}
     std::string &      title()       noexcept {return title_;}
@@ -100,7 +104,7 @@ template<typename ... Ts>
 error_info make_error_info(
     std::string title, source_location loc, std::string msg, Ts&& ... tail)
 {
-    error_info ei(std::move(title), std::move(loc), std::move(msg));
+    error_info ei(error_kind::runtime_error, std::move(title), std::move(loc), std::move(msg));
     return detail::make_error_info_rec(ei, std::forward<Ts>(tail) ... );
 }
 template<typename ... Ts>
