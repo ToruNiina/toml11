@@ -498,7 +498,7 @@ struct source_location
     static source_location current() { return source_location{}; }
 };
 
-inline std::string to_string(const source_location& loc)
+inline std::string to_string(const source_location&)
 {
     return std::string("");
 }

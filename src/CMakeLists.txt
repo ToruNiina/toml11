@@ -99,6 +99,7 @@ if(TOML11_PRECOMPILE)
     # required options to use toml11 with MSVC
     if(MSVC)
         target_compile_options(toml11 PUBLIC "/utf-8")
+        target_compile_options(toml11 PRIVATE "/W4" "/WX")
         if(MSVC_VERSION LESS 1910)
             message(STATUS "MSVC < 1910. DEFINE_CONVERSION_NON_INTRUSIVE is disabled")
             target_compile_definitions(toml11 PUBLIC -DTOML11_WITHOUT_DEFINE_NON_INTRUSIVE)
@@ -107,6 +108,22 @@ if(TOML11_PRECOMPILE)
         else() # MSVC 2019
             target_compile_options(toml11 PUBLIC "/Zc:preprocessor")
         endif()
+    else()
+        target_compile_options(toml11 PRIVATE
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WALL}>:                 -Wall                >
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WEXTRA}>:               -Wextra              >
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WPEDANTIC}>:            -Wpedantic           >
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WERROR}>:               -Werror              >
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WSIGN_CONVERSION}>:     -Wsign-conversion    >
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WCONVERSION}>:          -Wconversion         >
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WDUPLICATED_COND}>:     -Wduplicated-cond    >
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WDUPLICATED_BRANCHES}>: -Wduplicated-branches>
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WLOGICAL_OP}>:          -Wlogical-op         >
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WDOUBLE_PROMOTION}>:    -Wdouble-promotion   >
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WRANGE_LOOP_ANALYSIS}>: -Wrange-loop-analysis>
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WUNDEF}>:               -Wundef              >
+            $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WSHADOW}>:              -Wshadow             >
+        )
     endif()
 else()
     add_library(toml11 INTERFACE)
