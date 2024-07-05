@@ -57,6 +57,11 @@
 #define TOML11_CXX20_VALUE 202002L
 #endif//TOML11_CXX20_VALUE
 
+#if defined(__cpp_char8_t)
+#  if __cpp_char8_t >= 201811L
+#    define TOML11_HAS_CHAR8_T 1
+#  endif
+#endif
 
 #if TOML11_CPLUSPLUS_STANDARD_VERSION >= TOML11_CXX17_VALUE
 #  if __has_include(<string_view>)
@@ -4073,13 +4078,13 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.as_ok());
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.succ_);
             assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.as_err());
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.fail_);
             assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
@@ -4088,13 +4093,13 @@ struct result
     {
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.succ_));
             assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.fail_));
             assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
@@ -4105,13 +4110,13 @@ struct result
         this->cleanup();
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.as_ok());
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(other.succ_);
             assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.as_err());
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(other.fail_);
             assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
@@ -4123,13 +4128,13 @@ struct result
         this->cleanup();
         if(other.is_ok())
         {
-            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.as_ok()));
+            auto tmp = ::new(std::addressof(this->succ_)) success_type(std::move(other.succ_));
             assert(tmp == std::addressof(this->succ_));
             (void)tmp;
         }
         else
         {
-            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.as_err()));
+            auto tmp = ::new(std::addressof(this->fail_)) failure_type(std::move(other.fail_));
             assert(tmp == std::addressof(this->fail_));
             (void)tmp;
         }
@@ -15399,12 +15404,6 @@ inline namespace toml_literals
 {
 
 ::toml::value operator"" _toml(const char* str, std::size_t len);
-
-#if defined(__cpp_char8_t)
-#  if __cpp_char8_t >= 201811L
-#    define TOML11_HAS_CHAR8_T 1
-#  endif
-#endif
 
 #if defined(TOML11_HAS_CHAR8_T)
 // value of u8"" literal has been changed from char to char8_t and char8_t is
