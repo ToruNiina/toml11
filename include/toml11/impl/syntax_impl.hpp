@@ -552,6 +552,7 @@ TOML11_INLINE either string(const spec& s)
 TOML11_INLINE non_ascii_key_char::non_ascii_key_char(const spec& s) noexcept
 {
     assert(s.v1_1_0_allow_non_english_in_bare_keys);
+    (void)s; // for NDEBUG
 }
 
 TOML11_INLINE std::uint32_t non_ascii_key_char::read_utf8(location& loc) const
