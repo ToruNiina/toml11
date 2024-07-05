@@ -55,7 +55,7 @@ if(BUILD_TESTING)
             )
         target_link_libraries(${TEST_NAME} PUBLIC toml11 toml11_test_utility)
         if(MSVC)
-            target_compile_options(${TEST_NAME} PRIVATE /W3 /WX)
+            target_compile_options(${TEST_NAME} PRIVATE /W4 /WX)
         else()
             target_compile_options(${TEST_NAME} PRIVATE
                 $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WALL}>:                 -Wall                >
@@ -95,7 +95,7 @@ if(TOML11_BUILD_TOML_TESTS)
         )
     target_link_libraries(toml11_decoder PRIVATE toml11)
     if(MSVC)
-        target_compile_options(${TEST_NAME} PRIVATE /W3 /WX)
+        target_compile_options(${TEST_NAME} PRIVATE /W4 /WX)
     else()
         target_compile_options(toml11_decoder PRIVATE
             $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WALL}>:                 -Wall                >
@@ -127,7 +127,7 @@ if(TOML11_BUILD_TOML_TESTS)
     target_compile_definitions(toml11_decoder_v1_1_0 PRIVATE -DTOML11_TO_JSON_USE_V1_1_0)
     target_link_libraries(toml11_decoder_v1_1_0 PRIVATE toml11)
     if(MSVC)
-        target_compile_options(${TEST_NAME} PRIVATE /W3 /WX)
+        target_compile_options(${TEST_NAME} PRIVATE /W4 /WX)
     else()
         target_compile_options(toml11_decoder_v1_1_0 PRIVATE
             $<$<BOOL:${COMPILER_SUPPORTS_WALL}>:                 -Wall                >
@@ -158,7 +158,7 @@ if(TOML11_BUILD_TOML_TESTS)
         )
     target_link_libraries(toml11_encoder PRIVATE toml11)
     if(MSVC)
-        target_compile_options(${TEST_NAME} PRIVATE /W3 /WX)
+        target_compile_options(${TEST_NAME} PRIVATE /W4 /WX)
     else()
         target_compile_options(toml11_encoder PRIVATE
             $<$<BOOL:${TOML11_COMPILER_SUPPORTS_WALL}>:                 -Wall                >

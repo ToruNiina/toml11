@@ -99,7 +99,7 @@ if(TOML11_PRECOMPILE)
     # required options to use toml11 with MSVC
     if(MSVC)
         target_compile_options(toml11 PUBLIC "/utf-8")
-        target_compile_options(toml11 PRIVATE "/W3" "/WX")
+        target_compile_options(toml11 PRIVATE "/W4" "/WX")
         if(MSVC_VERSION LESS 1910)
             message(STATUS "MSVC < 1910. DEFINE_CONVERSION_NON_INTRUSIVE is disabled")
             target_compile_definitions(toml11 PUBLIC -DTOML11_WITHOUT_DEFINE_NON_INTRUSIVE)
