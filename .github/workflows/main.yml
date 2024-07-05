@@ -3,167 +3,167 @@ name: build
 on: [push, pull_request]
 
 jobs:
-  # build-linux-gcc:
-  #   runs-on: Ubuntu-22.04
-  #   strategy:
-  #     matrix:
-  #       compiler: ['g++-12', 'g++-11', 'g++-10', 'g++-9']
-  #       standard: ['11', '14', '17', '20']
-  #       precompile: ['ON', 'OFF']
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: true
-  #     - name: Install
-  #       run: |
-  #           sudo apt-get update
-  #           sudo apt-get install language-pack-fr # test serializer w/ locale
-  #           sudo apt-get install ${{ matrix.compiler }}
-  #     - name: Configure
-  #       run: |
-  #           cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
-  #     - name: Build
-  #       run: |
-  #           cmake --build build/
-  #     - name: Test
-  #       run: |
-  #           ctest --output-on-failure --test-dir build/
-  # build-linux-clang:
-  #   runs-on: Ubuntu-22.04
-  #   strategy:
-  #     matrix:
-  #       compiler: ['15', '14', '13', '12', '11']
-  #       standard: ['11', '14', '17', '20']
-  #       precompile: ['ON', 'OFF']
-  #       exclude:
-  #           - {compiler: '14', standard: '20'} # to avoid using gcc-13 libstdc++
-  #           - {compiler: '13', standard: '20'} # with older clang
-  #           - {compiler: '12', standard: '20'}
-  #           - {compiler: '11', standard: '20'}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: true
-  #     - name: Install
-  #       run: |
-  #           sudo apt-get update
-  #           sudo apt-get install language-pack-fr # test serializer w/ locale
-  #           sudo apt-get install clang-${{ matrix.compiler }}
-  #     - name: Configure
-  #       run: |
-  #           cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
-  #     - name: Build
-  #       run: |
-  #           cmake --build build/
-  #     - name: Test
-  #       run: |
-  #           ctest --output-on-failure --test-dir build/
-  # build-linux-old-gcc:
-  #   runs-on: Ubuntu-20.04
-  #   strategy:
-  #     matrix:
-  #       compiler: ['g++-8', 'g++-7']
-  #       standard: ['11', '14', '17', '20']
-  #       precompile: ['ON', 'OFF']
-  #       exclude:
-  #           - {compiler: 'g++-7', standard: '20'}
-  #           - {compiler: 'g++-8', standard: '17'}
-  #           - {compiler: 'g++-8', standard: '20'}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: true
-  #     - name: Install
-  #       run: |
-  #           sudo apt-get update
-  #           sudo apt-get install language-pack-fr # test serializer w/ locale
-  #           sudo apt-get install ${{ matrix.compiler }}
-  #     - name: Configure
-  #       run: |
-  #           cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
-  #     - name: Build
-  #       run: |
-  #           cmake --build build/
-  #     - name: Test
-  #       run: |
-  #           ctest --output-on-failure --test-dir build/
+  build-linux-gcc:
+    runs-on: Ubuntu-22.04
+    strategy:
+      matrix:
+        compiler: ['g++-12', 'g++-11', 'g++-10', 'g++-9']
+        standard: ['11', '14', '17', '20']
+        precompile: ['ON', 'OFF']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install
+        run: |
+            sudo apt-get update
+            sudo apt-get install language-pack-fr # test serializer w/ locale
+            sudo apt-get install ${{ matrix.compiler }}
+      - name: Configure
+        run: |
+            cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+      - name: Build
+        run: |
+            cmake --build build/
+      - name: Test
+        run: |
+            ctest --output-on-failure --test-dir build/
+  build-linux-clang:
+    runs-on: Ubuntu-22.04
+    strategy:
+      matrix:
+        compiler: ['15', '14', '13', '12', '11']
+        standard: ['11', '14', '17', '20']
+        precompile: ['ON', 'OFF']
+        exclude:
+            - {compiler: '14', standard: '20'} # to avoid using gcc-13 libstdc++
+            - {compiler: '13', standard: '20'} # with older clang
+            - {compiler: '12', standard: '20'}
+            - {compiler: '11', standard: '20'}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install
+        run: |
+            sudo apt-get update
+            sudo apt-get install language-pack-fr # test serializer w/ locale
+            sudo apt-get install clang-${{ matrix.compiler }}
+      - name: Configure
+        run: |
+            cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+      - name: Build
+        run: |
+            cmake --build build/
+      - name: Test
+        run: |
+            ctest --output-on-failure --test-dir build/
+  build-linux-old-gcc:
+    runs-on: Ubuntu-20.04
+    strategy:
+      matrix:
+        compiler: ['g++-8', 'g++-7']
+        standard: ['11', '14', '17', '20']
+        precompile: ['ON', 'OFF']
+        exclude:
+            - {compiler: 'g++-7', standard: '20'}
+            - {compiler: 'g++-8', standard: '17'}
+            - {compiler: 'g++-8', standard: '20'}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install
+        run: |
+            sudo apt-get update
+            sudo apt-get install language-pack-fr # test serializer w/ locale
+            sudo apt-get install ${{ matrix.compiler }}
+      - name: Configure
+        run: |
+            cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+      - name: Build
+        run: |
+            cmake --build build/
+      - name: Test
+        run: |
+            ctest --output-on-failure --test-dir build/
 
-  # build-linux-old-clang:
-  #   runs-on: Ubuntu-20.04
-  #   strategy:
-  #     matrix:
-  #       compiler: ['10', '9', '8', '7', '6.0']
-  #       standard: ['11', '14', '17', '20']
-  #       precompile: ['ON', 'OFF']
-  #       exclude:
-  #           - {compiler: '6.0', standard: '20'}
-  #           - {compiler: '7',   standard: '20'}
-  #           - {compiler: '8',   standard: '20'}
-  #           - {compiler: '9',   standard: '20'}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: true
-  #     - name: Install
-  #       run: |
-  #           sudo apt-get update
-  #           sudo apt-get install language-pack-fr # test serializer w/ locale
-  #           sudo apt-get install clang-${{ matrix.compiler }}
-  #     - name: Configure
-  #       run: |
-  #           cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
-  #     - name: Build
-  #       run: |
-  #           cmake --build build/
-  #     - name: Test
-  #       run: |
-  #           ctest --output-on-failure --test-dir build/
+  build-linux-old-clang:
+    runs-on: Ubuntu-20.04
+    strategy:
+      matrix:
+        compiler: ['10', '9', '8', '7', '6.0']
+        standard: ['11', '14', '17', '20']
+        precompile: ['ON', 'OFF']
+        exclude:
+            - {compiler: '6.0', standard: '20'}
+            - {compiler: '7',   standard: '20'}
+            - {compiler: '8',   standard: '20'}
+            - {compiler: '9',   standard: '20'}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install
+        run: |
+            sudo apt-get update
+            sudo apt-get install language-pack-fr # test serializer w/ locale
+            sudo apt-get install clang-${{ matrix.compiler }}
+      - name: Configure
+        run: |
+            cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+      - name: Build
+        run: |
+            cmake --build build/
+      - name: Test
+        run: |
+            ctest --output-on-failure --test-dir build/
 
-  # build-osx-13:
-  #   runs-on: macos-13
-  #   strategy:
-  #     matrix:
-  #       standard: ['11', '14', '17', '20']
-  #       precompile: ['ON', 'OFF']
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: true
-  #     - name: Configure
-  #       run: |
-  #           cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
-  #     - name: Build
-  #       run: |
-  #           cmake --build build/
-  #     - name: Test
-  #       run: |
-  #           ctest --output-on-failure --test-dir build/
+  build-osx-13:
+    runs-on: macos-13
+    strategy:
+      matrix:
+        standard: ['11', '14', '17', '20']
+        precompile: ['ON', 'OFF']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Configure
+        run: |
+            cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+      - name: Build
+        run: |
+            cmake --build build/
+      - name: Test
+        run: |
+            ctest --output-on-failure --test-dir build/
 
-  # build-osx-12:
-  #   runs-on: macos-12
-  #   strategy:
-  #     matrix:
-  #       standard: ['11', '14', '17', '20']
-  #       precompile: ['ON', 'OFF']
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: true
-  #     - name: Configure
-  #       run: |
-  #           cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
-  #     - name: Build
-  #       run: |
-  #           cmake --build build/
-  #     - name: Test
-  #       run: |
-  #           ctest --output-on-failure --test-dir build/
+  build-osx-12:
+    runs-on: macos-12
+    strategy:
+      matrix:
+        standard: ['11', '14', '17', '20']
+        precompile: ['ON', 'OFF']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Configure
+        run: |
+            cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+      - name: Build
+        run: |
+            cmake --build build/
+      - name: Test
+        run: |
+            ctest --output-on-failure --test-dir build/
 
   build-windows-msvc:
     runs-on: windows-2022
