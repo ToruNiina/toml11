@@ -57,6 +57,11 @@
 #define TOML11_CXX20_VALUE 202002L
 #endif//TOML11_CXX20_VALUE
 
+#if defined(__cpp_char8_t)
+#  if __cpp_char8_t >= 201811L
+#    define TOML11_HAS_CHAR8_T 1
+#  endif
+#endif
 
 #if TOML11_CPLUSPLUS_STANDARD_VERSION >= TOML11_CXX17_VALUE
 #  if __has_include(<string_view>)

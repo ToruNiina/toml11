@@ -3,7 +3,7 @@
 
 #include "../location.hpp"
 #include "../types.hpp"
-#include "../value.hpp"
+#include "../version.hpp" // IWYU pragma: keep for TOML11_HAS_CHAR8_T
 
 namespace toml
 {
@@ -20,12 +20,6 @@ inline namespace toml_literals
 {
 
 ::toml::value operator"" _toml(const char* str, std::size_t len);
-
-#if defined(__cpp_char8_t)
-#  if __cpp_char8_t >= 201811L
-#    define TOML11_HAS_CHAR8_T 1
-#  endif
-#endif
 
 #if defined(TOML11_HAS_CHAR8_T)
 // value of u8"" literal has been changed from char to char8_t and char8_t is
