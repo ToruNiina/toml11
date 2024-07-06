@@ -97,6 +97,23 @@ toml11を使うには複数の方法があります。
 git submoduleなどでサブディレクトリにすれば、`toml11/include`にインクルードパスを通すか、
 `add_subdirectory(toml11)` とすることで使用できます。
 
+### CMake `FetchContent`
+
+CMakeの `FetchContent`を使用することで、`build`ディレクトリに自動でダウンロードすることができます。
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  toml11
+  GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
+  GIT_TAG        v4.0.3
+)
+FetchContent_MakeAvailable(toml11)
+
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE toml11::toml11)
+```
+
 ### Install using CMake
 
 以下の手順で、CMakeを使ってインストールすることができます。
@@ -139,7 +156,7 @@ $ cmake -B ./build/ -DTOML11_BUILD_EXAMPLES=ON
 $ cmake --build ./build/
 ```
 
-### Building example
+### Building Tests
 
 `-DTOML11_BUILD_TESTS=ON`とすることで、ユニットテストをコンパイルできます。
 
@@ -174,8 +191,30 @@ const toml::value input = toml::parse("input.toml");
 const toml::value input = toml::parse_str("a = 42");
 ```
 
-`toml::parse`は文法エラーの際に `toml::syntax_error` 例外を投げます。
-これを避けるには、 `toml::result` を返す `toml::try_parse` を使います。
+文字列リテラルをパースする際は、`""_toml`リテラルを使うことができます。
+
+```cpp
+using namespace toml::literals::toml_literals;
+const toml::value lit = "a = 42"_toml;
+```
+
+`toml::parse`や`parse_str`は文法エラーの際に `toml::syntax_error` 例外を投げます。
+
+`what()`で得られるエラーメッセージは以下のようになります。
+
+```
+[error] bad integer: `_` must be surrounded by digits
+ --> internal string at line 64 in file main.cpp
+   |
+ 1 | a = 123__456
+   |        ^-- invalid underscore
+Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755
+Hint: invalid: _42, 1__000, 0123
+```
+
+エラーメッセージには`toml::color::enable()`を呼ぶことで色を付けることも可能です。
+
+`toml::try_parse`を使うことで、例外を投げずに `toml::result<toml::value, std::vector<toml::error_info>>` を受け取ることができます。
 
 ```cpp
 const auto input = toml::try_parse("input.toml");
@@ -219,11 +258,46 @@ if(input.contains("a") && input.at("a").is_integer())
 }
 ```
 
-`toml::find` を使うことで、型変換と検索が同時に行えます。
+`toml::find` を使うことで、型変換と検索を同時に行うことができます。
 
 ```cpp
 const toml::value input = toml::parse("input.toml");
-std::cout << toml::find<int>(input, "a") << std::endl;
+std::cout << toml::find<std::string>(input, "a") << std::endl;
+```
+
+型変換や値の検索に失敗した場合は、`toml::type_error`が送出されます。
+その場合のエラーメッセージは以下のようになります。
+
+```
+[error] toml::value::as_string(): bad_cast to string
+ --> input.toml
+   |
+ 1 | a = 123_456
+   |     ^^^^^^^-- the actual type is integer
+```
+
+ネストされたテーブルやテーブルの配列にも同じ方法でアクセスできます。
+
+```cpp
+// [a]
+// b = [
+//   {c = 42},
+//   {c = 54}
+// ]
+const toml::value input = toml::parse("input.toml");
+std::cout << toml::find<int>(input, "a", "b", 1, "c") << std::endl;
+```
+
+ほとんどのSTLコンテナや、同様のインターフェースを持つコンテナへ変換が可能です。
+
+```cpp
+// array = [3,1,4,1,5]
+const toml::value input = toml::parse("input.toml");
+
+const auto a1 = toml::find<std::vector<int>  >(input, "array") << std::endl;
+const auto a2 = toml::find<std::array<int, 5>>(input, "array") << std::endl;
+const auto a3 = toml::find<std::deque<int>   >(input, "array") << std::endl;
+const auto a4 = toml::find<boost::container::small_vector<int, 8>>(input, "array") << std::endl;
 ```
 
 また、複雑なTOML値に対して、高度な型変換を行うことができます。
@@ -242,6 +316,36 @@ const toml::value input = toml::parse("input.toml");
 const auto mixed = toml::find<
         std::tuple<int, double, std::map<std::string, std::string>>
     >(input, "mixed_array") << std::endl;
+```
+
+マクロの使用または特定の関数を定義することで、ユーザー定義型にも変換が可能です。
+
+```cpp
+namespace extlib
+{
+struct foo
+{
+    int a;
+    std::string b;
+};
+} // extlib
+TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(extlib::foo, a, b)
+
+// ...
+
+const auto input = R"(
+[foo]
+a = 42
+b = "bar"
+)"_toml;
+const extlib::foo f = toml::find<extlib::foo>(input, "foo");
+```
+
+`toml::find_or`を使うことで、失敗時にデフォルト値を得ることができます。
+
+```cpp
+const toml::value input = toml::parse("input.toml");
+std::cout << toml::find_or(input, "a", 6*9) << std::endl;
 ```
 
 詳細については[ドキュメント](https://toruniina.github.io/toml11/ja/docs/features/value/)を参照してください。
@@ -332,17 +436,72 @@ toml::value output(toml::table{ {"a", 0xDEADBEEF} });
 output.at("a").as_integer_fmt().fmt = toml::integer_format::hex;
 output.at("a").as_integer_fmt().spacer = 4;
 
-std::cout << toml::format(input) << std::endl;
+std::cout << toml::format(output) << std::endl;
+// a = 0xdead_beef
 ```
+
+テーブルや配列のフォーマットも指定が可能です。
+
+```cpp
+toml::value output(toml::table{
+  {"array-of-tables", toml::array{}},
+  {"subtable", toml::table{}},
+});
+
+auto& aot = output.at("array-of-tables");
+aot.as_array_fmt().fmt = toml::array_format::multiline;
+aot.as_array_fmt().body_indent    = 4;
+aot.as_array_fmt().closing_indent = 2;
+
+toml::value v1(toml::table{ {"a", 42}, {"b", 3.14} });
+v1.as_table_fmt().fmt = toml::table_format::oneline;
+aot.push_back(std::move(v1));
+
+toml::value v2(toml::table{ {"a", 42}, {"b", 3.14} });
+v2.as_table_fmt().fmt = toml::table_format::oneline;
+aot.push_back(std::move(v2));
+
+output.at("subtable").as_table_fmt().fmt = toml::table_format::dotted;
+output.at("subtable")["a"] = 42;
+output.at("subtable")["b"] = 3.14;
+
+std::cout << toml::format(output) << std::endl;
+// subtable.b = 3.14
+// subtable.a = 42
+// array-of-tables = [
+//     {b = 3.14, a = 42},
+//     {b = 2.71, a = 54},
+//   ]
+```
+
+これらの設定はパース時に読み取られ、値を変更した際も型が変わらない限り維持されます。
 
 どのような指定が可能かなどの詳細は[ドキュメント](https://toruniina.github.io/toml11/ja/docs/features/serialize/)を参照してください。
 
 ### configuring types
 
-[`examples`ディレクトリ](https://github.com/ToruNiina/toml11/tree/main/examples)には、多倍長整数を使用する場合やユニコードを正規化する場合、
-外部のリフレクションライブラリと連携する場合などの複雑な使用例を用意しています。
+`toml::value`が持つ型の多く、`integer_type`や`array_type`などは`type_config`型を変更することで変更可能です。
+
+[`examples`ディレクトリ](https://github.com/ToruNiina/toml11/tree/main/examples)には、
+多倍長整数を使用する場合やコンテナを変更する場合、ユニコードを正規化する場合などの複雑な使用例を用意しています。
 
 そのような状況での実装例として参照してください。
+
+## Examples
+
+[`examples`ディレクトリ](https://github.com/ToruNiina/toml11/tree/main/examples)では、
+型の設定の他にも実装例を紹介しています。
+
+- [boost_container](https://github.com/ToruNiina/toml11/tree/main/examples/boost_container)
+  - `array_type`や`table_type`に`boost::container`のコンテナを使う例です。
+- [boost_multiprecision](https://github.com/ToruNiina/toml11/tree/main/examples/boost_multiprecision)
+  - `integer_type`や`floating_type`に`boost::multiprecision`の多倍長数値型を使う例です。
+- [parse_file](https://github.com/ToruNiina/toml11/tree/main/examples/parse_file)
+  - 少し複雑な場合も含めた、型変換の実装例です。対応するTOMLファイルが同梱されています。
+- [reflect](https://github.com/ToruNiina/toml11/tree/main/examples/reflect)
+  - boost-ext/reflectを用いたユーザー定義型との自型変換の例です。
+- [unicode](https://github.com/ToruNiina/toml11/tree/main/examples/unicode)
+  - uni-algoを用いて、キーを検索する際にユニコード文字列を正規化する例です。
 
 ## Changes from v3
 
@@ -466,6 +625,10 @@ toml11 v3からは複数の破壊的変更が追加されています。
   - Add fuzzing test based on ClusterFuzzLite
 - Esonhugh Skyworship (@Esonhugh)
   - Fix function signature of `strerror_r` on macos
+- Alberto (@0X1A)
+  - Fix issues with CMake package configuration when used with vcpkg
+- Egor Pugin (@egorpugin)
+  - Fix incorrect operator<<() argument type that gives build error
 
 ## Licensing terms
 

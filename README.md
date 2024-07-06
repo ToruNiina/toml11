@@ -100,6 +100,23 @@ Copy `single_include/toml.hpp` to your preferred location and add it to your inc
 By adding toml11 as a subdirectory using `git submodule` (or any other way),
 you can either add `toml11/include` to your include path or use `add_subdirectory(toml11)` in your CMake project.
 
+### CMake `FetchContent`
+
+Using `FetchContent`, you can automatically download it.
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  toml11
+  GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
+  GIT_TAG        v4.0.3
+)
+FetchContent_MakeAvailable(toml11)
+
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE toml11::toml11)
+```
+
 ### Install Using CMake
 
 You can install toml11 using CMake with the following steps:
@@ -175,8 +192,30 @@ To parse a string directly, use `toml::parse_str`.
 const toml::value input = toml::parse_str("a = 42");
 ```
 
-`toml::parse` throws a `toml::syntax_error` exception on syntax errors.
-To avoid this, use `toml::try_parse`, which returns a `toml::result`.
+When parsing string literals, you can use the `""_toml` literal.
+
+```cpp
+using namespace toml::literals::toml_literals;
+const toml::value lit = "a = 42"_toml;
+```
+
+`toml::parse`, `parse_str` and `_toml` literal throw a `toml::syntax_error` exception in case of a syntax error.
+
+The error message obtained with `what()` will look like this:
+
+```
+[error] bad integer: `_` must be surrounded by digits
+ --> internal string at line 64 in file main.cpp
+   |
+ 1 | a = 123__456
+   |        ^-- invalid underscore
+Hint: valid  : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755
+Hint: invalid: _42, 1__000, 0123
+```
+
+Error messages can also be colorized by calling `toml::color::enable()`.
+
+By using `toml::try_parse`, you can receive a `toml::result<toml::value, std::vector<toml::error_info>>` without throwing exceptions.
 
 ```cpp
 const auto input = toml::try_parse("input.toml");
@@ -227,6 +266,40 @@ const toml::value input = toml::parse("input.toml");
 std::cout << toml::find<int>(input, "a") << std::endl;
 ```
 
+If type conversion or value lookup fails, a `toml::type_error` is thrown. The error message will look like this:
+
+```
+[error] toml::value::as_string(): bad_cast to string
+ --> input.toml
+   |
+ 1 | a = 123_456
+   |     ^^^^^^^-- the actual type is integer
+```
+
+You can access nested tables or arrays of tables in the same way.
+
+```cpp
+// [a]
+// b = [
+//   {c = 42},
+//   {c = 54}
+// ]
+const toml::value input = toml::parse("input.toml");
+std::cout << toml::find<int>(input, "a", "b", 1, "c") << std::endl;
+```
+
+Most STL containers and those with similar interfaces can be converted.
+
+```cpp
+// array = [3,1,4,1,5]
+const toml::value input = toml::parse("input.toml");
+
+const auto a1 = toml::find<std::vector<int>>(input, "array");
+const auto a2 = toml::find<std::array<int, 5>>(input, "array");
+const auto a3 = toml::find<std::deque<int>>(input, "array");
+const auto a4 = toml::find<boost::container::small_vector<int, 8>>(input, "array");
+```
+
 You can perform advanced type conversions on complex TOML values.
 
 ```toml
@@ -243,6 +316,36 @@ const toml::value input = toml::parse("input.toml");
 const auto mixed = toml::find<
         std::tuple<int, double, std::map<std::string, std::string>>
     >(input, "mixed_array") << std::endl;
+```
+
+User-defined types can also be converted by using macros or defining some specific functions.
+
+```cpp
+namespace extlib
+{
+struct foo
+{
+    int a;
+    std::string b;
+};
+} // extlib
+TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(extlib::foo, a, b)
+
+// ...
+
+const auto input = R"(
+  [foo]
+  a = 42
+  b = "bar"
+)"_toml;
+const extlib::foo f = toml::find<extlib::foo>(input, "foo");
+```
+
+Using `toml::find_or`, you can get a default value in case of failure.
+
+```cpp
+const toml::value input = toml::parse("input.toml");
+std::cout << toml::find_or(input, "a", 6*9) << std::endl;
 ```
 
 For more details, please refer to the [documentation](https://toruniina.github.io/toml11/docs/features/value/).
@@ -331,19 +434,72 @@ std::cout << toml::format(input) << std::endl;
 ```cpp
 toml::value output(toml::table{ {"a", 0xDEADBEEF} });
 output.at("a").as_integer_fmt().fmt = toml::integer_format::hex;
-output.at("a").as_integer_fmt().spacer = 4;
+output.at("a").as_integer_fmt().spacer = 4; // position of `_`
 
 std::cout << toml::format(input) << std::endl;
+// a = 0xdead_beef
 ```
+
+You can also specify the formatting for tables and arrays.
+
+```cpp
+toml::value output(toml::table{
+  {"array-of-tables", toml::array{}},
+  {"subtable", toml::table{}},
+});
+
+auto& aot = output.at("array-of-tables");
+aot.as_array_fmt().fmt = toml::array_format::multiline; // one element per line
+aot.as_array_fmt().body_indent    = 4;
+aot.as_array_fmt().closing_indent = 2;
+
+toml::value v1(toml::table{ {"a", 42}, {"b", 3.14} });
+v1.as_table_fmt().fmt = toml::table_format::oneline;
+aot.push_back(std::move(v1));
+
+toml::value v2(toml::table{ {"a", 42}, {"b", 3.14} });
+v2.as_table_fmt().fmt = toml::table_format::oneline;
+aot.push_back(std::move(v2));
+
+output.at("subtable").as_table_fmt().fmt = toml::table_format::dotted;
+output.at("subtable")["a"] = 42;
+output.at("subtable")["b"] = 3.14;
+
+std::cout << toml::format(output) << std::endl;
+// subtable.b = 3.14
+// subtable.a = 42
+// array-of-tables = [
+//     {b = 3.14, a = 42},
+//     {b = 3.14, a = 42},
+//   ]
+```
+
+These settings are read during parsing and will be maintained as long as the value type does not change when modified.
 
 For details on possible formatting specifications, please refer to the [documentation](https://toruniina.github.io/toml11/docs/features/serialize/).
 
-### configuring types
+### Configuring Types
 
-[The examples directory](https://github.com/ToruNiina/toml11/tree/main/examples) provides usage examples, such as using
-arbitrary-precision integers, normalizing Unicode, and integrating with an external reflection library.
+Many types held by `toml::value`, such as `integer_type` and `array_type`, can be modified by changing the `type_config` type.
 
-Please refer to these examples for implementation guidance in such scenarios.
+Refer to the [`examples` directory](https://github.com/ToruNiina/toml11/tree/main/examples) for complex use cases such as using multi-precision integers, changing containers, and normalizing Unicode.
+
+Use these examples as references for implementing such configurations.
+
+## Examples
+
+The [`examples`](https://github.com/ToruNiina/toml11/tree/main/examples) directory provides various implementation examples in addition to type configurations.
+
+- [boost_container](https://github.com/ToruNiina/toml11/tree/main/examples/boost_container)
+  - This example shows how to use `boost::container` containers for `array_type` and `table_type`.
+- [boost_multiprecision](https://github.com/ToruNiina/toml11/tree/main/examples/boost_multiprecision)
+  - This example demonstrates the use of `boost::multiprecision` multi-precision numeric types for `integer_type` and `floating_type`.
+- [parse_file](https://github.com/ToruNiina/toml11/tree/main/examples/parse_file)
+  - This example includes type conversion implementations, covering slightly more complex cases. The corresponding TOML file is included.
+- [reflect](https://github.com/ToruNiina/toml11/tree/main/examples/reflect)
+  - This example shows self-type conversion using boost-ext/reflect for user-defined types.
+- [unicode](https://github.com/ToruNiina/toml11/tree/main/examples/unicode)
+  - This example demonstrates normalizing Unicode strings when searching for keys using uni-algo.
 
 ## Changes from v3
 
@@ -467,6 +623,11 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Add fuzzing test based on ClusterFuzzLite
 - Esonhugh Skyworship (@Esonhugh)
   - Fix function signature of `strerror_r` on macos
+- Alberto (@0X1A)
+  - Fix issues with CMake package configuration when used with vcpkg
+- Egor Pugin (@egorpugin)
+  - Fix incorrect operator<<() argument type that gives build error
+
 
 ## Licensing terms
 
