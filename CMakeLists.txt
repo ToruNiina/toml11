@@ -14,11 +14,13 @@ string(REGEX REPLACE "#define TOML11_VERSION_PATCH ([0-9]+)" "\\1" TOML11_VERSIO
 
 project(toml11 LANGUAGES CXX VERSION "${TOML11_VERSION_MAJOR}.${TOML11_VERSION_MINOR}.${TOML11_VERSION_PATCH}")
 
-include(CMakeDependentOption)
-include(CTest)
+include(CTest) # to use ${BUILD_TESTING}
 
 option(TOML11_PRECOMPILE "precompile toml11 library" OFF)
 
+include(CMakeDependentOption)
+cmake_policy(PUSH)
+cmake_policy(SET CMP0127 OLD) # syntax of condition changed in 3.22
 cmake_dependent_option(TOML11_INSTALL "install toml11 library" ON
     "${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}" OFF)
 cmake_dependent_option(TOML11_BUILD_EXAMPLES "build toml11 examples" OFF
@@ -27,6 +29,8 @@ cmake_dependent_option(TOML11_BUILD_TESTS "build toml11 unit tests" OFF
     "${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}; ${BUILD_TESTING}" OFF)
 cmake_dependent_option(TOML11_BUILD_TOML_TESTS "build toml11 toml-test encoder & decoder" OFF
     "${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}" OFF)
+cmake_policy(POP)
+
 cmake_dependent_option(TOML11_TEST_WITH_ASAN  "build toml11 unit tests with asan" OFF
     "${TOML11_BUILD_TESTS}" OFF)
 cmake_dependent_option(TOML11_TEST_WITH_UBSAN "build toml11 unit tests with ubsan" OFF
