@@ -3,7 +3,7 @@
 
 #define TOML11_VERSION_MAJOR 4
 #define TOML11_VERSION_MINOR 0
-#define TOML11_VERSION_PATCH 2
+#define TOML11_VERSION_PATCH 3
 
 #ifndef __cplusplus
 #    error "__cplusplus is not defined"
