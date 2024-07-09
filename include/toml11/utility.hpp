@@ -101,20 +101,22 @@ inline std::string make_string(std::size_t len, char c)
 
 // ---------------------------------------------------------------------------
 
-template<typename Char, typename Traits, typename Alloc>
+template<typename Char,  typename Traits, typename Alloc,
+         typename Char2, typename Traits2, typename Alloc2>
 struct to_string_of_impl
 {
-    static_assert(sizeof(Char) == sizeof(char), "");
+    static_assert(sizeof(Char)  == sizeof(char), "");
+    static_assert(sizeof(Char2) == sizeof(char), "");
 
-    static std::basic_string<Char, Traits, Alloc> invoke(std::string s)
+    static std::basic_string<Char, Traits, Alloc> invoke(std::basic_string<Char2, Traits2, Alloc2> s)
     {
         std::basic_string<Char, Traits, Alloc> retval;
         std::transform(s.begin(), s.end(), std::back_inserter(retval),
-            [](const char c) {return static_cast<Char>(c);});
+            [](const Char2 c) {return static_cast<Char>(c);});
         return retval;
     }
     template<std::size_t N>
-    static std::basic_string<Char, Traits, Alloc> invoke(const char (&s)[N])
+    static std::basic_string<Char, Traits, Alloc> invoke(const Char2 (&s)[N])
     {
         std::basic_string<Char, Traits, Alloc> retval;
         std::transform(std::begin(s), std::end(s), std::back_inserter(retval),
@@ -123,42 +125,38 @@ struct to_string_of_impl
     }
 };
 
-template<>
-struct to_string_of_impl<char, std::char_traits<char>, std::allocator<char>>
+template<typename Char,  typename Traits, typename Alloc>
+struct to_string_of_impl<Char, Traits, Alloc, Char, Traits, Alloc>
 {
-    static std::string invoke(std::string s)
+    static_assert(sizeof(Char) == sizeof(char), "");
+
+    static std::basic_string<Char, Traits, Alloc> invoke(std::basic_string<Char, Traits, Alloc> s)
     {
         return s;
     }
     template<std::size_t N>
-    static std::string invoke(const char (&s)[N])
+    static std::basic_string<Char, Traits, Alloc> invoke(const Char (&s)[N])
     {
-        return std::string(s);
+        return std::basic_string<Char, Traits, Alloc>(s);
     }
 };
 
-template<typename Char, typename Traits = std::char_traits<Char>,
-         typename Alloc = std::allocator<Char>>
-std::basic_string<Char, Traits, Alloc> to_string_of(std::string s)
+template<typename Char,
+         typename Traits = std::char_traits<Char>,
+         typename Alloc = std::allocator<Char>,
+         typename Char2, typename Traits2, typename Alloc2>
+std::basic_string<Char, Traits, Alloc>
+to_string_of(std::basic_string<Char2, Traits2, Alloc2> s)
 {
-    return to_string_of_impl<Char, Traits, Alloc>::invoke(std::move(s));
+    return to_string_of_impl<Char, Traits, Alloc, Char2, Traits2, Alloc2>::invoke(std::move(s));
 }
-template<typename Char, std::size_t N, typename Traits = std::char_traits<Char>,
-         typename Alloc = std::allocator<Char>>
+template<typename Char,
+         typename Traits = std::char_traits<Char>,
+         typename Alloc = std::allocator<Char>,
+         typename Char2, typename Traits2, typename Alloc2, std::size_t N>
 std::basic_string<Char, Traits, Alloc> to_string_of(const char (&s)[N])
 {
-    return to_string_of_impl<Char, Traits, Alloc>::template invoke<N>(s);
-}
-
-template<typename Char, typename Traits, typename Alloc>
-std::string to_char_string(std::basic_string<Char, Traits, Alloc> s)
-{
-    static_assert(sizeof(Char) == sizeof(char), "");
-
-    std::string retval;
-    std::transform(s.begin(), s.end(), std::back_inserter(retval),
-        [](const Char c) {return static_cast<char>(c);});
-    return retval;
+    return to_string_of_impl<Char, Traits, Alloc, Char2, Traits2, Alloc2>::template invoke<N>(s);
 }
 
 } // namespace detail
