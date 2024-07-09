@@ -175,6 +175,7 @@ cxx::enable_if_t<cxx::conjunction<
     detail::is_container<T>,                            // T is a container
     detail::has_push_back_method<T>,                    // .push_back() works
     detail::is_not_toml_type<T, basic_value<TC>>,       // but not toml::array
+    cxx::negation<detail::is_std_basic_string<T>>,      // but not std::basic_string<CharT>
     cxx::negation<detail::has_from_toml_method<T, TC>>, // no T.from_toml()
     cxx::negation<detail::has_specialized_from<T>>,     // no toml::from<T>
     cxx::negation<std::is_constructible<T, const basic_value<TC>&>>
@@ -245,6 +246,7 @@ cxx::enable_if_t<cxx::conjunction<
     detail::is_container<T>,                            // T is a container
     detail::has_push_back_method<T>,                    // .push_back() works
     detail::is_not_toml_type<T, basic_value<TC>>,       // but not toml::array
+    cxx::negation<detail::is_std_basic_string<T>>,      // but not std::basic_string<CharT>
     cxx::negation<detail::has_from_toml_method<T, TC>>, // no T.from_toml()
     cxx::negation<detail::has_specialized_from<T>>,     // no toml::from<T>
     cxx::negation<std::is_constructible<T, const basic_value<TC>&>>
