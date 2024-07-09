@@ -162,6 +162,12 @@ struct is_std_forward_list_impl<std::forward_list<T>> : std::true_type{};
 template<typename T>
 using is_std_forward_list = is_std_forward_list_impl<cxx::remove_cvref_t<T>>;
 
+template<typename T> struct is_std_basic_string_impl : std::false_type{};
+template<typename T>
+struct is_std_basic_string_impl<std::basic_string<T>> : std::true_type{};
+template<typename T>
+using is_std_basic_string = is_std_basic_string_impl<cxx::remove_cvref_t<T>>;
+
 template<typename T> struct is_chrono_duration_impl: std::false_type{};
 template<typename Rep, typename Period>
 struct is_chrono_duration_impl<std::chrono::duration<Rep, Period>>: std::true_type{};
