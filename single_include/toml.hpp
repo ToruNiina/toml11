@@ -13413,7 +13413,14 @@ skip_multiline_spacer(location& loc, context<TC>& ctx, const bool newline_found 
         {
             spacer.newline_found = true;
             auto comment = comm.as_string();
-            if( ! comment.empty() && comment.back() == '\n') {comment.pop_back();}
+            if( ! comment.empty() && comment.back() == '\n')
+            {
+                comment.pop_back();
+                if (!comment.empty() && comment.back() == '\r')
+                {
+                    comment.pop_back();
+                }
+            }
 
             spacer.comments.push_back(std::move(comment));
             spacer.indent_type = indent_char::none;
