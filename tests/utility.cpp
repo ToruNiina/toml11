@@ -29,10 +29,11 @@ namespace toml
 std::ostream& operator<<(std::ostream& os, const integer_format_info& fmt)
 {
     os << "integer_format_info{";
-    os << "fmt = "      << fmt.fmt    << ", ";
-    os << "width = "    << fmt.width  << ", ";
-    os << "spacer = "   << fmt.spacer << ", ";
-    os << "suffix = \"" << fmt.suffix << "\"}";
+    os << "fmt = "       << fmt.fmt       << ", ";
+    os << "uppercase = " << fmt.uppercase << ", ";
+    os << "width = "     << fmt.width     << ", ";
+    os << "spacer = "    << fmt.spacer    << ", ";
+    os << "suffix = \""  << fmt.suffix    << "\"}";
     return os;
 }
 std::ostream& operator<<(std::ostream& os, const floating_format_info& fmt)
