@@ -86,13 +86,6 @@ void toml11_test_parse_failure(F fn, std::string in, toml::detail::context<TC> c
 
 namespace toml
 {
-template<typename TC>
-std::ostream& operator<<(std::ostream& os, const toml::basic_value<TC>& v)
-{
-    os << toml::format(v);
-    return os;
-}
-
 std::ostream& operator<<(std::ostream& os, const integer_format_info&);
 std::ostream& operator<<(std::ostream& os, const floating_format_info&);
 std::ostream& operator<<(std::ostream& os, const string_format_info&);
