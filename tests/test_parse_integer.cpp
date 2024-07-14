@@ -34,23 +34,29 @@ TEST_CASE("testing decimal_value")
 TEST_CASE("testing hex_value")
 {
     toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
-    const auto hex_fmt = [](std::size_t w, std::size_t s) {
+    const auto hex_fmt = [](bool u, std::size_t w, std::size_t s) {
         toml::integer_format_info fmt;
         fmt.fmt = toml::integer_format::hex;
+        fmt.uppercase = u;
         fmt.width = w;
         fmt.spacer = s;
         return fmt;
     };
 
-    toml11_test_parse_success<toml::value_t::integer>("0xDEADBEEF",  0xDEADBEEF, comments(), hex_fmt(8, 0), ctx);
-    toml11_test_parse_success<toml::value_t::integer>("0xdeadbeef",  0xDEADBEEF, comments(), hex_fmt(8, 0), ctx);
-    toml11_test_parse_success<toml::value_t::integer>("0xDEADbeef",  0xDEADBEEF, comments(), hex_fmt(8, 0), ctx);
-    toml11_test_parse_success<toml::value_t::integer>("0xDEAD_BEEF", 0xDEADBEEF, comments(), hex_fmt(8, 4), ctx);
-    toml11_test_parse_success<toml::value_t::integer>("0xdead_beef", 0xDEADBEEF, comments(), hex_fmt(8, 4), ctx);
-    toml11_test_parse_success<toml::value_t::integer>("0xdead_BEEF", 0xDEADBEEF, comments(), hex_fmt(8, 4), ctx);
-    toml11_test_parse_success<toml::value_t::integer>("0xFF",        0xFF,       comments(), hex_fmt(2, 0), ctx);
-    toml11_test_parse_success<toml::value_t::integer>("0x00FF",      0xFF,       comments(), hex_fmt(4, 0), ctx);
-    toml11_test_parse_success<toml::value_t::integer>("0x0000FF",    0xFF,       comments(), hex_fmt(6, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xDEADBEEF",  0xDEADBEEF, comments(), hex_fmt(true,  8, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xdeadbeef",  0xDEADBEEF, comments(), hex_fmt(false, 8, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xDEADbeef",  0xDEADBEEF, comments(), hex_fmt(true,  8, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xDEAD_BEEF", 0xDEADBEEF, comments(), hex_fmt(true,  8, 4), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xdead_beef", 0xDEADBEEF, comments(), hex_fmt(false, 8, 4), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xdead_BEEF", 0xDEADBEEF, comments(), hex_fmt(true,  8, 4), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xFF",        0xFF,       comments(), hex_fmt(true,  2, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0x00FF",      0xFF,       comments(), hex_fmt(true,  4, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0x0000FF",    0xFF,       comments(), hex_fmt(true,  6, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0xff",        0xFF,       comments(), hex_fmt(false, 2, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0x00ff",      0xFF,       comments(), hex_fmt(false, 4, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0x0000ff",    0xFF,       comments(), hex_fmt(false, 6, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0x00",        0,          comments(), hex_fmt(true,  2, 0), ctx);
+    toml11_test_parse_success<toml::value_t::integer>("0x12345",     0x12345,    comments(), hex_fmt(true,  5, 0), ctx);
 }
 
 TEST_CASE("testing oct_value")
