@@ -292,7 +292,7 @@ parse_hex_integer(location& loc, const context<TC>& ctx)
     if( ! reg.is_ok())
     {
         return err(make_syntax_error("toml::parse_hex_integer: "
-            "invalid integer: hex_int must be like: 0xC0FFEE, 0xDEAD_BEEF",
+            "invalid integer: hex_int must be like: 0xC0FFEE, 0xdead_beef",
             syntax::hex_int(spec), loc));
     }
 
@@ -319,6 +319,14 @@ parse_hex_integer(location& loc, const context<TC>& ctx)
 
     // 0x0000_0000 becomes empty.
     if(str.empty()) { str = "0"; }
+
+    // prefix zero and _ is removed. check if it uses upper/lower case.
+    // if both upper and lower case letters are found, set upper=true.
+    const auto lower_not_found = std::find_if(str.begin(), str.end(),
+        [](const char c) { return std::islower(static_cast<int>(c)) != 0; }) == str.end();
+    const auto upper_found = std::find_if(str.begin(), str.end(),
+        [](const char c) { return std::isupper(static_cast<int>(c)) != 0; }) != str.end();
+    fmt.uppercase = lower_not_found || upper_found;
 
     const auto val = TC::parse_int(str, source_location(region(loc)), 16);
     if(val.is_ok())
