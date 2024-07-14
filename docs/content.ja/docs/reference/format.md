@@ -60,10 +60,11 @@ std::string to_string(const integer_format);
 ```cpp
 struct integer_format_info
 {
-    integer_format fmt = integer_format::dec;
-    std::size_t width  = 0;  // minimal width (may exceed)
-    std::size_t spacer = 0;  // position of `_` (if 0, no spacer)
-    std::string suffix = ""; // _suffix (library extension)
+    integer_format fmt    = integer_format::dec;
+    bool        uppercase = true; // use uppercase letters
+    std::size_t width     = 0;       // minimal width (may exceed)
+    std::size_t spacer    = 0;       // position of `_` (if 0, no spacer)
+    std::string suffix    = "";      // _suffix (library extension)
 };
 
 bool operator==(const integer_format_info&, const integer_format_info&) noexcept;
@@ -75,6 +76,10 @@ bool operator!=(const integer_format_info&, const integer_format_info&) noexcept
 ### `integer_format fmt`
 
 基数を指定します。
+
+### `bool uppercase`
+
+16進数表記で大文字を使用します。
 
 ### `std::size_t width`
 
