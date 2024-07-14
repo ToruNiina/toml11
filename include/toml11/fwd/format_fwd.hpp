@@ -57,9 +57,10 @@ std::string to_string(const integer_format);
 struct integer_format_info
 {
     integer_format fmt = integer_format::dec;
-    std::size_t width  = 0;  // minimal width (may exceed)
-    std::size_t spacer = 0;  // position of `_` (if 0, no spacer)
-    std::string suffix = ""; // _suffix (library extension)
+    bool        uppercase = true; // hex with uppercase
+    std::size_t width     = 0;    // minimal width (may exceed)
+    std::size_t spacer    = 0;    // position of `_` (if 0, no spacer)
+    std::string suffix    = "";   // _suffix (library extension)
 };
 
 bool operator==(const integer_format_info&, const integer_format_info&) noexcept;

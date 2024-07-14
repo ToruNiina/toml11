@@ -66,10 +66,11 @@ TOML11_INLINE std::string to_string(const integer_format c)
 
 TOML11_INLINE bool operator==(const integer_format_info& lhs, const integer_format_info& rhs) noexcept
 {
-    return lhs.fmt    == rhs.fmt    &&
-           lhs.width  == rhs.width  &&
-           lhs.spacer == rhs.spacer &&
-           lhs.suffix == rhs.suffix ;
+    return lhs.fmt       == rhs.fmt    &&
+           lhs.uppercase == rhs.uppercase &&
+           lhs.width     == rhs.width  &&
+           lhs.spacer    == rhs.spacer &&
+           lhs.suffix    == rhs.suffix ;
 }
 TOML11_INLINE bool operator!=(const integer_format_info& lhs, const integer_format_info& rhs) noexcept
 {
