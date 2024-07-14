@@ -193,7 +193,19 @@ class serializer
             {
                 case integer_format::hex:
                 {
-                    oss << std::setw(static_cast<int>(fmt.width)) << std::setfill('0') << std::hex << i;
+                    oss << std::noshowbase
+                        << std::setw(static_cast<int>(fmt.width))
+                        << std::setfill('0')
+                        << std::hex;
+                    if(fmt.uppercase)
+                    {
+                        oss << std::uppercase;
+                    }
+                    else
+                    {
+                        oss << std::nouppercase;
+                    }
+                    oss << i;
                     return std::string("0x") + insert_spacer(oss.str());
                 }
                 case integer_format::oct:
