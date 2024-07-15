@@ -1201,6 +1201,13 @@ std::string format(const std::vector<typename basic_value<TC>::key_type>& ks,
     return ser(ks, v);
 }
 
+template<typename TC>
+std::ostream& operator<<(std::ostream& os, const basic_value<TC>& v)
+{
+    os << format(v);
+    return os;
+}
+
 } // toml
 
 #if defined(TOML11_COMPILE_SOURCES)
