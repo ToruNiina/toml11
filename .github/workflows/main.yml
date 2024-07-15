@@ -11,6 +11,9 @@ jobs:
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -25,7 +28,7 @@ jobs:
             cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
       - name: Build
         run: |
-            cmake --build build/
+            cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
       - name: Test
         run: |
             ctest --output-on-failure --test-dir build/
@@ -56,7 +59,7 @@ jobs:
             cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
       - name: Build
         run: |
-            cmake --build build/
+            cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
       - name: Test
         run: |
             ctest --output-on-failure --test-dir build/
@@ -86,7 +89,7 @@ jobs:
             cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
       - name: Build
         run: |
-            cmake --build build/
+            cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
       - name: Test
         run: |
             ctest --output-on-failure --test-dir build/
@@ -118,7 +121,7 @@ jobs:
             cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
       - name: Build
         run: |
-            cmake --build build/
+            cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
       - name: Test
         run: |
             ctest --output-on-failure --test-dir build/
@@ -139,7 +142,7 @@ jobs:
             cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
       - name: Build
         run: |
-            cmake --build build/
+            cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
       - name: Test
         run: |
             ctest --output-on-failure --test-dir build/
@@ -160,7 +163,7 @@ jobs:
             cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
       - name: Build
         run: |
-            cmake --build build/
+            cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
       - name: Test
         run: |
             ctest --output-on-failure --test-dir build/
@@ -184,7 +187,7 @@ jobs:
             cmake -B build/ -G "NMake Makefiles" -DTOML11_BUILD_TESTS=ON -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_PRECOMPILE=${{ matrix.precompile }}
       - name: Build
         run: |
-            cmake --build ./build --config "${{ matrix.config }}"
+            cmake --build ./build --config "${{ matrix.config }}" -j${{ steps.cpu-cores.outputs.count }}
       - name: Test
         run: |
             ctest --build-config "${{ matrix.config }}" --test-dir build/ --output-on-failure
