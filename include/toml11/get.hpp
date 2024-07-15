@@ -110,15 +110,31 @@ get(const basic_value<TC>& v)
 }
 
 // ============================================================================
+// std::string with different char/trait/allocator
+
+template<typename T, typename TC>
+cxx::enable_if_t<cxx::conjunction<
+    detail::is_not_toml_type<T, basic_value<TC>>,
+    detail::is_1byte_std_basic_string<T>
+    >::value, T>
+get(const basic_value<TC>& v)
+{
+    using value_type     = typename cxx::remove_cvref_t<T>::value_type;
+    using traits_type    = typename cxx::remove_cvref_t<T>::traits_type;
+    using allocator_type = typename cxx::remove_cvref_t<T>::allocator_type;
+    return detail::to_string_of<value_type, traits_type, allocator_type>(v.as_string());
+}
+
+// ============================================================================
 // std::string_view
 
 #if defined(TOML11_HAS_STRING_VIEW)
 
 template<typename T, typename TC>
-cxx::enable_if_t<std::is_same<T, std::string_view>::value, std::string_view>
+cxx::enable_if_t<detail::is_string_view_of<T, typename basic_value<TC>::string_type>::value, T>
 get(const basic_value<TC>& v)
 {
-    return std::string_view(v.as_string());
+    return T(v.as_string());
 }
 
 #endif // string_view
@@ -176,6 +192,9 @@ cxx::enable_if_t<cxx::conjunction<
     detail::has_push_back_method<T>,                    // .push_back() works
     detail::is_not_toml_type<T, basic_value<TC>>,       // but not toml::array
     cxx::negation<detail::is_std_basic_string<T>>,      // but not std::basic_string<CharT>
+#if defined(TOML11_HAS_STRING_VIEW)
+    cxx::negation<detail::is_std_basic_string_view<T>>,      // but not std::basic_string_view<CharT>
+#endif
     cxx::negation<detail::has_from_toml_method<T, TC>>, // no T.from_toml()
     cxx::negation<detail::has_specialized_from<T>>,     // no toml::from<T>
     cxx::negation<std::is_constructible<T, const basic_value<TC>&>>
@@ -247,6 +266,9 @@ cxx::enable_if_t<cxx::conjunction<
     detail::has_push_back_method<T>,                    // .push_back() works
     detail::is_not_toml_type<T, basic_value<TC>>,       // but not toml::array
     cxx::negation<detail::is_std_basic_string<T>>,      // but not std::basic_string<CharT>
+#if defined(TOML11_HAS_STRING_VIEW)
+    cxx::negation<detail::is_std_basic_string_view<T>>, // but not std::basic_string_view<CharT>
+#endif
     cxx::negation<detail::has_from_toml_method<T, TC>>, // no T.from_toml()
     cxx::negation<detail::has_specialized_from<T>>,     // no toml::from<T>
     cxx::negation<std::is_constructible<T, const basic_value<TC>&>>

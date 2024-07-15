@@ -163,10 +163,30 @@ template<typename T>
 using is_std_forward_list = is_std_forward_list_impl<cxx::remove_cvref_t<T>>;
 
 template<typename T> struct is_std_basic_string_impl : std::false_type{};
-template<typename T>
-struct is_std_basic_string_impl<std::basic_string<T>> : std::true_type{};
+template<typename C, typename T, typename A>
+struct is_std_basic_string_impl<std::basic_string<C, T, A>> : std::true_type{};
 template<typename T>
 using is_std_basic_string = is_std_basic_string_impl<cxx::remove_cvref_t<T>>;
+
+template<typename T> struct is_1byte_std_basic_string_impl : std::false_type{};
+template<typename C, typename T, typename A>
+struct is_1byte_std_basic_string_impl<std::basic_string<C, T, A>>
+    : std::integral_constant<bool, sizeof(C) == sizeof(char)> {};
+template<typename T>
+using is_1byte_std_basic_string = is_std_basic_string_impl<cxx::remove_cvref_t<T>>;
+
+#if defined(TOML11_HAS_STRING_VIEW)
+template<typename T> struct is_std_basic_string_view_impl : std::false_type{};
+template<typename C, typename T>
+struct is_std_basic_string_view_impl<std::basic_string_view<C, T>> : std::true_type{};
+template<typename T>
+using is_std_basic_string_view = is_std_basic_string_view_impl<cxx::remove_cvref_t<T>>;
+
+template<typename V, typename S>
+struct is_string_view_of : std::false_type {};
+template<typename C, typename T>
+struct is_string_view_of<std::basic_string_view<C, T>, std::basic_string<C, T>> : std::true_type {};
+#endif
 
 template<typename T> struct is_chrono_duration_impl: std::false_type{};
 template<typename Rep, typename Period>
