@@ -645,38 +645,37 @@ class basic_value
 
 #endif // TOML11_HAS_STRING_VIEW
 
-#if defined(TOML11_HAS_CHAR8_T)
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
-            std::is_same<cxx::remove_cvref_t<T>, std::u8string>
+            detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value(const T& x)
         : basic_value(x, string_format_info{}, std::vector<std::string>{}, region_type{})
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
-            std::is_same<cxx::remove_cvref_t<T>, std::u8string>
+            detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value(const T& x, string_format_info fmt)
         : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{})
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
-            std::is_same<cxx::remove_cvref_t<T>, std::u8string>
+            detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value(const T& x, std::vector<std::string> com)
         : basic_value(x, string_format_info{}, std::move(com), region_type{})
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
-            std::is_same<cxx::remove_cvref_t<T>, std::u8string>
+            detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value(const T& x, string_format_info fmt, std::vector<std::string> com)
         : basic_value(x, std::move(fmt), std::move(com), region_type{})
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
-            std::is_same<cxx::remove_cvref_t<T>, std::u8string>
+            detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value(const T& x, string_format_info fmt,
                 std::vector<std::string> com, region_type reg)
@@ -686,7 +685,7 @@ class basic_value
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
-            std::is_same<cxx::remove_cvref_t<T>, std::u8string>
+            detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value& operator=(const T& x)
     {
@@ -701,8 +700,6 @@ class basic_value
         assigner(this->string_, string_storage(detail::to_string_of<char_type>(x), std::move(fmt)));
         return *this;
     }
-
-#endif // TOML11_HAS_STRING_VIEW
 
     // }}}
 
