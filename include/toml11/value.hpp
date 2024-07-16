@@ -951,8 +951,14 @@ class basic_value
 
     template<typename T>
     using enable_if_array_like_t = cxx::enable_if_t<cxx::conjunction<
+            detail::is_container<T>,
             cxx::negation<std::is_same<T, array_type>>,
-            detail::is_container<T>
+            cxx::negation<detail::is_std_basic_string<T>>,
+#if defined(TOML11_HAS_STRING_VIEW)
+            cxx::negation<detail::is_std_basic_string_view<T>>,
+#endif
+            cxx::negation<detail::has_from_toml_method<T, config_type>>,
+            cxx::negation<detail::has_specialized_from<T>>
         >::value, std::nullptr_t>;
 
   public:
@@ -1046,7 +1052,9 @@ class basic_value
     template<typename T>
     using enable_if_table_like_t = cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<T, table_type>>,
-            detail::is_map<T>
+            detail::is_map<T>,
+            cxx::negation<detail::has_from_toml_method<T, config_type>>,
+            cxx::negation<detail::has_specialized_from<T>>
         >::value, std::nullptr_t>;
 
   public:
