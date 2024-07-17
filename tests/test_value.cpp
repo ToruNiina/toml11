@@ -587,6 +587,105 @@ TEST_CASE("testing constructor (string_view)")
 }
 #endif
 
+#ifdef TOML11_HAS_CHAR8_T
+TEST_CASE("testing constructor (u8string)")
+{
+    toml::string_format_info fmt;
+    fmt.fmt    = toml::string_format::basic;
+
+    const std::string eq("hoge");
+    const std::string ne("fuga");
+
+    const std::u8string ref(u8"hoge");
+
+    {
+        toml::value x(ref);
+        test_is_type(x, toml::value_t::string);
+        test_as_type_throws(x, toml::value_t::string);
+        test_as_type_fmt_throws(x, toml::value_t::string);
+
+        test_as_type<toml::value_t::string>(x, "hoge", "fuga");
+    }
+    // -----------------------------------------------------------------------
+    {
+        toml::value x_with_comments(ref, std::vector<std::string>{"foo", "bar"});
+
+        test_is_type           (x_with_comments, toml::value_t::string);
+        test_as_type_throws    (x_with_comments, toml::value_t::string);
+        test_as_type_fmt_throws(x_with_comments, toml::value_t::string);
+
+        test_as_type<toml::value_t::string>(x_with_comments, eq, ne);
+
+        CHECK_EQ(x_with_comments.comments().size(), 2);
+        CHECK_EQ(x_with_comments.comments().at(0), "foo");
+        CHECK_EQ(x_with_comments.comments().at(1), "bar");
+
+        CHECK_EQ(x_with_comments.location().is_ok(), false);
+    }
+    // -----------------------------------------------------------------------
+    {
+        toml::value x_with_format(eq, fmt);
+
+        test_is_type           (x_with_format, toml::value_t::string);
+        test_as_type_throws    (x_with_format, toml::value_t::string);
+        test_as_type_fmt_throws(x_with_format, toml::value_t::string);
+
+        test_as_type    <toml::value_t::string>(x_with_format, eq, ne);
+        test_as_type_fmt<toml::value_t::string>(x_with_format, fmt);
+
+        CHECK_EQ(x_with_format.comments().size(), 0);
+        CHECK_EQ(x_with_format.location().is_ok(), false);
+    }
+    // -----------------------------------------------------------------------
+    {
+        toml::value x_with_com_fmt(ref, fmt,
+                std::vector<std::string>{"foo", "bar"});
+
+        test_is_type           (x_with_com_fmt, toml::value_t::string);
+        test_as_type_throws    (x_with_com_fmt, toml::value_t::string);
+        test_as_type_fmt_throws(x_with_com_fmt, toml::value_t::string);
+
+        test_as_type    <toml::value_t::string>(x_with_com_fmt, eq, ne);
+        test_as_type_fmt<toml::value_t::string>(x_with_com_fmt, fmt);
+
+        CHECK_EQ(x_with_com_fmt.comments().size(), 2);
+        CHECK_EQ(x_with_com_fmt.comments().at(0), "foo");
+        CHECK_EQ(x_with_com_fmt.comments().at(1), "bar");
+
+        CHECK_EQ(x_with_com_fmt.location().is_ok(), false);
+    }
+    // -----------------------------------------------------------------------
+    {
+        toml::value x_assign(ne, fmt);
+        x_assign = ref;
+
+        test_is_type           (x_assign, toml::value_t::string);
+        test_as_type_throws    (x_assign, toml::value_t::string);
+        test_as_type_fmt_throws(x_assign, toml::value_t::string);
+
+        test_as_type    <toml::value_t::string>(x_assign, eq, ne);
+        test_as_type_fmt<toml::value_t::string>(x_assign, fmt);
+
+        CHECK_EQ(x_assign.comments().size(), 0);
+        CHECK_EQ(x_assign.location().is_ok(), false);
+    }
+    // -----------------------------------------------------------------------
+    {
+        toml::value x_assign_different_type(true);
+        x_assign_different_type = ref;
+
+        test_is_type           (x_assign_different_type, toml::value_t::string);
+        test_as_type_throws    (x_assign_different_type, toml::value_t::string);
+        test_as_type_fmt_throws(x_assign_different_type, toml::value_t::string);
+
+        test_as_type<toml::value_t::string>(x_assign_different_type, eq, ne);
+
+        CHECK_EQ(x_assign_different_type.comments().size(), 0);
+        CHECK_EQ(x_assign_different_type.location().is_ok(), false);
+    }
+}
+#endif
+
 TEST_CASE("testing constructor (local_date)")
 {
     toml::local_date_format_info fmt;

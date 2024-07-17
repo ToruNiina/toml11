@@ -48,7 +48,7 @@ template<typename TC>
 error_info make_type_error(const basic_value<TC>&, const std::string&, const value_t);
 
 template<typename TC>
-error_info make_not_found_error(const basic_value<TC>&, const std::string&, const std::string&);
+error_info make_not_found_error(const basic_value<TC>&, const std::string&, const typename basic_value<TC>::key_type&);
 
 template<typename TC>
 void change_region_of_value(basic_value<TC>&, const basic_value<TC>&);
@@ -76,6 +76,7 @@ class basic_value
     using array_type           = typename config_type::template array_type<value_type>;
     using table_type           = typename config_type::template table_type<key_type, value_type>;
     using comment_type         = typename config_type::comment_type;
+    using char_type            = typename string_type::value_type;
 
   private:
 
@@ -643,6 +644,63 @@ class basic_value
     }
 
 #endif // TOML11_HAS_STRING_VIEW
+
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
+            detail::is_1byte_std_basic_string<T>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value(const T& x)
+        : basic_value(x, string_format_info{}, std::vector<std::string>{}, region_type{})
+    {}
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
+            detail::is_1byte_std_basic_string<T>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value(const T& x, string_format_info fmt)
+        : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{})
+    {}
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
+            detail::is_1byte_std_basic_string<T>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value(const T& x, std::vector<std::string> com)
+        : basic_value(x, string_format_info{}, std::move(com), region_type{})
+    {}
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
+            detail::is_1byte_std_basic_string<T>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value(const T& x, string_format_info fmt, std::vector<std::string> com)
+        : basic_value(x, std::move(fmt), std::move(com), region_type{})
+    {}
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
+            detail::is_1byte_std_basic_string<T>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value(const T& x, string_format_info fmt,
+                std::vector<std::string> com, region_type reg)
+        : type_(value_t::string),
+          string_(string_storage(detail::to_string_of<char_type>(x), std::move(fmt))),
+          region_(std::move(reg)), comments_(std::move(com))
+    {}
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
+            detail::is_1byte_std_basic_string<T>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value& operator=(const T& x)
+    {
+        string_format_info fmt;
+        if(this->is_string())
+        {
+            fmt = this->as_string_fmt();
+        }
+        this->cleanup();
+        this->type_   = value_t::string;
+        this->region_ = region_type{};
+        assigner(this->string_, string_storage(detail::to_string_of<char_type>(x), std::move(fmt)));
+        return *this;
+    }
+
     // }}}
 
     // constructor (local_date) =========================================== {{{
@@ -893,8 +951,14 @@ class basic_value
 
     template<typename T>
     using enable_if_array_like_t = cxx::enable_if_t<cxx::conjunction<
+            detail::is_container<T>,
             cxx::negation<std::is_same<T, array_type>>,
-            detail::is_container<T>
+            cxx::negation<detail::is_std_basic_string<T>>,
+#if defined(TOML11_HAS_STRING_VIEW)
+            cxx::negation<detail::is_std_basic_string_view<T>>,
+#endif
+            cxx::negation<detail::has_from_toml_method<T, config_type>>,
+            cxx::negation<detail::has_specialized_from<T>>
         >::value, std::nullptr_t>;
 
   public:
@@ -988,7 +1052,9 @@ class basic_value
     template<typename T>
     using enable_if_table_like_t = cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<T, table_type>>,
-            detail::is_map<T>
+            detail::is_map<T>,
+            cxx::negation<detail::has_from_toml_method<T, config_type>>,
+            cxx::negation<detail::has_specialized_from<T>>
         >::value, std::nullptr_t>;
 
   public:
@@ -2062,10 +2128,10 @@ error_info make_type_error(const basic_value<TC>& v, const std::string& fname, c
         v.location(), "the actual type is " + to_string(v.type()));
 }
 template<typename TC>
-error_info make_not_found_error(const basic_value<TC>& v, const std::string& fname, const std::string& key)
+error_info make_not_found_error(const basic_value<TC>& v, const std::string& fname, const typename basic_value<TC>::key_type& key)
 {
     const auto loc = v.location();
-    const std::string title = fname + ": key \"" + key + "\" not found";
+    const std::string title = fname + ": key \"" + to_string_of<char>(key) + "\" not found";
 
     std::vector<std::pair<source_location, std::string>> locs;
     if( ! loc.is_ok())

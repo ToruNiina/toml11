@@ -627,14 +627,29 @@ TEST_CASE("testing toml::find string conversion")
         toml::find<std::string>(v, "key") += "bar";
         CHECK_EQ("foobar", toml::find<std::string>(v, "key"));
     }
+}
 
-#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
+#if defined(TOML11_HAS_CHAR8_T)
+TEST_CASE("testing toml::find<string-like>")
+{
+    using value_type = toml::value;
     {
         value_type v = toml::table{{"key", "foo"}};
-        CHECK_EQ("foo", toml::find<std::string_view>(v, "key"));
+        CHECK_EQ(u8"foo", toml::find<std::u8string>(v, "key"));
     }
-#endif
 }
+#endif
+
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
+TEST_CASE("testing toml::get<string_view>")
+{
+    using value_type = toml::value;
+    {
+        value_type v("foo");
+        CHECK_EQ("foo", toml::get<std::string_view>(v));
+    }
+}
+#endif
 
 TEST_CASE("testing toml::find array conversion")
 {

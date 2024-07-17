@@ -240,8 +240,19 @@ TEST_CASE("testing toml::get<floating-like>")
     }
 }
 
-#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
+#if defined(TOML11_HAS_CHAR8_T)
 TEST_CASE("testing toml::get<string-like>")
+{
+    using value_type = toml::value;
+    {
+        value_type v("foo");
+        CHECK_EQ(u8"foo", toml::get<std::u8string>(v));
+    }
+}
+#endif
+
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 201703L
+TEST_CASE("testing toml::get<string_view>")
 {
     using value_type = toml::value;
     {

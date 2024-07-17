@@ -1701,21 +1701,7 @@ parse_simple_key(location& loc, const context<TC>& ctx)
 
     if(const auto bare = syntax::unquoted_key(spec).scan(loc))
     {
-        const auto reg = bare.as_string();
-        // here we cannot use `if constexpr` because it is C++11.
-        if(std::is_same<key_type, std::string>::value)
-        {
-            return ok(reg);
-        }
-        else
-        {
-            key_type k;
-            for(const auto c : reg)
-            {
-                k += typename key_type::value_type(c);
-            }
-            return ok(k);
-        }
+        return ok(to_string_of<typename key_type::value_type>(bare.as_string()));
     }
     else
     {

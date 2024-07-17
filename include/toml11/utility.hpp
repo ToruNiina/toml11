@@ -99,6 +99,66 @@ inline std::string make_string(std::size_t len, char c)
     return std::string(len, c);
 }
 
+// ---------------------------------------------------------------------------
+
+template<typename Char,  typename Traits, typename Alloc,
+         typename Char2, typename Traits2, typename Alloc2>
+struct to_string_of_impl
+{
+    static_assert(sizeof(Char)  == sizeof(char), "");
+    static_assert(sizeof(Char2) == sizeof(char), "");
+
+    static std::basic_string<Char, Traits, Alloc> invoke(std::basic_string<Char2, Traits2, Alloc2> s)
+    {
+        std::basic_string<Char, Traits, Alloc> retval;
+        std::transform(s.begin(), s.end(), std::back_inserter(retval),
+            [](const Char2 c) {return static_cast<Char>(c);});
+        return retval;
+    }
+    template<std::size_t N>
+    static std::basic_string<Char, Traits, Alloc> invoke(const Char2 (&s)[N])
+    {
+        std::basic_string<Char, Traits, Alloc> retval;
+        std::transform(std::begin(s), std::end(s), std::back_inserter(retval),
+            [](const char c) {return static_cast<Char>(c);});
+        return retval;
+    }
+};
+
+template<typename Char,  typename Traits, typename Alloc>
+struct to_string_of_impl<Char, Traits, Alloc, Char, Traits, Alloc>
+{
+    static_assert(sizeof(Char) == sizeof(char), "");
+
+    static std::basic_string<Char, Traits, Alloc> invoke(std::basic_string<Char, Traits, Alloc> s)
+    {
+        return s;
+    }
+    template<std::size_t N>
+    static std::basic_string<Char, Traits, Alloc> invoke(const Char (&s)[N])
+    {
+        return std::basic_string<Char, Traits, Alloc>(s);
+    }
+};
+
+template<typename Char,
+         typename Traits = std::char_traits<Char>,
+         typename Alloc = std::allocator<Char>,
+         typename Char2, typename Traits2, typename Alloc2>
+std::basic_string<Char, Traits, Alloc>
+to_string_of(std::basic_string<Char2, Traits2, Alloc2> s)
+{
+    return to_string_of_impl<Char, Traits, Alloc, Char2, Traits2, Alloc2>::invoke(std::move(s));
+}
+template<typename Char,
+         typename Traits = std::char_traits<Char>,
+         typename Alloc = std::allocator<Char>,
+         typename Char2, typename Traits2, typename Alloc2, std::size_t N>
+std::basic_string<Char, Traits, Alloc> to_string_of(const char (&s)[N])
+{
+    return to_string_of_impl<Char, Traits, Alloc, Char2, Traits2, Alloc2>::template invoke<N>(s);
+}
+
 } // namespace detail
 } // namespace toml
 #endif // TOML11_UTILITY_HPP
