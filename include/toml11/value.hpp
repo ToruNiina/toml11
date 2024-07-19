@@ -680,7 +680,7 @@ class basic_value
     basic_value(const T& x, string_format_info fmt,
                 std::vector<std::string> com, region_type reg)
         : type_(value_t::string),
-          string_(string_storage(detail::to_string_of<char_type>(x), std::move(fmt))),
+          string_(string_storage(detail::string_conv<string_type>(x), std::move(fmt))),
           region_(std::move(reg)), comments_(std::move(com))
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
@@ -697,7 +697,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::string;
         this->region_ = region_type{};
-        assigner(this->string_, string_storage(detail::to_string_of<char_type>(x), std::move(fmt)));
+        assigner(this->string_, string_storage(detail::string_conv<string_type>(x), std::move(fmt)));
         return *this;
     }
 
@@ -2131,7 +2131,7 @@ template<typename TC>
 error_info make_not_found_error(const basic_value<TC>& v, const std::string& fname, const typename basic_value<TC>::key_type& key)
 {
     const auto loc = v.location();
-    const std::string title = fname + ": key \"" + to_string_of<char>(key) + "\" not found";
+    const std::string title = fname + ": key \"" + string_conv<std::string>(key) + "\" not found";
 
     std::vector<std::pair<source_location, std::string>> locs;
     if( ! loc.is_ok())

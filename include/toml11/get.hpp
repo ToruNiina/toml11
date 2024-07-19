@@ -119,10 +119,7 @@ cxx::enable_if_t<cxx::conjunction<
     >::value, T>
 get(const basic_value<TC>& v)
 {
-    using value_type     = typename cxx::remove_cvref_t<T>::value_type;
-    using traits_type    = typename cxx::remove_cvref_t<T>::traits_type;
-    using allocator_type = typename cxx::remove_cvref_t<T>::allocator_type;
-    return detail::to_string_of<value_type, traits_type, allocator_type>(v.as_string());
+    return detail::string_conv<cxx::remove_cvref_t<T>>(v.as_string());
 }
 
 // ============================================================================

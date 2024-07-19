@@ -103,7 +103,7 @@ inline std::string make_string(std::size_t len, char c)
 
 template<typename Char,  typename Traits, typename Alloc,
          typename Char2, typename Traits2, typename Alloc2>
-struct to_string_of_impl
+struct string_conv_impl
 {
     static_assert(sizeof(Char)  == sizeof(char), "");
     static_assert(sizeof(Char2) == sizeof(char), "");
@@ -126,7 +126,7 @@ struct to_string_of_impl
 };
 
 template<typename Char,  typename Traits, typename Alloc>
-struct to_string_of_impl<Char, Traits, Alloc, Char, Traits, Alloc>
+struct string_conv_impl<Char, Traits, Alloc, Char, Traits, Alloc>
 {
     static_assert(sizeof(Char) == sizeof(char), "");
 
@@ -141,22 +141,27 @@ struct to_string_of_impl<Char, Traits, Alloc, Char, Traits, Alloc>
     }
 };
 
-template<typename Char,
-         typename Traits = std::char_traits<Char>,
-         typename Alloc = std::allocator<Char>,
-         typename Char2, typename Traits2, typename Alloc2>
-std::basic_string<Char, Traits, Alloc>
-to_string_of(std::basic_string<Char2, Traits2, Alloc2> s)
+template<typename S, typename Char2, typename Traits2, typename Alloc2>
+cxx::enable_if_t<is_std_basic_string<S>::value, S>
+string_conv(std::basic_string<Char2, Traits2, Alloc2> s)
 {
-    return to_string_of_impl<Char, Traits, Alloc, Char2, Traits2, Alloc2>::invoke(std::move(s));
+    using C = typename S::value_type;
+    using T = typename S::traits_type;
+    using A = typename S::allocator_type;
+    return string_conv_impl<C, T, A, Char2, Traits2, Alloc2>::invoke(std::move(s));
 }
-template<typename Char,
-         typename Traits = std::char_traits<Char>,
-         typename Alloc = std::allocator<Char>,
-         typename Char2, typename Traits2, typename Alloc2, std::size_t N>
-std::basic_string<Char, Traits, Alloc> to_string_of(const char (&s)[N])
+template<typename S, std::size_t N>
+cxx::enable_if_t<is_std_basic_string<S>::value, S>
+string_conv(const char (&s)[N])
 {
-    return to_string_of_impl<Char, Traits, Alloc, Char2, Traits2, Alloc2>::template invoke<N>(s);
+    using C = typename S::value_type;
+    using T = typename S::traits_type;
+    using A = typename S::allocator_type;
+    using C2 = char;
+    using T2 = std::char_traits<C2>;
+    using A2 = std::allocator<C2>;
+
+    return string_conv_impl<C, T, A, C2, T2, A2>::template invoke<N>(s);
 }
 
 } // namespace detail
