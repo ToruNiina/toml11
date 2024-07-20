@@ -59,13 +59,15 @@ class serializer
     using array_type           = typename value_type::array_type          ;
     using table_type           = typename value_type::table_type          ;
 
+    using char_type            = typename string_type::value_type;
+
   public:
 
     explicit serializer(const spec& sp)
         : spec_(sp), force_inline_(false), current_indent_(0)
     {}
 
-    std::string operator()(const std::vector<key_type>& ks, const value_type& v)
+    string_type operator()(const std::vector<key_type>& ks, const value_type& v)
     {
         for(const auto& k : ks)
         {
@@ -74,13 +76,13 @@ class serializer
         return (*this)(v);
     }
 
-    std::string operator()(const key_type& k, const value_type& v)
+    string_type operator()(const key_type& k, const value_type& v)
     {
         this->keys_.push_back(k);
         return (*this)(v);
     }
 
-    std::string operator()(const value_type& v)
+    string_type operator()(const value_type& v)
     {
         switch(v.type())
         {
@@ -98,14 +100,14 @@ class serializer
             }
             case value_t::table          :
             {
-                std::string retval;
+                string_type retval;
                 if(this->keys_.empty()) // it might be the root table. emit comments here.
                 {
                     retval += format_comments(v.comments(), v.as_table_fmt().indent_type);
                 }
                 if( ! retval.empty()) // we have comment.
                 {
-                    retval += '\n';
+                    retval += char_type('\n');
                 }
 
                 retval += (*this)(v.as_table(), v.as_table_fmt(), v.comments(), v.location());
@@ -115,7 +117,7 @@ class serializer
             {
                 if(this->spec_.ext_null_value)
                 {
-                    return "null";
+                    return string_conv<string_type>("null");
                 }
                 break;
             }
@@ -131,12 +133,19 @@ class serializer
 
   private:
 
-    std::string operator()(const boolean_type& b, const boolean_format_info&, const source_location&) // {{{
+    string_type operator()(const boolean_type& b, const boolean_format_info&, const source_location&) // {{{
     {
-        if(b) { return std::string("true"); } else { return std::string("false"); }
+        if(b)
+        {
+            return string_conv<string_type>("true");
+        }
+        else
+        {
+            return string_conv<string_type>("false");
+        }
     } // }}}
 
-    std::string operator()(const integer_type i, const integer_format_info& fmt, const source_location& loc) // {{{
+    string_type operator()(const integer_type i, const integer_format_info& fmt, const source_location& loc) // {{{
     {
         std::ostringstream oss;
         this->set_locale(oss);
@@ -180,7 +189,6 @@ class serializer
                 retval += '_';
                 retval += fmt.suffix;
             }
-            return retval;
         }
         else
         {
@@ -206,12 +214,14 @@ class serializer
                         oss << std::nouppercase;
                     }
                     oss << i;
-                    return std::string("0x") + insert_spacer(oss.str());
+                    retval = std::string("0x") + insert_spacer(oss.str());
+                    break;
                 }
                 case integer_format::oct:
                 {
                     oss << std::setw(static_cast<int>(fmt.width)) << std::setfill('0') << std::oct << i;
-                    return std::string("0o") + insert_spacer(oss.str());
+                    retval = std::string("0o") + insert_spacer(oss.str());
+                    break;
                 }
                 case integer_format::bin:
                 {
@@ -240,7 +250,8 @@ class serializer
                     {
                         oss << *iter;
                     }
-                    return std::string("0b") + oss.str();
+                    retval = std::string("0b") + oss.str();
+                    break;
                 }
                 default:
                 {
@@ -250,9 +261,10 @@ class serializer
                 }
             }
         }
+        return string_conv<string_type>(retval);
     } // }}}
 
-    std::string operator()(const floating_type f, const floating_format_info& fmt, const source_location&) // {{{
+    string_type operator()(const floating_type f, const floating_format_info& fmt, const source_location&) // {{{
     {
         using std::isnan;
         using std::isinf;
@@ -273,7 +285,7 @@ class serializer
                 oss << '_';
                 oss << fmt.suffix;
             }
-            return oss.str();
+            return string_conv<string_type>(oss.str());
         }
 
         if(isinf(f))
@@ -288,7 +300,7 @@ class serializer
                 oss << '_';
                 oss << fmt.suffix;
             }
-            return oss.str();
+            return string_conv<string_type>(oss.str());
         }
 
         switch(fmt.fmt)
@@ -313,7 +325,7 @@ class serializer
                     s += '_';
                     s += fmt.suffix;
                 }
-                return s;
+                return string_conv<string_type>(s);
             }
             case floating_format::fixed:
             {
@@ -326,7 +338,7 @@ class serializer
                 {
                     oss << '_' << fmt.suffix;
                 }
-                return oss.str();
+                return string_conv<string_type>(oss.str());
             }
             case floating_format::scientific:
             {
@@ -339,7 +351,7 @@ class serializer
                 {
                     oss << '_' << fmt.suffix;
                 }
-                return oss.str();
+                return string_conv<string_type>(oss.str());
             }
             case floating_format::hex:
             {
@@ -347,14 +359,14 @@ class serializer
                 {
                     oss << std::hexfloat << f;
                     // suffix is only for decimal numbers.
-                    return oss.str();
+                    return string_conv<string_type>(oss.str());
                 }
                 else // no hex allowed. output with max precision.
                 {
                     oss << std::setprecision(std::numeric_limits<floating_type>::max_digits10)
                         << std::scientific << f;
                     // suffix is only for decimal numbers.
-                    return oss.str();
+                    return string_conv<string_type>(oss.str());
                 }
             }
             default:
@@ -363,58 +375,58 @@ class serializer
                 {
                     oss << '_' << fmt.suffix;
                 }
-                return oss.str();
+                return string_conv<string_type>(oss.str());
             }
         }
     } // }}}
 
-    std::string operator()(string_type s, const string_format_info& fmt, const source_location& loc) // {{{
+    string_type operator()(string_type s, const string_format_info& fmt, const source_location& loc) // {{{
     {
-        std::string retval;
+        string_type retval;
         switch(fmt.fmt)
         {
             case string_format::basic:
             {
-                retval += '"';
+                retval += char_type('"');
                 retval += this->escape_basic_string(s);
-                retval += '"';
+                retval += char_type('"');
                 return retval;
             }
             case string_format::literal:
             {
-                if(std::find(s.begin(), s.end(), '\n') != s.end())
+                if(std::find(s.begin(), s.end(), char_type('\n')) != s.end())
                 {
                     throw serialization_error(format_error("toml::serializer: "
                         "(non-multiline) literal string cannot have a newline",
                         loc, "here"), loc);
                 }
-                retval += '\'';
+                retval += char_type('\'');
                 retval += s;
-                retval += '\'';
+                retval += char_type('\'');
                 return retval;
             }
             case string_format::multiline_basic:
             {
-                retval += "\"\"\"";
+                retval += string_conv<string_type>("\"\"\"");
                 if(fmt.start_with_newline)
                 {
-                    retval += '\n';
+                    retval += char_type('\n');
                 }
 
                 retval += this->escape_ml_basic_string(s);
 
-                retval += "\"\"\"";
+                retval += string_conv<string_type>("\"\"\"");
                 return retval;
             }
             case string_format::multiline_literal:
             {
-                retval += "'''";
+                retval += string_conv<string_type>("'''");
                 if(fmt.start_with_newline)
                 {
-                    retval += '\n';
+                    retval += char_type('\n');
                 }
                 retval += s;
-                retval += "'''";
+                retval += string_conv<string_type>("'''");
                 return retval;
             }
             default:
@@ -426,19 +438,19 @@ class serializer
         }
     } // }}}
 
-    std::string operator()(const local_date_type& d, const local_date_format_info&, const source_location&) // {{{
+    string_type operator()(const local_date_type& d, const local_date_format_info&, const source_location&) // {{{
     {
         std::ostringstream oss;
         oss << d;
-        return oss.str();
+        return string_conv<string_type>(oss.str());
     } // }}}
 
-    std::string operator()(const local_time_type& t, const local_time_format_info& fmt, const source_location&) // {{{
+    string_type operator()(const local_time_type& t, const local_time_format_info& fmt, const source_location&) // {{{
     {
         return this->format_local_time(t, fmt.has_seconds, fmt.subsecond_precision);
     } // }}}
 
-    std::string operator()(const local_datetime_type& dt, const local_datetime_format_info& fmt, const source_location&) // {{{
+    string_type operator()(const local_datetime_type& dt, const local_datetime_format_info& fmt, const source_location&) // {{{
     {
         std::ostringstream oss;
         oss << dt.date;
@@ -449,11 +461,11 @@ class serializer
             case datetime_delimiter_kind::space:   { oss << ' '; break; }
             default:                               { oss << 'T'; break; }
         }
-        oss << this->format_local_time(dt.time, fmt.has_seconds, fmt.subsecond_precision);
-        return oss.str();
+        return string_conv<string_type>(oss.str()) +
+            this->format_local_time(dt.time, fmt.has_seconds, fmt.subsecond_precision);
     } // }}}
 
-    std::string operator()(const offset_datetime_type& odt, const offset_datetime_format_info& fmt, const source_location&) // {{{
+    string_type operator()(const offset_datetime_type& odt, const offset_datetime_format_info& fmt, const source_location&) // {{{
     {
         std::ostringstream oss;
         oss << odt.date;
@@ -464,12 +476,12 @@ class serializer
             case datetime_delimiter_kind::space:   { oss << ' '; break; }
             default:                               { oss << 'T'; break; }
         }
-        oss << this->format_local_time(odt.time, fmt.has_seconds, fmt.subsecond_precision);
+        oss << string_conv<std::string>(this->format_local_time(odt.time, fmt.has_seconds, fmt.subsecond_precision));
         oss << odt.offset;
-        return oss.str();
+        return string_conv<string_type>(oss.str());
     } // }}}
 
-    std::string operator()(const array_type& a, const array_format_info& fmt, const comment_type& com, const source_location& loc) // {{{
+    string_type operator()(const array_type& a, const array_format_info& fmt, const comment_type& com, const source_location& loc) // {{{
     {
         array_format f = fmt.fmt;
         if(fmt.fmt == array_format::default_format)
@@ -558,7 +570,7 @@ class serializer
                 throw serialization_error("array of table must have its key. "
                         "use format(key, v)", loc);
             }
-            std::string retval;
+            string_type retval;
             for(const auto& e : a)
             {
                 assert(e.is_table());
@@ -568,9 +580,9 @@ class serializer
                 retval += this->format_indent(e.as_table_fmt().indent_type);
                 this->current_indent_ -= e.as_table_fmt().name_indent;
 
-                retval += "[[";
+                retval += string_conv<string_type>("[[");
                 retval += this->format_keys(this->keys_).value();
-                retval += "]]\n";
+                retval += string_conv<string_type>("]]\n");
 
                 retval += this->format_ml_table(e.as_table(), e.as_table_fmt());
             }
@@ -579,20 +591,20 @@ class serializer
         else if(f == array_format::oneline)
         {
             // ignore comments. we cannot emit comments
-            std::string retval;
-            retval += "[";
+            string_type retval;
+            retval += char_type('[');
             for(const auto& e : a)
             {
                 this->force_inline_ = true;
                 retval += (*this)(e);
-                retval += ", ";
+                retval += string_conv<string_type>(", ");
             }
             if( ! a.empty())
             {
                 retval.pop_back(); // ` `
                 retval.pop_back(); // `,`
             }
-            retval += "]";
+            retval += char_type(']');
             this->force_inline_ = false;
             return retval;
         }
@@ -600,32 +612,32 @@ class serializer
         {
             assert(f == array_format::multiline);
 
-            std::string retval;
-            retval += "[\n";
+            string_type retval;
+            retval += string_conv<string_type>("[\n");
 
             for(const auto& e : a)
             {
                 this->current_indent_ += fmt.body_indent;
-                retval += format_comments(e.comments(), fmt.indent_type);
-                retval += format_indent(fmt.indent_type);
+                retval += this->format_comments(e.comments(), fmt.indent_type);
+                retval += this->format_indent(fmt.indent_type);
                 this->current_indent_ -= fmt.body_indent;
 
                 this->force_inline_ = true;
                 retval += (*this)(e);
-                retval += ",\n";
+                retval += string_conv<string_type>(",\n");
             }
             this->force_inline_ = false;
 
             this->current_indent_ += fmt.closing_indent;
-            retval += format_indent(fmt.indent_type);
+            retval += this->format_indent(fmt.indent_type);
             this->current_indent_ -= fmt.closing_indent;
 
-            retval += "]";
+            retval += char_type(']');
             return retval;
         }
     } // }}}
 
-    std::string operator()(const table_type& t, const table_format_info& fmt, const comment_type& com, const source_location& loc) // {{{
+    string_type operator()(const table_type& t, const table_format_info& fmt, const comment_type& com, const source_location& loc) // {{{
     {
         if(this->force_inline_)
         {
@@ -642,17 +654,17 @@ class serializer
         {
             if(fmt.fmt == table_format::multiline)
             {
-                std::string retval;
+                string_type retval;
                 // comment is emitted inside format_ml_table
                 if(auto k = this->format_keys(this->keys_))
                 {
                     this->current_indent_ += fmt.name_indent;
-                    retval += format_comments(com, fmt.indent_type);
-                    retval += format_indent(fmt.indent_type);
+                    retval += this->format_comments(com, fmt.indent_type);
+                    retval += this->format_indent(fmt.indent_type);
                     this->current_indent_ -= fmt.name_indent;
-                    retval += '[';
+                    retval += char_type('[');
                     retval += k.value();
-                    retval += "]\n";
+                    retval += string_conv<string_type>("]\n");
                 }
                 // otherwise, its the root.
 
@@ -669,7 +681,7 @@ class serializer
             }
             else if(fmt.fmt == table_format::dotted)
             {
-                std::vector<std::string> keys;
+                std::vector<string_type> keys;
                 if(this->keys_.empty())
                 {
                     throw serialization_error(format_error("toml::serializer: "
@@ -686,7 +698,7 @@ class serializer
             {
                 assert(fmt.fmt == table_format::implicit);
 
-                std::string retval;
+                string_type retval;
                 for(const auto& kv : t)
                 {
                     const auto& k = kv.first;
@@ -734,46 +746,48 @@ class serializer
 
   private:
 
-    std::string escape_basic_string(const std::string& s) const // {{{
+    string_type escape_basic_string(const string_type& s) const // {{{
     {
-        std::string retval;
-        for(const char c : s)
+        string_type retval;
+        for(const char_type c : s)
         {
             switch(c)
             {
-                case '\\': {retval += "\\\\"; break;}
-                case '\"': {retval += "\\\""; break;}
-                case '\b': {retval += "\\b";  break;}
-                case '\t': {retval += "\\t";  break;}
-                case '\f': {retval += "\\f";  break;}
-                case '\n': {retval += "\\n";  break;}
-                case '\r': {retval += "\\r";  break;}
+                case char_type('\\'): {retval += string_conv<string_type>("\\\\"); break;}
+                case char_type('\"'): {retval += string_conv<string_type>("\\\""); break;}
+                case char_type('\b'): {retval += string_conv<string_type>("\\b" ); break;}
+                case char_type('\t'): {retval += string_conv<string_type>("\\t" ); break;}
+                case char_type('\f'): {retval += string_conv<string_type>("\\f" ); break;}
+                case char_type('\n'): {retval += string_conv<string_type>("\\n" ); break;}
+                case char_type('\r'): {retval += string_conv<string_type>("\\r" ); break;}
                 default  :
                 {
-                    if(c == 0x1B && spec_.v1_1_0_add_escape_sequence_e)
+                    if(c == char_type(0x1B) && spec_.v1_1_0_add_escape_sequence_e)
                     {
-                        retval += "\\e";
+                        retval += string_conv<string_type>("\\e");
                     }
-                    else if((0x00 <= c && c <= 0x08) || (0x0A <= c && c <= 0x1F) || c == 0x7F)
+                    else if((char_type(0x00) <= c && c <= char_type(0x08)) ||
+                            (char_type(0x0A) <= c && c <= char_type(0x1F)) ||
+                             c == char_type(0x7F))
                     {
                         if(spec_.v1_1_0_add_escape_sequence_x)
                         {
-                            retval += "\\x";
+                            retval += string_conv<string_type>("\\x");
                         }
                         else
                         {
-                            retval += "\\u00";
+                            retval += string_conv<string_type>("\\u00");
                         }
                         const auto c1 = c / 16;
                         const auto c2 = c % 16;
-                        retval += static_cast<char>('0' + c1);
+                        retval += static_cast<char_type>('0' + c1);
                         if(c2 < 10)
                         {
-                            retval += static_cast<char>('0' + c2);
+                            retval += static_cast<char_type>('0' + c2);
                         }
                         else // 10 <= c2
                         {
-                            retval += static_cast<char>('A' + (c2 - 10));
+                            retval += static_cast<char_type>('A' + (c2 - 10));
                         }
                     }
                     else
@@ -786,45 +800,47 @@ class serializer
         return retval;
     } // }}}
 
-    std::string escape_ml_basic_string(const std::string& s) // {{{
+    string_type escape_ml_basic_string(const string_type& s) // {{{
     {
-        std::string retval;
-        for(const char c : s)
+        string_type retval;
+        for(const char_type c : s)
         {
             switch(c)
             {
-                case '\\': {retval += "\\\\"; break;}
-                case '\b': {retval += "\\b";  break;}
-                case '\t': {retval += "\\t";  break;}
-                case '\f': {retval += "\\f";  break;}
-                case '\n': {retval += "\n";   break;}
-                case '\r': {retval += "\\r";  break;}
+                case char_type('\\'): {retval += string_conv<string_type>("\\\\"); break;}
+                case char_type('\b'): {retval += string_conv<string_type>("\\b" ); break;}
+                case char_type('\t'): {retval += string_conv<string_type>("\\t" ); break;}
+                case char_type('\f'): {retval += string_conv<string_type>("\\f" ); break;}
+                case char_type('\n'): {retval += string_conv<string_type>("\n"  ); break;}
+                case char_type('\r'): {retval += string_conv<string_type>("\\r" ); break;}
                 default  :
                 {
-                    if(c == 0x1B && spec_.v1_1_0_add_escape_sequence_e)
+                    if(c == char_type(0x1B) && spec_.v1_1_0_add_escape_sequence_e)
                     {
-                        retval += "\\e";
+                        retval += string_conv<string_type>("\\e");
                     }
-                    else if((0x00 <= c && c <= 0x08) || (0x0A <= c && c <= 0x1F) || c == 0x7F)
+                    else if((char_type(0x00) <= c && c <= char_type(0x08)) ||
+                            (char_type(0x0A) <= c && c <= char_type(0x1F)) ||
+                            c == char_type(0x7F))
                     {
                         if(spec_.v1_1_0_add_escape_sequence_x)
                         {
-                            retval += "\\x";
+                            retval += string_conv<string_type>("\\x");
                         }
                         else
                         {
-                            retval += "\\u00";
+                            retval += string_conv<string_type>("\\u00");
                         }
                         const auto c1 = c / 16;
                         const auto c2 = c % 16;
-                        retval += static_cast<char>('0' + c1);
+                        retval += static_cast<char_type>('0' + c1);
                         if(c2 < 10)
                         {
-                            retval += static_cast<char>('0' + c2);
+                            retval += static_cast<char_type>('0' + c2);
                         }
                         else // 10 <= c2
                         {
-                            retval += static_cast<char>('A' + (c2 - 10));
+                            retval += static_cast<char_type>('A' + (c2 - 10));
                         }
                     }
                     else
@@ -845,16 +861,16 @@ class serializer
         // str5 = """Here are three quotation marks: ""\"."""
         // str6 = """Here are fifteen quotation marks: ""\"""\"""\"""\"""\"."""
         // ```
-        auto found_3_quotes = retval.find("\"\"\"");
-        while(found_3_quotes != std::string::npos)
+        auto found_3_quotes = retval.find(string_conv<string_type>("\"\"\""));
+        while(found_3_quotes != string_type::npos)
         {
-            retval.replace(found_3_quotes, 3, "\"\"\\\"");
-            found_3_quotes = retval.find("\"\"\"");
+            retval.replace(found_3_quotes, 3, string_conv<string_type>("\"\"\\\""));
+            found_3_quotes = retval.find(string_conv<string_type>("\"\"\""));
         }
         return retval;
     } // }}}
 
-    std::string format_local_time(const local_time_type& t, const bool has_seconds, const std::size_t subsec_prec) // {{{
+    string_type format_local_time(const local_time_type& t, const bool has_seconds, const std::size_t subsec_prec) // {{{
     {
         std::ostringstream oss;
         oss << std::setfill('0') << std::setw(2) << static_cast<int>(t.hour);
@@ -874,10 +890,10 @@ class serializer
                 oss << '.' << subsec_str.substr(0, subsec_prec);
             }
         }
-        return oss.str();
+        return string_conv<string_type>(oss.str());
     } // }}}
 
-    std::string format_ml_table(const table_type& t, const table_format_info& fmt) // {{{
+    string_type format_ml_table(const table_type& t, const table_format_info& fmt) // {{{
     {
         const auto format_later = [](const value_type& v) -> bool {
 
@@ -893,7 +909,7 @@ class serializer
             return is_ml_table || is_ml_array_table;
         };
 
-        std::string retval;
+        string_type retval;
         this->current_indent_ += fmt.body_indent;
         for(const auto& kv : t)
         {
@@ -914,9 +930,9 @@ class serializer
             else
             {
                 retval += format_key(key);
-                retval += " = ";
+                retval += string_conv<string_type>(" = ");
                 retval += (*this)(val);
-                retval += "\n";
+                retval += char_type('\n');
             }
             this->keys_.pop_back();
         }
@@ -924,7 +940,7 @@ class serializer
 
         if( ! retval.empty())
         {
-            retval += "\n"; // for readability, add empty line between tables
+            retval += char_type('\n'); // for readability, add empty line between tables
         }
         for(const auto& kv : t)
         {
@@ -941,33 +957,33 @@ class serializer
         return retval;
     } // }}}
 
-    std::string format_inline_table(const table_type& t, const table_format_info&) // {{{
+    string_type format_inline_table(const table_type& t, const table_format_info&) // {{{
     {
         // comments are ignored because we cannot write without newline
-        std::string retval;
-        retval += '{';
+        string_type retval;
+        retval += char_type('{');
         for(const auto& kv : t)
         {
             this->force_inline_ = true;
             retval += this->format_key(kv.first);
-            retval += " = ";
+            retval += string_conv<string_type>(" = ");
             retval += (*this)(kv.second);
-            retval += ", ";
+            retval += string_conv<string_type>(", ");
         }
         if( ! t.empty())
         {
             retval.pop_back(); // ' '
             retval.pop_back(); // ','
         }
-        retval += '}';
+        retval += char_type('}');
         this->force_inline_ = false;
         return retval;
     } // }}}
 
-    std::string format_ml_inline_table(const table_type& t, const table_format_info& fmt) // {{{
+    string_type format_ml_inline_table(const table_type& t, const table_format_info& fmt) // {{{
     {
-        std::string retval;
-        retval += "{\n";
+        string_type retval;
+        retval += string_conv<string_type>("{\n");
         this->current_indent_ += fmt.body_indent;
         for(const auto& kv : t)
         {
@@ -975,12 +991,12 @@ class serializer
             retval += format_comments(kv.second.comments(), fmt.indent_type);
             retval += format_indent(fmt.indent_type);
             retval += kv.first;
-            retval += " = ";
+            retval += string_conv<string_type>(" = ");
 
             this->force_inline_ = true;
             retval += (*this)(kv.second);
 
-            retval += ",\n";
+            retval += string_conv<string_type>(",\n");
         }
         if( ! t.empty())
         {
@@ -994,12 +1010,12 @@ class serializer
         retval += format_indent(fmt.indent_type);
         this->current_indent_ -= fmt.closing_indent;
 
-        retval += '}';
+        retval += char_type('}');
         return retval;
     } // }}}
 
-    std::string format_dotted_table(const table_type& t, const table_format_info& fmt, // {{{
-            const source_location&, std::vector<std::string>& keys)
+    string_type format_dotted_table(const table_type& t, const table_format_info& fmt, // {{{
+            const source_location&, std::vector<string_type>& keys)
     {
         // lets say we have: `{"a": {"b": {"c": {"d": "foo", "e": "bar"} } }`
         // and `a` and `b` are `dotted`.
@@ -1015,7 +1031,7 @@ class serializer
         // a.b.c.e = "bar"
         // ```
 
-        std::string retval;
+        string_type retval;
 
         for(const auto& kv : t)
         {
@@ -1036,10 +1052,10 @@ class serializer
                 retval += format_comments(val.comments(), fmt.indent_type);
                 retval += format_indent(fmt.indent_type);
                 retval += format_keys(keys).value();
-                retval += " = ";
+                retval += string_conv<string_type>(" = ");
                 this->force_inline_ = true; // sub-table must be inlined
                 retval += (*this)(val);
-                retval += '\n';
+                retval += char_type('\n');
                 this->force_inline_ = false;
             }
             keys.pop_back();
@@ -1047,15 +1063,15 @@ class serializer
         return retval;
     } // }}}
 
-    std::string format_key(const key_type& key) // {{{
+    string_type format_key(const key_type& key) // {{{
     {
         if(key.empty())
         {
-            return std::string("\"\"");
+            return string_conv<string_type>("\"\"");
         }
 
         // check the key can be a bare (unquoted) key
-        auto loc = detail::make_temporary_location(key);
+        auto loc = detail::make_temporary_location(string_conv<std::string>(key));
         auto reg = detail::syntax::unquoted_key(this->spec_).scan(loc);
         if(reg.is_ok() && loc.eof())
         {
@@ -1063,41 +1079,43 @@ class serializer
         }
 
         //if it includes special characters, then format it in a "quoted" key.
-        std::string formatted("\"");
-        for(const char c : key)
+        string_type formatted = string_conv<string_type>("\"");
+        for(const char_type c : key)
         {
             switch(c)
             {
-                case '\\': {formatted += "\\\\"; break;}
-                case '\"': {formatted += "\\\""; break;}
-                case '\b': {formatted += "\\b";  break;}
-                case '\t': {formatted += "\\t";  break;}
-                case '\f': {formatted += "\\f";  break;}
-                case '\n': {formatted += "\\n";  break;}
-                case '\r': {formatted += "\\r";  break;}
+                case char_type('\\'): {formatted += string_conv<string_type>("\\\\"); break;}
+                case char_type('\"'): {formatted += string_conv<string_type>("\\\""); break;}
+                case char_type('\b'): {formatted += string_conv<string_type>("\\b" ); break;}
+                case char_type('\t'): {formatted += string_conv<string_type>("\\t" ); break;}
+                case char_type('\f'): {formatted += string_conv<string_type>("\\f" ); break;}
+                case char_type('\n'): {formatted += string_conv<string_type>("\\n" ); break;}
+                case char_type('\r'): {formatted += string_conv<string_type>("\\r" ); break;}
                 default  :
                 {
                     // ASCII ctrl char
-                    if((0x00 <= c && c <= 0x08) || (0x0A <= c && c <= 0x1F) || c == 0x7F)
+                    if( (char_type(0x00) <= c && c <= char_type(0x08)) ||
+                        (char_type(0x0A) <= c && c <= char_type(0x1F)) ||
+                        c == char_type(0x7F))
                     {
                         if(spec_.v1_1_0_add_escape_sequence_x)
                         {
-                            formatted += "\\x";
+                            formatted += string_conv<string_type>("\\x");
                         }
                         else
                         {
-                            formatted += "\\u00";
+                            formatted += string_conv<string_type>("\\u00");
                         }
                         const auto c1 = c / 16;
                         const auto c2 = c % 16;
-                        formatted += static_cast<char>('0' + c1);
+                        formatted += static_cast<char_type>('0' + c1);
                         if(c2 < 10)
                         {
-                            formatted += static_cast<char>('0' + c2);
+                            formatted += static_cast<char_type>('0' + c2);
                         }
                         else // 10 <= c2
                         {
-                            formatted += static_cast<char>('A' + (c2 - 10));
+                            formatted += static_cast<char_type>('A' + (c2 - 10));
                         }
                     }
                     else
@@ -1108,58 +1126,58 @@ class serializer
                 }
             }
         }
-        formatted += "\"";
+        formatted += string_conv<string_type>("\"");
         return formatted;
     } // }}}
-    cxx::optional<std::string> format_keys(const std::vector<key_type>& keys) // {{{
+    cxx::optional<string_type> format_keys(const std::vector<key_type>& keys) // {{{
     {
         if(keys.empty())
         {
             return cxx::make_nullopt();
         }
 
-        std::string formatted;
+        string_type formatted;
         for(const auto& ky : keys)
         {
             formatted += format_key(ky);
-            formatted += '.';
+            formatted += char_type('.');
         }
         formatted.pop_back(); // remove the last dot '.'
         return formatted;
     } // }}}
 
-    std::string format_comments(const discard_comments&, const indent_char) const // {{{
+    string_type format_comments(const discard_comments&, const indent_char) const // {{{
     {
-        return "";
+        return string_conv<string_type>("");
     } // }}}
-    std::string format_comments(const preserve_comments& comments, const indent_char indent_type) const // {{{
+    string_type format_comments(const preserve_comments& comments, const indent_char indent_type) const // {{{
     {
-        std::string retval;
+        string_type retval;
         for(const auto& c : comments)
         {
             if(c.empty()) {continue;}
             retval += format_indent(indent_type);
-            if(c.front() != '#') {retval += '#';}
-            retval += c;
-            if(c.back() != '\n') {retval += '\n';}
+            if(c.front() != '#') {retval += char_type('#');}
+            retval += string_conv<string_type>(c);
+            if(c.back() != '\n') {retval += char_type('\n');}
         }
         return retval;
     } // }}}
 
-    std::string format_indent(const indent_char indent_type) const // {{{
+    string_type format_indent(const indent_char indent_type) const // {{{
     {
         const auto indent = static_cast<std::size_t>((std::max)(0, this->current_indent_));
         if(indent_type == indent_char::space)
         {
-            return detail::make_string(indent, ' ');
+            return string_conv<string_type>(make_string(indent, ' '));
         }
         else if(indent_type == indent_char::tab)
         {
-            return detail::make_string(indent, '\t');
+            return string_conv<string_type>(make_string(indent, '\t'));
         }
         else
         {
-            return "";
+            return string_type{};
         }
     } // }}}
 
@@ -1178,24 +1196,26 @@ class serializer
 } // detail
 
 template<typename TC>
-std::string format(const basic_value<TC>& v,
-        const spec s = spec::default_version())
+typename basic_value<TC>::string_type
+format(const basic_value<TC>& v, const spec s = spec::default_version())
 {
     detail::serializer<TC> ser(s);
     return ser(v);
 }
 template<typename TC>
-std::string format(const typename basic_value<TC>::key_type& k,
-        const basic_value<TC>& v,
-        const spec s = spec::default_version())
+typename basic_value<TC>::string_type
+format(const typename basic_value<TC>::key_type& k,
+       const basic_value<TC>& v,
+       const spec s = spec::default_version())
 {
     detail::serializer<TC> ser(s);
     return ser(k, v);
 }
 template<typename TC>
-std::string format(const std::vector<typename basic_value<TC>::key_type>& ks,
-        const basic_value<TC>& v,
-        const spec s = spec::default_version())
+typename basic_value<TC>::string_type
+format(const std::vector<typename basic_value<TC>::key_type>& ks,
+       const basic_value<TC>& v,
+       const spec s = spec::default_version())
 {
     detail::serializer<TC> ser(s);
     return ser(ks, v);
@@ -1216,25 +1236,25 @@ namespace toml
 struct type_config;
 struct ordered_type_config;
 
-extern template std::string
+extern template typename basic_value<type_config>::string_type
 format<type_config>(const basic_value<type_config>&, const spec);
 
-extern template std::string
+extern template typename basic_value<type_config>::string_type
 format<type_config>(const typename basic_value<type_config>::key_type& k,
                     const basic_value<type_config>& v, const spec);
 
-extern template std::string
+extern template typename basic_value<type_config>::string_type
 format<type_config>(const std::vector<typename basic_value<type_config>::key_type>& ks,
                     const basic_value<type_config>& v, const spec s);
 
-extern template std::string
+extern template typename basic_value<type_config>::string_type
 format<ordered_type_config>(const basic_value<ordered_type_config>&, const spec);
 
-extern template std::string
+extern template typename basic_value<type_config>::string_type
 format<ordered_type_config>(const typename basic_value<ordered_type_config>::key_type& k,
                             const basic_value<ordered_type_config>& v, const spec);
 
-extern template std::string
+extern template typename basic_value<type_config>::string_type
 format<ordered_type_config>(const std::vector<typename basic_value<ordered_type_config>::key_type>& ks,
                             const basic_value<ordered_type_config>& v, const spec s);
 

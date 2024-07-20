@@ -1701,7 +1701,7 @@ parse_simple_key(location& loc, const context<TC>& ctx)
 
     if(const auto bare = syntax::unquoted_key(spec).scan(loc))
     {
-        return ok(to_string_of<typename key_type::value_type>(bare.as_string()));
+        return ok(string_conv<key_type>(bare.as_string()));
     }
     else
     {
