@@ -49,6 +49,25 @@ struct foobar
     int a;
     std::string b;
 };
+
+struct corge
+{
+    int a;
+    std::string b;
+
+    void from_toml(const toml::value& v)
+    {
+        this->a = toml::find<int>(v, "a");
+        this->b = toml::find<std::string>(v, "b");
+        return ;
+    }
+
+    template <typename TC>
+    toml::basic_value<TC> into_toml() const
+    {
+        return toml::basic_value<TC>(typename toml::basic_value<TC>::table_type{{"a", this->a}, {"b", this->b}});
+    }
+};
 } // extlib
 
 namespace toml
@@ -213,6 +232,19 @@ TEST_CASE("test_conversion_by_member_methods")
 
         const toml::value v2(foo);
         CHECK(v == v2);
+    }
+
+    
+    {
+        const toml::value v(toml::table{{"a", 42}, {"b", "baz"}});
+
+        const auto corge = toml::get<extlib::corge>(v);
+        CHECK_EQ(corge.a, 42);
+        CHECK_EQ(corge.b, "baz");
+
+        const toml::value v2(corge);
+
+        CHECK_EQ(v, v2);
     }
 
     {

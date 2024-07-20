@@ -3577,6 +3577,14 @@ struct has_into_toml_method_impl
     static std::false_type check(...);
 };
 
+struct has_template_into_toml_method_impl
+{
+    template<typename T, typename TypeConfig>
+    static std::true_type  check(decltype(std::declval<T>().template into_toml<TypeConfig>())*);
+    template<typename T, typename TypeConfig>
+    static std::false_type check(...);
+};
+
 struct has_specialized_from_impl
 {
     template<typename T>
@@ -3619,6 +3627,9 @@ struct has_from_toml_method: decltype(has_from_toml_method_impl::check<T, TC>(nu
 
 template<typename T>
 struct has_into_toml_method: decltype(has_into_toml_method_impl::check<T>(nullptr)){};
+
+template<typename T, typename TypeConfig>
+struct has_template_into_toml_method: decltype(has_template_into_toml_method_impl::check<T, TypeConfig>(nullptr)){};
 
 template<typename T>
 struct has_specialized_from: decltype(has_specialized_from_impl::check<T>(nullptr)){};
@@ -6658,6 +6669,29 @@ class basic_value
     basic_value& operator=(const T& ud)
     {
         *this = ud.into_toml();
+        return *this;
+    }
+
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            detail::has_template_into_toml_method<T, TypeConfig>,
+            cxx::negation<detail::has_specialized_into<T>>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value(const T& ud): basic_value(ud.template into_toml<TypeConfig>()) {}
+
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            detail::has_template_into_toml_method<T, TypeConfig>,
+            cxx::negation<detail::has_specialized_into<T>>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value(const T& ud, std::vector<std::string> com)
+        : basic_value(ud.template into_toml<TypeConfig>(), std::move(com))
+    {}
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            detail::has_template_into_toml_method<T, TypeConfig>,
+            cxx::negation<detail::has_specialized_into<T>>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value& operator=(const T& ud)
+    {
+        *this = ud.template into_toml<TypeConfig>();
         return *this;
     }
     // }}}

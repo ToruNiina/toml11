@@ -83,6 +83,14 @@ struct has_into_toml_method_impl
     static std::false_type check(...);
 };
 
+struct has_template_into_toml_method_impl
+{
+    template<typename T, typename TypeConfig>
+    static std::true_type  check(decltype(std::declval<T>().template into_toml<TypeConfig>())*);
+    template<typename T, typename TypeConfig>
+    static std::false_type check(...);
+};
+
 struct has_specialized_from_impl
 {
     template<typename T>
@@ -125,6 +133,9 @@ struct has_from_toml_method: decltype(has_from_toml_method_impl::check<T, TC>(nu
 
 template<typename T>
 struct has_into_toml_method: decltype(has_into_toml_method_impl::check<T>(nullptr)){};
+
+template<typename T, typename TypeConfig>
+struct has_template_into_toml_method: decltype(has_template_into_toml_method_impl::check<T, TypeConfig>(nullptr)){};
 
 template<typename T>
 struct has_specialized_from: decltype(has_specialized_from_impl::check<T>(nullptr)){};
