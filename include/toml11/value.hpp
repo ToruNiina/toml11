@@ -1085,6 +1085,29 @@ class basic_value
         *this = ud.into_toml();
         return *this;
     }
+
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            detail::has_template_into_toml_method<T, TypeConfig>,
+            cxx::negation<detail::has_specialized_into<T>>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value(const T& ud): basic_value(ud.template into_toml<TypeConfig>()) {}
+
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            detail::has_template_into_toml_method<T, TypeConfig>,
+            cxx::negation<detail::has_specialized_into<T>>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value(const T& ud, std::vector<std::string> com)
+        : basic_value(ud.template into_toml<TypeConfig>(), std::move(com))
+    {}
+    template<typename T, cxx::enable_if_t<cxx::conjunction<
+            detail::has_template_into_toml_method<T, TypeConfig>,
+            cxx::negation<detail::has_specialized_into<T>>
+        >::value, std::nullptr_t> = nullptr>
+    basic_value& operator=(const T& ud)
+    {
+        *this = ud.template into_toml<TypeConfig>();
+        return *this;
+    }
     // }}}
 
     // empty value with region info ======================================= {{{
