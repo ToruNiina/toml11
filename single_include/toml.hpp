@@ -8622,16 +8622,33 @@ template<typename T, typename TC>
 cxx::enable_if_t<detail::is_std_tuple<T>::value, T>
 get(const basic_value<TC>&);
 
-// map-like
+// std::map<key, value> (key is convertible from toml::value::key_type)
 template<typename T, typename TC>
 cxx::enable_if_t<cxx::conjunction<
     detail::is_map<T>,                                  // T is map
     detail::is_not_toml_type<T, basic_value<TC>>,       // but not toml::table
+    std::is_convertible<typename basic_value<TC>::key_type,
+                        typename T::key_type>,          // keys are convertible
     cxx::negation<detail::has_from_toml_method<T, TC>>, // no T.from_toml()
     cxx::negation<detail::has_specialized_from<T>>,     // no toml::from<T>
     cxx::negation<std::is_constructible<T, const basic_value<TC>&>>
     >::value, T>
-get(const basic_value<TC>&);
+get(const basic_value<TC>& v);
+
+// std::map<key, value> (key is not convertible from toml::value::key_type, but
+// is a std::basic_string)
+template<typename T, typename TC>
+cxx::enable_if_t<cxx::conjunction<
+    detail::is_map<T>,                                  // T is map
+    detail::is_not_toml_type<T, basic_value<TC>>,       // but not toml::table
+    cxx::negation<std::is_convertible<typename basic_value<TC>::key_type,
+        typename T::key_type>>,                         // keys are NOT convertible
+    detail::is_1byte_std_basic_string<typename T::key_type>, // is std::basic_string
+    cxx::negation<detail::has_from_toml_method<T, TC>>, // no T.from_toml()
+    cxx::negation<detail::has_specialized_from<T>>,     // no toml::from<T>
+    cxx::negation<std::is_constructible<T, const basic_value<TC>&>>
+    >::value, T>
+get(const basic_value<TC>& v);
 
 // toml::from<T>::from_toml(v)
 template<typename T, typename TC>
@@ -8788,10 +8805,13 @@ get(const basic_value<TC>& v)
 // ============================================================================
 // map-like types; most likely STL map, like std::map or std::unordered_map.
 
+// key is convertible from toml::value::key_type
 template<typename T, typename TC>
 cxx::enable_if_t<cxx::conjunction<
     detail::is_map<T>,                                  // T is map
     detail::is_not_toml_type<T, basic_value<TC>>,       // but not toml::table
+    std::is_convertible<typename basic_value<TC>::key_type,
+                        typename T::key_type>,          // keys are convertible
     cxx::negation<detail::has_from_toml_method<T, TC>>, // no T.from_toml()
     cxx::negation<detail::has_specialized_from<T>>,     // no toml::from<T>
     cxx::negation<std::is_constructible<T, const basic_value<TC>&>>
@@ -8809,6 +8829,31 @@ get(const basic_value<TC>& v)
     for(const auto& kv : v.as_table())
     {
         m.emplace(key_type(kv.first), get<mapped_type>(kv.second));
+    }
+    return m;
+}
+
+// key is NOT convertible from toml::value::key_type but std::basic_string
+template<typename T, typename TC>
+cxx::enable_if_t<cxx::conjunction<
+    detail::is_map<T>,                                       // T is map
+    detail::is_not_toml_type<T, basic_value<TC>>,            // but not toml::table
+    cxx::negation<std::is_convertible<typename basic_value<TC>::key_type,
+        typename T::key_type>>,                              // keys are NOT convertible
+    detail::is_1byte_std_basic_string<typename T::key_type>, // is std::basic_string
+    cxx::negation<detail::has_from_toml_method<T, TC>>,      // no T.from_toml()
+    cxx::negation<detail::has_specialized_from<T>>,          // no toml::from<T>
+    cxx::negation<std::is_constructible<T, const basic_value<TC>&>>
+    >::value, T>
+get(const basic_value<TC>& v)
+{
+    using key_type    = typename T::key_type;
+    using mapped_type = typename T::mapped_type;
+
+    T m;
+    for(const auto& kv : v.as_table())
+    {
+        m.emplace(detail::string_conv<key_type>(kv.first), get<mapped_type>(kv.second));
     }
     return m;
 }
