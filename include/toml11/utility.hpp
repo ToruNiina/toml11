@@ -119,8 +119,9 @@ struct string_conv_impl
     static std::basic_string<Char, Traits, Alloc> invoke(const Char2 (&s)[N])
     {
         std::basic_string<Char, Traits, Alloc> retval;
-        std::transform(std::begin(s), std::end(s), std::back_inserter(retval),
-            [](const char c) {return static_cast<Char>(c);});
+        // "string literal" has null-char at the end. to skip it, we use prev.
+        std::transform(std::begin(s), std::prev(std::end(s)), std::back_inserter(retval),
+            [](const Char2 c) {return static_cast<Char>(c);});
         return retval;
     }
 };
