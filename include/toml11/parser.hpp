@@ -3526,7 +3526,7 @@ try_parse(std::istream& is, std::string fname = "unknown file", spec s = spec::d
     // read whole file as a sequence of char
     assert(fsize >= 0);
     std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize), '\0');
-    is.read(reinterpret_cast<char*>(letters.data()), fsize);
+    is.read(reinterpret_cast<char*>(letters.data()), static_cast<std::streamsize>(fsize));
 
     return detail::parse_impl<TC>(std::move(letters), std::move(fname), std::move(s));
 }
