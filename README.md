@@ -627,7 +627,10 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fix issues with CMake package configuration when used with vcpkg
 - Egor Pugin (@egorpugin)
   - Fix incorrect operator<<() argument type that gives build error
-
+- Andreas Keller (@andreaskeller96)
+  - Fix not checking for \r\n when parsing line comments
+- 萧迩珀 (@CDK6182CHR)
+  - Support template into_toml members
 
 ## Licensing terms
 

@@ -629,6 +629,10 @@ toml11 v3からは複数の破壊的変更が追加されています。
   - Fix issues with CMake package configuration when used with vcpkg
 - Egor Pugin (@egorpugin)
   - Fix incorrect operator<<() argument type that gives build error
+- Andreas Keller (@andreaskeller96)
+  - Fix not checking for \r\n when parsing line comments
+- 萧迩珀 (@CDK6182CHR)
+  - Support template into_toml members
 
 ## Licensing terms
 
