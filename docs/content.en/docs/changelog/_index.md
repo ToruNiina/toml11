@@ -6,12 +6,60 @@ weight = 4
 
 # Change Log
 
+# v4.1.0
+
+## Added
+
+- support `std::get<std::u8string>`
+- support `toml::value(std::u8string)`
+- support `string_type = std::u8string`
+- support `operator<<(std::ostream&, toml::value)`
+- add `bool uppercase` to `toml::integer_format`
+- support `template into_toml()` (by 萧迩珀)
+
+## Fixed
+
+- Fix not checking for `\r\n` when parsing line comments (by Andreas Keller)
+
+## Changed
+
+- speedup CI tests by multicore build
+
+# v4.0.3
+
+## Fixed
+
+- remove default template argument from forward declaration in `toml_fwd.hpp`
+- enable to call `toml::make_error_info` with multiple `toml::value`s
+- enable to copy/move `toml::result` having `std::reference_wrapper`
+- fix document generation error with the latest version of hugo
+- fix several tiny errors that causes warning
+- fix CMake compatibility warning
+
+## Changed
+
+add `-Werror` / `/WX` to build script
+set MSVC warning level to `/W4`
+add explanation of features to README
+
+# v4.0.2
+
+## Fixed
+
+- check return value of fread in `parse(FILE*)`
+- version macro defined in `toml11/version.hpp`
+- update docs about compilation
+- update docs about file open mode
+
+## Changed
+- use version macros defined in `toml11/version.hpp` as the project version in `CMakeLists.txt`
+
 # v4.0.1
 
 ## Fixed
 
 - Resolved naming conflict of `sematic_version::{major, minor}` with macros defined in `<sys/sysmacro.h>`
-- Fixed the definition of `operator<<` in `discard_comments`
+- Fixed the definition of `operator<<` in `discard_comments` (by Egor Pugin)
 - Fixed the issue where the first blank line was not output in `format_location`
 - Fixed the issue where error messages pointing to `source_location` referring to lines containing only newline characters were displayed in two lines
 - Corrected links in the README

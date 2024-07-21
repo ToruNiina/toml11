@@ -6,12 +6,61 @@ weight = 4
 
 # Change Log
 
+# v4.1.0
+
+## Added
+
+- `std::get<std::u8string>`をサポート
+- `toml::value(std::u8string)`をサポート
+- `string_type = std::u8string`をサポート
+- `operator<<(std::ostream&, toml::value)`をサポート
+- `toml::integer_format`に、16進数表示で大文字を使うことを指定する`bool uppercase`を追加
+- `template`を使って実装された `into_toml()` をサポート (by 萧迩珀)
+
+## Fixed
+
+- Windowsで`\r\n`が改行に使われた際、出力時に`\r`が重複する問題を修正 (by Andreas Keller)
+
+## Changed
+
+- CIで複数コアを使うことでビルドを高速化
+
+# v4.0.3
+
+## Fixed
+
+- `toml_fwd.hpp`を使用した際にデフォルト引数が重複する問題を修正
+- `toml::value`を複数渡した際に`toml::make_error_info`が使えない問題を修正
+- `std::reference_wrapper`を持つ`toml::result`をコピー・ムーブする際の問題を修正
+- hugoの最新版でドキュメントがビルドできない問題を修正
+- コンパイラによる軽微な警告を多数修正
+- CMakeの互換性に関する警告を抑制
+
+## Changed
+
+- CIビルドで`-Werror`, `/WX`を追加
+- CIビルドでMSVCのwarningレベルを`/W3`から`/W4`に変更
+- READMEでより多くの機能を紹介するよう更新
+
+# v4.0.2
+
+## Fixed
+
+- `parse(FILE*)` 内の `fread` の結果をチェック
+- `toml11/version.hpp`のマクロを修正
+- コンパイルオプションに関するドキュメントの更新
+- ファイルオープンモードに関するドキュメントの更新
+
+## Changed
+
+- `CMakeLists.txt`内のバージョン番号を`version.hpp`から取得するように変更
+
 # v4.0.1
 
 ## Fixed
 
 - `sematic_version::{major, minor}` と `<sys/sysmacro.h>` 内で定義されるマクロの衝突を解消
-- `discard_comments` の `operator<<` の定義を修正
+- `discard_comments` の `operator<<` の定義を修正 (by Egor Pugin)
 - `format_location`を使用した際に最初の空行が出ない問題を解決
 - 改行文字のみを含む行を指す`source_location`でエラーメッセージを生成した際に、同じ行が二回表示される問題を解決
 - `README.md`内のリンクを修正
