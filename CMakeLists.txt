@@ -56,7 +56,7 @@ check_cxx_compiler_flag("-Wundef"               TOML11_COMPILER_SUPPORTS_WUNDEF)
 check_cxx_compiler_flag("-Wshadow"              TOML11_COMPILER_SUPPORTS_WSHADOW)
 
 include(GNUInstallDirs)
-set(TOML11_INSTALL_CMAKE_DIR   ${CMAKE_INSTALL_LIBDIR}/cmake/toml11)
+set(TOML11_INSTALL_CMAKE_DIR   ${CMAKE_INSTALL_DATAROOTDIR}/cmake/toml11)
 set(TOML11_INSTALL_INCLUDE_DIR ${CMAKE_INSTALL_INCLUDEDIR})
 set(TOML11_CONFIG_DIR          ${CMAKE_CURRENT_BINARY_DIR}/cmake)
 set(TOML11_CONFIG              ${TOML11_CONFIG_DIR}/toml11Config.cmake)

@@ -153,6 +153,7 @@ if(TOML11_INSTALL)
     write_basic_package_version_file(${TOML11_CONFIG_VERSION}
         VERSION ${toml11_VERSION}
         COMPATIBILITY SameMajorVersion
+        ARCH_INDEPENDENT
         )
 
     configure_package_config_file(
