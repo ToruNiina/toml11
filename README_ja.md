@@ -114,6 +114,19 @@ add_executable(main main.cpp)
 target_link_libraries(main PRIVATE toml11::toml11)
 ```
 
+### CMake Package Manager (CPM)
+
+[CMake package manager](https://github.com/cpm-cmake/CPM.cmake)を導入すると、以下のようにして使用することができます。
+
+```cmake
+include(cmake/CPM.cmake)
+
+CPMAddPackage("gh:ToruNiina/toml11@4.1.0")
+
+add_executable(main main.cpp)
+target_link_libraries(main PUBLIC toml11::toml11)
+```
+
 ### Install using CMake
 
 以下の手順で、CMakeを使ってインストールすることができます。
