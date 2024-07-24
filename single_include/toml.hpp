@@ -2933,6 +2933,12 @@ TOML11_INLINE std::ostream& operator<<(std::ostream& os, const preserve_comments
 #define TOML11_ERROR_MESSAGE_COLORIZED false
 #endif
 
+#ifdef TOML11_USE_THREAD_LOCAL_COLORIZATION
+#define TOML11_THREAD_LOCAL_COLORIZATION thread_local
+#else
+#define TOML11_THREAD_LOCAL_COLORIZATION
+#endif
+
 namespace toml
 {
 namespace color
@@ -2968,7 +2974,7 @@ class color_mode
 
 inline color_mode& color_status() noexcept
 {
-    static thread_local color_mode status;
+    static TOML11_THREAD_LOCAL_COLORIZATION color_mode status;
     return status;
 }
 
