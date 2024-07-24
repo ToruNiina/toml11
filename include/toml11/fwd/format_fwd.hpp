@@ -215,6 +215,29 @@ bool operator==(const table_format_info&, const table_format_info&) noexcept;
 bool operator!=(const table_format_info&, const table_format_info&) noexcept;
 
 // ----------------------------------------------------------------------------
+// key
+
+enum class key_format : std::uint8_t
+{
+    bare           = 0,
+    quoted         = 1, // ""
+    quoted_literal = 2  // ''
+};
+
+std::ostream& operator<<(std::ostream& os, const key_format f);
+std::string to_string(const key_format);
+
+struct key_format_info
+{
+    key_format fmt = key_format::bare;
+    std::int32_t spaces_before_equal = 1;
+    std::int32_t spaces_after_equal  = 1;
+};
+
+bool operator==(const key_format_info&, const key_format_info&) noexcept;
+bool operator!=(const key_format_info&, const key_format_info&) noexcept;
+
+// ----------------------------------------------------------------------------
 // wrapper
 
 namespace detail

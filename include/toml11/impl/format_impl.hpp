@@ -293,5 +293,41 @@ TOML11_INLINE bool operator!=(const table_format_info& lhs, const table_format_i
     return !(lhs == rhs);
 }
 
+// ----------------------------------------------------------------------------
+// key
+
+TOML11_INLINE std::ostream& operator<<(std::ostream& os, const key_format f)
+{
+    switch(f)
+    {
+        case key_format::bare           : {os << "bare"          ; break;}
+        case key_format::quoted         : {os << "quoted"        ; break;}
+        case key_format::quoted_literal : {os << "quoted_literal"; break;}
+        default:
+        {
+            os << "unknown key_format: " << static_cast<std::uint8_t>(f);
+            break;
+        }
+    }
+    return os;
+}
+TOML11_INLINE std::string to_string(const key_format c)
+{
+    std::ostringstream oss;
+    oss << c;
+    return oss.str();
+}
+
+TOML11_INLINE bool operator==(const key_format_info& lhs, const key_format_info& rhs) noexcept
+{
+    return lhs.fmt                 == rhs.fmt                 &&
+           lhs.spaces_before_equal == rhs.spaces_before_equal &&
+           lhs.spaces_after_equal  == rhs.spaces_after_equal  ;
+}
+TOML11_INLINE bool operator!=(const key_format_info& lhs, const key_format_info& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
 } // namespace toml
 #endif // TOML11_FORMAT_IMPL_HPP
