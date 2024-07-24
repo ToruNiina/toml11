@@ -77,6 +77,12 @@
 #  endif
 #endif
 
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= TOML11_CXX17_VALUE
+#  if __has_include(<optional>)
+#    define TOML11_HAS_OPTIONAL 1
+#  endif
+#endif
+
 #if defined(TOML11_COMPILE_SOURCES)
 #  define TOML11_INLINE
 #else

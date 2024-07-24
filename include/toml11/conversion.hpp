@@ -1,8 +1,87 @@
 #ifndef TOML11_CONVERSION_HPP
 #define TOML11_CONVERSION_HPP
 
+#include "find.hpp"
 #include "from.hpp" // IWYU pragma: keep
 #include "into.hpp" // IWYU pragma: keep
+
+#if defined(TOML11_HAS_OPTIONAL)
+
+#include <optional>
+
+namespace toml
+{
+namespace detail
+{
+
+template<typename T>
+inline constexpr bool is_optional_v = false;
+
+template<typename T>
+inline constexpr bool is_optional_v<std::optional<T>> = true;
+
+template<typename T, typename TC>
+void find_member_variable_from_value(T& obj, const basic_value<TC>& v, const char* var_name)
+{
+    if constexpr(is_optional_v<T>)
+    {
+        if(v.contains(var_name))
+        {
+            obj = toml::find<typename T::value_type>(v, var_name);
+        }
+        else
+        {
+            obj = std::nullopt;
+        }
+    }
+    else
+    {
+        obj = toml::find<T>(v, var_name);
+    }
+}
+
+template<typename T, typename TC>
+void assign_member_variable_to_value(const T& obj, basic_value<TC>& v, const char* var_name)
+{
+    if constexpr(is_optional_v<T>)
+    {
+        if(obj.has_value())
+        {
+            v[var_name] = obj.value();
+        }
+    }
+    else
+    {
+        v[var_name] = obj;
+    }
+}
+
+} // detail
+} // toml
+
+#else
+
+namespace toml
+{
+namespace detail
+{
+
+template<typename T, typename TC>
+void find_member_variable_from_value(T& obj, const basic_value<TC>& v, const char* var_name)
+{
+    obj = toml::find<T>(v, var_name);
+}
+
+template<typename T, typename TC>
+void assign_member_variable_to_value(const T& obj, basic_value<TC>& v, const char* var_name)
+{
+    v[var_name] = obj;
+}
+
+} // detail
+} // toml
+
+#endif // optional
 
 // use it in the following way.
 // ```cpp
@@ -88,10 +167,10 @@
 
 
 #define TOML11_FIND_MEMBER_VARIABLE_FROM_VALUE(VAR_NAME)\
-    obj.VAR_NAME = toml::find<decltype(obj.VAR_NAME)>(v, TOML11_STRINGIZE(VAR_NAME));
+    toml::detail::find_member_variable_from_value(obj.VAR_NAME, v, TOML11_STRINGIZE(VAR_NAME));
 
 #define TOML11_ASSIGN_MEMBER_VARIABLE_TO_VALUE(VAR_NAME)\
-    v[TOML11_STRINGIZE(VAR_NAME)] = obj.VAR_NAME;
+    toml::detail::assign_member_variable_to_value(obj.VAR_NAME, v, TOML11_STRINGIZE(VAR_NAME));
 
 #define TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(NAME, ...)\
     namespace toml {                                                                     \

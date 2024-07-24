@@ -4,6 +4,10 @@
 #include <toml.hpp>
 #include "utility.hpp"
 
+#if defined(TOML11_HAS_OPTIONAL)
+#include <optional>
+#endif
+
 namespace extlib
 {
 struct foo
@@ -234,7 +238,7 @@ TEST_CASE("test_conversion_by_member_methods")
         CHECK(v == v2);
     }
 
-    
+
     {
         const toml::value v(toml::table{{"a", 42}, {"b", "baz"}});
 
@@ -652,4 +656,84 @@ TEST_CASE("test_conversion_via_macro")
         CHECK(v2 == v);
     }
 }
+
+#if defined(TOML11_HAS_OPTIONAL)
+namespace extlib4
+{
+struct foo
+{
+    std::optional<int>         a;
+    std::optional<std::string> b;
+};
+struct bar
+{
+    std::optional<int>         a;
+    std::optional<std::string> b;
+    std::optional<foo>         f;
+};
+
+} // extlib4
+
+TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(extlib4::foo, a, b)
+TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(extlib4::bar, a, b, f)
+
+TEST_CASE("test_optional_conversion_via_macro")
+{
+    {
+        const toml::value v(toml::table{{"a", 42}});
+
+        const auto foo = toml::get<extlib4::foo>(v);
+        CHECK(foo.a.value() == 42);
+        CHECK(foo.b == std::nullopt);
+
+        const toml::value v2(foo);
+        CHECK(v2 == v);
+    }
+    {
+        const toml::ordered_value v(toml::ordered_table{
+            {"b", "baz"}
+        });
+
+        const auto foo = toml::get<extlib4::foo>(v);
+        CHECK(foo.a == std::nullopt);
+        CHECK(foo.b.value() == "baz");
+
+        const toml::ordered_value v2(foo);
+        CHECK(v2 == v);
+    }
+
+    // -----------------------------------------------------------------------
+
+    {
+        const toml::value v(toml::table{
+            {"b", "bar.b"},
+            {"f", toml::table{{"a", 42}}}
+        });
+
+        const auto bar = toml::get<extlib4::bar>(v);
+        CHECK(bar.a == std::nullopt);
+        CHECK(bar.b.value() == "bar.b");
+        CHECK(bar.f.value().a.value() == 42);
+        CHECK(bar.f.value().b == std::nullopt);
+
+        const toml::value v2(bar);
+        CHECK(v2 == v);
+    }
+    {
+        const toml::ordered_value v(toml::ordered_table{
+            {"a", 42},
+            {"f", toml::ordered_table{{"b", "foo.b"}}}
+        });
+
+        const auto bar = toml::get<extlib4::bar>(v);
+        CHECK(bar.a.value() == 42);
+        CHECK(bar.b == std::nullopt);
+        CHECK(bar.f.value().a == std::nullopt);
+        CHECK(bar.f.value().b.value() == "foo.b");
+
+        const toml::ordered_value v2(bar);
+        CHECK(v2 == v);
+    }
+}
+#endif // TOML11_HAS_OPTIONAL
 #endif // TOML11_WITHOUT_DEFINE_NON_INTRUSIVE
