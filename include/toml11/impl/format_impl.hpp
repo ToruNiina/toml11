@@ -267,7 +267,7 @@ TOML11_INLINE std::ostream& operator<<(std::ostream& os, const table_format f)
         case table_format::implicit         : {os << "implicit"         ; break;}
         default:
         {
-            os << "unknown array_format: " << static_cast<std::uint8_t>(f);
+            os << "unknown table_format: " << static_cast<std::uint8_t>(f);
             break;
         }
     }
