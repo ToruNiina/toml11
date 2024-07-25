@@ -40,6 +40,7 @@ enum class string_format : std::uint8_t;
 enum class datetime_delimiter_kind : std::uint8_t;
 enum class array_format : std::uint8_t;
 enum class table_format : std::uint8_t;
+enum class key_format : std::uint8_t;
 
 struct boolean_format_info;
 struct integer_format_info;
@@ -51,6 +52,7 @@ struct local_date_format_info;
 struct local_time_format_info;
 struct array_format_info;
 struct table_format_info;
+struct key_format_info;
 
 template<typename Key, typename Val, typename Cmp, typename Allocator>
 class ordered_map;
