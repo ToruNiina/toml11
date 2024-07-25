@@ -1856,6 +1856,13 @@ class basic_value
     comment_type const& comments() const noexcept {return this->comments_;}
     comment_type&       comments()       noexcept {return this->comments_;}
 
+    source_location key_location() const
+    {
+        return source_location(this->key_region_);
+    }
+    key_format_info&       key_fmt()       noexcept {return this->key_fmt_;}
+    key_format_info const& key_fmt() const noexcept {return this->key_fmt_;}
+
   private:
 
     // private helper functions =========================================== {{{
@@ -1940,8 +1947,10 @@ class basic_value
         array_storage           array_;
         table_storage           table_;
     };
-    region_type  region_;
-    comment_type comments_;
+    region_type     region_;
+    region_type     key_region_;
+    key_format_info key_fmt_;
+    comment_type    comments_;
 };
 
 template<typename TC>
