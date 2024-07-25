@@ -85,14 +85,14 @@ class basic_value
   public:
 
     basic_value() noexcept
-        : type_(value_t::empty), empty_('\0'), region_{}, comments_{}
+        : type_(value_t::empty), empty_('\0'), region_{}, comments_{}, key_region_{}, key_fmt_{}
     {}
     ~basic_value() noexcept {this->cleanup();}
 
     // copy/move constructor/assigner ===================================== {{{
 
     basic_value(const basic_value& v)
-        : type_(v.type_), region_(v.region_), comments_(v.comments_)
+        : type_(v.type_), region_(v.region_), comments_(v.comments_), key_region_(v.key_region_), key_fmt_(v.key_fmt_)
     {
         switch(this->type_)
         {
@@ -111,7 +111,8 @@ class basic_value
     }
     basic_value(basic_value&& v)
         : type_(v.type()), region_(std::move(v.region_)),
-          comments_(std::move(v.comments_))
+          comments_(std::move(v.comments_)),
+          key_region_(v.key_region_), key_fmt_(v.key_fmt_)
     {
         switch(this->type_)
         {
@@ -137,6 +138,8 @@ class basic_value
         this->type_     = v.type_;
         this->region_   = v.region_;
         this->comments_ = v.comments_;
+        this->key_region_ = v.key_region_;
+        this->key_fmt_    = v.key_fmt_;
         switch(this->type_)
         {
             case value_t::boolean        : assigner(boolean_        , v.boolean_        ); break;
@@ -161,6 +164,8 @@ class basic_value
         this->type_     = v.type_;
         this->region_   = std::move(v.region_);
         this->comments_ = std::move(v.comments_);
+        this->key_region_ = std::move(v.key_region_);
+        this->key_fmt_    = std::move(v.key_fmt_);
         switch(this->type_)
         {
             case value_t::boolean        : assigner(boolean_        , std::move(v.boolean_        )); break;
@@ -183,7 +188,8 @@ class basic_value
 
     basic_value(basic_value v, std::vector<std::string> com)
         : type_(v.type()), region_(std::move(v.region_)),
-          comments_(std::move(com))
+          comments_(std::move(com)),
+          key_region_(v.key_region_), key_fmt_(v.key_fmt_)
     {
         switch(this->type_)
         {
@@ -208,7 +214,9 @@ class basic_value
     basic_value(basic_value<TI> other)
         : type_(other.type_),
           region_(std::move(other.region_)),
-          comments_(std::move(other.comments_))
+          comments_(std::move(other.comments_)),
+          key_region_(std::move(other.key_region_)),
+          key_fmt_(std::move(other.key_fmt_))
     {
         switch(other.type_)
         {
@@ -253,7 +261,9 @@ class basic_value
     basic_value(basic_value<TI> other, std::vector<std::string> com)
         : type_(other.type_),
           region_(std::move(other.region_)),
-          comments_(std::move(com))
+          comments_(std::move(com)),
+          key_region_(std::move(other.key_region_)),
+          key_fmt_(std::move(other.key_fmt_))
     {
         switch(other.type_)
         {
@@ -297,9 +307,11 @@ class basic_value
     basic_value& operator=(basic_value<TI> other)
     {
         this->cleanup();
-        this->region_ = other.region_;
-        this->comments_    = comment_type(other.comments_);
-        this->type_        = other.type_;
+        this->region_     = other.region_;
+        this->comments_   = comment_type(other.comments_);
+        this->key_region_ = other.key_region_;
+        this->key_fmt_    = other.key_fmt_;
+        this->type_       = other.type_;
         switch(other.type_)
         {
             // use auto-convert in constructor
@@ -344,21 +356,27 @@ class basic_value
     // constructor (boolean) ============================================== {{{
 
     basic_value(boolean_type x)
-        : basic_value(x, boolean_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(x, boolean_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(boolean_type x, boolean_format_info fmt)
-        : basic_value(x, fmt, std::vector<std::string>{}, region_type{})
+        : basic_value(x, fmt, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(boolean_type x, std::vector<std::string> com)
-        : basic_value(x, boolean_format_info{}, std::move(com), region_type{})
+        : basic_value(x, boolean_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(boolean_type x, boolean_format_info fmt, std::vector<std::string> com)
-        : basic_value(x, fmt, std::move(com), region_type{})
+        : basic_value(x, fmt, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(boolean_type x, boolean_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::boolean), boolean_(boolean_storage(x, fmt)),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(key_reg), key_fmt_(key_fmt)
     {}
     basic_value& operator=(boolean_type x)
     {
@@ -370,6 +388,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::boolean;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->boolean_, boolean_storage(x, fmt));
         return *this;
     }
@@ -379,20 +398,26 @@ class basic_value
     // constructor (integer) ============================================== {{{
 
     basic_value(integer_type x)
-        : basic_value(std::move(x), integer_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), integer_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(integer_type x, integer_format_info fmt)
-        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(integer_type x, std::vector<std::string> com)
-        : basic_value(std::move(x), integer_format_info{}, std::move(com), region_type{})
+        : basic_value(std::move(x), integer_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(integer_type x, integer_format_info fmt, std::vector<std::string> com)
-        : basic_value(std::move(x), std::move(fmt), std::move(com), region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
-    basic_value(integer_type x, integer_format_info fmt, std::vector<std::string> com, region_type reg)
+    basic_value(integer_type x, integer_format_info fmt, std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::integer), integer_(integer_storage(std::move(x), std::move(fmt))),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(integer_type x)
     {
@@ -404,6 +429,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::integer;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->integer_, integer_storage(std::move(x), std::move(fmt)));
         return *this;
     }
@@ -421,24 +447,30 @@ class basic_value
 
     template<typename T, enable_if_integer_like_t<T> = nullptr>
     basic_value(T x)
-        : basic_value(std::move(x), integer_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), integer_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_integer_like_t<T> = nullptr>
     basic_value(T x, integer_format_info fmt)
-        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_integer_like_t<T> = nullptr>
     basic_value(T x, std::vector<std::string> com)
-        : basic_value(std::move(x), integer_format_info{}, std::move(com), region_type{})
+        : basic_value(std::move(x), integer_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_integer_like_t<T> = nullptr>
     basic_value(T x, integer_format_info fmt, std::vector<std::string> com)
-        : basic_value(std::move(x), std::move(fmt), std::move(com), region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_integer_like_t<T> = nullptr>
-    basic_value(T x, integer_format_info fmt, std::vector<std::string> com, region_type reg)
+    basic_value(T x, integer_format_info fmt, std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::integer), integer_(integer_storage(std::move(x), std::move(fmt))),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     template<typename T, enable_if_integer_like_t<T> = nullptr>
     basic_value& operator=(T x)
@@ -451,6 +483,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::integer;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->integer_, integer_storage(x, std::move(fmt)));
         return *this;
     }
@@ -460,20 +493,26 @@ class basic_value
     // constructor (floating) ============================================= {{{
 
     basic_value(floating_type x)
-        : basic_value(std::move(x), floating_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), floating_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(floating_type x, floating_format_info fmt)
-        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(floating_type x, std::vector<std::string> com)
-        : basic_value(std::move(x), floating_format_info{}, std::move(com), region_type{})
+        : basic_value(std::move(x), floating_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(floating_type x, floating_format_info fmt, std::vector<std::string> com)
-        : basic_value(std::move(x), std::move(fmt), std::move(com), region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
-    basic_value(floating_type x, floating_format_info fmt, std::vector<std::string> com, region_type reg)
+    basic_value(floating_type x, floating_format_info fmt, std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::floating), floating_(floating_storage(std::move(x), std::move(fmt))),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(floating_type x)
     {
@@ -485,6 +524,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::floating;
         this->region_ = region_type{};
+        // key_region/fmt is kept
         assigner(this->floating_, floating_storage(std::move(x), std::move(fmt)));
         return *this;
     }
@@ -501,28 +541,34 @@ class basic_value
 
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x)
-        : basic_value(x, floating_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(x, floating_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
 
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, floating_format_info fmt)
-        : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
 
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, std::vector<std::string> com)
-        : basic_value(x, floating_format_info{}, std::move(com), region_type{})
+        : basic_value(x, floating_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
 
     template<typename T, enable_if_floating_like_t<T> = nullptr>
     basic_value(T x, floating_format_info fmt, std::vector<std::string> com)
-        : basic_value(x, std::move(fmt), std::move(com), region_type{})
+        : basic_value(x, std::move(fmt), std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
 
     template<typename T, enable_if_floating_like_t<T> = nullptr>
-    basic_value(T x, floating_format_info fmt, std::vector<std::string> com, region_type reg)
+    basic_value(T x, floating_format_info fmt, std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::floating), floating_(floating_storage(x, std::move(fmt))),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
 
     template<typename T, enable_if_floating_like_t<T> = nullptr>
@@ -536,6 +582,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::floating;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->floating_, floating_storage(x, std::move(fmt)));
         return *this;
     }
@@ -545,21 +592,27 @@ class basic_value
     // constructor (string) =============================================== {{{
 
     basic_value(string_type x)
-        : basic_value(std::move(x), string_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), string_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(string_type x, string_format_info fmt)
-        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(string_type x, std::vector<std::string> com)
-        : basic_value(std::move(x), string_format_info{}, std::move(com), region_type{})
+        : basic_value(std::move(x), string_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(string_type x, string_format_info fmt, std::vector<std::string> com)
-        : basic_value(std::move(x), std::move(fmt), std::move(com), region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(string_type x, string_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::string), string_(string_storage(std::move(x), std::move(fmt))),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(string_type x)
     {
@@ -571,6 +624,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::string;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->string_, string_storage(x, std::move(fmt)));
         return *this;
     }
@@ -578,21 +632,27 @@ class basic_value
     // "string literal"
 
     basic_value(const typename string_type::value_type* x)
-        : basic_value(x, string_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(x, string_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(const typename string_type::value_type* x, string_format_info fmt)
-        : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(const typename string_type::value_type* x, std::vector<std::string> com)
-        : basic_value(x, string_format_info{}, std::move(com), region_type{})
+        : basic_value(x, string_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(const typename string_type::value_type* x, string_format_info fmt, std::vector<std::string> com)
-        : basic_value(x, std::move(fmt), std::move(com), region_type{})
+        : basic_value(x, std::move(fmt), std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(const typename string_type::value_type* x, string_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::string), string_(string_storage(string_type(x), std::move(fmt))),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(const typename string_type::value_type* x)
     {
@@ -604,6 +664,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::string;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->string_, string_storage(string_type(x), std::move(fmt)));
         return *this;
     }
@@ -613,21 +674,27 @@ class basic_value
         typename string_type::value_type, typename string_type::traits_type>;
 
     basic_value(string_view_type x)
-        : basic_value(x, string_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(x, string_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(string_view_type x, string_format_info fmt)
-        : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(string_view_type x, std::vector<std::string> com)
-        : basic_value(x, string_format_info{}, std::move(com), region_type{})
+        : basic_value(x, string_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(string_view_type x, string_format_info fmt, std::vector<std::string> com)
-        : basic_value(x, std::move(fmt), std::move(com), region_type{})
+        : basic_value(x, std::move(fmt), std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(string_view_type x, string_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::string), string_(string_storage(string_type(x), std::move(fmt))),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(string_view_type x)
     {
@@ -639,6 +706,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::string;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->string_, string_storage(string_type(x), std::move(fmt)));
         return *this;
     }
@@ -650,38 +718,44 @@ class basic_value
             detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value(const T& x)
-        : basic_value(x, string_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(x, string_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
             detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value(const T& x, string_format_info fmt)
-        : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(x, std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
             detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value(const T& x, std::vector<std::string> com)
-        : basic_value(x, string_format_info{}, std::move(com), region_type{})
+        : basic_value(x, string_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
             detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value(const T& x, string_format_info fmt, std::vector<std::string> com)
-        : basic_value(x, std::move(fmt), std::move(com), region_type{})
+        : basic_value(x, std::move(fmt), std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
             detail::is_1byte_std_basic_string<T>
         >::value, std::nullptr_t> = nullptr>
     basic_value(const T& x, string_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::string),
           string_(string_storage(detail::string_conv<string_type>(x), std::move(fmt))),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     template<typename T, cxx::enable_if_t<cxx::conjunction<
             cxx::negation<std::is_same<cxx::remove_cvref_t<T>, string_type>>,
@@ -697,6 +771,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::string;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->string_, string_storage(detail::string_conv<string_type>(x), std::move(fmt)));
         return *this;
     }
@@ -706,21 +781,27 @@ class basic_value
     // constructor (local_date) =========================================== {{{
 
     basic_value(local_date_type x)
-        : basic_value(x, local_date_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(x, local_date_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_date_type x, local_date_format_info fmt)
-        : basic_value(x, fmt, std::vector<std::string>{}, region_type{})
+        : basic_value(x, fmt, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_date_type x, std::vector<std::string> com)
-        : basic_value(x, local_date_format_info{}, std::move(com), region_type{})
+        : basic_value(x, local_date_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_date_type x, local_date_format_info fmt, std::vector<std::string> com)
-        : basic_value(x, fmt, std::move(com), region_type{})
+        : basic_value(x, fmt, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_date_type x, local_date_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::local_date), local_date_(local_date_storage(x, fmt)),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(local_date_type x)
     {
@@ -732,6 +813,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::local_date;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->local_date_, local_date_storage(x, fmt));
         return *this;
     }
@@ -741,21 +823,27 @@ class basic_value
     // constructor (local_time) =========================================== {{{
 
     basic_value(local_time_type x)
-        : basic_value(x, local_time_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(x, local_time_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_time_type x, local_time_format_info fmt)
-        : basic_value(x, fmt, std::vector<std::string>{}, region_type{})
+        : basic_value(x, fmt, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_time_type x, std::vector<std::string> com)
-        : basic_value(x, local_time_format_info{}, std::move(com), region_type{})
+        : basic_value(x, local_time_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_time_type x, local_time_format_info fmt, std::vector<std::string> com)
-        : basic_value(x, fmt, std::move(com), region_type{})
+        : basic_value(x, fmt, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_time_type x, local_time_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::local_time), local_time_(local_time_storage(x, fmt)),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(local_time_type x)
     {
@@ -767,31 +855,38 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::local_time;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->local_time_, local_time_storage(x, fmt));
         return *this;
     }
 
     template<typename Rep, typename Period>
     basic_value(const std::chrono::duration<Rep, Period>& x)
-        : basic_value(local_time_type(x), local_time_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(local_time_type(x), local_time_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename Rep, typename Period>
     basic_value(const std::chrono::duration<Rep, Period>& x, local_time_format_info fmt)
-        : basic_value(local_time_type(x), std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(local_time_type(x), std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename Rep, typename Period>
     basic_value(const std::chrono::duration<Rep, Period>& x, std::vector<std::string> com)
-        : basic_value(local_time_type(x), local_time_format_info{}, std::move(com), region_type{})
+        : basic_value(local_time_type(x), local_time_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename Rep, typename Period>
     basic_value(const std::chrono::duration<Rep, Period>& x, local_time_format_info fmt, std::vector<std::string> com)
-        : basic_value(local_time_type(x), std::move(fmt), std::move(com), region_type{})
+        : basic_value(local_time_type(x), std::move(fmt), std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename Rep, typename Period>
     basic_value(const std::chrono::duration<Rep, Period>& x,
                 local_time_format_info fmt,
-                std::vector<std::string> com, region_type reg)
-        : basic_value(local_time_type(x), std::move(fmt), std::move(com), std::move(reg))
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
+        : basic_value(local_time_type(x), std::move(fmt), std::move(com), std::move(reg),
+                      std::move(key_reg), std::move(key_fmt))
     {}
     template<typename Rep, typename Period>
     basic_value& operator=(const std::chrono::duration<Rep, Period>& x)
@@ -804,6 +899,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::local_time;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->local_time_, local_time_storage(local_time_type(x), std::move(fmt)));
         return *this;
     }
@@ -813,21 +909,27 @@ class basic_value
     // constructor (local_datetime) =========================================== {{{
 
     basic_value(local_datetime_type x)
-        : basic_value(x, local_datetime_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(x, local_datetime_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_datetime_type x, local_datetime_format_info fmt)
-        : basic_value(x, fmt, std::vector<std::string>{}, region_type{})
+        : basic_value(x, fmt, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_datetime_type x, std::vector<std::string> com)
-        : basic_value(x, local_datetime_format_info{}, std::move(com), region_type{})
+        : basic_value(x, local_datetime_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_datetime_type x, local_datetime_format_info fmt, std::vector<std::string> com)
-        : basic_value(x, fmt, std::move(com), region_type{})
+        : basic_value(x, fmt, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(local_datetime_type x, local_datetime_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::local_datetime), local_datetime_(local_datetime_storage(x, fmt)),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(local_datetime_type x)
     {
@@ -839,6 +941,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::local_datetime;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->local_datetime_, local_datetime_storage(x, fmt));
         return *this;
     }
@@ -848,21 +951,27 @@ class basic_value
     // constructor (offset_datetime) =========================================== {{{
 
     basic_value(offset_datetime_type x)
-        : basic_value(x, offset_datetime_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(x, offset_datetime_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(offset_datetime_type x, offset_datetime_format_info fmt)
-        : basic_value(x, fmt, std::vector<std::string>{}, region_type{})
+        : basic_value(x, fmt, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(offset_datetime_type x, std::vector<std::string> com)
-        : basic_value(x, offset_datetime_format_info{}, std::move(com), region_type{})
+        : basic_value(x, offset_datetime_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(offset_datetime_type x, offset_datetime_format_info fmt, std::vector<std::string> com)
-        : basic_value(x, fmt, std::move(com), region_type{})
+        : basic_value(x, fmt, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(offset_datetime_type x, offset_datetime_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::offset_datetime), offset_datetime_(offset_datetime_storage(x, fmt)),
-          region_(std::move(reg)), comments_(std::move(com))
+          region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(offset_datetime_type x)
     {
@@ -874,6 +983,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::offset_datetime;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->offset_datetime_, offset_datetime_storage(x, fmt));
         return *this;
     }
@@ -881,20 +991,26 @@ class basic_value
     // system_clock::time_point
 
     basic_value(std::chrono::system_clock::time_point x)
-        : basic_value(offset_datetime_type(x), offset_datetime_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(offset_datetime_type(x), offset_datetime_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(std::chrono::system_clock::time_point x, offset_datetime_format_info fmt)
-        : basic_value(offset_datetime_type(x), fmt, std::vector<std::string>{}, region_type{})
+        : basic_value(offset_datetime_type(x), fmt, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(std::chrono::system_clock::time_point x, std::vector<std::string> com)
-        : basic_value(offset_datetime_type(x), offset_datetime_format_info{}, std::move(com), region_type{})
+        : basic_value(offset_datetime_type(x), offset_datetime_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(std::chrono::system_clock::time_point x, offset_datetime_format_info fmt, std::vector<std::string> com)
-        : basic_value(offset_datetime_type(x), fmt, std::move(com), region_type{})
+        : basic_value(offset_datetime_type(x), fmt, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(std::chrono::system_clock::time_point x, offset_datetime_format_info fmt,
-                std::vector<std::string> com, region_type reg)
-        : basic_value(offset_datetime_type(x), std::move(fmt), std::move(com), std::move(reg))
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
+        : basic_value(offset_datetime_type(x), std::move(fmt), std::move(com), std::move(reg),
+                      std::move(key_reg), std::move(key_fmt))
     {}
     basic_value& operator=(std::chrono::system_clock::time_point x)
     {
@@ -906,6 +1022,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::offset_datetime;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->offset_datetime_, offset_datetime_storage(offset_datetime_type(x), fmt));
         return *this;
     }
@@ -915,22 +1032,28 @@ class basic_value
     // constructor (array) ================================================ {{{
 
     basic_value(array_type x)
-        : basic_value(std::move(x), array_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), array_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(array_type x, array_format_info fmt)
-        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(array_type x, std::vector<std::string> com)
-        : basic_value(std::move(x), array_format_info{}, std::move(com), region_type{})
+        : basic_value(std::move(x), array_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(array_type x, array_format_info fmt, std::vector<std::string> com)
-        : basic_value(std::move(x), fmt, std::move(com), region_type{})
+        : basic_value(std::move(x), fmt, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(array_type x, array_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::array), array_(array_storage(
               detail::storage<array_type>(std::move(x)), std::move(fmt)
-          )), region_(std::move(reg)), comments_(std::move(com))
+          )), region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(array_type x)
     {
@@ -942,6 +1065,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::array;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->array_, array_storage(
                     detail::storage<array_type>(std::move(x)), std::move(fmt)));
         return *this;
@@ -965,29 +1089,35 @@ class basic_value
 
     template<typename T, enable_if_array_like_t<T> = nullptr>
     basic_value(T x)
-        : basic_value(std::move(x), array_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), array_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_array_like_t<T> = nullptr>
     basic_value(T x, array_format_info fmt)
-        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_array_like_t<T> = nullptr>
     basic_value(T x, std::vector<std::string> com)
-        : basic_value(std::move(x), array_format_info{}, std::move(com), region_type{})
+        : basic_value(std::move(x), array_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_array_like_t<T> = nullptr>
     basic_value(T x, array_format_info fmt, std::vector<std::string> com)
-        : basic_value(std::move(x), fmt, std::move(com), region_type{})
+        : basic_value(std::move(x), fmt, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_array_like_t<T> = nullptr>
     basic_value(T x, array_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::array), array_(array_storage(
               detail::storage<array_type>(array_type(
                       std::make_move_iterator(x.begin()),
                       std::make_move_iterator(x.end()))
               ), std::move(fmt)
-          )), region_(std::move(reg)), comments_(std::move(com))
+          )), region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     template<typename T, enable_if_array_like_t<T> = nullptr>
     basic_value& operator=(T x)
@@ -1000,6 +1130,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::array;
         this->region_ = region_type{};
+        // key region/fmt is kept
 
         array_type a(std::make_move_iterator(x.begin()),
                      std::make_move_iterator(x.end()));
@@ -1013,22 +1144,28 @@ class basic_value
     // constructor (table) ================================================ {{{
 
     basic_value(table_type x)
-        : basic_value(std::move(x), table_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), table_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(table_type x, table_format_info fmt)
-        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(table_type x, std::vector<std::string> com)
-        : basic_value(std::move(x), table_format_info{}, std::move(com), region_type{})
+        : basic_value(std::move(x), table_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(table_type x, table_format_info fmt, std::vector<std::string> com)
-        : basic_value(std::move(x), fmt, std::move(com), region_type{})
+        : basic_value(std::move(x), fmt, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     basic_value(table_type x, table_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::table), table_(table_storage(
                 detail::storage<table_type>(std::move(x)), std::move(fmt)
-          )), region_(std::move(reg)), comments_(std::move(com))
+          )), region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     basic_value& operator=(table_type x)
     {
@@ -1040,6 +1177,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::table;
         this->region_ = region_type{};
+        // key region/fmt is kept
         assigner(this->table_, table_storage(
             detail::storage<table_type>(std::move(x)), std::move(fmt)));
         return *this;
@@ -1061,29 +1199,35 @@ class basic_value
 
     template<typename T, enable_if_table_like_t<T> = nullptr>
     basic_value(T x)
-        : basic_value(std::move(x), table_format_info{}, std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), table_format_info{}, std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_table_like_t<T> = nullptr>
     basic_value(T x, table_format_info fmt)
-        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{})
+        : basic_value(std::move(x), std::move(fmt), std::vector<std::string>{}, region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_table_like_t<T> = nullptr>
     basic_value(T x, std::vector<std::string> com)
-        : basic_value(std::move(x), table_format_info{}, std::move(com), region_type{})
+        : basic_value(std::move(x), table_format_info{}, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_table_like_t<T> = nullptr>
     basic_value(T x, table_format_info fmt, std::vector<std::string> com)
-        : basic_value(std::move(x), fmt, std::move(com), region_type{})
+        : basic_value(std::move(x), fmt, std::move(com), region_type{},
+                      region_type{}, key_format_info{})
     {}
     template<typename T, enable_if_table_like_t<T> = nullptr>
     basic_value(T x, table_format_info fmt,
-                std::vector<std::string> com, region_type reg)
+                std::vector<std::string> com, region_type reg,
+                region_type key_reg, key_format_info key_fmt)
         : type_(value_t::table), table_(table_storage(
               detail::storage<table_type>(table_type(
                       std::make_move_iterator(x.begin()),
                       std::make_move_iterator(x.end())
               )), std::move(fmt)
-          )), region_(std::move(reg)), comments_(std::move(com))
+          )), region_(std::move(reg)), comments_(std::move(com)),
+          key_region_(std::move(key_reg)), key_fmt_(std::move(key_fmt))
     {}
     template<typename T, enable_if_table_like_t<T> = nullptr>
     basic_value& operator=(T x)
@@ -1096,6 +1240,7 @@ class basic_value
         this->cleanup();
         this->type_   = value_t::table;
         this->region_ = region_type{};
+        // key region/fmt is kept
 
         table_type t(std::make_move_iterator(x.begin()),
                      std::make_move_iterator(x.end()));
@@ -1948,9 +2093,9 @@ class basic_value
         table_storage           table_;
     };
     region_type     region_;
+    comment_type    comments_;
     region_type     key_region_;
     key_format_info key_fmt_;
-    comment_type    comments_;
 };
 
 template<typename TC>
@@ -2257,7 +2402,8 @@ TOML11_DETAIL_GENERATE_COMPTIME_GETTER(table          )
 template<typename TC>
 void change_region_of_value(basic_value<TC>& dst, const basic_value<TC>& src)
 {
-    dst.region_ = std::move(src.region_);
+    dst.region_     = std::move(src.region_);
+    dst.key_region_ = std::move(src.key_region_);
     return;
 }
 
