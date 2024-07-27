@@ -752,8 +752,8 @@ class basic_value
                 key_format_info      key_fmt = key_format_info{},
                 region_type              reg = region_type{},
                 region_type          key_reg = region_type{})
-        : basic_value(local_time_type(x), std::move(fmt), std::move(com), std::move(reg),
-                      std::move(key_reg), std::move(key_fmt))
+        : basic_value(local_time_type(x), std::move(fmt), std::move(com), std::move(key_fmt),
+                      std::move(reg), std::move(key_reg))
     {}
     template<typename Rep, typename Period>
     basic_value& operator=(const std::chrono::duration<Rep, Period>& x)
@@ -1118,7 +1118,8 @@ class basic_value
 
     // mainly for `null` extension
     basic_value(detail::none_t, region_type reg) noexcept
-        : type_(value_t::empty), empty_('\0'), region_(std::move(reg)), comments_{}
+        : type_(value_t::empty), empty_('\0'), region_(std::move(reg)), comments_{},
+          key_region_{}, key_fmt_{}
     {}
 
     // }}}
