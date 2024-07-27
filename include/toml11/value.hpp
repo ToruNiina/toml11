@@ -53,6 +53,9 @@ error_info make_not_found_error(const basic_value<TC>&, const std::string&, cons
 template<typename TC>
 void change_region_of_value(basic_value<TC>&, const basic_value<TC>&);
 
+template<typename TC>
+void change_region_of_key(basic_value<TC>&, region);
+
 template<typename TC, value_t V>
 struct getter;
 } // detail
@@ -1848,6 +1851,9 @@ class basic_value
     friend void detail::change_region_of_value(basic_value<TC>&, const basic_value<TC>&);
 
     template<typename TC>
+    friend void change_region_of_key(basic_value<TC>&, detail::region);
+
+    template<typename TC>
     friend class basic_value;
 
     // }}}
@@ -2194,6 +2200,12 @@ void change_region_of_value(basic_value<TC>& dst, const basic_value<TC>& src)
 {
     dst.region_     = std::move(src.region_);
     dst.key_region_ = std::move(src.key_region_);
+    return;
+}
+template<typename TC>
+void change_region_of_key(basic_value<TC>& dst, region src)
+{
+    dst.key_region_ = std::move(src);
     return;
 }
 
