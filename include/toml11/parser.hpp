@@ -172,7 +172,7 @@ parse_boolean(location& loc, const context<TC>& ctx)
     // no format info for boolean
     boolean_format_info fmt;
 
-    return ok(basic_value<TC>(val, std::move(fmt), {}, std::move(reg)));
+    return ok(basic_value<TC>(val, std::move(fmt), {}, {}, std::move(reg)));
 }
 
 /* ============================================================================
@@ -221,7 +221,7 @@ parse_bin_integer(location& loc, const context<TC>& ctx)
     const auto val = TC::parse_int(str, source_location(region(loc)), 2);
     if(val.is_ok())
     {
-        return ok(basic_value<TC>(val.as_ok(), std::move(fmt), {}, std::move(reg)));
+        return ok(basic_value<TC>(val.as_ok(), std::move(fmt), {}, {}, std::move(reg)));
     }
     else
     {
@@ -273,7 +273,7 @@ parse_oct_integer(location& loc, const context<TC>& ctx)
     const auto val = TC::parse_int(str, source_location(region(loc)), 8);
     if(val.is_ok())
     {
-        return ok(basic_value<TC>(val.as_ok(), std::move(fmt), {}, std::move(reg)));
+        return ok(basic_value<TC>(val.as_ok(), std::move(fmt), {}, {}, std::move(reg)));
     }
     else
     {
@@ -331,7 +331,7 @@ parse_hex_integer(location& loc, const context<TC>& ctx)
     const auto val = TC::parse_int(str, source_location(region(loc)), 16);
     if(val.is_ok())
     {
-        return ok(basic_value<TC>(val.as_ok(), std::move(fmt), {}, std::move(reg)));
+        return ok(basic_value<TC>(val.as_ok(), std::move(fmt), {}, {}, std::move(reg)));
     }
     else
     {
@@ -402,7 +402,7 @@ parse_dec_integer(location& loc, const context<TC>& ctx)
         fmt.suffix = sfx;
     }
 
-    return ok(basic_value<TC>(val.as_ok(), std::move(fmt), {}, std::move(reg)));
+    return ok(basic_value<TC>(val.as_ok(), std::move(fmt), {}, {}, std::move(reg)));
 }
 
 template<typename TC>
@@ -667,7 +667,7 @@ parse_floating(location& loc, const context<TC>& ctx)
         fmt.suffix = sfx;
     }
 
-    return ok(basic_value<TC>(val, std::move(fmt), {}, std::move(reg)));
+    return ok(basic_value<TC>(val, std::move(fmt), {}, {}, std::move(reg)));
 }
 
 /* ============================================================================
@@ -785,7 +785,7 @@ parse_local_date(location& loc, const context<TC>& ctx)
     auto fmt = std::move(std::get<1>(val_fmt_reg.unwrap()));
     auto reg = std::move(std::get<2>(val_fmt_reg.unwrap()));
 
-    return ok(basic_value<TC>(std::move(val), std::move(fmt), {}, std::move(reg)));
+    return ok(basic_value<TC>(std::move(val), std::move(fmt), {}, {}, std::move(reg)));
 }
 
 // all the offset_datetime, local_datetime, local_time parses date part.
@@ -954,7 +954,7 @@ parse_local_time(location& loc, const context<TC>& ctx)
     auto fmt = std::move(std::get<1>(val_fmt_reg.unwrap()));
     auto reg = std::move(std::get<2>(val_fmt_reg.unwrap()));
 
-    return ok(basic_value<TC>(std::move(val), std::move(fmt), {}, std::move(reg)));
+    return ok(basic_value<TC>(std::move(val), std::move(fmt), {}, {}, std::move(reg)));
 }
 
 template<typename TC>
@@ -1013,7 +1013,7 @@ parse_local_datetime(location& loc, const context<TC>& ctx)
     local_datetime val(std::get<0>(date_fmt_reg.unwrap()),
                        std::get<0>(time_fmt_reg.unwrap()));
 
-    return ok(basic_value<TC>(val, std::move(fmt), {}, std::move(reg)));
+    return ok(basic_value<TC>(val, std::move(fmt), {}, {}, std::move(reg)));
 }
 
 template<typename TC>
@@ -1140,7 +1140,7 @@ parse_offset_datetime(location& loc, const context<TC>& ctx)
                                        std::get<0>(time_fmt_reg.unwrap())),
                                        offset);
 
-    return ok(basic_value<TC>(val, std::move(fmt), {}, std::move(reg)));
+    return ok(basic_value<TC>(val, std::move(fmt), {}, {}, std::move(reg)));
 }
 
 /* ============================================================================
@@ -1401,7 +1401,7 @@ parse_ml_basic_string(location& loc, const context<TC>& ctx)
     }
 
     return ok(basic_value<TC>(
-            std::move(val), std::move(fmt), {}, std::move(reg)
+            std::move(val), std::move(fmt), {}, {}, std::move(reg)
         ));
 }
 
@@ -1481,7 +1481,7 @@ parse_basic_string(location& loc, const context<TC>& ctx)
     auto val = std::move(val_res.unwrap().first );
     auto reg = std::move(val_res.unwrap().second);
 
-    return ok(basic_value<TC>(std::move(val), std::move(fmt), {}, std::move(reg)));
+    return ok(basic_value<TC>(std::move(val), std::move(fmt), {}, {}, std::move(reg)));
 }
 
 template<typename TC>
@@ -1528,7 +1528,7 @@ parse_ml_literal_string(location& loc, const context<TC>& ctx)
     string_type val(str.begin(), str.end());
 
     return ok(basic_value<TC>(
-            std::move(val), std::move(fmt), {}, std::move(reg)
+            std::move(val), std::move(fmt), {}, {}, std::move(reg)
         ));
 }
 
@@ -1581,7 +1581,7 @@ parse_literal_string(location& loc, const context<TC>& ctx)
     auto reg = std::move(val_res.unwrap().second);
 
     return ok(basic_value<TC>(
-            std::move(val), std::move(fmt), {}, std::move(reg)
+            std::move(val), std::move(fmt), {}, {}, std::move(reg)
         ));
 }
 
@@ -1793,6 +1793,9 @@ parse_key_value_pair(location& loc, context<TC>& ctx)
         // loc = first;
         return err(v_res.unwrap_err());
     }
+
+    // set key reg/fmt
+
     return ok(std::make_pair(std::move(key_res.unwrap()), std::move(v_res.unwrap())));
 }
 
@@ -2049,7 +2052,7 @@ parse_array(location& loc, context<TC>& ctx)
     }
 
     return ok(basic_value<TC>(
-            std::move(val), std::move(fmt), {}, region(first, loc)
+            std::move(val), std::move(fmt), {}, {}, region(first, loc)
         ));
 }
 
@@ -2206,7 +2209,7 @@ insert_value(const inserting_value_kind kind,
                     fmt.fmt = table_format::implicit;
                 }
                 current_table.emplace(key, value_type(
-                    table_type{}, fmt, std::vector<std::string>{}, key_reg));
+                    table_type{}, fmt, std::vector<std::string>{}, {}, key_reg));
 
                 assert(current_table.at(key).is_table());
                 current_table_ptr = std::addressof(current_table.at(key).as_table());
@@ -2353,7 +2356,8 @@ insert_value(const inserting_value_kind kind,
 
                         current_table.emplace(key, value_type(
                                 array_type{ std::move(val) }, std::move(fmt),
-                                std::vector<std::string>{}, std::move(key_reg)
+                                std::vector<std::string>{}, key_format_info{},
+                                key_reg, key_reg
                             ));
 
                         assert( ! current_table.at(key).as_array().empty());
@@ -2604,7 +2608,7 @@ parse_inline_table(location& loc, context<TC>& ctx)
     }
 
     basic_value<TC> retval(
-        std::move(table), std::move(fmt), {}, region(first, loc));
+        std::move(table), std::move(fmt), {}, {}, region(first, loc));
 
     return ok(std::move(retval));
 }
@@ -3171,10 +3175,10 @@ parse_file(location& loc, context<TC>& ctx)
 
     if(loc.eof())
     {
-        return ok(value_type(table_type(), table_format_info{}, {}, region(loc)));
+        return ok(value_type(table_type(), table_format_info{}, {}, {}, region(loc)));
     }
 
-    value_type root(table_type(), table_format_info{}, {}, region(loc));
+    value_type root(table_type(), table_format_info{}, {}, {}, region(loc));
     root.as_table_fmt().fmt = table_format::multiline;
     root.as_table_fmt().indent_type = indent_char::none;
 
@@ -3279,7 +3283,7 @@ parse_file(location& loc, context<TC>& ctx)
             table_format_info fmt;
             fmt.fmt = table_format::multiline;
             fmt.indent_type = indent_char::none;
-            auto tab = value_type(table_type{}, std::move(fmt), std::move(com), reg);
+            auto tab = value_type(table_type{}, std::move(fmt), std::move(com), {}, reg);
 
             auto inserted = insert_value(inserting_value_kind::array_table,
                 std::addressof(root.as_table()),
@@ -3366,7 +3370,7 @@ parse_file(location& loc, context<TC>& ctx)
             table_format_info fmt;
             fmt.fmt = table_format::multiline;
             fmt.indent_type = indent_char::none;
-            auto tab = value_type(table_type{}, std::move(fmt), std::move(com), reg);
+            auto tab = value_type(table_type{}, std::move(fmt), std::move(com), {}, reg);
 
             auto inserted = insert_value(inserting_value_kind::std_table,
                 std::addressof(root.as_table()),
@@ -3441,7 +3445,7 @@ parse_impl(std::vector<location::char_type> cs, std::string fname, const spec& s
     {
         auto src = std::make_shared<std::vector<location::char_type>>(std::move(cs));
         location loc(std::move(src), std::move(fname));
-        return ok(value_type(table_type(), table_format_info{}, std::vector<std::string>{}, region(loc)));
+        return ok(value_type(table_type(), table_format_info{}, std::vector<std::string>{}, {}, region(loc)));
     }
 
     // to simplify parser, add newline at the end if there is no LF.
