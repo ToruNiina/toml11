@@ -557,11 +557,16 @@ class serializer
                 }
             }
         }
-
         if(this->force_inline_ && f == array_format::array_of_tables)
         {
             f = array_format::multiline;
         }
+        if(a.empty() && f == array_format::array_of_tables)
+        {
+            f = array_format::oneline;
+        }
+
+        // --------------------------------------------------------------------
 
         if(f == array_format::array_of_tables)
         {
