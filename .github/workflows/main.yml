@@ -45,6 +45,9 @@ jobs:
             - {compiler: '12', standard: '20'}
             - {compiler: '11', standard: '20'}
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -75,6 +78,9 @@ jobs:
             - {compiler: 'g++-8', standard: '17'}
             - {compiler: 'g++-8', standard: '20'}
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -107,6 +113,9 @@ jobs:
             - {compiler: '8',   standard: '20'}
             - {compiler: '9',   standard: '20'}
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -157,6 +166,9 @@ jobs:
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -178,6 +190,9 @@ jobs:
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -200,6 +215,9 @@ jobs:
         config: ['Release', 'Debug']
         precompile: ['ON', 'OFF']
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
