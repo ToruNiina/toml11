@@ -2425,6 +2425,7 @@ struct storage
 
 // to use __has_builtin
 
+#include <exception>
 #include <initializer_list>
 #include <iterator>
 #include <stdexcept>
