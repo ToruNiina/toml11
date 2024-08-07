@@ -45,6 +45,9 @@ jobs:
             - {compiler: '12', standard: '20'}
             - {compiler: '11', standard: '20'}
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -75,6 +78,9 @@ jobs:
             - {compiler: 'g++-8', standard: '17'}
             - {compiler: 'g++-8', standard: '20'}
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -107,6 +113,9 @@ jobs:
             - {compiler: '8',   standard: '20'}
             - {compiler: '9',   standard: '20'}
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -126,6 +135,58 @@ jobs:
         run: |
             ctest --output-on-failure --test-dir build/
 
+  build-osx-latest:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        standard: ['11', '14', '17', '20']
+        precompile: ['ON', 'OFF']
+    steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
+      - name: Set xcode latest unstable
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Configure
+        run: |
+            cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+      - name: Build
+        run: |
+            cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
+      - name: Test
+        run: |
+            ctest --output-on-failure --test-dir build/
+
+  build-osx-14:
+    runs-on: macos-14
+    strategy:
+      matrix:
+        standard: ['11', '14', '17', '20']
+        precompile: ['ON', 'OFF']
+    steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Configure
+        run: |
+            cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+      - name: Build
+        run: |
+            cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
+      - name: Test
+        run: |
+            ctest --output-on-failure --test-dir build/
+
   build-osx-13:
     runs-on: macos-13
     strategy:
@@ -133,6 +194,9 @@ jobs:
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -154,6 +218,9 @@ jobs:
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -176,6 +243,9 @@ jobs:
         config: ['Release', 'Debug']
         precompile: ['ON', 'OFF']
     steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpu-cores
       - name: Checkout
         uses: actions/checkout@v4
         with:
