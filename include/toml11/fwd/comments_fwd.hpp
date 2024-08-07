@@ -4,6 +4,7 @@
 // to use __has_builtin
 #include "../version.hpp" // IWYU pragma: keep
 
+#include <exception>
 #include <initializer_list>
 #include <iterator>
 #include <stdexcept>
