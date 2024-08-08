@@ -595,7 +595,7 @@ namespace toml
 template<>
 struct from<extlib::foo>
 {
-    template<typename <TC>
+    template<typename TC>
     static extlib::foo from_toml(const toml::basic_value<TC>& v)
     {
         return extlib::foo{
