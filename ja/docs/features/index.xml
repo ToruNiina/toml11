@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>features on toml11</title><link>https://toruniina.github.io/toml11/ja/docs/features/</link><description>Recent content in features on toml11</description><generator>Hugo</generator><language>ja</language><atom:link href="https://toruniina.github.io/toml11/ja/docs/features/index.xml" rel="self" type="application/rss+xml"/><item><title>parsing files</title><link>https://toruniina.github.io/toml11/ja/docs/features/parsing_files/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/parsing_files/</guid><description>ファイル・文字列をパースする # toml11では、toml::parse や toml::try_parse を使って、ファイルや文字列、バイト列をパースすることができます。
+これらは成功時に toml::value を返します。 ファイルは常にテーブルになりますが、返り値が toml::table でないことに気を付けてください。 toml::value はファイルに関するメタデータを持っており、 toml::table は std::unordered_map&amp;lt;std::stirng, toml::value&amp;gt; のエイリアスでしかありません。 メタデータを返すために、 toml::table ではなく toml::value を返しています。 ファイルのルートに対応する toml::value は常に table_type を持ちます。
+ファイルをパースする # ファイルをパースする際は、 toml::parse または toml::try_parse を使います。
+toml::parse # std::stringでファイル名を指定する # toml::parse は、文字列でファイル名を受け取り、そのファイルを開いてパースします。
+以下のサンプルは、input.tomlというファイルをパースし、titleという変数を文字列として取り出し、出力するコードです。
+#include &amp;lt;toml.hpp&amp;gt; #include &amp;lt;iostream&amp;gt; int main() { const toml::value input = toml::parse(&amp;#34;input.toml&amp;#34;); std::cout &amp;lt;&amp;lt; input.at(&amp;#34;title&amp;#34;).as_string() &amp;lt;&amp;lt; std::endl; return 0; } std::filesystem::pathでファイルを指定する # toml::parse には、std::filesystem::pathを渡すことも可能です。
+当然ですが、&amp;lt;filesystem&amp;gt;がサポートされるC++17以降でなければ使用できません。
+std::istreamで入力ストリームを指定する # toml::parse には、std::istreamを渡すことも可能です。</description></item><item><title>getting values</title><link>https://toruniina.github.io/toml11/ja/docs/features/value/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/value/</guid><description>値を取り出す # ここでは、 toml::value が格納している値にアクセスする方法を説明します。
+メンバ関数を使って値にアクセスする # is_something と as_something # toml::value は is_boolean() や is_integer() などのメンバ関数を持っており、 これらを使うと持っている型を調べることができます。
+また、 as_boolean(), as_integer() などのメンバ関数も持っており、 これらを使ってその型にアクセスすることができます。
+完全なリストは toml::value のリファレンス を参照してください。
+toml::value v = /* ... */; if(v.is_integer()) { std::cout &amp;lt;&amp;lt; v.as_integer() &amp;lt;&amp;lt; std::endl; } 指定された値と異なる型が格納されていた場合、 toml::type_error が送出されます。
+その what() は以下のようなメッセージを含みます。
+[error] toml::value::as_string(): bad_cast to string --&amp;gt; input.toml | 1 | a = 123_456 | ^^^^^^^-- the actual type is integer toml::value_t # 型情報は enum class toml::value_t で識別できます。</description></item><item><title>error message</title><link>https://toruniina.github.io/toml11/ja/docs/features/error_message/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/error_message/</guid><description>エラーメッセージを出力する # toml11は toml::parse や toml::get&amp;lt;T&amp;gt;/find&amp;lt;T&amp;gt;, as_integer() などから ファイル内の位置情報を含んだエラーメッセージを出力します。
+例えば、パース時に整数の文法エラーを発見した場合、
+[error] bad integer: `_` must be surrounded by digits --&amp;gt; internal string at line 64 in file main.cpp | 1 | a = 123__456 | ^-- invalid underscore Hint: valid : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755 Hint: invalid: _42, 1__000, 0123 あるいは実際に格納されている型と異なる型を要求した場合
+[error] toml::value::as_string(): bad_cast to string --&amp;gt; input.toml | 1 | a = 123_456 | ^^^^^^^-- the actual type is integer toml11は toml::value からこのようなエラーメッセージを作成する方法を提供します。</description></item><item><title>serializing values</title><link>https://toruniina.github.io/toml11/ja/docs/features/serialize/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/serialize/</guid><description>TOMLファイルを出力する # toml::format を使うと、 toml::value を文字列にすることができます。
+#include &amp;lt;toml.hpp&amp;gt; #include &amp;lt;cassert&amp;gt; int main() { const toml::value v(toml::table{ {&amp;#34;a&amp;#34;, 42}, {&amp;#34;b&amp;#34;, &amp;#34;foo&amp;#34;}, }); const std::string s = toml::format(v); const toml::value u = toml::parse_str(s); assert(u.at(&amp;#34;a&amp;#34;).as_integer() == 42); assert(u.at(&amp;#34;b&amp;#34;).as_string() == &amp;#34;foo&amp;#34;); return 0; } table_type を格納している toml::value が渡されると、それがファイルのルートテーブルとして解釈されます。
+もし table_type 以外を格納している toml::value が渡されると、その値だけがフォーマットされます。
+一部のフォーマット指定では、キーが渡されていないとフォーマットできないことがあります。 例えば、 toml::array_format::array_of_tables は [[array.of.tables]] の形でフォーマットするので、 キーへのアクセスを要求します。
+キーを要求するフォーマット指定の値がキーなしで渡された場合、 toml::serialization_error が送出されます。
+他にも、フォーマット指定と矛盾する値が含まれる場合には、 toml::serialization_error が送出されます。 例えば、 integer_format::hex が指定された整数が負の値を持っている場合や、 string_format::literal が指定された文字列が改行を含んでいる場合などです。
+フォーマットの指定方法は後述します。
+キーを渡して出力する # toml::format には std::string としてキーを渡すことが可能です。</description></item><item><title>configuring types</title><link>https://toruniina.github.io/toml11/ja/docs/features/configure_types/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/configure_types/</guid><description>型をカスタマイズする # toml::value は integer_type として std::int64_t を、 table_type として std::unordered_map&amp;lt;key_type, value_type&amp;gt; を使用します。
+しかし、場合によっては boost::multiprecision::int128_t や、 std::map を使用したい場合もあります。
+そのため、 toml::value は template 引数を取って格納する型を変えられるように実装されています。
+std::string が実際には std::basic_string&amp;lt;char, std::char_traits&amp;lt;char&amp;gt;, std::allocator&amp;lt;char&amp;gt;&amp;gt; の エイリアスであるように、 toml::value は実際には toml::basic_value&amp;lt;toml::type_config&amp;gt; のエイリアスです。
+ここでは、 toml::type_config が持つ型と、異なる config 型を定義する方法を説明します。
+type_config # type_config は、以下のメンバ型とstaticメンバ関数を持つクラスです。
+namespace toml { struct type_config { using comment_type = preserve_comments; using boolean_type = bool; using integer_type = std::int64_t; using floating_type = double; using string_type = std::string; template&amp;lt;typename T&amp;gt; using array_type = std::vector&amp;lt;T&amp;gt;; template&amp;lt;typename K, typename T&amp;gt; using table_type = std::unordered_map&amp;lt;K, T&amp;gt;; static result&amp;lt;integer_type, error_info&amp;gt; parse_int(const std::string&amp;amp; str, const source_location src, const std::uint8_t base); static result&amp;lt;floating_type, error_info&amp;gt; parse_float(const std::string&amp;amp; str, const source_location src, const bool is_hex); }; } toml::basic_value&amp;lt;TypeConfig&amp;gt; は、格納する boolean_type を TypeConfig::boolean_type、 格納する integer_type を TypeConfig::integer_type 、のようにして定義しています。</description></item><item><title>toml literal</title><link>https://toruniina.github.io/toml11/ja/docs/features/literal/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/literal/</guid><description>_tomlリテラル # &amp;quot;&amp;quot;_tomlリテラルによって、TOMLファイルをその場でフォーマットできます。
+#include &amp;lt;toml.hpp&amp;gt; int main() { using namespace toml::literals::toml_literals; const auto v = &amp;#34;a = 42&amp;#34;_toml; assert(v.at(&amp;#34;a&amp;#34;).as_integer() == 42); return 0; } 改行を含む場合、生文字列リテラルが便利です。
+#include &amp;lt;toml.hpp&amp;gt; int main() { using namespace toml::literals::toml_literals; const auto v = R&amp;#34;( a = 42 b = &amp;#34;foo&amp;#34; )&amp;#34;_toml; assert(v.at(&amp;#34;a&amp;#34;).as_integer() == 42); assert(v.at(&amp;#34;b&amp;#34;).as_string() == &amp;#34;foo&amp;#34;); return 0; } 値が単体で書かれていた場合、その値が返されます。
+#include &amp;lt;toml.hpp&amp;gt; int main() { using namespace toml::literals::toml_literals; const auto a = &amp;#34;42&amp;#34;_toml; const auto b = &amp;#34;12:34:56&amp;#34;_toml; assert(v.</description></item><item><title>toml spec</title><link>https://toruniina.github.io/toml11/ja/docs/features/toml_spec/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/toml_spec/</guid><description>TOML言語バージョン # toml::spec によって、 toml::parse や toml::format で使用するTOML言語のバージョンや、個別の機能フラグを指定することができます。
+TOMLのバージョンを指定する # toml::spec は toml::semantic_version から構築できます。
+#include &amp;lt;toml.hpp&amp;gt; int main() { toml::spec spec(toml::semantic_version(1, 1, 0)); return 0; } ですがこれは長いので、toml::spec::v()関数が用意されています。
+#include &amp;lt;toml.hpp&amp;gt; int main() { toml::spec spec = toml::spec::v(1, 1, 0); return 0; } 特に指定しない場合、デフォルトの値で構築する toml::spec::default_version() が使用されます。
+デフォルトの値はtoml11のバージョンによって変わりますが、その時点でリリースされているTOML言語の最新バージョンに追従します。
+v4.0.0現在、TOML v1.1.0はまだリリースされていないため、デフォルトのTOMLバージョンはv1.0.0です。
+TOML v1.1.0の一部の機能にはかなり長い議論が続いており、まだ差し戻される可能性があります。
+実際に差し戻された場合、toml11はマイナーバージョンアップでそれらの機能を削除、もしくは対応するそれ以降のバージョンに移動します。
+そのような意味で、将来のバージョンに関する機能は全て不安定なものと考えてください。
+バージョン指定でパースする # toml::parse のオーバーロードは、ファイル名に続いてtoml::specを受け取ります。
+これによって、使用するTOMLバージョンを変更できます。
+#include &amp;lt;toml.hpp&amp;gt; int main() { toml::value input = toml::parse(&amp;#34;input.toml&amp;#34;, toml::spec::v(1, 1, 0)); return 0; } バージョン指定でシリアライズする # toml::format のオーバーロードは、 toml::value に続いて toml::spec を受け取ります。</description></item><item><title>extension</title><link>https://toruniina.github.io/toml11/ja/docs/features/extension/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/extension/</guid><description>TOML言語拡張 # TOML言語は現在 v1.0.0 が最新版ですが、その後もいくつかの新機能が議論の末マージされ、 v1.1.0に向けて議論が続いています。
+そこで議論された機能の中には、有用なケースが少ないと考えられたものや、 提案された際の方向性では導入が難しいもの、導入がされなかったものも多くあります。
+toml11では、そのような機能のなかからいくつかを選んで、実験的に実装を行っています。 これらはtoml11ではサポートされていますが、他のパーサではサポートされておらず、また サポートされる予定もないことに注意してください。
+また、これらの機能はデフォルトで使用されない設定になっており、 使用するためには機能フラグをそれぞれ true にしなければなりません。 非標準の機能なので、あえて明示的に書かなければ使えないように設計しています。
+いくつかの機能は今後TOML言語自体に新機能としてマージされる可能性があります。 もし以下の拡張機能を完全に置き換えられる機能が導入された場合、拡張機能は 本来の機能の実装後にマイナーバージョンアップで削除される可能性があります。
+null # TOMLファイル内で値としてnullを使えるようになります。
+a = null b = [ 1, 2, 3, null, 5] これを使用するには、 toml::spec の ext_null_value を true にします。
+パースすると、デフォルト構築した場合と同様の toml::value_t::empty となります。 ただし、ファイル内の位置情報は設定されます。
+null は値の文脈でのみパースされるので、キーに null を使用した際はこれまで通り &amp;quot;null&amp;quot; という文字列のキーとして解釈されます。
+#include &amp;lt;toml.hpp&amp;gt; int main() { toml::spec spec; spec.ext_null_value = true; const auto v = toml::parse_str(&amp;#34;a = null&amp;#34;, spec); assert(v.at(&amp;#34;a&amp;#34;).is_empty()); assert(v.</description></item></channel></rss>
