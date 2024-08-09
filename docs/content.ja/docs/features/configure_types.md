@@ -101,6 +101,17 @@ parse_float(const std::string& str, const source_location src, const bool is_hex
 `toml::parse(...)` を `toml::parse<toml::ordered_type_config>(...)` として呼び出すことで、
 `toml::ordered_value` を使用することができます。
 
+```cpp
+#include <toml.hpp>
+
+int main()
+{
+    toml::ordered_value input = toml::parse<toml::ordered_type_config>("example.toml");
+    std::cout << toml::format(input) << std::endl;
+    return 0;
+}
+```
+
 ## コメントを保存しない
 
 `type_config` は `comment_type` でコメントを保存するコンテナを定義しています。

@@ -493,10 +493,22 @@ For details on possible formatting specifications, please refer to the [document
 
 ### Configuring Types
 
-Many types held by `toml::value`, such as `integer_type` and `array_type`, can be modified by changing the `type_config` type.
+Many types in `toml::value`, such as `integer_type`, `array_type`, `table_type`, etc, can be modified by changing the `type_config` type.
 
-Refer to the [`examples` directory](https://github.com/ToruNiina/toml11/tree/main/examples) for complex use cases such as using multi-precision integers, changing containers, and normalizing Unicode.
+One commonly used example is an `ordered_map` that keeps the added order.
+toml11 provides a`type_config` that changes `table_type` to `ordered_map` as `toml::ordered_type_config`.
 
+```cpp
+const toml::ordered_value input = toml::parse<toml::ordered_type_config>("input.toml");
+```
+
+Here, `toml::ordered_value` is an alias of `toml::basic_value<toml::ordered_type_config>`.
+
+Note that, since `toml::value` uses `std::unordered_map`, once you convert it to `toml::value`, then the order of the values will be randomized.
+
+For more details about how to implement `type_config` variant, please refer to the [documentation](https://toruniina.github.io/toml11/docs/features/configure_types/).
+
+Also, refer to the [`examples` directory](https://github.com/ToruNiina/toml11/tree/main/examples) for complex use cases such as using multi-precision integers, changing containers, and normalizing Unicode.
 Use these examples as references for implementing such configurations.
 
 ## Examples

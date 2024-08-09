@@ -82,6 +82,17 @@ Using this, `toml::ordered_value` is defined, along with aliases for its array a
 
 You can use `toml::ordered_value` by calling `toml::parse(...)` as `toml::parse<toml::ordered_type_config>(...)`.
 
+```cpp
+#include <toml.hpp>
+
+int main()
+{
+    toml::ordered_value input = toml::parse<toml::ordered_type_config>("example.toml");
+    std::cout << toml::format(input) << std::endl;
+    return 0;
+}
+```
+
 ## Not Preserving Comments
 
 The `type_config` defines a container for storing comments via `comment_type`.
