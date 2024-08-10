@@ -9300,6 +9300,36 @@ T find_or(const basic_value<TC>& v, const K1& k1, const K2& k2, const K3& k3, co
     }
 }
 
+template<typename Value, typename K1, typename K2, typename K3, typename K4, typename ... Ks>
+auto find_or(Value&& v, const K1& k1, const K2& k2, K3&& k3, K4&& k4, Ks&& ... keys) noexcept
+    -> cxx::enable_if_t<
+        detail::is_basic_value<cxx::remove_cvref_t<Value>>::value,
+        decltype(find_or(v, k2, std::forward<K3>(k3), std::forward<K4>(k4), std::forward<Ks>(keys)...))
+    >
+{
+    try
+    {
+        return find_or(v.at(k1), k2, std::forward<K3>(k3), std::forward<K4>(k4), std::forward<Ks>(keys)...);
+    }
+    catch(...)
+    {
+        return detail::last_one(k4, keys...);
+    }
+}
+
+template<typename T, typename TC, typename K1, typename K2, typename K3, typename K4, typename ... Ks>
+T find_or(const basic_value<TC>& v, const K1& k1, const K2& k2, const K3& k3, const K4& k4, const Ks& ... keys) noexcept
+{
+    try
+    {
+        return find_or<T>(v.at(k1), k2, k3, k4, keys...);
+    }
+    catch(...)
+    {
+        return static_cast<T>(detail::last_one(k4, keys...));
+    }
+}
+
 } // toml
 #endif // TOML11_FIND_HPP
 #ifndef TOML11_CONVERSION_HPP

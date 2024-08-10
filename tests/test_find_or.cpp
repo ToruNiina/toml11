@@ -566,4 +566,38 @@ TEST_CASE("testing find_or(val, keys..., opt)")
 
         CHECK_EQ(v1, "hoge");
     }
+
+    {
+        const toml::value v(
+            toml::table{ {"foo",
+                toml::table{ {"bar",
+                    toml::table{ {"baz",
+                        toml::table{ {"faz",
+                            42
+                        } }
+                    } }
+                } }
+            } }
+        );
+        auto v1 = toml::find_or<std::string>(v, "foo", "bar", "baz", "faz", "hoge");
+
+        CHECK_EQ(v1, "hoge");
+    }
+
+    {
+        const toml::value v(
+            toml::table{ {"foo",
+                toml::table{ {"bar",
+                    toml::table{ {"baz",
+                        toml::table{ {"faz",
+                            42
+                        } }
+                    } }
+                } }
+            } }
+        );
+        auto v1 = toml::find_or<int>(v, "foo", "bar", "baz", "faz", 23);
+
+        CHECK_EQ(v1, 42);
+    }
 }
