@@ -333,16 +333,14 @@ find_or(const basic_value<TC>& v, const K& ky, T opt)
 
 namespace detail
 {
-template<typename T>
-T& last_one(T& arg)
+
+template<typename ...Ts>
+auto last_one(Ts&&... args)
+ -> decltype(std::get<sizeof...(Ts)-1>(std::forward_as_tuple(std::forward<Ts>(args)...)))
 {
-    return arg;
+    return std::get<sizeof...(Ts)-1>(std::forward_as_tuple(std::forward<Ts>(args)...));
 }
-template<typename T1, typename T2, typename ...Ts>
-auto last_one(T1&, T2& arg, Ts& ... args) -> decltype(last_one(arg, args...))
-{
-    return last_one(arg, args...);
-}
+
 } // detail
 
 template<typename Value, typename K1, typename K2, typename K3, typename ... Ks>
