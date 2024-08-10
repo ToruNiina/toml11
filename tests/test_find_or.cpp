@@ -505,6 +505,39 @@ TEST_CASE("testing find_or(val, keys..., opt)")
         CHECK_EQ(v1, "qux");
         CHECK_EQ(v2, "hoge");
 
+        // v1 and v2 are mutable
+        v1 = "hoge";
+        v2 = "fuga";
+
+        CHECK_EQ(v1, "hoge");
+        CHECK_EQ(v2, "fuga");
+    }
+    // the same with deeper table
+    {
+        toml::value v(
+            toml::table{ {"A",
+            toml::table{ {"B",
+            toml::table{ {"C",
+            toml::table{ {"D",
+            toml::table{ {"E",
+            toml::table{ {"F",
+                "foo"
+            } }
+            } }
+            } }
+            } }
+            } }
+            } }
+        );
+        std::string opt("bar");
+
+        auto& v1 = toml::find_or(v, "A", "B", "C", "D", "E", "F", opt);
+        auto& v2 = toml::find_or(v, "A", "B", "C", "D", "E", "G", opt);
+
+        CHECK_EQ(v1, "foo");
+        CHECK_EQ(v2, "bar");
+
+        // v1 and v2 are mutable
         v1 = "hoge";
         v2 = "fuga";
 
@@ -531,6 +564,30 @@ TEST_CASE("testing find_or(val, keys..., opt)")
         CHECK_EQ(v1, "qux");
         CHECK_EQ(v2, "hoge");
     }
+    {
+        toml::value v(
+            toml::table{ {"A",
+            toml::table{ {"B",
+            toml::table{ {"C",
+            toml::table{ {"D",
+            toml::table{ {"E",
+            toml::table{ {"F",
+                "foo"
+            } }
+            } }
+            } }
+            } }
+            } }
+            } }
+        );
+        std::string opt("bar");
+
+        const auto& v1 = toml::find_or(v, "A", "B", "C", "D", "E", "F", opt);
+        const auto& v2 = toml::find_or(v, "A", "B", "C", "D", "E", "G", opt);
+
+        CHECK_EQ(v1, "foo");
+        CHECK_EQ(v2, "bar");
+    }
 
     // explicitly specify type, doing type conversion
     {
@@ -551,7 +608,32 @@ TEST_CASE("testing find_or(val, keys..., opt)")
         CHECK_EQ(v1, 42);
         CHECK_EQ(v2, 6*9);
     }
+    {
+        toml::value v(
+            toml::table{ {"A",
+            toml::table{ {"B",
+            toml::table{ {"C",
+            toml::table{ {"D",
+            toml::table{ {"E",
+            toml::table{ {"F",
+                42
+            } }
+            } }
+            } }
+            } }
+            } }
+            } }
+        );
+        int opt = 6 * 9;
 
+        auto v1 = toml::find_or<int>(v, "A", "B", "C", "D", "E", "F", opt);
+        auto v2 = toml::find_or<int>(v, "A", "B", "C", "D", "E", "G", opt);
+
+        CHECK_EQ(v1, 42);
+        CHECK_EQ(v2, 6*9);
+    }
+
+    // the value exists, but type is different from the expected.
     {
         const toml::value v(
             toml::table{ {"foo",
@@ -563,7 +645,31 @@ TEST_CASE("testing find_or(val, keys..., opt)")
             } }
         );
         auto v1 = toml::find_or<std::string>(v, "foo", "bar", "baz", "hoge");
+        auto v2 = toml::find_or<double     >(v, "foo", "bar", "baz", 3.14);
 
         CHECK_EQ(v1, "hoge");
+        CHECK_EQ(v2, 3.14);
+    }
+    {
+        const toml::value v(
+            toml::table{ {"A",
+            toml::table{ {"B",
+            toml::table{ {"C",
+            toml::table{ {"D",
+            toml::table{ {"E",
+            toml::table{ {"F",
+                42
+            } }
+            } }
+            } }
+            } }
+            } }
+            } }
+        );
+        auto v1 = toml::find_or<std::string>(v, "A", "B", "C", "D", "E", "F", "bar");
+        auto v2 = toml::find_or<double     >(v, "A", "B", "C", "D", "E", "F", 3.14);
+
+        CHECK_EQ(v1, "bar");
+        CHECK_EQ(v2, 3.14);
     }
 }
