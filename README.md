@@ -618,6 +618,8 @@ I appreciate the help of the contributors who introduced the great feature to th
 - Ken Matsui (@ken-matsui)
   - Support user-defined error message prefix
   - Support dynamic color mode
+  - Support `std::optional` members for `TOML11_DEFINE_CONVERSION_NON_INTRUSIVE`
+  - Make `thread_local` for `color_mode` optional
 - Giel van Schijndel (@muggenhor)
   - Remove needless copy in `parse` function
 - Lukáš Hrázký (@lukash)
@@ -656,6 +658,10 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Fix not checking for \r\n when parsing line comments
 - 萧迩珀 (@CDK6182CHR)
   - Support template into_toml members
+- Pino Toscano (@pinotree)
+  - Suppress warnings by manually cast file size to `std::streamsize`
+- Jack W (@jackwil1)
+  - Fix typos in documentation template syntax
 
 ## Licensing terms
 

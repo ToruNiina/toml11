@@ -656,6 +656,10 @@ toml11 v3からは複数の破壊的変更が追加されています。
   - Fix not checking for \r\n when parsing line comments
 - 萧迩珀 (@CDK6182CHR)
   - Support template into_toml members
+- Pino Toscano (@pinotree)
+  - Suppress warnings by manually cast file size to `std::streamsize`
+- Jack W (@jackwil1)
+  - Fix typos in documentation template syntax
 
 ## Licensing terms
 
