@@ -12,9 +12,7 @@ ANSIエスケープシーケンスをサポートしていないターミナル�
 
 ## マクロ
 
-```cpp
-TOML11_COLORIZE_ERROR_MESSAGE
-```
+### `TOML11_COLORIZE_ERROR_MESSAGE`
 
 コンパイル時にこのマクロが定義されていた場合（`-DTOML11_COLORIZE_ERROR_MESASGE`）、
 デフォルトでエラーメッセージに色が付きます。
@@ -22,6 +20,17 @@ TOML11_COLORIZE_ERROR_MESSAGE
 定義されていなかった場合、デフォルトでは色は付きません。以下の `toml::color::enable()` を
 使用して指定する必要があります。
 
+### `TOML11_USE_THREAD_LOCAL_COLORIZATION`
+
+コンパイル時にこのマクロが定義されていた場合（`-DTOML11_COLORIZE_ERROR_MESASGE`）、
+`toml::color::enable`の設定が`thread_local`になります。
+この場合、`toml::color::enable()`や`toml::color::disable()`は、それを呼び出したスレッドでの設定しか変更しません。
+つまり、新しいスレッドを起動した際にデフォルトと異なる設定にしたい場合は、再度設定が必要になります。
+その代わり、`toml::color::enable()`や`toml::color::disable()`はスレッドセーフになります。
+
+デフォルトでは設定はグローバルです。
+グローバルの場合、一つのスレッドが`toml::color::enable()`を実行した場合、すべてのスレッドで色が付きます。
+ただし、あるスレッドが`enable()`または`disable()`を実行している間に別のスレッドが`enable()`、`disable()`、`should_color()`を実行した場合、その結果は未定義です。
 
 ## 関数
 

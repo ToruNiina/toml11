@@ -12,13 +12,22 @@ In terminals or other output destinations that do not support ANSI escape code, 
 
 ## Macros
 
-```cpp
-TOML11_COLORIZE_ERROR_MESSAGE
-```
+### `TOML11_COLORIZE_ERROR_MESSAGE`
 
 If this macro is defined during compilation (`-DTOML11_COLORIZE_ERROR_MESASGE`), error messages are colored by default.
 
 If not defined, colors are not applied by default. You need to specify them using `toml::color::enable()`.
+
+### `TOML11_USE_THREAD_LOCAL_COLORIZATION`
+
+If this macro is defined during compilation (`-DTOML11_USE_THREAD_LOCAL_COLORIZATION`), the colorization flag becomes `thread_local`.
+In this case, `toml::color::enable()` or `toml::color::disable()` will only affect the colorization flag in the thread that called it.
+This means that if you want to use a different setting from the default, you will need to set it again when starting a new thread.
+This makes `toml::color::enable()` and `toml::color::disable()` thread safe.
+
+By default, the setting is global.
+When it is global, if one thread executes `toml::color::enable()`, the error messages will be colored in all threads.
+However, if one thread executes `enable()` or `disable()` while another executes `enable()`, `disable()` or `should_color()`, the result is undefined.
 
 ## Functions
 
