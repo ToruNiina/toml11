@@ -6,6 +6,24 @@ weight = 4
 
 # Change Log
 
+# v4.2.0
+
+## Added
+
+- Support `std::optional` members for `TOML11_DEFINE_CONVERSION_NON_INTRUSIVE` (by Ken Matsui)
+- Make `thread_local` for `color_mode` optional (by Ken Matsui)
+- add usage with CPM to README
+- add explanation about `ordered_map` to README and update doc
+
+## Fixed
+
+- Manually cast file size to `std::streamsize` (by Pino Toscano)
+- Typographical error in `table_format` output
+- Format an empty array specified as array-of-table in one line
+- Added a missing include file
+- Fix typos in documentation template syntax (by Jack W)
+- Fix `toml::find_or` for deeply nested tables
+
 # v4.1.0
 
 ## Added

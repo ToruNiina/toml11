@@ -6,6 +6,24 @@ weight = 4
 
 # Change Log
 
+# v4.2.0
+
+## Added
+
+- `TOML11_DEFINE_CONVERSION_NON_INTRUSIVE` で `std::optional` なメンバをサポート (by Ken Matsui @ken-matsui)
+- `thread_local`だった`color_mode`をデフォルトでグローバルにし、`thread_local`にするオプションを追加 (by Ken Matsui @ken-matsui)
+- CPMでの使い方を`README`に追加
+- `README`に`ordered_map`への言及を追加し、ドキュメントでの説明を追加
+
+## Fixed
+
+- ファイルサイズの`std::streamsize`への変換で警告が出ることがある問題を修正 (by Pino Toscano @pinotree)
+- `table_format`に不正な値が与えられた際の出力のtypoを修正
+- `array`のフォーマットが`array_of_tables`と指定されていてかつ空の場合の出力を修正
+- 特定の環境で`include`が足りずにコンパイルできない問題を修正
+- ドキュメントに含まれる文法エラーを修正 (by Jack W)
+- `toml::find_or` を深くネストされたテーブルに使用した際にコンパイルが失敗する問題を修正
+
 # v4.1.0
 
 ## Added
