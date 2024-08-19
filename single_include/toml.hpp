@@ -4829,7 +4829,8 @@ class region
     // a value that is constructed manually does not have input stream info
     region()
         : source_(nullptr), source_name_(""), length_(0),
-          first_line_(0), first_column_(0), last_line_(0), last_column_(0)
+          first_(0), first_line_(0), first_column_(0), last_(0), last_line_(0),
+          last_column_(0)
     {}
 
     // a value defined in [first, last).
