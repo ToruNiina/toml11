@@ -20,7 +20,9 @@ option(TOML11_PRECOMPILE "precompile toml11 library" OFF)
 
 include(CMakeDependentOption)
 cmake_policy(PUSH)
+if(POLICY CMP0127)
 cmake_policy(SET CMP0127 OLD) # syntax of condition changed in 3.22
+endif()
 cmake_dependent_option(TOML11_INSTALL "install toml11 library" ON
     "${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}" OFF)
 cmake_dependent_option(TOML11_BUILD_EXAMPLES "build toml11 examples" OFF
