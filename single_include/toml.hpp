@@ -5323,7 +5323,9 @@ TOML11_INLINE std::ostringstream& format_underline(std::ostringstream& oss,
     oss << make_string(lnw + 1, ' ')
         << color::bold << color::blue << " | " << color::reset;
 
-    oss << make_string(col-1 /*1-origin*/, ' ')
+    // in case col is 0, so we don't create a string with size_t max length
+    const std::size_t sanitized_col = col == 0 ? 0 : col - 1 /*1-origin*/;
+    oss << make_string(sanitized_col, ' ')
         << color::bold << color::red
         << make_string(len, '^') << "-- "
         << color::reset << msg << '\n';
