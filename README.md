@@ -71,20 +71,37 @@ int main()
 }
 ```
 
-For more details, please refer to the [documentation](https://toruniina.github.io/toml11/).
+
+Fix syntax errors in examples
+Fix syntax errors in examplesFor more details, please refer to the [documentation](https://toruniina.github.io/toml11/).
 
 ## Table of Contents
 
-- [Integration](#integration)
-- [Features](#features)
-  - [parsing a file](#parsing-a-file)
-  - [finding a value](#finding-a-value)
-  - [comments](#comments)
-  - [error messages](#error-messages)
-  - [serialization](#serialization)
-- [Breaking Changes from v3](#changes-from-v3)
-- [Contributors](#contributors)
-- [Licensing Terms](#licensing-terms)
+- [toml11](#toml11)
+  - [Example](#example)
+  - [Table of Contents](#table-of-contents)
+  - [Integration](#integration)
+    - [Single Include File](#single-include-file)
+    - [git submodule](#git-submodule)
+    - [CMake `FetchContent`](#cmake-fetchcontent)
+    - [CMake Package Manager (CPM)](#cmake-package-manager-cpm)
+    - [Install Using CMake](#install-using-cmake)
+    - [Precompile Library](#precompile-library)
+    - [Building Example](#building-example)
+    - [Building Tests](#building-tests)
+  - [Features](#features)
+    - [Parsing a File](#parsing-a-file)
+    - [finding a value](#finding-a-value)
+    - [comments](#comments)
+    - [error messages](#error-messages)
+    - [serialization](#serialization)
+    - [Configuring Types](#configuring-types)
+  - [Examples](#examples)
+  - [Changes from v3](#changes-from-v3)
+    - [Breaking Changes](#breaking-changes)
+    - [Added features](#added-features)
+  - [Contributors](#contributors)
+  - [Licensing terms](#licensing-terms)
 
 ## Integration
 
