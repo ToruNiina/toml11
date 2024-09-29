@@ -23,14 +23,15 @@ toml11 is a feature-rich TOML language library for C++11/14/17/20.
 
 ## Example
 
+```toml
+# example.toml
+title = "an example toml file"
+nums  = [3, 1, 4, 1, 5] # pi!
+```
+
 ```cpp
 #include <toml.hpp>
 #include <iostream>
-
-// ```toml
-// title = "an example toml file"
-// nums  = [3, 1, 4, 1, 5] # pi!
-// ```
 
 int main()
 {
@@ -50,7 +51,7 @@ int main()
     }
     if(data.at("nums").is_array())
     {
-        data.push_back(9);
+        data["nums"].as_array().push_back(9);
     }
 
     // check comments
