@@ -72,8 +72,7 @@ int main()
 ```
 
 
-Fix syntax errors in examples
-Fix syntax errors in examplesFor more details, please refer to the [documentation](https://toruniina.github.io/toml11/).
+For more details, please refer to the [documentation](https://toruniina.github.io/toml11/).
 
 ## Table of Contents
 
