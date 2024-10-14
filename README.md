@@ -141,7 +141,16 @@ After [adding cpm to your project](https://github.com/cpm-cmake/CPM.cmake?tab=re
 ```cmake
 include(cmake/CPM.cmake)
 
-CPMAddPackage("gh:ToruNiina/toml11@4.1.0")
+CPMAddPackage("gh:ToruNiina/toml11@4.2.0")
+
+# OR
+
+CPMAddPackage(
+    NAME toml11
+    GITHUB_REPOSITORY "ToruNiina/toml11"
+    VERSION 4.2.0
+    OPTIONS "TOML11_PRECOMPILE ON" # to pre-compile
+    )
 
 add_executable(main main.cpp)
 target_link_libraries(main PUBLIC toml11::toml11)
