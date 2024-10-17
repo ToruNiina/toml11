@@ -67,8 +67,8 @@ class location
 
   private:
 
-    void advance_line_number(const std::size_t n);
-    void retrace_line_number(const std::size_t n);
+    void advance_impl(const std::size_t n);
+    void retrace_impl(const std::size_t n);
 
   private:
 

@@ -15,12 +15,12 @@ TOML11_INLINE void location::advance(std::size_t n) noexcept
     assert(this->is_ok());
     if(this->location_ + n < this->source_->size())
     {
-        this->advance_line_number(n);
+        this->advance_impl(n);
         this->location_ += n;
     }
     else
     {
-        this->advance_line_number(this->source_->size() - this->location_);
+        this->advance_impl(this->source_->size() - this->location_);
         this->location_ = this->source_->size();
     }
 }
@@ -34,7 +34,7 @@ TOML11_INLINE void location::retrace(std::size_t n) noexcept
     }
     else
     {
-        this->retrace_line_number(n);
+        this->retrace_impl(n);
         this->location_ -= n;
     }
 }
@@ -89,7 +89,7 @@ TOML11_INLINE std::size_t location::column_number() const noexcept
 }
 
 
-TOML11_INLINE void location::advance_line_number(const std::size_t n)
+TOML11_INLINE void location::advance_impl(const std::size_t n)
 {
     assert(this->is_ok());
     assert(this->location_ + n <= this->source_->size());
@@ -102,7 +102,7 @@ TOML11_INLINE void location::advance_line_number(const std::size_t n)
 
     return;
 }
-TOML11_INLINE void location::retrace_line_number(const std::size_t n)
+TOML11_INLINE void location::retrace_impl(const std::size_t n)
 {
     assert(this->is_ok());
     assert(n <= this->location_); // loc - n >= 0
