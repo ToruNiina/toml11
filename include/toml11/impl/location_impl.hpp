@@ -66,30 +66,6 @@ TOML11_INLINE location::char_type location::peek()
     }
 }
 
-TOML11_INLINE void location::set_location(const std::size_t loc) noexcept
-{
-    if(this->location_ == loc)
-    {
-        return ;
-    }
-
-    if(loc == 0)
-    {
-        this->line_number_ = 1;
-    }
-    else if(this->location_ < loc)
-    {
-        const auto d = loc - this->location_;
-        this->advance_line_number(d);
-    }
-    else
-    {
-        const auto d = this->location_ - loc;
-        this->retrace_line_number(d);
-    }
-    this->location_ = loc;
-}
-
 TOML11_INLINE std::string location::get_line() const
 {
     assert(this->is_ok());

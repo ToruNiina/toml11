@@ -54,7 +54,6 @@ class location
     {
         return this->location_;
     }
-    void set_location(const std::size_t loc) noexcept;
 
     std::size_t line_number() const noexcept
     {

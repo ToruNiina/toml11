@@ -3459,7 +3459,7 @@ parse_impl(std::vector<location::char_type> cs, std::string fname, const spec& s
     // skip BOM if found
     if(loc.source()->size() >= 3)
     {
-        auto first = loc.get_location();
+        auto first = loc;
 
         const auto c0 = loc.current(); loc.advance();
         const auto c1 = loc.current(); loc.advance();
@@ -3468,7 +3468,7 @@ parse_impl(std::vector<location::char_type> cs, std::string fname, const spec& s
         const auto bom_found = (c0 == 0xEF) && (c1 == 0xBB) && (c2 == 0xBF);
         if( ! bom_found)
         {
-            loc.set_location(first);
+            loc = first;
         }
     }
 
