@@ -41,7 +41,7 @@ class location
     ~location() = default;
 
     void advance(std::size_t n = 1) noexcept;
-    void retrace(std::size_t n = 1) noexcept;
+    void retrace() noexcept;
 
     bool is_ok() const noexcept { return static_cast<bool>(this->source_); }
 
@@ -68,7 +68,7 @@ class location
   private:
 
     void advance_impl(const std::size_t n);
-    void retrace_impl(const std::size_t n);
+    void retrace_impl();
 
   private:
 

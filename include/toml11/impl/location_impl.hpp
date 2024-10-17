@@ -24,18 +24,18 @@ TOML11_INLINE void location::advance(std::size_t n) noexcept
         this->location_ = this->source_->size();
     }
 }
-TOML11_INLINE void location::retrace(std::size_t n) noexcept
+TOML11_INLINE void location::retrace(/*restricted to n=1*/) noexcept
 {
     assert(this->is_ok());
-    if(this->location_ < n)
+    if(this->location_ == 0)
     {
         this->location_ = 0;
         this->line_number_ = 1;
     }
     else
     {
-        this->retrace_impl(n);
-        this->location_ -= n;
+        this->retrace_impl();
+        this->location_ -= 1;
     }
 }
 
@@ -102,14 +102,14 @@ TOML11_INLINE void location::advance_impl(const std::size_t n)
 
     return;
 }
-TOML11_INLINE void location::retrace_impl(const std::size_t n)
+TOML11_INLINE void location::retrace_impl(/*n == 1*/)
 {
     assert(this->is_ok());
-    assert(n <= this->location_); // loc - n >= 0
+    assert(this->location_ != 0);
 
     const auto iter = this->source_->cbegin();
     const auto dline_num = static_cast<std::size_t>(std::count(
-        std::next(iter, static_cast<difference_type>(this->location_ - n)),
+        std::next(iter, static_cast<difference_type>(this->location_ - 1)),
         std::next(iter, static_cast<difference_type>(this->location_)),
         char_type('\n')));
 
