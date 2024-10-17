@@ -142,7 +142,7 @@ TOML11_INLINE bool operator!=(const location& lhs, const location& rhs)
 TOML11_INLINE location prev(const location& loc)
 {
     location p(loc);
-    p.retrace(1);
+    p.retrace();
     return p;
 }
 TOML11_INLINE location next(const location& loc)
