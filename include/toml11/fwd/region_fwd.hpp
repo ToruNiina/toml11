@@ -82,10 +82,15 @@ class region
     const_iterator cend() const noexcept;
 
     std::string as_string() const;
-    std::vector<std::string> as_lines() const;
+    std::vector<std::pair<std::string, std::size_t>> as_lines() const;
 
     source_ptr const&  source()      const noexcept {return this->source_;}
     std::string const& source_name() const noexcept {return this->source_name_;}
+
+  private:
+
+    std::pair<std::string, std::size_t>
+    take_line(const_iterator begin, const_iterator end) const;
 
   private:
 
