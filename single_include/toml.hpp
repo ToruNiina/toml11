@@ -1892,9 +1892,19 @@ using source_location = std::source_location;
 
 inline std::string to_string(const source_location& loc)
 {
-    return std::string(" at line ") + std::to_string(loc.line()) +
-           std::string(" in file ") + std::string(loc.file_name());
+    const char* fname = loc.file_name();
+    if(fname)
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in file ") + std::string(fname);
+    }
+    else
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in unknown file");
+    }
 }
+
 } // cxx
 } // toml
 #elif defined(TOML11_HAS_EXPERIMENTAL_SOURCE_LOCATION)
@@ -1907,9 +1917,19 @@ using source_location = std::experimental::source_location;
 
 inline std::string to_string(const source_location& loc)
 {
-    return std::string(" at line ") + std::to_string(loc.line()) +
-           std::string(" in file ") + std::string(loc.file_name());
+    const char* fname = loc.file_name();
+    if(fname)
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in file ") + std::string(fname);
+    }
+    else
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in unknown file");
+    }
 }
+
 } // cxx
 } // toml
 #elif defined(TOML11_HAS_BUILTIN_FILE_LINE)
@@ -1941,9 +1961,19 @@ struct source_location
 
 inline std::string to_string(const source_location& loc)
 {
-    return std::string(" at line ") + std::to_string(loc.line()) +
-           std::string(" in file ") + std::string(loc.file_name());
+    const char* fname = loc.file_name();
+    if(fname)
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in file ") + std::string(fname);
+    }
+    else
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in unknown file");
+    }
 }
+
 } // cxx
 } // toml
 #else // no builtin
@@ -3526,6 +3556,10 @@ struct from;
 #include <string_view>
 #endif
 
+#if defined(TOML11_HAS_OPTIONAL)
+#include <optional>
+#endif
+
 namespace toml
 {
 template<typename TypeConcig>
@@ -3669,6 +3703,16 @@ template<typename ... Ts>
 struct is_std_tuple_impl<std::tuple<Ts...>> : std::true_type{};
 template<typename T>
 using is_std_tuple = is_std_tuple_impl<cxx::remove_cvref_t<T>>;
+
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= TOML11_CXX17_VALUE
+#  if __has_include(<optional>)
+template<typename T> struct is_std_optional_impl : std::false_type{};
+template<typename T>
+struct is_std_optional_impl<std::optional<T>> : std::true_type{};
+template<typename T>
+using is_std_optional = is_std_optional_impl<cxx::remove_cvref_t<T>>;
+#  endif // <optional>
+#endif // > C++17
 
 template<typename T> struct is_std_array_impl : std::false_type{};
 template<typename T, std::size_t N>
@@ -9124,6 +9168,95 @@ find(basic_value<TC>&& v, const std::size_t idx)
 }
 
 // --------------------------------------------------------------------------
+// find<optional<T>>
+
+#if defined(TOML11_HAS_OPTIONAL)
+template<typename T, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(const basic_value<TC>& v, const typename basic_value<TC>::key_type& ky)
+{
+    if(v.contains(ky))
+    {
+        return ::toml::get<typename T::value_type>(v.at(ky));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(basic_value<TC>& v, const typename basic_value<TC>::key_type& ky)
+{
+    if(v.contains(ky))
+    {
+        return ::toml::get<typename T::value_type>(v.at(ky));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(basic_value<TC>&& v, const typename basic_value<TC>::key_type& ky)
+{
+    if(v.contains(ky))
+    {
+        return ::toml::get<typename T::value_type>(std::move(v.at(ky)));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename K, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K>::value, T>
+find(const basic_value<TC>& v, const K& k)
+{
+    if(static_cast<std::size_t>(k) < v.size())
+    {
+        return ::toml::get<typename T::value_type>(v.at(static_cast<std::size_t>(k)));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename K, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K>::value, T>
+find(basic_value<TC>& v, const K& k)
+{
+    if(static_cast<std::size_t>(k) < v.size())
+    {
+        return ::toml::get<typename T::value_type>(v.at(static_cast<std::size_t>(k)));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename K, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K>::value, T>
+find(basic_value<TC>&& v, const K& k)
+{
+    if(static_cast<std::size_t>(k) < v.size())
+    {
+        return ::toml::get<typename T::value_type>(std::move(v.at(static_cast<std::size_t>(k))));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+#endif // optional
+
+// --------------------------------------------------------------------------
 // toml::find(toml::value, toml::key, Ts&& ... keys)
 
 namespace detail
@@ -9213,6 +9346,88 @@ find(basic_value<TC>&& v, const K1& k1, const K2& k2, const Ks& ... ks)
 {
     return find<T>(std::move(v.at(detail::key_cast<TC>(k1))), detail::key_cast<TC>(k2), ks...);
 }
+
+#if defined(TOML11_HAS_OPTIONAL)
+template<typename T, typename TC, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(const basic_value<TC>& v, const typename basic_value<TC>::key_type& k1, const K2& k2, const Ks& ... ks)
+{
+    if(v.contains(k1))
+    {
+        return find<T>(v.at(k1), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+template<typename T, typename TC, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(basic_value<TC>& v, const typename basic_value<TC>::key_type& k1, const K2& k2, const Ks& ... ks)
+{
+    if(v.contains(k1))
+    {
+        return find<T>(v.at(k1), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+template<typename T, typename TC, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(basic_value<TC>&& v, const typename basic_value<TC>::key_type& k1, const K2& k2, const Ks& ... ks)
+{
+    if(v.contains(k1))
+    {
+        return find<T>(v.at(k1), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename TC, typename K1, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K1>::value, T>
+find(const basic_value<TC>& v, const K1& k1, const K2& k2, const Ks& ... ks)
+{
+    if(static_cast<std::size_t>(k1) < v.size())
+    {
+        return find<T>(v.at(static_cast<std::size_t>(k1)), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+template<typename T, typename TC, typename K1, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K1>::value, T>
+find(basic_value<TC>& v, const K1& k1, const K2& k2, const Ks& ... ks)
+{
+    if(static_cast<std::size_t>(k1) < v.size())
+    {
+        return find<T>(v.at(static_cast<std::size_t>(k1)), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+template<typename T, typename TC, typename K1, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K1>::value, T>
+find(basic_value<TC>&& v, const K1& k1, const K2& k2, const Ks& ... ks)
+{
+    if(static_cast<std::size_t>(k1) < v.size())
+    {
+        return find<T>(v.at(static_cast<std::size_t>(k1)), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+#endif // optional
 
 // ===========================================================================
 // find_or<T>(value, key, fallback)
