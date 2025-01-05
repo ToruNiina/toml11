@@ -544,6 +544,32 @@ This is useful when you want to provide a fallback value instead of handling exc
 const auto a = toml::find_or(input, "a", 42);
 ```
 
+## `toml::find<std::optional<T>>`
+
+If `std::optional` is available, you can specify `std::optional` as a template argument of `toml::find`.
+
+Recursive access is also supported.
+
+```cpp
+const auto input = toml::parse_str(R"(
+integer = 1
+
+[table]
+key = 2
+
+[[array-of-tables]]
+key = 3
+)");
+
+const auto a = toml::find<std::optional<int>>(input, "integer");
+const auto b = toml::find<std::optional<int>>(input, "table", "key");
+const auto c = toml::find<std::optional<int>>(input, "array-of-tables", 0, "key");
+```
+
+If a key does not exist, no exception is thrown, and `std::nullopt` is returned.
+
+However, if a type conversion fails, or if you attempt to access a key on a value that is not a table, or an index on a value that is not an array, a `toml::type_error` is thrown.
+
 ## Defining Conversions for User-Defined Types
 
 With `toml::get` and `toml::find`, you can use user-defined types by employing one of the following methods.

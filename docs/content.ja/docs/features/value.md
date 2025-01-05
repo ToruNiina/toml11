@@ -569,6 +569,32 @@ const auto a = toml::find_or(input, "a", 42);
 
 型変換の失敗だけでなく、キーが見つからなかった場合もデフォルト値を返します。
 
+## `toml::find<std::optional<T>>`
+
+C++17以降の場合、`std::optional`を`toml::find`に指定することができます。
+
+`find`と同様に、再帰的なアクセスも可能です。
+
+```cpp
+const auto input = toml::parse_str(R"(
+integer = 1
+
+[table]
+key = 2
+
+[[array-of-tables]]
+key = 3
+)");
+
+const auto a = toml::find<std::optional<int>>(input, "integer");
+const auto b = toml::find<std::optional<int>>(input, "table", "key");
+const auto c = toml::find<std::optional<int>>(input, "array-of-tables", 0, "key");
+```
+
+キーが存在しなかった場合、例外は投げられず、`std::nullopt`が返却されます。
+
+ただし、型変換が失敗した場合や、テーブルではない値にキーでアクセスしようとした場合、配列でない値にインデックスでアクセス仕様とした場合は、`toml::type_error`が送出されます。
+
 ## ユーザー定義型との変換を定義する
 
 `toml::get` や `toml::find` では、以下のどれかの方法を使うことで
