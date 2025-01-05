@@ -101,6 +101,95 @@ find(basic_value<TC>&& v, const std::size_t idx)
 }
 
 // --------------------------------------------------------------------------
+// find<optional<T>>
+
+#if defined(TOML11_HAS_OPTIONAL)
+template<typename T, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(const basic_value<TC>& v, const typename basic_value<TC>::key_type& ky)
+{
+    if(v.contains(ky))
+    {
+        return ::toml::get<typename T::value_type>(v.at(ky));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(basic_value<TC>& v, const typename basic_value<TC>::key_type& ky)
+{
+    if(v.contains(ky))
+    {
+        return ::toml::get<typename T::value_type>(v.at(ky));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(basic_value<TC>&& v, const typename basic_value<TC>::key_type& ky)
+{
+    if(v.contains(ky))
+    {
+        return ::toml::get<typename T::value_type>(std::move(v.at(ky)));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename K, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K>::value, T>
+find(const basic_value<TC>& v, const K& k)
+{
+    if(static_cast<std::size_t>(k) < v.size())
+    {
+        return ::toml::get<typename T::value_type>(v.at(static_cast<std::size_t>(k)));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename K, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K>::value, T>
+find(basic_value<TC>& v, const K& k)
+{
+    if(static_cast<std::size_t>(k) < v.size())
+    {
+        return ::toml::get<typename T::value_type>(v.at(static_cast<std::size_t>(k)));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename K, typename TC>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K>::value, T>
+find(basic_value<TC>&& v, const K& k)
+{
+    if(static_cast<std::size_t>(k) < v.size())
+    {
+        return ::toml::get<typename T::value_type>(std::move(v.at(static_cast<std::size_t>(k))));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+#endif // optional
+
+// --------------------------------------------------------------------------
 // toml::find(toml::value, toml::key, Ts&& ... keys)
 
 namespace detail
@@ -190,6 +279,88 @@ find(basic_value<TC>&& v, const K1& k1, const K2& k2, const Ks& ... ks)
 {
     return find<T>(std::move(v.at(detail::key_cast<TC>(k1))), detail::key_cast<TC>(k2), ks...);
 }
+
+#if defined(TOML11_HAS_OPTIONAL)
+template<typename T, typename TC, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(const basic_value<TC>& v, const typename basic_value<TC>::key_type& k1, const K2& k2, const Ks& ... ks)
+{
+    if(v.contains(k1))
+    {
+        return find<T>(v.at(k1), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+template<typename T, typename TC, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(basic_value<TC>& v, const typename basic_value<TC>::key_type& k1, const K2& k2, const Ks& ... ks)
+{
+    if(v.contains(k1))
+    {
+        return find<T>(v.at(k1), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+template<typename T, typename TC, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value, T>
+find(basic_value<TC>&& v, const typename basic_value<TC>::key_type& k1, const K2& k2, const Ks& ... ks)
+{
+    if(v.contains(k1))
+    {
+        return find<T>(v.at(k1), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template<typename T, typename TC, typename K1, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K1>::value, T>
+find(const basic_value<TC>& v, const K1& k1, const K2& k2, const Ks& ... ks)
+{
+    if(static_cast<std::size_t>(k1) < v.size())
+    {
+        return find<T>(v.at(static_cast<std::size_t>(k1)), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+template<typename T, typename TC, typename K1, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K1>::value, T>
+find(basic_value<TC>& v, const K1& k1, const K2& k2, const Ks& ... ks)
+{
+    if(static_cast<std::size_t>(k1) < v.size())
+    {
+        return find<T>(v.at(static_cast<std::size_t>(k1)), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+template<typename T, typename TC, typename K1, typename K2, typename ... Ks>
+cxx::enable_if_t<detail::is_std_optional<T>::value && std::is_integral<K1>::value, T>
+find(basic_value<TC>&& v, const K1& k1, const K2& k2, const Ks& ... ks)
+{
+    if(static_cast<std::size_t>(k1) < v.size())
+    {
+        return find<T>(v.at(static_cast<std::size_t>(k1)), detail::key_cast<TC>(k2), ks...);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+#endif // optional
 
 // ===========================================================================
 // find_or<T>(value, key, fallback)

@@ -17,6 +17,10 @@
 #include <string_view>
 #endif
 
+#if defined(TOML11_HAS_OPTIONAL)
+#include <optional>
+#endif
+
 namespace toml
 {
 template<typename TypeConcig>
@@ -160,6 +164,16 @@ template<typename ... Ts>
 struct is_std_tuple_impl<std::tuple<Ts...>> : std::true_type{};
 template<typename T>
 using is_std_tuple = is_std_tuple_impl<cxx::remove_cvref_t<T>>;
+
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= TOML11_CXX17_VALUE
+#  if __has_include(<optional>)
+template<typename T> struct is_std_optional_impl : std::false_type{};
+template<typename T>
+struct is_std_optional_impl<std::optional<T>> : std::true_type{};
+template<typename T>
+using is_std_optional = is_std_optional_impl<cxx::remove_cvref_t<T>>;
+#  endif // <optional>
+#endif // > C++17
 
 template<typename T> struct is_std_array_impl : std::false_type{};
 template<typename T, std::size_t N>
