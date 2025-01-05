@@ -434,9 +434,19 @@ using source_location = std::source_location;
 
 inline std::string to_string(const source_location& loc)
 {
-    return std::string(" at line ") + std::to_string(loc.line()) +
-           std::string(" in file ") + std::string(loc.file_name());
+    const char* fname = loc.file_name();
+    if(fname)
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in file ") + std::string(fname);
+    }
+    else
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in unknown file");
+    }
 }
+
 } // cxx
 } // toml
 #elif defined(TOML11_HAS_EXPERIMENTAL_SOURCE_LOCATION)
@@ -449,9 +459,19 @@ using source_location = std::experimental::source_location;
 
 inline std::string to_string(const source_location& loc)
 {
-    return std::string(" at line ") + std::to_string(loc.line()) +
-           std::string(" in file ") + std::string(loc.file_name());
+    const char* fname = loc.file_name();
+    if(fname)
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in file ") + std::string(fname);
+    }
+    else
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in unknown file");
+    }
 }
+
 } // cxx
 } // toml
 #elif defined(TOML11_HAS_BUILTIN_FILE_LINE)
@@ -483,9 +503,19 @@ struct source_location
 
 inline std::string to_string(const source_location& loc)
 {
-    return std::string(" at line ") + std::to_string(loc.line()) +
-           std::string(" in file ") + std::string(loc.file_name());
+    const char* fname = loc.file_name();
+    if(fname)
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in file ") + std::string(fname);
+    }
+    else
+    {
+        return std::string(" at line ") + std::to_string(loc.line()) +
+               std::string(" in unknown file");
+    }
 }
+
 } // cxx
 } // toml
 #else // no builtin
