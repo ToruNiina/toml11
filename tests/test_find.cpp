@@ -998,3 +998,107 @@ TEST_CASE("testing toml::find offset_datetime")
         CHECK_EQ(tm.tm_sec,             0);
     }
 }
+
+#ifdef TOML11_HAS_OPTIONAL
+TEST_CASE("testing toml::find<optional>")
+{
+    using value_type = toml::value;
+    {
+        value_type v1 = toml::table{{"foo", "hoge"}};
+
+        const auto foo = toml::find<std::optional<std::string>>(v1, "foo");
+        CHECK_UNARY(foo.has_value());
+        CHECK_EQ(foo.value(), "hoge");
+
+        const auto bar = toml::find<std::optional<std::string>>(v1, "bar");
+        CHECK_UNARY_FALSE(bar.has_value());
+
+        CHECK_THROWS_AS(toml::find<std::optional<double>>(v1, "foo"), toml::type_error);
+    }
+    {
+        value_type v1 = toml::table{{ "foo", toml::array{1,2,3,4,5} }};
+
+        const auto foo = toml::find<std::optional<std::array<int, 5>>>(v1, "foo");
+        CHECK_UNARY(foo.has_value());
+        CHECK_EQ(foo.value().at(0), 1);
+        CHECK_EQ(foo.value().at(1), 2);
+        CHECK_EQ(foo.value().at(2), 3);
+        CHECK_EQ(foo.value().at(3), 4);
+        CHECK_EQ(foo.value().at(4), 5);
+
+        const auto bar = toml::find<std::optional<std::array<int, 5>>>(v1, "bar");
+        CHECK_UNARY_FALSE(bar.has_value());
+
+        CHECK_THROWS_AS(toml::find<std::optional<double>>(v1, "foo"), toml::type_error);
+    }
+    {
+        value_type v1 = toml::array{1,2,3,4,5};
+
+        const auto foo = toml::find<std::optional<int>>(v1, 2);
+        CHECK_UNARY(foo.has_value());
+        CHECK_EQ(foo.value(), 3);
+
+        const auto bar = toml::find<std::optional<int>>(v1, 5);
+        CHECK_UNARY_FALSE(bar.has_value());
+
+        CHECK_THROWS_AS(toml::find<std::optional<double>>(v1, 2), toml::type_error);
+    }
+    {
+        value_type v1 = toml::table{
+            { "foo", toml::table{
+                {"bar", 3.14},
+                {"baz", 2.71}
+            }}
+        };
+
+        const auto foobar = toml::find<std::optional<double>>(v1, "foo", "bar");
+        CHECK_UNARY(foobar.has_value());
+        CHECK_EQ(foobar.value(), 3.14);
+
+        const auto foobaz = toml::find<std::optional<double>>(v1, "foo", "baz");
+        CHECK_UNARY(foobaz.has_value());
+        CHECK_EQ(foobaz.value(), 2.71);
+
+        const auto fooqux = toml::find<std::optional<double>>(v1, "foo", "qux");
+        CHECK_UNARY_FALSE(fooqux.has_value());
+
+        const auto barfoo = toml::find<std::optional<double>>(v1, "bar", "foo");
+        CHECK_UNARY_FALSE(barfoo.has_value());
+
+        CHECK_THROWS_AS(toml::find<std::optional<int>>(v1, "foo", "bar"), toml::type_error);
+        CHECK_THROWS_AS(toml::find<std::optional<double>>(v1, "foo", 1),  toml::type_error);
+        CHECK_THROWS_AS(toml::find<std::optional<double>>(v1, "foo", "bar", "baz"), toml::type_error);
+    }
+    {
+        value_type v1 = toml::table{
+            { "foo", toml::array{
+                toml::table{
+                    {"bar", 3.14}
+                },
+                toml::table{
+                    {"bar", 2.71}
+                }
+            }}
+        };
+
+        const auto foobar = toml::find<std::optional<double>>(v1, "foo", 0, "bar");
+        CHECK_UNARY(foobar.has_value());
+        CHECK_EQ(foobar.value(), 3.14);
+
+        const auto foobaz = toml::find<std::optional<double>>(v1, "foo", 1, "bar");
+        CHECK_UNARY(foobaz.has_value());
+        CHECK_EQ(foobaz.value(), 2.71);
+
+        const auto barbar = toml::find<std::optional<double>>(v1, "bar", 0, "bar");
+        CHECK_UNARY_FALSE(barbar.has_value());
+
+        const auto foo2bar = toml::find<std::optional<double>>(v1, "foo", 2, "bar");
+        CHECK_UNARY_FALSE(foo2bar.has_value());
+
+        const auto foo0baz = toml::find<std::optional<double>>(v1, "foo", 0, "baz");
+        CHECK_UNARY_FALSE(foo0baz.has_value());
+
+        CHECK_THROWS_AS(toml::find<std::optional<int>>(v1, "foo", "bar", "baz"), toml::type_error);
+    }
+}
+#endif
