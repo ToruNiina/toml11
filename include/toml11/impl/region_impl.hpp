@@ -121,27 +121,65 @@ TOML11_INLINE std::string region::as_string() const
     }
 }
 
-TOML11_INLINE std::vector<std::string> region::as_lines() const
+TOML11_INLINE std::pair<std::string, std::size_t>
+region::take_line(const_iterator begin, const_iterator end) const
+{
+    // To omit long line, we cap region by before/after 30 chars
+    const auto dist_before = std::distance(source_->cbegin(), begin);
+    const auto dist_after  = std::distance(end, source_->cend());
+
+    const const_iterator capped_begin = (dist_before <= 30) ? source_->cbegin() : std::prev(begin, 30);
+    const const_iterator capped_end   = (dist_after  <= 30) ? source_->cend()   : std::next(end,   30);
+
+    const auto lf = char_type('\n');
+    const auto lf_before = std::find(cxx::make_reverse_iterator(begin),
+                                     cxx::make_reverse_iterator(capped_begin), lf);
+    const auto lf_after  = std::find(end, capped_end, lf);
+
+    auto offset = static_cast<std::size_t>(std::distance(lf_before.base(), begin));
+
+    std::string retval = make_string(lf_before.base(), lf_after);
+
+    if(lf_before.base() != source_->cbegin() && *lf_before != lf)
+    {
+        retval = "... " + retval;
+        offset += 4;
+    }
+
+    if(lf_after != source_->cend() && *lf_after != lf)
+    {
+        retval = retval + " ...";
+    }
+
+    return std::make_pair(retval, offset);
+}
+
+TOML11_INLINE std::vector<std::pair<std::string, std::size_t>> region::as_lines() const
 {
     assert(this->is_ok());
     if(this->length_ == 0)
     {
-        return std::vector<std::string>{""};
+        return std::vector<std::pair<std::string, std::size_t>>{
+            std::make_pair("", std::size_t(0))
+        };
     }
 
     // Consider the following toml file
     // ```
     // array = [
+    //   1, 2, 3,
     // ] # comment
     // ```
     // and the region represnets
     // ```
     //         [
+    //   1, 2, 3,
     // ]
     // ```
     // but we want to show the following.
     // ```
     // array = [
+    //   1, 2, 3,
     // ] # comment
     // ```
     // So we need to find LFs before `begin` and after `end`.
@@ -162,25 +200,45 @@ TOML11_INLINE std::vector<std::string> region::as_lines() const
     const auto begin = std::next(this->source_->cbegin(), begin_idx);
     const auto end   = std::next(this->source_->cbegin(), end_idx);
 
-    const auto line_begin = std::find(cxx::make_reverse_iterator(begin), this->source_->crend(), char_type('\n')).base();
-    const auto line_end   = std::find(end, this->source_->cend(), char_type('\n'));
+    assert(this->first_line_number() <= this->last_line_number());
 
-    const auto reg_lines = make_string(line_begin, line_end);
-
-    if(reg_lines == "") // the region is an empty line that only contains LF
+    if(this->first_line_number() == this->last_line_number())
     {
-        return std::vector<std::string>{""};
+        return std::vector<std::pair<std::string, std::size_t>>{
+            this->take_line(begin, end)
+        };
     }
 
-    std::istringstream iss(reg_lines);
+    // we have multiple lines. `begin` and `end` points different lines.
+    // that means that there is at least one `LF` between `begin` and `end`.
 
-    std::vector<std::string> lines;
-    std::string line;
-    while(std::getline(iss, line))
+    const auto after_begin = std::distance(begin, this->source_->cend());
+    const auto before_end  = std::distance(this->source_->cbegin(), end);
+
+    const_iterator capped_file_end   = this->source_->cend();
+    const_iterator capped_file_begin = this->source_->cbegin();
+    if(60 < after_begin) {capped_file_end   = std::next(begin, 50);}
+    if(60 < before_end)  {capped_file_begin = std::prev(end,   50);}
+
+    const auto lf = char_type('\n');
+    const auto first_line_end  = std::find(begin, capped_file_end, lf);
+    const auto last_line_begin = std::find(capped_file_begin, end, lf);
+
+    const auto first_line = this->take_line(begin, first_line_end);
+    const auto last_line  = this->take_line(last_line_begin, end);
+
+    if(this->first_line_number() + 1 == this->last_line_number())
     {
-        lines.push_back(line);
+        return std::vector<std::pair<std::string, std::size_t>>{
+            first_line, last_line
+        };
     }
-    return lines;
+    else
+    {
+        return std::vector<std::pair<std::string, std::size_t>>{
+            first_line, std::make_pair("...", 0), last_line
+        };
+    }
 }
 
 } // namespace detail

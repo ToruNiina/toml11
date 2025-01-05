@@ -20,8 +20,10 @@ TOML11_INLINE source_location::source_location(const detail::region& r)
     : is_ok_(false),
       first_line_(1),
       first_column_(1),
+      first_offset_(1),
       last_line_(1),
       last_column_(1),
+      last_offset_(1),
       length_(0),
       file_name_("unknown file")
 {
@@ -34,7 +36,17 @@ TOML11_INLINE source_location::source_location(const detail::region& r)
         this->last_line_    = r.last_line_number();
         this->last_column_  = r.last_column_number();
         this->length_       = r.length();
-        this->line_str_     = r.as_lines();
+
+        const auto lines = r.as_lines();
+        assert( ! lines.empty());
+
+        for(const auto& l : lines)
+        {
+            this->line_str_.push_back(l.first);
+        }
+
+        this->first_offset_ = lines.at(             0).second + 1; // to 1-origin
+        this->last_offset_  = lines.at(lines.size()-1).second + 1;
     }
 }
 
@@ -145,36 +157,36 @@ TOML11_INLINE std::string format_location_impl(const std::size_t lnw,
     {
         // when column points LF, it exceeds the size of the first line.
         std::size_t underline_limit = 1;
-        if(loc.first_line().size() < loc.first_column_number())
+        if(loc.first_line().size() < loc.first_column_offset())
         {
             underline_limit = 1;
         }
         else
         {
-            underline_limit = loc.first_line().size() - loc.first_column_number() + 1;
+            underline_limit = loc.first_line().size() - loc.first_column_offset() + 1;
         }
         const auto underline_len = (std::min)(underline_limit, loc.length());
 
         format_line(oss, lnw, loc.first_line_number(), loc.first_line());
-        format_underline(oss, lnw, loc.first_column_number(), underline_len, msg);
+        format_underline(oss, lnw, loc.first_column_offset(), underline_len, msg);
     }
     else if(loc.lines().size() == 2)
     {
         const auto first_underline_len =
-            loc.first_line().size() - loc.first_column_number() + 1;
+            loc.first_line().size() - loc.first_column_offset() + 1;
         format_line(oss, lnw, loc.first_line_number(), loc.first_line());
-        format_underline(oss, lnw, loc.first_column_number(),
+        format_underline(oss, lnw, loc.first_column_offset(),
                 first_underline_len, "");
 
         format_line(oss, lnw, loc.last_line_number(), loc.last_line());
-        format_underline(oss, lnw, 1, loc.last_column_number(), msg);
+        format_underline(oss, lnw, 1, loc.last_column_offset(), msg);
     }
     else if(loc.lines().size() > 2)
     {
         const auto first_underline_len =
-            loc.first_line().size() - loc.first_column_number() + 1;
+            loc.first_line().size() - loc.first_column_offset() + 1;
         format_line(oss, lnw, loc.first_line_number(), loc.first_line());
-        format_underline(oss, lnw, loc.first_column_number(),
+        format_underline(oss, lnw, loc.first_column_offset(),
                 first_underline_len, "and");
 
         if(loc.lines().size() == 3)
@@ -188,7 +200,7 @@ TOML11_INLINE std::string format_location_impl(const std::size_t lnw,
             format_empty_line(oss, lnw);
         }
         format_line(oss, lnw, loc.last_line_number(), loc.last_line());
-        format_underline(oss, lnw, 1, loc.last_column_number(), msg);
+        format_underline(oss, lnw, 1, loc.last_column_offset(), msg);
     }
     // if loc is empty, do nothing.
     return oss.str();
