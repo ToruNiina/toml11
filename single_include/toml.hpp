@@ -4451,7 +4451,7 @@ class location
 
     location(source_ptr src, std::string src_name)
         : source_(std::move(src)), source_name_(std::move(src_name)),
-          location_(0), line_number_(1)
+          location_(0), line_number_(1), column_number_(1)
     {}
 
     location(const location&) = default;
@@ -4461,7 +4461,7 @@ class location
     ~location() = default;
 
     void advance(std::size_t n = 1) noexcept;
-    void retrace(std::size_t n = 1) noexcept;
+    void retrace() noexcept;
 
     bool is_ok() const noexcept { return static_cast<bool>(this->source_); }
 
@@ -4474,22 +4474,25 @@ class location
     {
         return this->location_;
     }
-    void set_location(const std::size_t loc) noexcept;
 
     std::size_t line_number() const noexcept
     {
         return this->line_number_;
     }
+    std::size_t column_number() const noexcept
+    {
+        return this->column_number_;
+    }
     std::string get_line() const;
-    std::size_t column_number() const noexcept;
 
     source_ptr const&  source()      const noexcept {return this->source_;}
     std::string const& source_name() const noexcept {return this->source_name_;}
 
   private:
 
-    void advance_line_number(const std::size_t n);
-    void retrace_line_number(const std::size_t n);
+    void advance_impl(const std::size_t n);
+    void retrace_impl();
+    std::size_t calc_column_number() const noexcept;
 
   private:
 
@@ -4501,6 +4504,7 @@ class location
     std::string source_name_;
     std::size_t location_; // std::vector<>::difference_type is signed
     std::size_t line_number_;
+    std::size_t column_number_;
 };
 
 bool operator==(const location& lhs, const location& rhs) noexcept;
@@ -4579,27 +4583,27 @@ TOML11_INLINE void location::advance(std::size_t n) noexcept
     assert(this->is_ok());
     if(this->location_ + n < this->source_->size())
     {
-        this->advance_line_number(n);
-        this->location_ += n;
+        this->advance_impl(n);
     }
     else
     {
-        this->advance_line_number(this->source_->size() - this->location_);
-        this->location_ = this->source_->size();
+        this->advance_impl(this->source_->size() - this->location_);
+
+        assert(this->location_ == this->source_->size());
     }
 }
-TOML11_INLINE void location::retrace(std::size_t n) noexcept
+TOML11_INLINE void location::retrace(/*restricted to n=1*/) noexcept
 {
     assert(this->is_ok());
-    if(this->location_ < n)
+    if(this->location_ == 0)
     {
         this->location_ = 0;
         this->line_number_ = 1;
+        this->column_number_ = 1;
     }
     else
     {
-        this->retrace_line_number(n);
-        this->location_ -= n;
+        this->retrace_impl();
     }
 }
 
@@ -4630,30 +4634,6 @@ TOML11_INLINE location::char_type location::peek()
     }
 }
 
-TOML11_INLINE void location::set_location(const std::size_t loc) noexcept
-{
-    if(this->location_ == loc)
-    {
-        return ;
-    }
-
-    if(loc == 0)
-    {
-        this->line_number_ = 1;
-    }
-    else if(this->location_ < loc)
-    {
-        const auto d = loc - this->location_;
-        this->advance_line_number(d);
-    }
-    else
-    {
-        const auto d = this->location_ - loc;
-        this->retrace_line_number(d);
-    }
-    this->location_ = loc;
-}
-
 TOML11_INLINE std::string location::get_line() const
 {
     assert(this->is_ok());
@@ -4665,7 +4645,8 @@ TOML11_INLINE std::string location::get_line() const
 
     return make_string(std::next(prev.base()), next);
 }
-TOML11_INLINE std::size_t location::column_number() const noexcept
+
+TOML11_INLINE std::size_t location::calc_column_number() const noexcept
 {
     assert(this->is_ok());
     const auto iter  = std::next(this->source_->cbegin(), static_cast<difference_type>(this->location_));
@@ -4676,38 +4657,44 @@ TOML11_INLINE std::size_t location::column_number() const noexcept
     return static_cast<std::size_t>(std::distance(prev.base(), iter) + 1); // 1-origin
 }
 
-
-TOML11_INLINE void location::advance_line_number(const std::size_t n)
+TOML11_INLINE void location::advance_impl(const std::size_t n)
 {
     assert(this->is_ok());
     assert(this->location_ + n <= this->source_->size());
 
-    const auto iter = this->source_->cbegin();
-    this->line_number_ += static_cast<std::size_t>(std::count(
-        std::next(iter, static_cast<difference_type>(this->location_)),
-        std::next(iter, static_cast<difference_type>(this->location_ + n)),
-        char_type('\n')));
+    auto iter = this->source_->cbegin();
+    std::advance(iter, static_cast<difference_type>(this->location_));
 
+    for(std::size_t i=0; i<n; ++i)
+    {
+        const auto c = *iter;
+        if(c == char_type('\n'))
+        {
+            this->line_number_  += 1;
+            this->column_number_ = 1;
+        }
+        else
+        {
+            this->column_number_ += 1;
+        }
+        iter++;
+    }
+    this->location_ += n;
     return;
 }
-TOML11_INLINE void location::retrace_line_number(const std::size_t n)
+TOML11_INLINE void location::retrace_impl(/*n == 1*/)
 {
     assert(this->is_ok());
-    assert(n <= this->location_); // loc - n >= 0
+    assert(this->location_ != 0);
 
-    const auto iter = this->source_->cbegin();
-    const auto dline_num = static_cast<std::size_t>(std::count(
-        std::next(iter, static_cast<difference_type>(this->location_ - n)),
-        std::next(iter, static_cast<difference_type>(this->location_)),
-        char_type('\n')));
+    this->location_ -= 1;
 
-    if(this->line_number_ <= dline_num)
+    auto iter = this->source_->cbegin();
+    std::advance(iter, static_cast<difference_type>(this->location_));
+    if(*iter == '\n')
     {
-        this->line_number_ = 1;
-    }
-    else
-    {
-        this->line_number_ -= dline_num;
+        this->line_number_ -= 1;
+        this->column_number_ = this->calc_column_number();
     }
     return;
 }
@@ -4730,7 +4717,7 @@ TOML11_INLINE bool operator!=(const location& lhs, const location& rhs)
 TOML11_INLINE location prev(const location& loc)
 {
     location p(loc);
-    p.retrace(1);
+    p.retrace();
     return p;
 }
 TOML11_INLINE location next(const location& loc)
@@ -4877,10 +4864,15 @@ class region
     const_iterator cend() const noexcept;
 
     std::string as_string() const;
-    std::vector<std::string> as_lines() const;
+    std::vector<std::pair<std::string, std::size_t>> as_lines() const;
 
     source_ptr const&  source()      const noexcept {return this->source_;}
     std::string const& source_name() const noexcept {return this->source_name_;}
+
+  private:
+
+    std::pair<std::string, std::size_t>
+    take_line(const_iterator begin, const_iterator end) const;
 
   private:
 
@@ -5021,27 +5013,65 @@ TOML11_INLINE std::string region::as_string() const
     }
 }
 
-TOML11_INLINE std::vector<std::string> region::as_lines() const
+TOML11_INLINE std::pair<std::string, std::size_t>
+region::take_line(const_iterator begin, const_iterator end) const
+{
+    // To omit long line, we cap region by before/after 30 chars
+    const auto dist_before = std::distance(source_->cbegin(), begin);
+    const auto dist_after  = std::distance(end, source_->cend());
+
+    const const_iterator capped_begin = (dist_before <= 30) ? source_->cbegin() : std::prev(begin, 30);
+    const const_iterator capped_end   = (dist_after  <= 30) ? source_->cend()   : std::next(end,   30);
+
+    const auto lf = char_type('\n');
+    const auto lf_before = std::find(cxx::make_reverse_iterator(begin),
+                                     cxx::make_reverse_iterator(capped_begin), lf);
+    const auto lf_after  = std::find(end, capped_end, lf);
+
+    auto offset = static_cast<std::size_t>(std::distance(lf_before.base(), begin));
+
+    std::string retval = make_string(lf_before.base(), lf_after);
+
+    if(lf_before.base() != source_->cbegin() && *lf_before != lf)
+    {
+        retval = "... " + retval;
+        offset += 4;
+    }
+
+    if(lf_after != source_->cend() && *lf_after != lf)
+    {
+        retval = retval + " ...";
+    }
+
+    return std::make_pair(retval, offset);
+}
+
+TOML11_INLINE std::vector<std::pair<std::string, std::size_t>> region::as_lines() const
 {
     assert(this->is_ok());
     if(this->length_ == 0)
     {
-        return std::vector<std::string>{""};
+        return std::vector<std::pair<std::string, std::size_t>>{
+            std::make_pair("", std::size_t(0))
+        };
     }
 
     // Consider the following toml file
     // ```
     // array = [
+    //   1, 2, 3,
     // ] # comment
     // ```
     // and the region represnets
     // ```
     //         [
+    //   1, 2, 3,
     // ]
     // ```
     // but we want to show the following.
     // ```
     // array = [
+    //   1, 2, 3,
     // ] # comment
     // ```
     // So we need to find LFs before `begin` and after `end`.
@@ -5062,25 +5092,45 @@ TOML11_INLINE std::vector<std::string> region::as_lines() const
     const auto begin = std::next(this->source_->cbegin(), begin_idx);
     const auto end   = std::next(this->source_->cbegin(), end_idx);
 
-    const auto line_begin = std::find(cxx::make_reverse_iterator(begin), this->source_->crend(), char_type('\n')).base();
-    const auto line_end   = std::find(end, this->source_->cend(), char_type('\n'));
+    assert(this->first_line_number() <= this->last_line_number());
 
-    const auto reg_lines = make_string(line_begin, line_end);
-
-    if(reg_lines == "") // the region is an empty line that only contains LF
+    if(this->first_line_number() == this->last_line_number())
     {
-        return std::vector<std::string>{""};
+        return std::vector<std::pair<std::string, std::size_t>>{
+            this->take_line(begin, end)
+        };
     }
 
-    std::istringstream iss(reg_lines);
+    // we have multiple lines. `begin` and `end` points different lines.
+    // that means that there is at least one `LF` between `begin` and `end`.
 
-    std::vector<std::string> lines;
-    std::string line;
-    while(std::getline(iss, line))
+    const auto after_begin = std::distance(begin, this->source_->cend());
+    const auto before_end  = std::distance(this->source_->cbegin(), end);
+
+    const_iterator capped_file_end   = this->source_->cend();
+    const_iterator capped_file_begin = this->source_->cbegin();
+    if(60 < after_begin) {capped_file_end   = std::next(begin, 50);}
+    if(60 < before_end)  {capped_file_begin = std::prev(end,   50);}
+
+    const auto lf = char_type('\n');
+    const auto first_line_end  = std::find(begin, capped_file_end, lf);
+    const auto last_line_begin = std::find(capped_file_begin, end, lf);
+
+    const auto first_line = this->take_line(begin, first_line_end);
+    const auto last_line  = this->take_line(last_line_begin, end);
+
+    if(this->first_line_number() + 1 == this->last_line_number())
     {
-        lines.push_back(line);
+        return std::vector<std::pair<std::string, std::size_t>>{
+            first_line, last_line
+        };
     }
-    return lines;
+    else
+    {
+        return std::vector<std::pair<std::string, std::size_t>>{
+            first_line, std::make_pair("...", 0), last_line
+        };
+    }
 }
 
 } // namespace detail
@@ -5103,7 +5153,34 @@ TOML11_INLINE std::vector<std::string> region::as_lines() const
 namespace toml
 {
 
+//
 // A struct to contain location in a toml file.
+//
+// To reduce memory consumption, it omits unrelated parts of long lines. like:
+//
+// 1. one long line, short region
+// ```
+//    |
+//  1 | ... "foo", "bar", baz, "qux", "foobar", ...
+//    |                   ^-- unknown value
+// ```
+// 2. long region
+// ```
+//    |
+//  1 | array = [ "foo", ... "bar" ]
+//    |         ^^^^^^^^^^^^^^^^^^^^- in this array
+// ```
+// 3. many lines
+//     |
+//   1 | array = [ "foo",
+//     |         ^^^^^^^^
+//     | ...
+//     | ^^^
+//     |
+//  10 | , "bar"]
+//     | ^^^^^^^^- in this array
+// ```
+//
 struct source_location
 {
   public:
@@ -5132,13 +5209,19 @@ struct source_location
 
     std::vector<std::string> const& lines() const noexcept {return line_str_;}
 
+    // for internal use
+    std::size_t first_column_offset() const noexcept {return this->first_offset_;}
+    std::size_t last_column_offset()  const noexcept {return this->last_offset_;}
+
   private:
 
     bool        is_ok_;
     std::size_t first_line_;
-    std::size_t first_column_;
+    std::size_t first_column_; // column num in the actual file
+    std::size_t first_offset_; // column num in the shown line
     std::size_t last_line_;
-    std::size_t last_column_;
+    std::size_t last_column_;  // column num in the actual file
+    std::size_t last_offset_;  // column num in the shown line
     std::size_t length_;
     std::string file_name_;
     std::vector<std::string> line_str_;
@@ -5227,8 +5310,10 @@ TOML11_INLINE source_location::source_location(const detail::region& r)
     : is_ok_(false),
       first_line_(1),
       first_column_(1),
+      first_offset_(1),
       last_line_(1),
       last_column_(1),
+      last_offset_(1),
       length_(0),
       file_name_("unknown file")
 {
@@ -5241,7 +5326,17 @@ TOML11_INLINE source_location::source_location(const detail::region& r)
         this->last_line_    = r.last_line_number();
         this->last_column_  = r.last_column_number();
         this->length_       = r.length();
-        this->line_str_     = r.as_lines();
+
+        const auto lines = r.as_lines();
+        assert( ! lines.empty());
+
+        for(const auto& l : lines)
+        {
+            this->line_str_.push_back(l.first);
+        }
+
+        this->first_offset_ = lines.at(             0).second + 1; // to 1-origin
+        this->last_offset_  = lines.at(lines.size()-1).second + 1;
     }
 }
 
@@ -5352,36 +5447,36 @@ TOML11_INLINE std::string format_location_impl(const std::size_t lnw,
     {
         // when column points LF, it exceeds the size of the first line.
         std::size_t underline_limit = 1;
-        if(loc.first_line().size() < loc.first_column_number())
+        if(loc.first_line().size() < loc.first_column_offset())
         {
             underline_limit = 1;
         }
         else
         {
-            underline_limit = loc.first_line().size() - loc.first_column_number() + 1;
+            underline_limit = loc.first_line().size() - loc.first_column_offset() + 1;
         }
         const auto underline_len = (std::min)(underline_limit, loc.length());
 
         format_line(oss, lnw, loc.first_line_number(), loc.first_line());
-        format_underline(oss, lnw, loc.first_column_number(), underline_len, msg);
+        format_underline(oss, lnw, loc.first_column_offset(), underline_len, msg);
     }
     else if(loc.lines().size() == 2)
     {
         const auto first_underline_len =
-            loc.first_line().size() - loc.first_column_number() + 1;
+            loc.first_line().size() - loc.first_column_offset() + 1;
         format_line(oss, lnw, loc.first_line_number(), loc.first_line());
-        format_underline(oss, lnw, loc.first_column_number(),
+        format_underline(oss, lnw, loc.first_column_offset(),
                 first_underline_len, "");
 
         format_line(oss, lnw, loc.last_line_number(), loc.last_line());
-        format_underline(oss, lnw, 1, loc.last_column_number(), msg);
+        format_underline(oss, lnw, 1, loc.last_column_offset(), msg);
     }
     else if(loc.lines().size() > 2)
     {
         const auto first_underline_len =
-            loc.first_line().size() - loc.first_column_number() + 1;
+            loc.first_line().size() - loc.first_column_offset() + 1;
         format_line(oss, lnw, loc.first_line_number(), loc.first_line());
-        format_underline(oss, lnw, loc.first_column_number(),
+        format_underline(oss, lnw, loc.first_column_offset(),
                 first_underline_len, "and");
 
         if(loc.lines().size() == 3)
@@ -5395,7 +5490,7 @@ TOML11_INLINE std::string format_location_impl(const std::size_t lnw,
             format_empty_line(oss, lnw);
         }
         format_line(oss, lnw, loc.last_line_number(), loc.last_line());
-        format_underline(oss, lnw, 1, loc.last_column_number(), msg);
+        format_underline(oss, lnw, 1, loc.last_column_offset(), msg);
     }
     // if loc is empty, do nothing.
     return oss.str();
@@ -15369,7 +15464,7 @@ parse_impl(std::vector<location::char_type> cs, std::string fname, const spec& s
     // skip BOM if found
     if(loc.source()->size() >= 3)
     {
-        auto first = loc.get_location();
+        auto first = loc;
 
         const auto c0 = loc.current(); loc.advance();
         const auto c1 = loc.current(); loc.advance();
@@ -15378,7 +15473,7 @@ parse_impl(std::vector<location::char_type> cs, std::string fname, const spec& s
         const auto bom_found = (c0 == 0xEF) && (c1 == 0xBB) && (c2 == 0xBF);
         if( ! bom_found)
         {
-            loc.set_location(first);
+            loc = first;
         }
     }
 
