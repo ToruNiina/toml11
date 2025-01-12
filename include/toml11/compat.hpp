@@ -386,6 +386,35 @@ using return_type_of_t = typename std::result_of<F(Args...)>::type;
 } // cxx
 } // toml
 
+// ---------------------------------------------------------------------------
+// C++17 void_t
+
+#if TOML11_CPLUSPLUS_STANDARD_VERSION >= TOML11_CXX17_VALUE
+#  if defined(__cpp_lib_void_t)
+#    if __cpp_lib_void_t >= 201411L
+#      define TOML11_HAS_STD_VOID_T 1
+#    endif
+#  endif
+#endif
+
+namespace toml
+{
+namespace cxx
+{
+#if defined(TOML11_HAS_STD_VOID_T)
+
+using std::void_t;
+
+#else
+
+template<typename ...>
+using void_t = void;
+
+#endif // TOML11_HAS_STD_VOID_T
+
+} // cxx
+} // toml
+
 // ----------------------------------------------------------------------------
 // (subset of) source_location
 
