@@ -6,6 +6,28 @@ weight = 4
 
 # Change Log
 
+# v4.3.0
+
+## Added
+
+- `toml::find`で`std::optional<T>`をサポート
+- `toml::visit`で複数の引数をサポート
+
+## Fixed
+
+- 初期化前に変数が使われるケースを修正 (by amatej @kontura)
+- CMake 3.21以前を使用する際の修正 (by Severin Leonhardt @SeverinLeonhardt)
+- 非常に巨大な文字列が作成されるケースを修正 (by @hayt)
+- READMEのサンプルコードを修正、ToCを増強 (by somebody @oldoldtea) (by lz)
+- 長い行のパースを高速化
+- MSVC 2017でのコンパイルエラーを修正
+- `source_location::file_name`のヌルチェックを追加
+
+## Changed
+
+- hugo-bookテーマをアップデート
+- MSVC 2017をappveyor buildに追加
+
 # v4.2.0
 
 ## Added

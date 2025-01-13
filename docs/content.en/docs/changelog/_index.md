@@ -6,6 +6,28 @@ weight = 4
 
 # Change Log
 
+# v4.3.0
+
+## Added
+
+- Support `std::optional` as a template argument of `toml::find`
+- Support multiple arguments `toml::visit(visitor, args...)`
+
+## Fixed
+
+- `toml::detail::region::last_` may be used uninitialized (#267) (#268) (by amatej @kontura)
+- Fix use with CMake 3.21 and older (#271) (by Severin Leonhardt @SeverinLeonhardt)
+- fix: prevent size_t-max length string allocation (#275) (#276) (by @hayt)
+- update README.md (#277) (by somebody @oldoldtea) (by lz)
+- Make parsing faster for very long line (#278)
+- Avoid known problem in MSVC (#279)
+- Check if `source_location::file_name()` is null before formatting
+
+## Changed
+
+- Update hugo-book theme
+- Add MSVC 2017 to appveyor build
+
 # v4.2.0
 
 ## Added
