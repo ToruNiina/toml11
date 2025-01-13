@@ -660,6 +660,14 @@ toml11 v3からは複数の破壊的変更が追加されています。
   - Suppress warnings by manually cast file size to `std::streamsize`
 - Jack W (@jackwil1)
   - Fix typos in documentation template syntax
+- amatej (@kontura)
+  - Fix: `toml::detail::region::last_` may be used uninitialized
+- Severin Leonhardt (@SeverinLeonhardt)
+  - Fix use with CMake 3.21 and older
+- hayt (@hayt)
+  - fix: prevent size_t-max length string allocation
+- somebody (@oldoldtea), (lz)
+  - Update README for better ToC, fixing example code
 
 ## Licensing terms
 
