@@ -20,6 +20,12 @@ toml11は、C++11,14,17,20のための豊富な機能を持つTOML言語ライ�
 
 ## Example
 
+```toml
+# example.toml
+title = "an example toml file"
+nums  = [3, 1, 4, 1, 5] # pi!
+```
+
 ```cpp
 #include <toml.hpp>
 #include <iostream>
@@ -71,16 +77,31 @@ int main()
 
 ## Table of Contents
 
-- [Integration](#integration)
-- [Features](#features)
-  - [parsing a file](#parsing-a-file)
-  - [finding a value](#finding-a-value)
-  - [comments](#comments)
-  - [error messages](#error-messages)
-  - [serialization](#serialization)
-- [Breaking Changes from v3](#changes-from-v3)
-- [Contributors](#contributors)
-- [Licensing Terms](#licensing-terms)
+- [toml11](#toml11)
+  - [Example](#example)
+  - [Table of Contents](#table-of-contents)
+  - [Integration](#integration)
+    - [Single Include File](#single-include-file)
+    - [git submodule](#git-submodule)
+    - [CMake `FetchContent`](#cmake-fetchcontent)
+    - [CMake Package Manager (CPM)](#cmake-package-manager-cpm)
+    - [Install Using CMake](#install-using-cmake)
+    - [Precompile Library](#precompile-library)
+    - [Building Example](#building-example)
+    - [Building Tests](#building-tests)
+  - [Features](#features)
+    - [Parsing a File](#parsing-a-file)
+    - [finding a value](#finding-a-value)
+    - [comments](#comments)
+    - [error messages](#error-messages)
+    - [serialization](#serialization)
+    - [Configuring Types](#configuring-types)
+  - [Examples](#examples)
+  - [Changes from v3](#changes-from-v3)
+    - [Breaking Changes](#breaking-changes)
+    - [Added features](#added-features)
+  - [Contributors](#contributors)
+  - [Licensing terms](#licensing-terms)
 
 ## Integration
 
@@ -106,7 +127,7 @@ include(FetchContent)
 FetchContent_Declare(
   toml11
   GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
-  GIT_TAG        v4.0.3
+  GIT_TAG        v4.3.0
 )
 FetchContent_MakeAvailable(toml11)
 
@@ -121,7 +142,16 @@ target_link_libraries(main PRIVATE toml11::toml11)
 ```cmake
 include(cmake/CPM.cmake)
 
-CPMAddPackage("gh:ToruNiina/toml11@4.1.0")
+CPMAddPackage("gh:ToruNiina/toml11@4.3.0")
+
+# OR
+
+CPMAddPackage(
+    NAME toml11
+    GITHUB_REPOSITORY "ToruNiina/toml11"
+    VERSION 4.3.0
+    OPTIONS "TOML11_PRECOMPILE ON" # to pre-compile
+    )
 
 add_executable(main main.cpp)
 target_link_libraries(main PUBLIC toml11::toml11)
