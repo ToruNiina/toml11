@@ -14,18 +14,12 @@ type  = "docs"
 ```cpp
 namespace toml
 {
-template<typename Visitor, typename TC>
-/* Visitor を basic_value<TC>の値で呼び出した際の返り値 */
-visit(Visitor&& visitor, const basic_value<TC>& v);
 
-template<typename Visitor, typename TC>
-/* Visitor を basic_value<TC>の値で呼び出した際の返り値 */
-visit(Visitor&& visitor, basic_value<TC>& v)
+template<typename Visitor, typename ... Args>
+/* visitor にArgsの中身を渡した際の返り値 */
+visit(Visitor&& visitor, Args&& ... args);
 
-template<typename Visitor, typename TC>
-/* Visitor を basic_value<TC>の値で呼び出した際の返り値 */
-visit(Visitor&& visitor, basic_value<TC>&& v)
-}
+} // toml
 ```
 
 `basic_value<TC>`が保持している型に対応する`Visitor`のオーバーロードを呼び出し、その結果を返します。

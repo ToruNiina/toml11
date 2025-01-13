@@ -14,17 +14,9 @@ In `visit.hpp`, `toml::visit` is defined.
 ```cpp
 namespace toml
 {
-template<typename Visitor, typename TC>
+template<typename Visitor, typename ... Args>
 /* Return value when Visitor is called with a value of basic_value<TC> */
-visit(Visitor&& visitor, const basic_value<TC>& v);
-
-template<typename Visitor, typename TC>
-/* Return value when Visitor is called with a value of basic_value<TC> */
-visit(Visitor&& visitor, basic_value<TC>& v);
-
-template<typename Visitor, typename TC>
-/* Return value when Visitor is called with a value of basic_value<TC> */
-visit(Visitor&& visitor, basic_value<TC>&& v);
+visit(Visitor&& visitor, Args&& ... args);
 }
 ```
 
