@@ -544,5 +544,36 @@ T find_or(const basic_value<TC>& v, const K1& k1, const K2& k2, const K3& k3, co
     }
 }
 
+// ===========================================================================
+// find_or_default<T>(value, key)
+
+template<typename T, typename TC, typename K>
+cxx::enable_if_t<std::is_default_constructible<T>::value, T>
+find_or_default(const basic_value<TC>& v, K&& k) noexcept(std::is_nothrow_default_constructible<T>::value)
+{
+    try
+    {
+        return ::toml::get<T>(v.at(detail::key_cast<TC>(std::forward<K>(k))));
+    }
+    catch(...)
+    {
+        return T();
+    }
+}
+
+template<typename T, typename TC, typename K1, typename ... Ks>
+cxx::enable_if_t<std::is_default_constructible<T>::value, T>
+find_or_default(const basic_value<TC>& v, K1&& k1, Ks&& ... keys) noexcept(std::is_nothrow_default_constructible<T>::value)
+{
+    try
+    {
+        return find_or_default<T>(v.at(std::forward<K1>(k1)), std::forward<Ks>(keys)...);
+    }
+    catch(...)
+    {
+        return T();
+    }
+}
+
 } // toml
 #endif // TOML11_FIND_HPP

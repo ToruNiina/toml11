@@ -544,6 +544,17 @@ This is useful when you want to provide a fallback value instead of handling exc
 const auto a = toml::find_or(input, "a", 42);
 ```
 
+## Using `toml::find_or_default` to Search and Use the Default Value on Failure
+
+`toml::find_or_default` works similarly to `toml::find_or<T>` but returns the default constructor result if the search or conversion fails.
+
+This is useful when you want to use the default value instead of handling exceptions, especially when the default construction is costly, as this delays it until the actual failure happens.
+
+```cpp
+const auto a = toml::find_or(input, "a", expensive());  // ctor is called before the function call
+const auto a = toml::find_or_default<expensive>(input, "a");  // ctor will be called only on failure
+```
+
 ## `toml::find<std::optional<T>>`
 
 If `std::optional` is available, you can specify `std::optional` as a template argument of `toml::find`.
