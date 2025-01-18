@@ -569,6 +569,17 @@ const auto a = toml::find_or(input, "a", 42);
 
 型変換の失敗だけでなく、キーが見つからなかった場合もデフォルト値を返します。
 
+## `toml::find_or_default`を使って失敗時の値を指定する
+
+`toml::find_or_default` は、 `toml::find_or` と同様に、失敗時にデフォルトコンストラクタの結果を返します。デフォルトコンストラクタは失敗時のみに呼ばれるため、特にそれが高価な時に有効です。
+
+```cpp
+const auto a = toml::find_or(input, "a", expensive());  // 関数呼出前にコンストラクタ呼出
+const auto a = toml::find_or_default<expensive>(input, "a");  // 失敗時にのみコンストラクタ呼出
+```
+
+型変換の失敗だけでなく、キーが見つからなかった場合もデフォルトコンストラクタの結果を返します。
+
 ## `toml::find<std::optional<T>>`
 
 C++17以降の場合、`std::optional`を`toml::find`に指定することができます。

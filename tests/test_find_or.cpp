@@ -673,3 +673,86 @@ TEST_CASE("testing find_or(val, keys..., opt)")
         CHECK_EQ(v2, 3.14);
     }
 }
+
+TEST_CASE("testing find_or_default(val, keys...)")
+{
+    // explicitly specify type, doing type conversion
+    {
+        const toml::value v(
+            toml::table{ {"foo",
+                toml::table{ {"bar",
+                    toml::table{ {"baz",
+                        42
+                    } }
+                } }
+            } }
+        );
+        auto v1 = toml::find_or_default<int>(v, "foo", "bar", "baz");
+        auto v2 = toml::find_or_default<int>(v, "foo", "bar", "qux");
+
+        CHECK_EQ(v1, 42);
+        CHECK_EQ(v2, 0);
+    }
+    {
+        toml::value v(
+            toml::table{ {"A",
+            toml::table{ {"B",
+            toml::table{ {"C",
+            toml::table{ {"D",
+            toml::table{ {"E",
+            toml::table{ {"F",
+                42
+            } }
+            } }
+            } }
+            } }
+            } }
+            } }
+        );
+        auto v1 = toml::find_or_default<int>(v, "A", "B", "C", "D", "E", "F");
+        auto v2 = toml::find_or_default<int>(v, "A", "B", "C", "D", "E", "G");
+
+        CHECK_EQ(v1, 42);
+        CHECK_EQ(v2, 0);
+    }
+
+    // the value exists, but type is different from the expected.
+    {
+        const toml::value v(
+            toml::table{ {"foo",
+                toml::table{ {"bar",
+                    toml::table{ {"baz",
+                        42
+                    } }
+                } }
+            } }
+        );
+        auto v1 = toml::find_or_default<std::string>(v, "foo", "bar", "baz");
+        auto v2 = toml::find_or_default<double     >(v, "foo", "bar", "baz");
+
+        CHECK_EQ(v1, "");
+        CHECK_EQ(v2, 0.);
+    }
+    {
+        const toml::value v(
+            toml::table{ {"A",
+            toml::table{ {"B",
+            toml::table{ {"C",
+            toml::table{ {"D",
+            toml::table{ {"E",
+            toml::table{ {"F",
+                42
+            } }
+            } }
+            } }
+            } }
+            } }
+            } }
+        );
+        auto v1 = toml::find_or_default<std::string>(v, "A", "B", "C", "D", "E", "F");
+        auto v2 = toml::find_or_default<double     >(v, "A", "B", "C", "D", "E", "F");
+
+        CHECK_EQ(v1, "");
+        CHECK_EQ(v2, 0.);
+    }
+}
