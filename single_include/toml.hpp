@@ -3869,7 +3869,7 @@ struct bad_result_access final : public ::toml::exception
 template<typename T>
 struct success
 {
-    static_assert( ! std::is_same<T, void>::value, "");
+    static_assert( ! std::is_void<T>::value, "");
 
     using value_type = T;
 
@@ -3903,7 +3903,7 @@ struct success
 template<typename T>
 struct success<std::reference_wrapper<T>>
 {
-    static_assert( ! std::is_same<T, void>::value, "");
+    static_assert( ! std::is_void<T>::value, "");
 
     using value_type = T;
 
