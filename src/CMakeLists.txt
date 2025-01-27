@@ -90,7 +90,10 @@ if(TOML11_PRECOMPILE)
         types.cpp
         value_t.cpp
         )
-    target_compile_definitions(toml11 PUBLIC -DTOML11_COMPILE_SOURCES)
+    target_compile_definitions(toml11 PUBLIC
+        -DTOML11_COMPILE_SOURCES
+        $<$<BOOL:${TOML11_ENABLE_ACCESS_CHECK}>: -DTOML11_ENABLE_ACCESS_CHECK>
+        )
     target_include_directories(toml11 PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
@@ -127,6 +130,9 @@ if(TOML11_PRECOMPILE)
     endif()
 else()
     add_library(toml11 INTERFACE)
+    target_compile_definitions(toml11 INTERFACE
+        $<$<BOOL:${TOML11_ENABLE_ACCESS_CHECK}>: -DTOML11_ENABLE_ACCESS_CHECK>
+        )
     target_include_directories(toml11 INTERFACE
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
