@@ -59,6 +59,11 @@ void change_region_of_value(basic_value<TC>&, const basic_value<TC>&);
 
 template<typename TC, value_t V>
 struct getter;
+
+#ifdef TOML11_ENABLE_ACCESS_CHECK
+template<typename TC>
+void unset_access_flag(basic_value<TC>&);
+#endif
 } // detail
 
 template<typename TypeConfig>
@@ -2102,6 +2107,12 @@ class basic_value
     template<typename TC>
     friend class basic_value;
 
+
+#ifdef TOML11_ENABLE_ACCESS_CHECK
+    template<typename TC>
+    friend void detail::unset_access_flag(basic_value<TC>&);
+#endif
+
     // }}}
 
   private:
@@ -2449,6 +2460,48 @@ void change_region_of_value(basic_value<TC>& dst, const basic_value<TC>& src)
     dst.region_ = std::move(src.region_);
     return;
 }
+
+#ifdef TOML11_ENABLE_ACCESS_CHECK
+template<typename TC>
+void unset_access_flag(basic_value<TC>& v)
+{
+    v.accessed_.store(false);
+}
+
+template<typename TC>
+void unset_access_flag_recursively(basic_value<TC>& v)
+{
+    switch(v.type())
+    {
+        case value_t::empty            : { return unset_access_flag(v); }
+        case value_t::boolean          : { return unset_access_flag(v); }
+        case value_t::integer          : { return unset_access_flag(v); }
+        case value_t::floating         : { return unset_access_flag(v); }
+        case value_t::string           : { return unset_access_flag(v); }
+        case value_t::offset_datetime  : { return unset_access_flag(v); }
+        case value_t::local_datetime   : { return unset_access_flag(v); }
+        case value_t::local_date       : { return unset_access_flag(v); }
+        case value_t::local_time       : { return unset_access_flag(v); }
+        case value_t::array:
+        {
+            for(auto& elem : v.as_array())
+            {
+                unset_access_flag_recursively(elem);
+            }
+            return unset_access_flag(v);
+        }
+        case value_t::table:
+        {
+            for(auto& kv : v.as_table())
+            {
+                unset_access_flag_recursively(kv.second);
+            }
+            return unset_access_flag(v);
+        }
+        default: { return unset_access_flag(v); }
+    }
+}
+#endif
 
 } // namespace detail
 } // namespace toml
