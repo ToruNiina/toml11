@@ -10,6 +10,7 @@ jobs:
         compiler: ['g++-12', 'g++-11', 'g++-10', 'g++-9']
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
+        betafeature: ['ON', 'OFF']
     steps:
       - name: Get number of CPU cores
         uses: SimenB/github-actions-cpu-cores@v2
@@ -25,7 +26,7 @@ jobs:
             sudo apt-get install ${{ matrix.compiler }}
       - name: Configure
         run: |
-            cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+            cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }} -DTOML11_ENABLE_ACCESS_CHECK=${{ matrix.betafeature }}
       - name: Build
         run: |
             cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
@@ -39,6 +40,7 @@ jobs:
         compiler: ['15', '14', '13', '12', '11']
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
+        betafeature: ['ON', 'OFF']
         exclude:
             - {compiler: '14', standard: '20'} # to avoid using gcc-13 libstdc++
             - {compiler: '13', standard: '20'} # with older clang
@@ -59,7 +61,7 @@ jobs:
             sudo apt-get install clang-${{ matrix.compiler }}
       - name: Configure
         run: |
-            cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+            cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }} -DTOML11_ENABLE_ACCESS_CHECK=${{ matrix.betafeature }}
       - name: Build
         run: |
             cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
@@ -73,6 +75,7 @@ jobs:
         compiler: ['g++-8', 'g++-7']
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
+        betafeature: ['ON', 'OFF']
         exclude:
             - {compiler: 'g++-7', standard: '20'}
             - {compiler: 'g++-8', standard: '17'}
@@ -92,7 +95,7 @@ jobs:
             sudo apt-get install ${{ matrix.compiler }}
       - name: Configure
         run: |
-            cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+            cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }} -DTOML11_ENABLE_ACCESS_CHECK=${{ matrix.betafeature }}
       - name: Build
         run: |
             cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
@@ -107,6 +110,7 @@ jobs:
         compiler: ['10', '9', '8', '7', '6.0']
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
+        betafeature: ['ON', 'OFF']
         exclude:
             - {compiler: '6.0', standard: '20'}
             - {compiler: '7',   standard: '20'}
@@ -127,7 +131,7 @@ jobs:
             sudo apt-get install clang-${{ matrix.compiler }}
       - name: Configure
         run: |
-            cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+            cmake -B build/ -DCMAKE_CXX_COMPILER=clang++-${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }} -DTOML11_ENABLE_ACCESS_CHECK=${{ matrix.betafeature }}
       - name: Build
         run: |
             cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
@@ -141,6 +145,7 @@ jobs:
       matrix:
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
+        betafeature: ['ON', 'OFF']
     steps:
       - name: Get number of CPU cores
         uses: SimenB/github-actions-cpu-cores@v2
@@ -151,7 +156,7 @@ jobs:
           submodules: true
       - name: Configure
         run: |
-            cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+            cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }} -DTOML11_ENABLE_ACCESS_CHECK=${{ matrix.betafeature }}
       - name: Build
         run: |
             cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
@@ -165,6 +170,7 @@ jobs:
       matrix:
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
+        betafeature: ['ON', 'OFF']
     steps:
       - name: Get number of CPU cores
         uses: SimenB/github-actions-cpu-cores@v2
@@ -175,7 +181,7 @@ jobs:
           submodules: true
       - name: Configure
         run: |
-            cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+            cmake -B build/ -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }} -DTOML11_ENABLE_ACCESS_CHECK=${{ matrix.betafeature }}
       - name: Build
         run: |
             cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
@@ -190,6 +196,7 @@ jobs:
         standard: ['11', '14', '17', '20']
         config: ['Release', 'Debug']
         precompile: ['ON', 'OFF']
+        betafeature: ['ON', 'OFF']
     steps:
       - name: Get number of CPU cores
         uses: SimenB/github-actions-cpu-cores@v2
@@ -202,7 +209,7 @@ jobs:
       - name: Configure
         shell: cmd
         run: |
-            cmake -B build/ -G "NMake Makefiles" -DTOML11_BUILD_TESTS=ON -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_PRECOMPILE=${{ matrix.precompile }}
+            cmake -B build/ -G "NMake Makefiles" -DTOML11_BUILD_TESTS=ON -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_PRECOMPILE=${{ matrix.precompile }} -DTOML11_ENABLE_ACCESS_CHECK=${{ matrix.betafeature }}
       - name: Build
         run: |
             cmake --build ./build --config "${{ matrix.config }}" -j${{ steps.cpu-cores.outputs.count }}
