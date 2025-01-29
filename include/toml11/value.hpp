@@ -1342,9 +1342,13 @@ class basic_value
         std::nullptr_t> = nullptr>
     bool is() const noexcept
     {
-        return detail::type_to_enum<T, value_type>::value == this->type_;
+        return this->is(detail::type_to_enum<T, value_type>::value);
     }
-    bool is(value_t t) const noexcept {return t == this->type_;}
+    bool is(value_t t) const noexcept
+    {
+        this->set_accessed();
+        return t == this->type_;
+    }
 
     bool is_empty()           const noexcept {return this->is(value_t::empty          );}
     bool is_boolean()         const noexcept {return this->is(value_t::boolean        );}
@@ -1360,6 +1364,7 @@ class basic_value
 
     bool is_array_of_tables() const noexcept
     {
+        this->set_accessed();
         if( ! this->is_array()) {return false;}
         const auto& a = this->as_array(std::nothrow); // already checked.
 
@@ -1379,7 +1384,11 @@ class basic_value
         return true;
     }
 
-    value_t type() const noexcept {return type_;}
+    value_t type() const noexcept
+    {
+        this->set_accessed();
+        return type_;
+    }
 
     // }}}
 
