@@ -6,11 +6,11 @@ weight = 70
 
 # TOML Language Version
 
-You can specify the version of the TOML language and individual feature flags to use with `toml::parse` or `toml::format` through [`toml::spec`](docs/reference/spec#tomlspec).
+You can specify the version of the TOML language and individual feature flags to use with `toml::parse` or `toml::format` through [`toml::spec`]({{< ref "docs/reference/spec#tomlspec" >}}).
 
 ## Specifying TOML Version
 
-You can construct a [`toml::spec`](docs/reference/spec#tomlspec) from [`toml::semantic_version`](docs/reference/spec#tomlsemantic_version).
+You can construct a [`toml::spec`]({{< ref "docs/reference/spec#tomlspec" >}}) from [`toml::semantic_version`]({{< ref "docs/reference/spec#tomlsemantic_version" >}}).
 
 ```cpp
 #include <toml.hpp>
@@ -52,7 +52,7 @@ As such, any features related to future versions should be considered unstable.
 
 ### Parsing with Version Specification
 
-The overload of [`toml::parse`](docs/reference/parser) takes a `toml::spec` following the file name.
+The overload of [`toml::parse`]({{< ref "docs/reference/parser#parse" >}}) takes a `toml::spec` following the file name.
 
 This allows you to change the TOML version being used.
 
@@ -68,7 +68,7 @@ int main()
 
 ### Serializing with Version Specification
 
-The overload of [`toml::format`](docs/reference/serializer) takes a `toml::spec` following the `toml::value`.
+The overload of [`toml::format`]({{< ref "docs/reference/serializer" >}}) takes a `toml::spec` following the `toml::value`.
 
 This allows you to change the TOML version being used.
 
@@ -104,4 +104,4 @@ int main()
 }
 ```
 
-For a full list of all flags, refer to [`toml::spec`](docs/reference/spec#tomlspec).
+For a full list of all flags, refer to [`toml::spec`]({{< ref "docs/reference/spec#tomlspec" >}}).

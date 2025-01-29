@@ -101,7 +101,7 @@ Irregular widths are not allowed.
 
 Stores the suffix when `spec::ext_num_suffix` of toml11 extension is `true`.
 
-cf. [spec.hpp](spec.md)
+cf. [spec.hpp]({{< ref "spec.md" >}})
 
 # `floating_format`
 
@@ -122,7 +122,7 @@ Corresponds to `std::defaultfloat`, `std::fixed`, `std::scientific`, `std::hexfl
 
 `hexfloat` is available only if `toml::spec::ext_hex_float` is `true`.
 
-cf. [spec.hpp](spec.md)
+cf. [spec.hpp]({{< ref "spec.md" >}})
 
 # `floating_format_info`
 
@@ -152,7 +152,7 @@ Specifies the precision after the decimal point.
 
 Stores the suffix when `spec::ext_num_suffix` of toml11 extension is `true`.
 
-cf. [spec.hpp](spec.md)
+cf. [spec.hpp]({{< ref "spec.md" >}})
 
 # `string_format`
 
@@ -384,7 +384,7 @@ std::string to_string(const table_format);
   - Formats in the form of `a.b.c = "d"`.
 - `multiline_oneline`
   - Formats as a multiline inline table with line breaks. Available from TOML v1.1.0 onwards.
-  - cf. [spec.hpp](spec.md)
+  - cf. [spec.hpp]({{< ref "spec.md" >}})
 - `implicit`
   - Skips implicit definitions like `[x.y.z.w]`, leaving `[x]`, `[x.y]`, `[x.y.z]` as implicit.
 

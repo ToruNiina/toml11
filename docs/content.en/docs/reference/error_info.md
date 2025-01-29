@@ -84,7 +84,7 @@ Creates a new `error_info`.
 
 Must be followed by a `msg` related to `source_location` or `basic_value`.
 
-Overloads are added in [`value.hpp`](docs/reference/value#tomlmake_error_info) when passing `toml::basic_value` instead of `source_location`.
+Overloads are added in [`value.hpp`]({{< ref "docs/reference/value#tomlmake_error_info" >}}) when passing `toml::basic_value` instead of `source_location`.
 
 Possible to pass `suffix` at the end.
 
@@ -128,7 +128,7 @@ std::string format_error(std::string title,
 
 Returns a formatted string using `format_error` for `error_info` created with `make_error_info`.
 
-Overloads are added in [`value.hpp`](docs/reference/value#tomlformat_error) when passing `toml::basic_value` instead of `source_location`.
+Overloads are added in [`value.hpp`]({{< ref "docs/reference/value#tomlformat_error" >}}) when passing `toml::basic_value` instead of `source_location`.
 
 ### Stream Operator
 
@@ -140,6 +140,6 @@ Calls `format_error(e)` and outputs it.
 
 # Related
 
-- [color.hpp](color.md)
-- [parser.hpp](parser.md)
-- [source_location.hpp](source_location.md)
+- [color.hpp]({{< ref "color.md" >}})
+- [parser.hpp]({{< ref "parser.md" >}})
+- [source_location.hpp]({{< ref "source_location.md" >}})
