@@ -3426,6 +3426,11 @@ parse_file(location& loc, context<TC>& ctx)
     {
         return err(std::move(ctx.errors()));
     }
+
+#ifdef TOML11_ENABLE_ACCESS_CHECK
+    detail::unset_access_flag_recursively(root);
+#endif
+
     return ok(std::move(root));
 }
 
