@@ -3,6 +3,8 @@
 
 #include <toml.hpp>
 
+#ifdef TOML11_ENABLE_ACCESS_CHECK
+
 TEST_CASE("testing toml::parse(file)")
 {
     using namespace toml::literals::toml_literals;
@@ -70,3 +72,5 @@ role = "backend"
     CHECK_UNARY_FALSE(u.at("database").at("temp_targets").at("cpu" ).accessed());
     CHECK_UNARY_FALSE(u.at("database").at("temp_targets").at("case").accessed());
 }
+
+#endif // TOML11_ENABLE_ACCESS_CHECK

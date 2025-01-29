@@ -2042,7 +2042,9 @@ class basic_value
     comment_type const& comments() const noexcept {return this->comments_;}
     comment_type&       comments()       noexcept {return this->comments_;}
 
+#ifdef TOML11_ENABLE_ACCESS_CHECK
     bool accessed() const {return this->accessed_.load();}
+#endif
 
   private:
 
