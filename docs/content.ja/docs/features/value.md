@@ -863,3 +863,71 @@ struct bar
     }
 };
 ```
+
+# 値がアクセス済みかどうかチェックする
+
+{{% hint warning %}}
+
+この機能はデフォルトでは有効化されず、使用する際には`TOML11_ENABLE_ACCESS_CHECK`を定義する必要があります。
+また、この機能はパースした値に対して追加の処理を行うため、実行時パフォーマンスが低下する可能性があります。
+
+{{% /hint %}}
+
+`TOML11_ENABLE_ACCESS_CHECK`マクロを定義してコンパイルすると、`toml::value`に`bool accessed() const`メソッドが追加され、パース後にその値にアクセスしたかどうかが確認できるようになります。
+
+```console
+$ g++ -std=c++17 -O2 -DTOML11_ENABLE_ACCESS_CHECK -I/path/to/toml11/include main.cpp
+```
+
+```console
+$ cmake -B ./build -DTOML11_ENABLE_ACCESS_CHECK=ON
+```
+
+```cmake
+CPMAddPackage(
+    NAME toml11
+    GITHUB_REPOSITORY "ToruNiina/toml11"
+    VERSION 4.4.0
+    OPTIONS "CMAKE_CXX_STANDARD 17" "TOML11_PRECOMPILE ON" "TOML11_ENABLE_ACCESS_CHECK ON"
+    )
+```
+
+この機能によって、テーブル内に定義されているものの使用されなかった値についての警告を表示することが可能になります。
+
+```cpp
+#include <toml.hpp>
+
+namespace yours
+{
+
+Config read_config(const toml::value& v)
+{
+    const auto cfg = read_your_config(input);
+
+    for(const auto& [k, v] : input.as_table())
+    {
+        if( ! v.accessed())
+        {
+            std::cerr << toml::format_error("value defined but not used",
+                v.source_location(), "not used");
+        }
+    }
+    return cfg;
+}
+} // yours
+```
+
+この機能は、必要な場合のみ定義されるような値を、名称を間違えて定義してしまった際に役に立つでしょう。
+例えば、
+
+```toml
+# 正しくは reactions 
+# reactions = [ ":+1:", "star" ]
+
+# 名前が違うので読み込めない
+reaction = [ ":+1:", "star" ]
+```
+
+このファイルを上記のコードで読んだ場合、`read_your_config`は`reactions`を探し、定義されていなかったので空の配列として処理するでしょう。
+その場合、`reaction`は`accessed()`が`true`にならないため、エラーとして検出できます。
+
