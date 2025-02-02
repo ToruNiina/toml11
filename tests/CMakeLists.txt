@@ -39,6 +39,7 @@ set(TOML11_TEST_NAMES
     test_utility
     test_user_defined_conversion
     test_value
+    test_accessed
     test_visit
     )
 

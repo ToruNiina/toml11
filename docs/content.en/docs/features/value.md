@@ -834,3 +834,76 @@ struct bar
     }
 };
 ```
+
+# Checking Whether a Value Has Been Accessed
+
+{{% hint warning %}}
+
+This feature is not enabled by default. To use it, you need to define `TOML11_ENABLE_ACCESS_CHECK`.
+Additionally, since this feature introduces extra processing on parsed values, it may impact runtime performance.
+
+{{% /hint %}}
+
+When compiled with the `TOML11_ENABLE_ACCESS_CHECK` macro defined, the `toml::value` class gains an additional method: `bool accessed() const`.
+This allows you to check whether a value has been accessed after parsing.
+
+```console
+$ g++ -std=c++17 -O2 -DTOML11_ENABLE_ACCESS_CHECK -I/path/to/toml11/include main.cpp
+```
+
+or
+
+```console
+$ cmake -B ./build -DTOML11_ENABLE_ACCESS_CHECK=ON
+```
+
+or
+
+```cmake
+CPMAddPackage(
+    NAME toml11
+    GITHUB_REPOSITORY "ToruNiina/toml11"
+    VERSION 4.4.0
+    OPTIONS "CMAKE_CXX_STANDARD 17" "TOML11_PRECOMPILE ON" "TOML11_ENABLE_ACCESS_CHECK ON"
+    )
+```
+
+This feature allows users to implement code that warns about values defined in a table but never used.
+
+```cpp
+#include <toml.hpp>
+
+namespace yours
+{
+
+Config read_config(const toml::value& input)
+{
+    const auto cfg = read_your_config(input);
+
+    for (const auto& [k, v] : input.as_table())
+    {
+        if (!v.accessed())
+        {
+            std::cerr << toml::format_error("value defined but not used",
+                v.source_location(), "not used");
+        }
+    }
+    return cfg;
+}
+} // namespace yours
+```
+
+This feature is useful when a value is mistakenly defined under the wrong name but is never accessed. For example:
+
+```toml
+# The correct key is "reactions"
+# reactions = [ ":+1:", "star" ]
+
+# This key is incorrect and will not be read
+reaction = [ ":+1:", "star" ]
+```
+
+If this file is read using the above code, `read_your_config` will search for `reactions`. Since it is not defined, it will process `reactions` as an empty array.
+In this case, `input.at("reaction").accessed()` will be `false`, allowing it to be detected as an error.
+
+

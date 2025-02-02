@@ -17,6 +17,7 @@ project(toml11 LANGUAGES CXX VERSION "${TOML11_VERSION_MAJOR}.${TOML11_VERSION_M
 include(CTest) # to use ${BUILD_TESTING}
 
 option(TOML11_PRECOMPILE "precompile toml11 library" OFF)
+option(TOML11_ENABLE_ACCESS_CHECK "enable access check feature (beta)" OFF)
 
 include(CMakeDependentOption)
 cmake_policy(PUSH)
