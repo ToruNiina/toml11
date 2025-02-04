@@ -403,11 +403,11 @@ TOML11_INLINE sequence escaped(const spec& s)
     const auto escape_char = [&s] {
         if(s.v1_1_0_add_escape_sequence_e)
         {
-            return character_either("\"\'bfnrte");
+            return character_either("\"\\bfnrte");
         }
         else
         {
-            return character_either("\"\'bfnrt");
+            return character_either("\"\\bfnrt");
         }
     };
 
