@@ -343,15 +343,13 @@ TOML11_INLINE sequence local_date(const spec& s)
 }
 TOML11_INLINE sequence local_time(const spec& s)
 {
-    auto time = sequence(
-            repeat_exact(2, digit(s)),
-            character(':'),
-            repeat_exact(2, digit(s))
-        );
-
     if(s.v1_1_0_make_seconds_optional)
     {
-        time.push_back(maybe(sequence(
+        return sequence(
+            repeat_exact(2, digit(s)),
+            character(':'),
+            repeat_exact(2, digit(s)),
+            maybe(sequence(
                 character(':'),
                 repeat_exact(2, digit(s)),
                 maybe(sequence(character('.'), repeat_at_least(1, digit(s))))
@@ -359,14 +357,15 @@ TOML11_INLINE sequence local_time(const spec& s)
     }
     else
     {
-        time.push_back(character(':'));
-        time.push_back(repeat_exact(2, digit(s)));
-        time.push_back(
+        return sequence(
+            repeat_exact(2, digit(s)),
+            character(':'),
+            repeat_exact(2, digit(s)),
+            character(':'),
+            repeat_exact(2, digit(s)),
             maybe(sequence(character('.'), repeat_at_least(1, digit(s))))
         );
     }
-
-    return time;
 }
 TOML11_INLINE either time_offset(const spec& s)
 {
@@ -412,23 +411,27 @@ TOML11_INLINE sequence escaped(const spec& s)
         }
     };
 
-    either escape_seq(
-            escape_char(),
-            sequence(character('u'), repeat_exact(4, hexdig(s))),
-            sequence(character('U'), repeat_exact(8, hexdig(s)))
-        );
+    const auto escape_seq = [&s, &escape_char] {
+        if(s.v1_1_0_add_escape_sequence_x)
+        {
+            return either(
+                escape_char(),
+                sequence(character('u'), repeat_exact(4, hexdig(s))),
+                sequence(character('U'), repeat_exact(8, hexdig(s))),
+                sequence(character('x'), repeat_exact(2, hexdig(s)))
+            );
+        }
+        else
+        {
+            return either(
+                escape_char(),
+                sequence(character('u'), repeat_exact(4, hexdig(s))),
+                sequence(character('U'), repeat_exact(8, hexdig(s)))
+            );
+        }
+    };
 
-    if(s.v1_1_0_add_escape_sequence_x)
-    {
-        escape_seq.push_back(
-            sequence(character('x'), repeat_exact(2, hexdig(s)))
-        );
-    }
-
-    return sequence(
-            character('\\'),
-            std::move(escape_seq)
-        );
+    return sequence(character('\\'), escape_seq());
 }
 
 TOML11_INLINE either basic_char(const spec& s)
@@ -664,16 +667,19 @@ TOML11_INLINE region non_ascii_key_char::scan(location& loc) const
 
 TOML11_INLINE repeat_at_least unquoted_key(const spec& s)
 {
-    auto keychar = either(
-            alpha(s), digit(s), character{0x2D}, character{0x5F}
-        );
+    const auto keychar = [&s] {
+        if(s.v1_1_0_allow_non_english_in_bare_keys)
+        {
+            return either(alpha(s), digit(s), character{0x2D}, character{0x5F},
+                          non_ascii_key_char(s));
+        }
+        else
+        {
+            return either(alpha(s), digit(s), character{0x2D}, character{0x5F});
+        }
+    };
 
-    if(s.v1_1_0_allow_non_english_in_bare_keys)
-    {
-        keychar.push_back(non_ascii_key_char(s));
-    }
-
-    return repeat_at_least(1, std::move(keychar));
+    return repeat_at_least(1, keychar());
 }
 
 TOML11_INLINE either quoted_key(const spec& s)

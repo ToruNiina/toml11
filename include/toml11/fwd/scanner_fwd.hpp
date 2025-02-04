@@ -200,12 +200,6 @@ class sequence final: public scanner_base
 
     scanner_base* clone() const override;
 
-    template<typename Scanner>
-    void push_back(Scanner&& other_scanner)
-    {
-        this->others_.emplace_back(std::forward<Scanner>(other_scanner));
-    }
-
     std::string name() const override;
 
   private:
@@ -251,12 +245,6 @@ class either final: public scanner_base
     std::string expected_chars(location& loc) const override;
 
     scanner_base* clone() const override;
-
-    template<typename Scanner>
-    void push_back(Scanner&& other_scanner)
-    {
-        this->others_.emplace_back(std::forward<Scanner>(other_scanner));
-    }
 
     std::string name() const override;
 
