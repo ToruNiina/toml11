@@ -59,7 +59,7 @@ TOML11_INLINE non_ascii::non_ascii(const spec& s) noexcept
 
 TOML11_INLINE character_either wschar(const spec&)
 {
-    return character_either{char_type(' '), char_type('\t')};
+    return character_either(" \t");
 }
 
 TOML11_INLINE repeat_at_least ws(const spec& s)
@@ -172,7 +172,7 @@ TOML11_INLINE sequence dec_int(const spec& s)
         return character_in_range(char_type('1'), char_type('9'));
     };
     return sequence(
-            maybe(character_either{char_type('-'), char_type('+')}),
+            maybe(character_either("+-")),
             either(
                 sequence(
                     digit19(),
@@ -222,7 +222,7 @@ TOML11_INLINE sequence oct_int(const spec&)
 TOML11_INLINE sequence bin_int(const spec&)
 {
     const auto digit01 = []() {
-        return character_either{char_type('0'), char_type('1')};
+        return character_either("01");
     };
     return sequence(
             literal("0b"),
@@ -274,8 +274,8 @@ TOML11_INLINE sequence fractional_part(const spec& s)
 TOML11_INLINE sequence exponent_part(const spec& s)
 {
     return sequence(
-            character_either{char_type('e'), char_type('E')},
-            maybe(character_either{char_type('+'), char_type('-')}),
+            character_either("eE"),
+            maybe(character_either("+-")),
             zero_prefixable_int(s)
         );
 }
@@ -291,9 +291,9 @@ TOML11_INLINE sequence hex_floating(const spec& s)
     // - 0x(int)p[+-](int)
 
     return sequence(
-            maybe(character_either{char_type('+'), char_type('-')}),
+            maybe(character_either("+-")),
             character('0'),
-            character_either{char_type('x'), char_type('X')},
+            character_either("xX"),
             either(
                 sequence(
                     repeat_at_least(0, hexdig(s)),
@@ -305,8 +305,8 @@ TOML11_INLINE sequence hex_floating(const spec& s)
                     maybe(character('.'))
                 )
             ),
-            character_either{char_type('p'), char_type('P')},
-            maybe(character_either{char_type('+'), char_type('-')}),
+            character_either("pP"),
+            maybe(character_either("+-")),
             repeat_at_least(1, character_in_range('0', '9'))
         );
 }
@@ -322,7 +322,7 @@ TOML11_INLINE either floating(const spec& s)
                 )
             ),
             sequence(
-                maybe(character_either{char_type('-'), char_type('+')}),
+                maybe(character_either("+-")),
                 either(literal("inf"), literal("nan"))
             )
         );
@@ -371,8 +371,8 @@ TOML11_INLINE sequence local_time(const spec& s)
 TOML11_INLINE either time_offset(const spec& s)
 {
     return either(
-            character_either{'Z', 'z'},
-            sequence(character_either{'+', '-'},
+            character_either("zZ"),
+            sequence(character_either("+-"),
                      repeat_exact(2, digit(s)),
                      character(':'),
                      repeat_exact(2, digit(s))
@@ -385,7 +385,7 @@ TOML11_INLINE sequence full_time(const spec& s)
 }
 TOML11_INLINE character_either time_delim(const spec&)
 {
-    return character_either{'T', 't', ' '};
+    return character_either("Tt ");
 }
 TOML11_INLINE sequence local_datetime(const spec& s)
 {
@@ -401,16 +401,19 @@ TOML11_INLINE sequence offset_datetime(const spec& s)
 
 TOML11_INLINE sequence escaped(const spec& s)
 {
-    character_either escape_char{
-        '\"','\\', 'b', 'f', 'n', 'r', 't'
+    const auto escape_char = [&s] {
+        if(s.v1_1_0_add_escape_sequence_e)
+        {
+            return character_either("\"\'bfnrte");
+        }
+        else
+        {
+            return character_either("\"\'bfnrt");
+        }
     };
-    if(s.v1_1_0_add_escape_sequence_e)
-    {
-        escape_char.push_back(char_type('e'));
-    }
 
     either escape_seq(
-            std::move(escape_char),
+            escape_char(),
             sequence(character('u'), repeat_exact(4, hexdig(s))),
             sequence(character('U'), repeat_exact(8, hexdig(s)))
         );

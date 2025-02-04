@@ -2679,7 +2679,7 @@ guess_number_type(const location& first, const context<TC>& ctx)
             if('0' <= c && c <= '9')
             {
                 return err(make_syntax_error("bad datetime: missing T or space",
-                    character_either{'T', 't', ' '}, loc, std::string(
+                    character_either("Tt "), loc, std::string(
                     "Hint: valid  : 1979-05-27T07:32:00, 1979-05-27 07:32:00.999999\n"
                     "Hint: invalid: 1979-05-27T7:32:00, 1979-05-27 17:32\n")));
             }

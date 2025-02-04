@@ -87,8 +87,9 @@ TOML11_INLINE region character_either::scan(location& loc) const
 {
     if(loc.eof()) {return region{};}
 
-    for(const auto c : this->chars_)
+    for(std::size_t i=0; i<this->size_; ++i)
     {
+        const auto c = char_type(this->value_[i]);
         if(loc.current() == c)
         {
             const auto first = loc;
@@ -101,30 +102,32 @@ TOML11_INLINE region character_either::scan(location& loc) const
 
 TOML11_INLINE std::string character_either::expected_chars(location&) const
 {
-    assert( ! chars_.empty());
+    assert( this->value_ );
+    assert( this->size_ != 0 );
 
     std::string expected;
-    if(chars_.size() == 1)
+    if(this->size_ == 1)
     {
-        expected += show_char(chars_.at(0));
+        expected += show_char(char_type(value_[0]));
     }
-    else if(chars_.size() == 2)
+    else if(this->size_ == 2)
     {
-        expected += show_char(chars_.at(0)) + " or " + show_char(chars_.at(1));
+        expected += show_char(char_type(value_[0])) + " or " +
+                    show_char(char_type(value_[1]));
     }
     else
     {
-        for(std::size_t i=0; i<chars_.size(); ++i)
+        for(std::size_t i=0; i<this->size_; ++i)
         {
             if(i != 0)
             {
                 expected += ", ";
             }
-            if(i + 1 == chars_.size())
+            if(i + 1 == this->size_)
             {
                 expected += "or ";
             }
-            expected += show_char(chars_.at(i));
+            expected += show_char(char_type(value_[i]));
         }
     }
     return expected;
@@ -135,20 +138,16 @@ TOML11_INLINE scanner_base* character_either::clone() const
     return new character_either(*this);
 }
 
-TOML11_INLINE void character_either::push_back(const char_type c)
-{
-    chars_.push_back(c);
-}
-
 TOML11_INLINE std::string character_either::name() const
 {
     std::string n("character_either{");
-    for(const auto c : this->chars_)
+    for(std::size_t i=0; i<this->size_; ++i)
     {
+        const auto c = char_type(this->value_[i]);
         n += show_char(c);
         n += ", ";
     }
-    if( ! this->chars_.empty())
+    if(this->size_ != 0)
     {
         n.pop_back();
         n.pop_back();
