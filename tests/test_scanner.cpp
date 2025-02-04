@@ -24,7 +24,7 @@ TEST_CASE("testing scanner: character_either")
 {
     auto loc = toml::detail::make_temporary_location("\t \t01\0");
 
-    toml::detail::character_either wschar{'\t', ' '};
+    toml::detail::character_either wschar("\t ");
     toml::detail::character_either digit01("01");
 
     CHECK_UNARY( wschar .scan(loc).is_ok());
