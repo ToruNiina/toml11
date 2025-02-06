@@ -2,6 +2,7 @@
 #define TOML11_SPEC_HPP
 
 #include <array>
+#include <functional>
 #include <ostream>
 #include <sstream>
 #include <utility>
