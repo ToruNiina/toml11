@@ -1246,8 +1246,7 @@ parse_escape_sequence(location& loc, const context<TC>& ctx)
     }
     else if(spec.v1_1_0_add_escape_sequence_x && loc.current() == 'x')
     {
-        auto scanner = sequence(character('x'), repeat_exact(2, syntax::hexdig(spec)));
-        const auto reg = scanner.scan(loc);
+        const auto reg = syntax::escaped_x2(spec).scan(loc);
         if( ! reg.is_ok())
         {
             auto src = source_location(region(loc));
@@ -1264,8 +1263,7 @@ parse_escape_sequence(location& loc, const context<TC>& ctx)
     }
     else if(loc.current() == 'u')
     {
-        auto scanner = sequence(character('u'), repeat_exact(4, syntax::hexdig(spec)));
-        const auto reg = scanner.scan(loc);
+        const auto reg = syntax::escaped_u4(spec).scan(loc);
         if( ! reg.is_ok())
         {
             auto src = source_location(region(loc));
@@ -1282,8 +1280,7 @@ parse_escape_sequence(location& loc, const context<TC>& ctx)
     }
     else if(loc.current() == 'U')
     {
-        auto scanner = sequence(character('U'), repeat_exact(8, syntax::hexdig(spec)));
-        const auto reg = scanner.scan(loc);
+        const auto reg = syntax::escaped_U8(spec).scan(loc);
         if( ! reg.is_ok())
         {
             auto src = source_location(region(loc));
