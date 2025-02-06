@@ -473,7 +473,7 @@ parse_floating(location& loc, const context<TC>& ctx)
     bool is_hex = false;
     std::string str;
     region reg;
-    if(spec.ext_hex_float && sequence(character('0'), character('x')).scan(loc).is_ok())
+    if(spec.ext_hex_float && literal("0x").scan(loc).is_ok())
     {
         loc = first;
         is_hex = true;
