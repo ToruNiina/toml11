@@ -398,6 +398,19 @@ TOML11_INLINE sequence offset_datetime(const spec& s)
 // ===========================================================================
 // String
 
+TOML11_INLINE sequence escaped_x2(const spec& s)
+{
+    return sequence(character('x'), repeat_exact(2, hexdig(s)));
+}
+TOML11_INLINE sequence escaped_u4(const spec& s)
+{
+    return sequence(character('u'), repeat_exact(4, hexdig(s)));
+}
+TOML11_INLINE sequence escaped_U8(const spec& s)
+{
+    return sequence(character('U'), repeat_exact(8, hexdig(s)));
+}
+
 TOML11_INLINE sequence escaped(const spec& s)
 {
     const auto escape_char = [&s] {
@@ -416,17 +429,17 @@ TOML11_INLINE sequence escaped(const spec& s)
         {
             return either(
                 escape_char(),
-                sequence(character('u'), repeat_exact(4, hexdig(s))),
-                sequence(character('U'), repeat_exact(8, hexdig(s))),
-                sequence(character('x'), repeat_exact(2, hexdig(s)))
+                escaped_u4(s),
+                escaped_U8(s),
+                escaped_x2(s)
             );
         }
         else
         {
             return either(
                 escape_char(),
-                sequence(character('u'), repeat_exact(4, hexdig(s))),
-                sequence(character('U'), repeat_exact(8, hexdig(s)))
+                escaped_u4(s),
+                escaped_U8(s)
             );
         }
     };

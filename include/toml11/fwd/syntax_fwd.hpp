@@ -226,6 +226,10 @@ sequence offset_datetime(const spec& s);
 // ===========================================================================
 // String
 
+sequence escaped_x2(const spec& s);
+sequence escaped_u4(const spec& s);
+sequence escaped_U8(const spec& s);
+
 sequence escaped(const spec& s);
 
 either basic_char(const spec& s);
