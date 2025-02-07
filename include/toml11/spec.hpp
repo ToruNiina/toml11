@@ -1,8 +1,11 @@
 #ifndef TOML11_SPEC_HPP
 #define TOML11_SPEC_HPP
 
+#include <array>
+#include <functional>
 #include <ostream>
 #include <sstream>
+#include <utility>
 
 #include <cstdint>
 
@@ -116,6 +119,51 @@ struct spec
     bool ext_num_suffix; // allow number suffix (in C++ style)
     bool ext_null_value; // allow `null` as a value
 };
+
+namespace detail
+{
+inline std::pair<const semantic_version&, std::array<bool, 10>>
+to_tuple(const spec& s) noexcept
+{
+    return std::make_pair(std::cref(s.version), std::array<bool, 10>{{
+            s.v1_1_0_allow_control_characters_in_comments,
+            s.v1_1_0_allow_newlines_in_inline_tables,
+            s.v1_1_0_allow_trailing_comma_in_inline_tables,
+            s.v1_1_0_allow_non_english_in_bare_keys,
+            s.v1_1_0_add_escape_sequence_e,
+            s.v1_1_0_add_escape_sequence_x,
+            s.v1_1_0_make_seconds_optional,
+            s.ext_hex_float,
+            s.ext_num_suffix,
+            s.ext_null_value
+        }});
+}
+} // detail
+
+inline bool operator==(const spec& lhs, const spec& rhs) noexcept
+{
+    return detail::to_tuple(lhs) == detail::to_tuple(rhs);
+}
+inline bool operator!=(const spec& lhs, const spec& rhs) noexcept
+{
+    return detail::to_tuple(lhs) != detail::to_tuple(rhs);
+}
+inline bool operator< (const spec& lhs, const spec& rhs) noexcept
+{
+    return detail::to_tuple(lhs) <  detail::to_tuple(rhs);
+}
+inline bool operator<=(const spec& lhs, const spec& rhs) noexcept
+{
+    return detail::to_tuple(lhs) <= detail::to_tuple(rhs);
+}
+inline bool operator> (const spec& lhs, const spec& rhs) noexcept
+{
+    return detail::to_tuple(lhs) >  detail::to_tuple(rhs);
+}
+inline bool operator>=(const spec& lhs, const spec& rhs) noexcept
+{
+    return detail::to_tuple(lhs) >= detail::to_tuple(rhs);
+}
 
 } // namespace toml
 #endif // TOML11_SPEC_HPP
