@@ -31,12 +31,28 @@ class non_ascii final : public scanner_base
 
   public:
 
-    explicit non_ascii(const spec& s) noexcept;
+    explicit non_ascii(const spec& s) noexcept
+        : utf8_2B_(utf8_2bytes(s)),
+          utf8_3B_(utf8_3bytes(s)),
+          utf8_4B_(utf8_4bytes(s))
+    {}
     ~non_ascii() override = default;
 
     region scan(location& loc) const override
     {
-        return scanner_.scan(loc);
+        {
+            const auto reg = utf8_2B_.scan(loc);
+            if(reg.is_ok()) {return reg;}
+        }
+        {
+            const auto reg = utf8_3B_.scan(loc);
+            if(reg.is_ok()) {return reg;}
+        }
+        {
+            const auto reg = utf8_4B_.scan(loc);
+            if(reg.is_ok()) {return reg;}
+        }
+        return region{};
     }
 
     std::string expected_chars(location&) const override
@@ -55,8 +71,9 @@ class non_ascii final : public scanner_base
     }
 
   private:
-
-    either scanner_;
+    sequence utf8_2B_;
+    sequence utf8_3B_;
+    sequence utf8_4B_;
 };
 
 // ===========================================================================
@@ -95,7 +112,11 @@ class digit final : public scanner_base
 
   public:
 
-    explicit digit(const spec&) noexcept;
+    explicit digit(const spec&) noexcept
+      : scanner_(char_type('0'), char_type('9'))
+    {}
+
+
     ~digit() override = default;
 
     region scan(location& loc) const override
@@ -131,12 +152,23 @@ class alpha final : public scanner_base
 
   public:
 
-    explicit alpha(const spec&) noexcept;
+    explicit alpha(const spec&) noexcept
+      : lowercase_(char_type('a'), char_type('z')),
+        uppercase_(char_type('A'), char_type('Z'))
+    {}
     ~alpha() override = default;
 
     region scan(location& loc) const override
     {
-        return scanner_.scan(loc);
+        {
+            const auto reg = lowercase_.scan(loc);
+            if(reg.is_ok()) {return reg;}
+        }
+        {
+            const auto reg = uppercase_.scan(loc);
+            if(reg.is_ok()) {return reg;}
+        }
+        return region{};
     }
 
     std::string expected_chars(location&) const override
@@ -156,7 +188,8 @@ class alpha final : public scanner_base
 
   private:
 
-    either scanner_;
+    character_in_range lowercase_;
+    character_in_range uppercase_;
 };
 
 class hexdig final : public scanner_base
@@ -167,12 +200,28 @@ class hexdig final : public scanner_base
 
   public:
 
-    explicit hexdig(const spec& s) noexcept;
+    explicit hexdig(const spec& s) noexcept
+      : digit_(s),
+        lowercase_(char_type('a'), char_type('f')),
+        uppercase_(char_type('A'), char_type('F'))
+    {}
     ~hexdig() override = default;
 
     region scan(location& loc) const override
     {
-        return scanner_.scan(loc);
+        {
+            const auto reg = digit_.scan(loc);
+            if(reg.is_ok()) {return reg;}
+        }
+        {
+            const auto reg = lowercase_.scan(loc);
+            if(reg.is_ok()) {return reg;}
+        }
+        {
+            const auto reg = uppercase_.scan(loc);
+            if(reg.is_ok()) {return reg;}
+        }
+        return region{};
     }
 
     std::string expected_chars(location&) const override
@@ -192,7 +241,9 @@ class hexdig final : public scanner_base
 
   private:
 
-    either scanner_;
+    digit              digit_;
+    character_in_range lowercase_;
+    character_in_range uppercase_;
 };
 
 sequence num_suffix(const spec& s);
@@ -304,7 +355,6 @@ sequence dot_sep(const spec& s);
 
 sequence dotted_key(const spec& s);
 
-
 class key final : public scanner_base
 {
   public:
@@ -313,12 +363,23 @@ class key final : public scanner_base
 
   public:
 
-    explicit key(const spec& s) noexcept;
+    explicit key(const spec& s) noexcept
+        : dotted_(dotted_key(s)),
+          simple_(simple_key(s))
+    {}
     ~key() override = default;
 
     region scan(location& loc) const override
     {
-        return scanner_.scan(loc);
+        {
+            const auto reg = dotted_.scan(loc);
+            if(reg.is_ok()) {return reg;}
+        }
+        {
+            const auto reg = simple_.scan(loc);
+            if(reg.is_ok()) {return reg;}
+        }
+        return region{};
     }
 
     std::string expected_chars(location&) const override
@@ -338,7 +399,8 @@ class key final : public scanner_base
 
   private:
 
-    either scanner_;
+    sequence dotted_;
+    either   simple_;
 };
 
 sequence keyval_sep(const spec& s);

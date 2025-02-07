@@ -49,11 +49,6 @@ TOML11_INLINE sequence utf8_4bytes(const spec&)
     ), character_in_range(0x80, 0xBF), character_in_range(0x80, 0xBF));
 }
 
-TOML11_INLINE non_ascii::non_ascii(const spec& s) noexcept
-    : scanner_(utf8_2bytes(s), utf8_3bytes(s), utf8_4bytes(s))
-{}
-
-
 // ===========================================================================
 // Whitespace
 
@@ -115,25 +110,6 @@ TOML11_INLINE either boolean(const spec&)
 
 // ===========================================================================
 // Integer
-
-TOML11_INLINE digit::digit(const spec&) noexcept
-    : scanner_(char_type('0'), char_type('9'))
-{}
-
-TOML11_INLINE alpha::alpha(const spec&) noexcept
-    : scanner_(
-        character_in_range(char_type('a'), char_type('z')),
-        character_in_range(char_type('A'), char_type('Z'))
-    )
-{}
-
-TOML11_INLINE hexdig::hexdig(const spec& s) noexcept
-    : scanner_(
-        digit(s),
-        character_in_range(char_type('a'), char_type('f')),
-        character_in_range(char_type('A'), char_type('F'))
-    )
-{}
 
 // non-digit-graph = ([a-zA-Z]|unicode mb char)
 // graph           = ([a-zA-Z0-9]|unicode mb char)
@@ -717,10 +693,6 @@ TOML11_INLINE sequence dotted_key(const spec& s)
         repeat_at_least(1, sequence(dot_sep(s), simple_key(s)))
     );
 }
-
-TOML11_INLINE key::key(const spec& s) noexcept
-    : scanner_(dotted_key(s), simple_key(s))
-{}
 
 TOML11_INLINE sequence keyval_sep(const spec& s)
 {
