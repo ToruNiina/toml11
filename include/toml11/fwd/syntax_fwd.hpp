@@ -18,10 +18,10 @@ using char_type = location::char_type;
 
 // avoid redundant representation and out-of-unicode sequence
 
-character_in_range utf8_1byte (const spec&);
-sequence           utf8_2bytes(const spec&);
-sequence           utf8_3bytes(const spec&);
-sequence           utf8_4bytes(const spec&);
+character_in_range const& utf8_1byte (const spec&);
+sequence           const& utf8_2bytes(const spec&);
+sequence           const& utf8_3bytes(const spec&);
+sequence           const& utf8_4bytes(const spec&);
 
 class non_ascii final : public scanner_base
 {
@@ -79,27 +79,27 @@ class non_ascii final : public scanner_base
 // ===========================================================================
 // Whitespace
 
-character_either wschar(const spec&);
+character_either const& wschar(const spec&);
 
-repeat_at_least ws(const spec& s);
+repeat_at_least const& ws(const spec& s);
 
 // ===========================================================================
 // Newline
 
-either newline(const spec&);
+either const& newline(const spec&);
 
 // ===========================================================================
 // Comments
 
-either allowed_comment_char(const spec& s);
+either const& allowed_comment_char(const spec& s);
 
 // XXX Note that it does not take newline
-sequence comment(const spec& s);
+sequence const& comment(const spec& s);
 
 // ===========================================================================
 // Boolean
 
-either boolean(const spec&);
+either const& boolean(const spec&);
 
 // ===========================================================================
 // Integer
@@ -246,62 +246,58 @@ class hexdig final : public scanner_base
     character_in_range uppercase_;
 };
 
-sequence num_suffix(const spec& s);
+sequence const& num_suffix(const spec& s);
 
-sequence dec_int(const spec& s);
-sequence hex_int(const spec& s);
-sequence oct_int(const spec&);
-sequence bin_int(const spec&);
-either   integer(const spec& s);
+sequence const& dec_int(const spec& s);
+sequence const& hex_int(const spec& s);
+sequence const& oct_int(const spec&);
+sequence const& bin_int(const spec&);
+either   const& integer(const spec& s);
 
 // ===========================================================================
 // Floating
 
-sequence zero_prefixable_int(const spec& s);
-sequence fractional_part(const spec& s);
-sequence exponent_part(const spec& s);
-sequence hex_floating(const spec& s);
-either   floating(const spec& s);
+sequence const& zero_prefixable_int(const spec& s);
+sequence const& fractional_part(const spec& s);
+sequence const& exponent_part(const spec& s);
+sequence const& hex_floating(const spec& s);
+either   const& floating(const spec& s);
 
 // ===========================================================================
 // Datetime
 
-sequence local_date(const spec& s);
-sequence local_time(const spec& s);
-either time_offset(const spec& s);
-sequence full_time(const spec& s);
-character_either time_delim(const spec&);
-sequence local_datetime(const spec& s);
-sequence offset_datetime(const spec& s);
+sequence const& local_date(const spec& s);
+sequence const& local_time(const spec& s);
+either   const& time_offset(const spec& s);
+sequence const& full_time(const spec& s);
+character_either const& time_delim(const spec&);
+sequence const& local_datetime(const spec& s);
+sequence const& offset_datetime(const spec& s);
 
 // ===========================================================================
 // String
 
-sequence escaped_x2(const spec& s);
-sequence escaped_u4(const spec& s);
-sequence escaped_U8(const spec& s);
+sequence const& escaped_x2(const spec& s);
+sequence const& escaped_u4(const spec& s);
+sequence const& escaped_U8(const spec& s);
 
-sequence escaped(const spec& s);
-
-either basic_char(const spec& s);
-
-sequence basic_string(const spec& s);
+sequence const& escaped     (const spec& s);
+either   const& basic_char  (const spec& s);
+sequence const& basic_string(const spec& s);
 
 // ---------------------------------------------------------------------------
 // multiline string
 
-sequence escaped_newline(const spec& s);
-sequence ml_basic_string(const spec& s);
+sequence const& escaped_newline(const spec& s);
+sequence const& ml_basic_string(const spec& s);
 
 // ---------------------------------------------------------------------------
 // literal string
 
-either literal_char(const spec& s);
-sequence literal_string(const spec& s);
-
-sequence ml_literal_string(const spec& s);
-
-either string(const spec& s);
+either   const& literal_char(const spec& s);
+sequence const& literal_string(const spec& s);
+sequence const& ml_literal_string(const spec& s);
+either   const& string(const spec& s);
 
 // ===========================================================================
 // Keys
@@ -345,15 +341,11 @@ class non_ascii_key_char final : public scanner_base
 };
 
 
-repeat_at_least unquoted_key(const spec& s);
-
-either quoted_key(const spec& s);
-
-either simple_key(const spec& s);
-
-sequence dot_sep(const spec& s);
-
-sequence dotted_key(const spec& s);
+repeat_at_least const& unquoted_key(const spec& s);
+either   const& quoted_key(const spec& s);
+either   const& simple_key(const spec& s);
+sequence const& dot_sep(const spec& s);
+sequence const& dotted_key(const spec& s);
 
 class key final : public scanner_base
 {
@@ -403,19 +395,19 @@ class key final : public scanner_base
     either   simple_;
 };
 
-sequence keyval_sep(const spec& s);
+sequence const& keyval_sep(const spec& s);
 
 // ===========================================================================
 // Table key
 
-sequence std_table(const spec& s);
+sequence const& std_table(const spec& s);
 
-sequence array_table(const spec& s);
+sequence const& array_table(const spec& s);
 
 // ===========================================================================
 // extension: null
 
-literal null_value(const spec&);
+literal const& null_value(const spec&);
 
 } // namespace syntax
 } // namespace detail
