@@ -9,6 +9,11 @@ jobs:
       matrix:
         compiler: ['g++-12']
         standard: ['11', '14', '17', '20']
+        asan: ['ON', 'OFF']
+        ubsan: ['ON', 'OFF']
+        exclude:
+          - asan: 'ON'
+            ubsan: 'ON'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
