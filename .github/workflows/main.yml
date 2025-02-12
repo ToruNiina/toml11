@@ -62,7 +62,7 @@ jobs:
             sudo apt-get install ${{ matrix.compiler }}
       - name: Configure
         run: |
-            cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }} -DTOML11_ENABLE_ACCESS_CHECK=${{ matrix.betafeature }}
+            cmake -B build/ -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TESTS=ON -DTOML11_PRECOMPILE=${{ matrix.precompile }} -DTOML11_ENABLE_ACCESS_CHECK=${{ matrix.betafeature }} -DTOML11_TEST_WITH_ASAN=${{ matrix.asan }} -DTOML11_TEST_WITH_UBSAN=${{ matrix.ubsan }}
       - name: Build
         run: |
             cmake --build build/ -j${{ steps.cpu-cores.outputs.count }}
