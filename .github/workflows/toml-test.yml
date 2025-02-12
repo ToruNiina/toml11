@@ -27,7 +27,7 @@ jobs:
         uses: actions/setup-go@v5
       - name: Configure
         run: |
-            cmake -B build/ -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TOML_TESTS=ON
+            cmake -B build/ -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TOML_TESTS=ON -DTOML11_TEST_WITH_ASAN=${{ matrix.asan }} -DTOML11_TEST_WITH_UBSAN=${{ matrix.ubsan }}
       - name: Build
         run: |
             cmake --build build/
