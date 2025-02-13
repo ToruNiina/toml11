@@ -9,6 +9,11 @@ jobs:
       matrix:
         compiler: ['g++-12']
         standard: ['11', '14', '17', '20']
+        asan: ['ON', 'OFF']
+        ubsan: ['ON', 'OFF']
+        exclude:
+          - asan: 'ON'
+            ubsan: 'ON'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,7 +27,7 @@ jobs:
         uses: actions/setup-go@v5
       - name: Configure
         run: |
-            cmake -B build/ -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TOML_TESTS=ON
+            cmake -B build/ -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DTOML11_BUILD_TOML_TESTS=ON -DTOML11_TEST_WITH_ASAN=${{ matrix.asan }} -DTOML11_TEST_WITH_UBSAN=${{ matrix.ubsan }}
       - name: Build
         run: |
             cmake --build build/
