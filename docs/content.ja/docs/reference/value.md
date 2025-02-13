@@ -751,6 +751,23 @@ comment_type&       comments()       noexcept;
 
 コメント用コンテナへの参照を返します。
 
+-----
+
+### `accessed()`
+
+```cpp
+bool accessed() const;
+```
+
+#### 戻り値
+
+その`value`がパース後に一度でも`as_xxx`や`is_xxx`でアクセスされていた場合、`true`を返します。
+それ以外の場合、`false`を返します。
+
+#### 備考
+
+`TOML11_ENABLE_ACCESS_CHECK`が定義されている場合にのみ存在します。
+
 ## 非メンバ関数
 
 ### `operator==`

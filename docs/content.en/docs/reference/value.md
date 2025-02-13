@@ -751,6 +751,23 @@ comment_type&       comments()       noexcept;
 
 Returns a reference to the comment container.
 
+-----
+
+### `accessed()`
+
+```cpp
+bool accessed() const;
+```
+
+#### Return Value
+
+Returns `true` only if the `value` has been accessed via `as_xxx` or `is_xxx`.
+Otherwise, it returns `false`.
+
+#### Remarks
+
+It exists only when `TOML11_ENABLE_ACCESS_CHECK` is defined.
+
 ## Non-Member Functions
 
 ### `operator==`
