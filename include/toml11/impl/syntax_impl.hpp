@@ -21,27 +21,21 @@ struct syntax_cache
     static_assert(std::is_base_of<scanner_base, value_type>::value, "");
 
     explicit syntax_cache(F f)
-        : func_(std::move(f)), cache_{}
+        : func_(std::move(f)), cache_(cxx::make_nullopt())
     {}
 
     value_type const& at(const spec& s)
     {
-        const auto found = std::find_if(cache_.begin(), cache_.end(),
-            [&s](const std::pair<spec, value_type>& kv) { return kv.first == s; });
-        if(found == cache_.end())
+        if( ! this->cache_.has_value() || this->cache_.value().first != s)
         {
-            this->cache_.emplace_back(s, func_(s));
-            return cache_.back().second;
+            this->cache_ = std::make_pair(s, func_(s));
         }
-        else
-        {
-            return found->second;
-        }
+        return this->cache_.value().second;
     }
 
   private:
     F func_;
-    std::vector<std::pair<spec, value_type>> cache_;
+    cxx::optional<std::pair<spec, value_type>> cache_;
 };
 
 template<typename F>
