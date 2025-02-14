@@ -74,14 +74,9 @@ jobs:
     runs-on: Ubuntu-24.04
     strategy:
       matrix:
-        compiler: ['19', '18', '17', '16', '15']
+        compiler: ['19', '18', '17', '16']
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
-        exclude:
-            - {compiler: '14', standard: '20'} # to avoid using gcc-13 libstdc++
-            - {compiler: '13', standard: '20'} # with older clang
-            - {compiler: '12', standard: '20'}
-            - {compiler: '11', standard: '20'}
     steps:
       - name: Get number of CPU cores
         uses: SimenB/github-actions-cpu-cores@v2
@@ -109,7 +104,7 @@ jobs:
     runs-on: Ubuntu-22.04
     strategy:
       matrix:
-        compiler: ['14', '13', '12', '11']
+        compiler: ['15', '14', '13', '12', '11']
         standard: ['11', '14', '17', '20']
         precompile: ['ON', 'OFF']
         exclude:
