@@ -1,0 +1,768 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>reference on toml11</title><link>https://toruniina.github.io/toml11/docs/reference/</link><description>Recent content in reference on toml11</description><generator>Hugo</generator><language>en</language><atom:link href="https://toruniina.github.io/toml11/docs/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>color.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/color/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/color/</guid><description>&lt;h1 id="colorhpp">
+ color.hpp
+ &lt;a class="anchor" href="#colorhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>In &lt;code>color.hpp&lt;/code>, functions related to colorizing error messages are defined.&lt;/p>
+&lt;p>Colors are specified using ANSI escape code.
+In terminals or other output destinations that do not support ANSI escape code, the output may become difficult to read.&lt;/p>
+&lt;h2 id="macros">
+ Macros
+ &lt;a class="anchor" href="#macros">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="toml11_colorize_error_message">
+ &lt;code>TOML11_COLORIZE_ERROR_MESSAGE&lt;/code>
+ &lt;a class="anchor" href="#toml11_colorize_error_message">#&lt;/a>
+&lt;/h3>
+&lt;p>If this macro is defined during compilation (&lt;code>-DTOML11_COLORIZE_ERROR_MESASGE&lt;/code>), error messages are colored by default.&lt;/p>
+&lt;p>If not defined, colors are not applied by default. You need to specify them using &lt;code>toml::color::enable()&lt;/code>.&lt;/p></description></item><item><title>comments.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/comments/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/comments/</guid><description>&lt;h1 id="commentshpp">
+ comments.hpp
+ &lt;a class="anchor" href="#commentshpp">#&lt;/a>
+&lt;/h1>
+&lt;p>In &lt;code>comments.hpp&lt;/code>, comment containers are provided.&lt;/p>
+&lt;h1 id="tomlpreserve_comments">
+ &lt;code>toml::preserve_comments&lt;/code>
+ &lt;a class="anchor" href="#tomlpreserve_comments">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>preserve_comments&lt;/code> is a container that preserves comments.&lt;/p>
+&lt;p>It has all the member functions of &lt;code>std::vector&amp;lt;std::string&amp;gt;&lt;/code>.&lt;/p>
+&lt;p>Comments are preserved as &lt;code>std::string&lt;/code>.
+If the comment does not start with &lt;code>#&lt;/code>, it will be prefixed with &lt;code>#&lt;/code> during output.
+However, this prefixing is not done when adding comments to the container.&lt;/p>
+&lt;p>Spaces are not automatically added, so if you want a space immediately after &lt;code>#&lt;/code>,
+either start the comment with a space or pass the comment with &lt;code>#&lt;/code>.&lt;/p></description></item><item><title>conversion.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/conversion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/conversion/</guid><description>&lt;h1 id="conversionhpp">
+ conversion.hpp
+ &lt;a class="anchor" href="#conversionhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>Provides macros to automatically define conversion functions for supporting user-defined types with &lt;code>toml::get&lt;/code> and &lt;code>toml::find&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(NAME, ...)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="example">
+ Example
+ &lt;a class="anchor" href="#example">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> foo
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">Foo&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string s;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">double&lt;/span> d;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">int&lt;/span> i;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// foo
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(foo&lt;span style="color:#f92672">::&lt;/span>Foo, s, d, i)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="related">
+ Related
+ &lt;a class="anchor" href="#related">#&lt;/a>
+&lt;/h1>
+&lt;ul>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/docs/reference/from/">from.hpp&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/docs/reference/into/">into.hpp&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>datetime.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/datetime/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/datetime/</guid><description>&lt;h1 id="datetimehpp">
+ datetime.hpp
+ &lt;a class="anchor" href="#datetimehpp">#&lt;/a>
+&lt;/h1>
+&lt;p>Defines a class that stores date and time information used in TOML&amp;rsquo;s &lt;code>datetime&lt;/code>.&lt;/p>
+&lt;h1 id="enum-class-month_t">
+ &lt;code>enum class month_t&lt;/code>
+ &lt;a class="anchor" href="#enum-class-month_t">#&lt;/a>
+&lt;/h1>
+&lt;p>Enum class to specify months.&lt;/p>
+&lt;p>Due to its relationship with &lt;code>std::tm&lt;/code>, &lt;code>local_date&lt;/code> treats January as &lt;code>0&lt;/code>.
+To avoid confusion, &lt;code>month_t&lt;/code> allows specification of months by their names.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">month_t&lt;/span> &lt;span style="color:#f92672">:&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Jan &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Feb &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Mar &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">2&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Apr &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">3&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> May &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">4&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Jun &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">5&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Jul &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">6&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Aug &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">7&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Sep &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">8&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Oct &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">9&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Nov &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">10&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Dec &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">11&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="local_date">
+ &lt;code>local_date&lt;/code>
+ &lt;a class="anchor" href="#local_date">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>local_date&lt;/code> holds a date.&lt;/p></description></item><item><title>error_info.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/error_info/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/error_info/</guid><description>&lt;h1 id="error_infohpp">
+ error_info.hpp
+ &lt;a class="anchor" href="#error_infohpp">#&lt;/a>
+&lt;/h1>
+&lt;p>In &lt;code>error_info.hpp&lt;/code>, definitions for &lt;code>error_info&lt;/code> and functions to format it are provided.&lt;/p>
+&lt;h1 id="tomlerror_info">
+ &lt;code>toml::error_info&lt;/code>
+ &lt;a class="anchor" href="#tomlerror_info">#&lt;/a>
+&lt;/h1>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">error_info&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> error_info(std&lt;span style="color:#f92672">::&lt;/span>string t, source_location l, std&lt;span style="color:#f92672">::&lt;/span>string m, std&lt;span style="color:#f92672">::&lt;/span>string s &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> error_info(std&lt;span style="color:#f92672">::&lt;/span>string t, std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>pair&lt;span style="color:#f92672">&amp;lt;&lt;/span>source_location, std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&amp;gt;&lt;/span> l, std&lt;span style="color:#f92672">::&lt;/span>string s &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> title() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#f92672">&amp;amp;&lt;/span> title() &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>pair&lt;span style="color:#f92672">&amp;lt;&lt;/span>source_location, std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&amp;gt;&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> locations() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">add_locations&lt;/span>(source_location loc, std&lt;span style="color:#f92672">::&lt;/span>string msg) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> suffix() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#f92672">&amp;amp;&lt;/span> suffix() &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> ... Ts&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>error_info make_error_info(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string title, source_location loc, std&lt;span style="color:#f92672">::&lt;/span>string msg, Ts&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> ... tail);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format_error(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> errkind, &lt;span style="color:#66d9ef">const&lt;/span> error_info&lt;span style="color:#f92672">&amp;amp;&lt;/span> err);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format_error(&lt;span style="color:#66d9ef">const&lt;/span> error_info&lt;span style="color:#f92672">&amp;amp;&lt;/span> err);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> ... Ts&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format_error(std&lt;span style="color:#f92672">::&lt;/span>string title,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> source_location loc, std&lt;span style="color:#f92672">::&lt;/span>string msg, Ts&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> ... tail);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, &lt;span style="color:#66d9ef">const&lt;/span> error_info&lt;span style="color:#f92672">&amp;amp;&lt;/span> e);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="member-functions">
+ Member Functions
+ &lt;a class="anchor" href="#member-functions">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="constructor-title-loc-msg-suffix">
+ Constructor (&lt;code>title, loc, msg, suffix&lt;/code>)
+ &lt;a class="anchor" href="#constructor-title-loc-msg-suffix">#&lt;/a>
+&lt;/h3>
+&lt;p>Constructs &lt;code>error_info&lt;/code> with specified &lt;code>title&lt;/code>, location information &lt;code>loc&lt;/code>, message &lt;code>msg&lt;/code>, and optional &lt;code>suffix&lt;/code>.&lt;/p></description></item><item><title>exception.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/exception/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/exception/</guid><description>&lt;h1 id="exceptionhpp">
+ exception.hpp
+ &lt;a class="anchor" href="#exceptionhpp">#&lt;/a>
+&lt;/h1>
+&lt;h1 id="tomlexception">
+ &lt;code>toml::exception&lt;/code>
+ &lt;a class="anchor" href="#tomlexception">#&lt;/a>
+&lt;/h1>
+&lt;p>Base class for exception types defined in toml11.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">exception&lt;/span> &lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#66d9ef">public&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>exception
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span>&lt;span style="color:#f92672">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">virtual&lt;/span> &lt;span style="color:#f92672">~&lt;/span>exception() &lt;span style="color:#66d9ef">noexcept&lt;/span> &lt;span style="color:#66d9ef">override&lt;/span> &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">virtual&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">*&lt;/span> &lt;span style="color:#a6e22e">what&lt;/span>() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span> &lt;span style="color:#66d9ef">override&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="member-functions">
+ Member Functions
+ &lt;a class="anchor" href="#member-functions">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="destructor">
+ Destructor
+ &lt;a class="anchor" href="#destructor">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">virtual&lt;/span> &lt;span style="color:#f92672">~&lt;/span>exception() &lt;span style="color:#66d9ef">noexcept&lt;/span> &lt;span style="color:#66d9ef">override&lt;/span> &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Override when derived.&lt;/p>
+&lt;h3 id="what">
+ &lt;code>what&lt;/code>
+ &lt;a class="anchor" href="#what">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">virtual&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">*&lt;/span> &lt;span style="color:#a6e22e">what&lt;/span>() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span> &lt;span style="color:#66d9ef">override&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Returns the error message. Override when derived.&lt;/p></description></item><item><title>find.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/find/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/find/</guid><description>&lt;h1 id="findhpp">
+ find.hpp
+ &lt;a class="anchor" href="#findhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>This function searches for a value in a &lt;code>toml::value&lt;/code> and performs type conversion if necessary.&lt;/p>
+&lt;blockquote class="book-hint info">
+ &lt;code>toml::value&lt;/code> can change the type it stores, and &lt;code>toml::find&lt;/code> accommodates these types.
+Technically, all functions use &lt;code>toml::basic_value&amp;lt;TC&amp;gt;&lt;/code>.
+However, for simplicity, we refer to it as &lt;code>toml::value&lt;/code> in explanations unless a distinction is necessary.
+In the documentation, if the template parameter &lt;code>TC&lt;/code> changes the type, assume that types like &lt;code>toml::value::integer_type&lt;/code> will also change accordingly.
+&lt;/blockquote>
+
+&lt;h1 id="tomlfind">
+ &lt;code>toml::find&lt;/code>
+ &lt;a class="anchor" href="#tomlfind">#&lt;/a>
+&lt;/h1>
+&lt;h2 id="overview">
+ Overview
+ &lt;a class="anchor" href="#overview">#&lt;/a>
+&lt;/h2>
+&lt;p>&lt;code>toml::find&lt;/code> uses template arguments for the type you want to retrieve and function arguments for the key of the value you want to find.&lt;/p></description></item><item><title>format.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/format/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/format/</guid><description>&lt;h1 id="formathpp">
+ format.hpp
+ &lt;a class="anchor" href="#formathpp">#&lt;/a>
+&lt;/h1>
+&lt;p>Defines structures and enumerations related to formatting information for &lt;code>toml::value&lt;/code>.&lt;/p>
+&lt;h1 id="indent_char">
+ &lt;code>indent_char&lt;/code>
+ &lt;a class="anchor" href="#indent_char">#&lt;/a>
+&lt;/h1>
+&lt;p>An enumeration representing the indentation character choice.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">indent_char&lt;/span> &lt;span style="color:#f92672">:&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> space, &lt;span style="color:#75715e">// use space
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> tab, &lt;span style="color:#75715e">// use tab
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> none &lt;span style="color:#75715e">// no indent
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, &lt;span style="color:#66d9ef">const&lt;/span> indent_char&lt;span style="color:#f92672">&amp;amp;&lt;/span> c);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string to_string(&lt;span style="color:#66d9ef">const&lt;/span> indent_char);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Choosing &lt;code>none&lt;/code> means no indentation is used, regardless of the value in super tables.&lt;/p>
+&lt;p>If both &lt;code>space&lt;/code> and &lt;code>tab&lt;/code> are specified within the serializable value, the behavior is unspecified; typically, the unspecified indentation character appears.&lt;/p></description></item><item><title>from.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/from/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/from/</guid><description>&lt;h1 id="fromhpp">
+ from.hpp
+ &lt;a class="anchor" href="#fromhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>Defines a &lt;code>struct&lt;/code> used for conversion from &lt;code>toml::value&lt;/code> in &lt;code>toml::get&lt;/code> and &lt;code>toml::find&lt;/code>.&lt;/p>
+&lt;p>You can achieve the same functionality by adding a &lt;code>from_toml&lt;/code> member function, but for classes where you cannot add member functions, use &lt;code>from&amp;lt;T&amp;gt;&lt;/code>.&lt;/p>
+&lt;p>This file does not provide specific implementations. Please specialize this &lt;code>struct&lt;/code> when using.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">from&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="example">
+ Example
+ &lt;a class="anchor" href="#example">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> extlib
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">foo&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">int&lt;/span> a;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string b;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// extlib
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml11/from.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">from&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>extlib&lt;span style="color:#f92672">::&lt;/span>foo&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> extlib&lt;span style="color:#f92672">::&lt;/span>foo from_toml(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> v)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> extlib&lt;span style="color:#f92672">::&lt;/span>foo{toml&lt;span style="color:#f92672">::&lt;/span>find&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">int&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span>(v, &lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>), toml&lt;span style="color:#f92672">::&lt;/span>find&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&lt;/span>(v, &lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>)};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="related">
+ Related
+ &lt;a class="anchor" href="#related">#&lt;/a>
+&lt;/h1>
+&lt;ul>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/docs/reference/conversion/">conversion.hpp&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/docs/reference/into/">into.hpp&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>get.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/get/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/get/</guid><description>&lt;h1 id="gethpp">
+ get.hpp
+ &lt;a class="anchor" href="#gethpp">#&lt;/a>
+&lt;/h1>
+&lt;p>These are functions for extracting values from &lt;code>toml::value&lt;/code> and performing type conversions if necessary.&lt;/p>
+&lt;blockquote class="book-hint info">
+ &lt;code>toml::value&lt;/code> can change the type it stores, and &lt;code>toml::get&lt;/code> accommodates these types.
+Technically, all functions use &lt;code>toml::basic_value&amp;lt;TC&amp;gt;&lt;/code>.
+However, for simplicity, we refer to it as &lt;code>toml::value&lt;/code> in explanations unless a distinction is necessary.
+In the documentation, if the template parameter &lt;code>TC&lt;/code> changes the type, assume that types like &lt;code>toml::value::integer_type&lt;/code> will also change accordingly.
+&lt;/blockquote>
+
+&lt;h1 id="tomlgett">
+ &lt;code>toml::get&amp;lt;T&amp;gt;&lt;/code>
+ &lt;a class="anchor" href="#tomlgett">#&lt;/a>
+&lt;/h1>
+&lt;h2 id="overview">
+ Overview
+ &lt;a class="anchor" href="#overview">#&lt;/a>
+&lt;/h2>
+&lt;p>Generally, &lt;code>toml::get&lt;/code> behaves as follows:
+You specify &lt;code>T&lt;/code> as in &lt;code>toml::get&amp;lt;int&amp;gt;(v)&lt;/code>.&lt;/p></description></item><item><title>into.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/into/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/into/</guid><description>&lt;h1 id="intohpp">
+ into.hpp
+ &lt;a class="anchor" href="#intohpp">#&lt;/a>
+&lt;/h1>
+&lt;p>Defines a &lt;code>struct&lt;/code> used for conversion from user-defined types into &lt;code>toml::value&lt;/code> constructors.&lt;/p>
+&lt;p>You can achieve the same functionality by adding an &lt;code>into_toml&lt;/code> member function, but for classes where you cannot add member functions, use &lt;code>into&amp;lt;T&amp;gt;&lt;/code>.&lt;/p>
+&lt;p>This file does not provide specific implementations. Please specialize this &lt;code>struct&lt;/code> when using.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">into&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="example">
+ Example
+ &lt;a class="anchor" href="#example">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> extlib
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">foo&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">int&lt;/span> a;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string b;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// extlib
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml11/into.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">into&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>extlib&lt;span style="color:#f92672">::&lt;/span>foo&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&lt;/span> into_toml(&lt;span style="color:#66d9ef">const&lt;/span> extlib&lt;span style="color:#f92672">::&lt;/span>foo&lt;span style="color:#f92672">&amp;amp;&lt;/span> f)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> value_type &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> table_type &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> value_type&lt;span style="color:#f92672">::&lt;/span>table_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#a6e22e">value_type&lt;/span>(table_type{{&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>, f.a}, {&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>, f.b}});
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="related">
+ Related
+ &lt;a class="anchor" href="#related">#&lt;/a>
+&lt;/h1>
+&lt;ul>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/docs/reference/conversion/">conversion.hpp&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/docs/reference/from/">from.hpp&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>literal.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/literal/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/literal/</guid><description>&lt;h1 id="literalhpp">
+ literal.hpp
+ &lt;a class="anchor" href="#literalhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>In &lt;code>literal.hpp&lt;/code>, the &lt;code>_toml&lt;/code> literal is defined.&lt;/p>
+&lt;p>The &lt;code>_toml&lt;/code> literal parses string literals into &lt;code>toml::value&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">inline&lt;/span> &lt;span style="color:#66d9ef">namespace&lt;/span> literals
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">inline&lt;/span> &lt;span style="color:#66d9ef">namespace&lt;/span> toml_literals
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>toml&lt;span style="color:#f92672">::&lt;/span>value &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span> _toml(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">*&lt;/span> str, std&lt;span style="color:#f92672">::&lt;/span>size_t len);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>toml&lt;span style="color:#f92672">::&lt;/span>value &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span> _toml(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char8_t&lt;/span>&lt;span style="color:#f92672">*&lt;/span> str, std&lt;span style="color:#f92672">::&lt;/span>size_t len); &lt;span style="color:#75715e">// Available in C++20 and later
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>} &lt;span style="color:#75715e">// toml_literals
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>} &lt;span style="color:#75715e">// literals
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="free-functions">
+ Free Functions
+ &lt;a class="anchor" href="#free-functions">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="operator-_tomlconst-char">
+ &lt;code>operator&amp;quot;&amp;quot; _toml(const char*)&lt;/code>
+ &lt;a class="anchor" href="#operator-_tomlconst-char">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>toml&lt;span style="color:#f92672">::&lt;/span>value &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span> _toml(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">*&lt;/span> str, std&lt;span style="color:#f92672">::&lt;/span>size_t len);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Converts a string literal into a &lt;code>toml::value&lt;/code> by parsing it.&lt;/p></description></item><item><title>ordered_map.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/ordered_map/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/ordered_map/</guid><description>&lt;h1 id="ordered_maphpp">
+ ordered_map.hpp
+ &lt;a class="anchor" href="#ordered_maphpp">#&lt;/a>
+&lt;/h1>
+&lt;p>Defines &lt;code>toml::ordered_map&lt;/code>, which is used to maintain the order of values in a file.&lt;/p>
+&lt;h1 id="class-ordered_map">
+ &lt;code>class ordered_map&lt;/code>
+ &lt;a class="anchor" href="#class-ordered_map">#&lt;/a>
+&lt;/h1>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> Key, &lt;span style="color:#66d9ef">typename&lt;/span> Val, &lt;span style="color:#66d9ef">typename&lt;/span> Cmp &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>equal_to&lt;span style="color:#f92672">&amp;lt;&lt;/span>Key&lt;span style="color:#f92672">&amp;gt;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">typename&lt;/span> Allocator &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>allocator&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>pair&lt;span style="color:#f92672">&amp;lt;&lt;/span>Key, Val&lt;span style="color:#f92672">&amp;gt;&amp;gt;&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">ordered_map&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The &lt;code>ordered_map&lt;/code> is a &lt;code>map&lt;/code> type that preserves the insertion order of values, allowing iteration in that order.&lt;/p>
+&lt;p>As a linear container, searches require &lt;code>O(n)&lt;/code> time relative to the number of elements.
+Use this when search operations are infrequent and maintaining the order of values is important.&lt;/p></description></item><item><title>parser.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/parser/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/parser/</guid><description>&lt;h1 id="parserhpp">
+ parser.hpp
+ &lt;a class="anchor" href="#parserhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>Defines functions for parsing files or strings and the exceptions they use.&lt;/p>
+&lt;p>While &lt;code>parse&lt;/code> throws an exception on failure, &lt;code>try_parse&lt;/code> returns error information.&lt;/p>
+&lt;h1 id="parse">
+ &lt;code>parse&lt;/code>
+ &lt;a class="anchor" href="#parse">#&lt;/a>
+&lt;/h1>
+&lt;p>Parses the content of a given file and returns a &lt;code>toml::basic_value&lt;/code>.&lt;/p>
+&lt;p>In case of failure, &lt;code>toml::syntax_error&lt;/code> is thrown.&lt;/p>
+&lt;p>The type information of &lt;code>basic_value&lt;/code> is provided by a &lt;code>template&lt;/code>, and the TOML language version is specified by &lt;code>toml::spec&lt;/code>.&lt;/p>
+&lt;h3 id="parsestdstring-filename-tomlspec">
+ &lt;code>parse(std::string filename, toml::spec)&lt;/code>
+ &lt;a class="anchor" href="#parsestdstring-filename-tomlspec">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC &lt;span style="color:#f92672">=&lt;/span> type_config&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>parse(std&lt;span style="color:#f92672">::&lt;/span>string fname,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> spec s &lt;span style="color:#f92672">=&lt;/span> spec&lt;span style="color:#f92672">::&lt;/span>default_version());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Parses the content of the given filename.&lt;/p></description></item><item><title>result.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/result/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/result/</guid><description>&lt;h1 id="resulthpp">
+ result.hpp
+ &lt;a class="anchor" href="#resulthpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>result.hpp&lt;/code> defines the &lt;code>result&lt;/code> type, which can hold either a success value or a failure value.&lt;/p>
+&lt;p>This is used as the return type for &lt;code>toml::try_parse&lt;/code>, which does not throw exceptions.&lt;/p>
+&lt;h1 id="success">
+ success
+ &lt;a class="anchor" href="#success">#&lt;/a>
+&lt;/h1>
+&lt;p>A type that holds a success value.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">success&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> value_type &lt;span style="color:#f92672">=&lt;/span> T;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> &lt;span style="color:#a6e22e">success&lt;/span>(value_type v);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">~&lt;/span>success() &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> success(&lt;span style="color:#66d9ef">const&lt;/span> success&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> success(success&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> success&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> success&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> success&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">=&lt;/span>(success&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> U&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> success(U&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> v);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> U&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> success(success&lt;span style="color:#f92672">&amp;lt;&lt;/span>U&lt;span style="color:#f92672">&amp;gt;&lt;/span> v);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> value_type&lt;span style="color:#f92672">&amp;amp;&lt;/span> get() &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> value_type &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> get() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>success&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>decay&lt;span style="color:#f92672">&amp;lt;&lt;/span>T&lt;span style="color:#f92672">&amp;gt;::&lt;/span>type&lt;span style="color:#f92672">&amp;gt;&lt;/span> ok(T&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> v);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>size_t N&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>success&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&lt;/span> ok(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span> (&lt;span style="color:#f92672">&amp;amp;&lt;/span>literal)[N])
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="member-types">
+ Member Types
+ &lt;a class="anchor" href="#member-types">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> value_type &lt;span style="color:#f92672">=&lt;/span> T;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The type of the success value.&lt;/p></description></item><item><title>serializer.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/serializer/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/serializer/</guid><description>&lt;h1 id="serializerhpp">
+ serializer.hpp
+ &lt;a class="anchor" href="#serializerhpp">#&lt;/a>
+&lt;/h1>
+&lt;h2 id="format">
+ &lt;code>format&lt;/code>
+ &lt;a class="anchor" href="#format">#&lt;/a>
+&lt;/h2>
+&lt;p>Serializes the data.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> v,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> spec s &lt;span style="color:#f92672">=&lt;/span> spec&lt;span style="color:#f92672">::&lt;/span>default_version());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;::&lt;/span>key_type&lt;span style="color:#f92672">&amp;amp;&lt;/span> k,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> v,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> spec s &lt;span style="color:#f92672">=&lt;/span> spec&lt;span style="color:#f92672">::&lt;/span>default_version());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;::&lt;/span>key_type&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> ks,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> v,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> spec s &lt;span style="color:#f92672">=&lt;/span> spec&lt;span style="color:#f92672">::&lt;/span>default_version());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If there&amp;rsquo;s a conflict between the format information and the &lt;code>spec&lt;/code>, for example, when using &lt;code>v1.0.0&lt;/code> with &lt;code>table_format::multiline_oneline&lt;/code>, the &lt;code>spec&lt;/code> takes precedence.&lt;/p></description></item><item><title>source_location.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/source_location/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/source_location/</guid><description>&lt;h1 id="source_locationhpp">
+ source_location.hpp
+ &lt;a class="anchor" href="#source_locationhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>source_location.hpp&lt;/code> defines a class representing a specific area within a TOML file.&lt;/p>
+&lt;p>This class is used to represent problematic areas in error messages.&lt;/p>
+&lt;h1 id="tomlsource_location">
+ &lt;code>toml::source_location&lt;/code>
+ &lt;a class="anchor" href="#tomlsource_location">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>source_location&lt;/code> is a class representing a specific area within a TOML file.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">source_location&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span>&lt;span style="color:#f92672">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> source_location(&lt;span style="color:#75715e">/* implementation-defined */&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">~&lt;/span>source_location() &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> source_location(source_location &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> source_location(source_location &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> source_location&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">=&lt;/span>(source_location &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> source_location&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">=&lt;/span>(source_location &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#a6e22e">is_ok&lt;/span>() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t length() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t first_line_number() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t first_column_number() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t last_line_number() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t last_column_number() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> file_name() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t num_lines() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> first_line() &lt;span style="color:#66d9ef">const&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> last_line() &lt;span style="color:#66d9ef">const&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> lines() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> ... Ts&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format_location(&lt;span style="color:#66d9ef">const&lt;/span> source_location&lt;span style="color:#f92672">&amp;amp;&lt;/span> loc, &lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> msg, &lt;span style="color:#66d9ef">const&lt;/span> Ts&lt;span style="color:#f92672">&amp;amp;&lt;/span> ... locs_and_msgs);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">//toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="member-functions">
+ Member Functions
+ &lt;a class="anchor" href="#member-functions">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="constructor">
+ Constructor
+ &lt;a class="anchor" href="#constructor">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">explicit&lt;/span> &lt;span style="color:#a6e22e">source_location&lt;/span>(&lt;span style="color:#75715e">/* implementation-defined */&lt;/span>);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>toml::source_location&lt;/code> can only be constructed via &lt;code>toml::parse&lt;/code> or the &lt;code>_toml&lt;/code> literal.&lt;/p></description></item><item><title>spec.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/spec/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/spec/</guid><description>&lt;h1 id="spechpp">
+ spec.hpp
+ &lt;a class="anchor" href="#spechpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>spec.hpp&lt;/code> defines classes for specifying the version of TOML.&lt;/p>
+&lt;h1 id="tomlsemantic_version">
+ &lt;code>toml::semantic_version&lt;/code>
+ &lt;a class="anchor" href="#tomlsemantic_version">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>semantic_version&lt;/code> is a class that stores version information.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">semantic_version&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#a6e22e">semantic_version&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> mjr, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> mnr, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> p) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> major;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> minor;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> patch;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> semantic_version
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">make_semver&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> major, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> minor, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> patch) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">==&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">!=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span> ver);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">//toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="member-functions">
+ Member Functions
+ &lt;a class="anchor" href="#member-functions">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="constructor">
+ Constructor
+ &lt;a class="anchor" href="#constructor">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#a6e22e">semantic_version&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> mjr, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> mnr, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> p) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Constructs a &lt;code>semantic_version&lt;/code> instance with the specified &lt;code>major&lt;/code>, &lt;code>minor&lt;/code>, and &lt;code>patch&lt;/code> version numbers.&lt;/p></description></item><item><title>toml_fwd.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/toml_fwd/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/toml_fwd/</guid><description>&lt;h1 id="toml_fwdhpp">
+ toml_fwd.hpp
+ &lt;a class="anchor" href="#toml_fwdhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml_fwd.hpp&lt;/code> contains forward declarations of structures defined in toml11 and macro definitions.&lt;/p>
+&lt;p>When only forward declarations of toml11 structures are needed and implementation is not required, including &lt;code>toml_fwd.hpp&lt;/code> instead of &lt;code>toml.hpp&lt;/code> can reduce compilation time.&lt;/p>
+&lt;blockquote class="book-hint warning">
+ Since this file only contains forward declarations, you cannot use &lt;code>toml::table&lt;/code>, defined as &lt;code>toml::basic_value&amp;lt;toml::type_config&amp;gt;::table_type&lt;/code>, and similarly defined &lt;code>toml::array&lt;/code>. This is because they require the implementation of &lt;code>basic_value&lt;/code>.
+&lt;/blockquote>
+
+&lt;p>This header file and &lt;code>toml.hpp&lt;/code> are located under &lt;code>${TOML11_INCLUDE_DIR}/&lt;/code>, while other header files are located under &lt;code>${TOML11_INCLUDE_DIR}/toml11/&lt;/code>.&lt;/p></description></item><item><title>toml.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/toml/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/toml/</guid><description>&lt;h1 id="tomlhpp">
+ toml.hpp
+ &lt;a class="anchor" href="#tomlhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml.hpp&lt;/code> includes all other headers.&lt;/p>
+&lt;p>This allows access to all features of toml11.&lt;/p>
+&lt;p>This header file and &lt;code>toml_fwd.hpp&lt;/code> are located under &lt;code>${TOML11_INCLUDE_DIR}/&lt;/code>,
+while other header files are located under &lt;code>${toml11_include_dir}/toml11/&lt;/code>.&lt;/p></description></item><item><title>types.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/types/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/types/</guid><description>&lt;h1 id="typeshpp">
+ types.hpp
+ &lt;a class="anchor" href="#typeshpp">#&lt;/a>
+&lt;/h1>
+&lt;p>This document defines classes that specifies type information.&lt;/p>
+&lt;h1 id="type_config">
+ &lt;code>type_config&lt;/code>
+ &lt;a class="anchor" href="#type_config">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>type_config&lt;/code> is a type that encapsulates parameters given to &lt;code>toml::basic_value&lt;/code>.&lt;/p>
+&lt;p>When using different types within &lt;code>toml::basic_value&amp;lt;T&amp;gt;&lt;/code>, you need to define and pass this type separately.
+All elements listed are required.&lt;/p>
+&lt;p>If you use numerical types that cannot use standard stream operators, define and replace the equivalents for &lt;code>read_int&lt;/code> and &lt;code>read_float&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">type_config&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> comment_type &lt;span style="color:#f92672">=&lt;/span> preserve_comments;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> boolean_type &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> integer_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">int64_t&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> floating_type &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">double&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> string_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> array_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>T&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> K, &lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> table_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>unordered_map&lt;span style="color:#f92672">&amp;lt;&lt;/span>K, T&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> result&lt;span style="color:#f92672">&amp;lt;&lt;/span>integer_type, error_info&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> parse_int(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> str, &lt;span style="color:#66d9ef">const&lt;/span> source_location src, &lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span> base);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> result&lt;span style="color:#f92672">&amp;lt;&lt;/span>floating_type, error_info&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> parse_float(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> str, &lt;span style="color:#66d9ef">const&lt;/span> source_location src, &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> is_hex);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> value &lt;span style="color:#f92672">=&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>type_config&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> table &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> value&lt;span style="color:#f92672">::&lt;/span>table_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> array &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> value&lt;span style="color:#f92672">::&lt;/span>array_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="static-member-functions">
+ &lt;code>static&lt;/code> Member Functions
+ &lt;a class="anchor" href="#static-member-functions">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="parse_intstr-src-base">
+ &lt;code>parse_int(str, src, base)&lt;/code>
+ &lt;a class="anchor" href="#parse_intstr-src-base">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">static&lt;/span> result&lt;span style="color:#f92672">&amp;lt;&lt;/span>integer_type, error_info&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>parse_int(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> str, &lt;span style="color:#66d9ef">const&lt;/span> source_location src, &lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span> base);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If you use a type as &lt;code>integer_type&lt;/code> that cannot utilize standard stream operators, implement this function.
+Otherwise, use &lt;code>read_int&lt;/code> described later.&lt;/p></description></item><item><title>value_t.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/value_t/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/value_t/</guid><description>&lt;h1 id="value_thpp">
+ value_t.hpp
+ &lt;a class="anchor" href="#value_thpp">#&lt;/a>
+&lt;/h1>
+&lt;h1 id="value_t">
+ &lt;code>value_t&lt;/code>
+ &lt;a class="anchor" href="#value_t">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>value_t&lt;/code> is used to handle the type information of &lt;code>toml::value&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">value_t&lt;/span> &lt;span style="color:#f92672">:&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> empty &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> boolean &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> integer &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">2&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> floating &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">3&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> string &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">4&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> offset_datetime &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">5&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_datetime &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">6&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_date &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">7&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_time &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">8&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> array &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">9&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> table &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">10&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, value_t t);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string to_string(value_t t);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="non-member-functions">
+ Non-member Functions
+ &lt;a class="anchor" href="#non-member-functions">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="stream-operator">
+ Stream Operator
+ &lt;a class="anchor" href="#stream-operator">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, value_t t);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Outputs the string representation of the &lt;code>value_t&lt;/code> to the stream.&lt;/p></description></item><item><title>value.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/value/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/value/</guid><description>&lt;h1 id="valuehpp">
+ value.hpp
+ &lt;a class="anchor" href="#valuehpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>value.hpp&lt;/code> defines &lt;code>basic_value&lt;/code>.&lt;/p>
+&lt;h1 id="tomlbasic_value">
+ &lt;code>toml::basic_value&lt;/code>
+ &lt;a class="anchor" href="#tomlbasic_value">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>basic_value&lt;/code> is a class that stores TOML values.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span> &lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">TypeConfig&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">basic_value&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// Defined in types.hpp
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// using value = basic_value&amp;lt;type_config&amp;gt;;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// using table = typename basic_value&amp;lt;type_config&amp;gt;::table_type;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// using array = typename basic_value&amp;lt;type_config&amp;gt;::array_type;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">==&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">!=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">//toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="member-types">
+ Member Types
+ &lt;a class="anchor" href="#member-types">#&lt;/a>
+&lt;/h2>
+&lt;p>The following member types are defined.&lt;/p></description></item><item><title>version.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/version/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/version/</guid><description>&lt;h1 id="versionhpp">
+ version.hpp
+ &lt;a class="anchor" href="#versionhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>In &lt;code>version.hpp&lt;/code>, macros related to the version information of toml11 are defined.&lt;/p>
+&lt;h2 id="macros">
+ Macros
+ &lt;a class="anchor" href="#macros">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="toml11_version_major">
+ &lt;code>TOML11_VERSION_MAJOR&lt;/code>
+ &lt;a class="anchor" href="#toml11_version_major">#&lt;/a>
+&lt;/h3>
+&lt;p>The major version of toml11.&lt;/p>
+&lt;h3 id="toml11_version_minor">
+ &lt;code>TOML11_VERSION_MINOR&lt;/code>
+ &lt;a class="anchor" href="#toml11_version_minor">#&lt;/a>
+&lt;/h3>
+&lt;p>The minor version of toml11.&lt;/p>
+&lt;h3 id="toml11_version_patch">
+ &lt;code>TOML11_VERSION_PATCH&lt;/code>
+ &lt;a class="anchor" href="#toml11_version_patch">#&lt;/a>
+&lt;/h3>
+&lt;p>The patch version of toml11.&lt;/p>
+&lt;h2 id="function">
+ Function
+ &lt;a class="anchor" href="#function">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="license_notice">
+ &lt;code>license_notice&lt;/code>
+ &lt;a class="anchor" href="#license_notice">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">*&lt;/span> &lt;span style="color:#a6e22e">license_notice&lt;/span>() &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Returns the license notice.&lt;/p>
+&lt;p>Provided for convenience when redistributing without source code.&lt;/p></description></item><item><title>visit.hpp</title><link>https://toruniina.github.io/toml11/docs/reference/visit/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/reference/visit/</guid><description>&lt;h1 id="visithpp">
+ visit.hpp
+ &lt;a class="anchor" href="#visithpp">#&lt;/a>
+&lt;/h1>
+&lt;p>In &lt;code>visit.hpp&lt;/code>, &lt;code>toml::visit&lt;/code> is defined.&lt;/p>
+&lt;h1 id="tomlvisit">
+ &lt;code>toml::visit&lt;/code>
+ &lt;a class="anchor" href="#tomlvisit">#&lt;/a>
+&lt;/h1>
+&lt;h2 id="functions">
+ Functions
+ &lt;a class="anchor" href="#functions">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> Visitor, &lt;span style="color:#66d9ef">typename&lt;/span> ... Args&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">/* Return value when Visitor is called with a value of basic_value&amp;lt;TC&amp;gt; */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>visit(Visitor&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> visitor, Args&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> ... args);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>toml::visit&lt;/code> calls the overload of &lt;code>Visitor&lt;/code> corresponding to the type held by &lt;code>basic_value&amp;lt;TC&amp;gt;&lt;/code>, and returns the result.&lt;/p>
+&lt;h4 id="requirements">
+ Requirements
+ &lt;a class="anchor" href="#requirements">#&lt;/a>
+&lt;/h4>
+&lt;p>&lt;code>Visitor&lt;/code> must be a function or function object callable with any type held by &lt;code>basic_value&amp;lt;TC&amp;gt;&lt;/code>.&lt;/p></description></item></channel></rss>
