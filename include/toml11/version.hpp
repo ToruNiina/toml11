@@ -2,7 +2,7 @@
 #define TOML11_VERSION_HPP
 
 #define TOML11_VERSION_MAJOR 4
-#define TOML11_VERSION_MINOR 3
+#define TOML11_VERSION_MINOR 4
 #define TOML11_VERSION_PATCH 0
 
 #ifndef __cplusplus
