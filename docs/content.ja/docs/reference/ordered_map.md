@@ -290,6 +290,17 @@ mapped_type const& operator[](const key_type& k) const;
 
 `ordered_map` が `const` の場合は新規な値を構築できないので、 `std::out_of_range` を送出します。
 
+### `erase(...)`
+
+```cpp
+iterator erase(iterator pos);
+iterator erase(const_iterator pos);
+iterator erase(const_iterator first, const_iterator last);
+size_type erase(const key_type& key);
+```
+
+イテレータの指す位置の値、あるいはキーに該当する値を削除します。
+
 ### `key_comp()`
 
 ```cpp

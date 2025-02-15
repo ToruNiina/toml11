@@ -281,6 +281,17 @@ Finds an element with the specified key and returns a reference to its value.
 If the key is not found, a new value is constructed and returned.
 If the `ordered_map` is `const`, throws `std::out_of_range` instead.
 
+### `erase(...)`
+
+```cpp
+iterator erase(iterator pos);
+iterator erase(const_iterator pos);
+iterator erase(const_iterator first, const_iterator last);
+size_type erase(const key_type& key);
+```
+
+Removes values pointed by an iterator or a value corresponding to a key.
+
 ### `key_comp()`
 
 ```cpp
