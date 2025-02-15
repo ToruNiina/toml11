@@ -646,6 +646,8 @@ I appreciate the help of the contributors who introduced the great feature to th
   - Support dynamic color mode
   - Support `std::optional` members for `TOML11_DEFINE_CONVERSION_NON_INTRUSIVE`
   - Make `thread_local` for `color_mode` optional
+  - Add `toml::find_or_default`
+  - Fix static assertions in success that checks if specified type is void
 - Giel van Schijndel (@muggenhor)
   - Remove needless copy in `parse` function
 - Lukáš Hrázký (@lukash)
@@ -696,6 +698,8 @@ I appreciate the help of the contributors who introduced the great feature to th
   - fix: prevent size_t-max length string allocation
 - somebody (@oldoldtea), (lz)
   - Update README for better ToC, fixing example code
+- Sunlight (@SunPodder)
+  - Add `erase(...)` function to `ordered_map`
 
 ## Licensing terms
 
