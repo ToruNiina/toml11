@@ -131,7 +131,7 @@ Constructs a `spec` with the default version.
 
 Used as the default value for `toml::parse` and `toml::format`.
 
-In toml11 v4.0.0, the value is v1.0.0.
+In toml11 v4.4.0, the value is v1.0.0.
 
 ### `v(major, minor, patch)`
 

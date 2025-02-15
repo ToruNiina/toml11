@@ -131,7 +131,7 @@ constexpr static spec default_version() noexcept;
 
 `toml::parse`、`toml::format`でのデフォルト値として使われます。
 
-toml11 v4.0.0での値は、v1.0.0です。
+toml11 v4.4.0での値は、v1.0.0です。
 
 ### `v(major, minor, patch)`
 

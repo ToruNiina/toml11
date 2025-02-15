@@ -27,6 +27,47 @@ target_link_libraries(main PUBLIC toml11::toml11)
 
 toml11 will only run tests and install when it is the root project.
 
+### CMake `FetchContent`
+
+Using `FetchContent`, you can automatically download toml11 to your `build` directory.
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  toml11
+  GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
+  GIT_TAG        v4.4.0
+)
+FetchContent_MakeAvailable(toml11)
+
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE toml11::toml11)
+```
+
+### CMake Package Manager (CPM)
+
+After [adding cpm to your project](https://github.com/cpm-cmake/CPM.cmake?tab=readme-ov-file#adding-cpm), you can use toml11 by doing:
+
+```cmake
+include(cmake/CPM.cmake)
+
+CPMAddPackage("gh:ToruNiina/toml11@4.4.0")
+
+# OR
+
+CPMAddPackage(
+    NAME toml11
+    GITHUB_REPOSITORY "ToruNiina/toml11"
+    VERSION 4.4.0
+    OPTIONS
+    "TOML11_PRECOMPILE ON" # to pre-compile
+    "TOML11_ENABLE_ACCESS_CHECK ON" # to use value.accessed()
+    )
+
+add_executable(main main.cpp)
+target_link_libraries(main PUBLIC toml11::toml11)
+```
+
 ## Installing using cmake
 
 After cloning toml11, you can install it using cmake.

@@ -6,6 +6,25 @@ weight = 4
 
 # Change Log
 
+# v4.4.0
+
+## Added
+
+- `toml::find_or_default()` を追加 (by Ken Matsui @ken-matsui)
+- `ordered_map`から値を削除できるよう変更 (by Sunlight @SunPodder)
+- 値がアクセス済みかを調べる`bool basic_value::accessed() const`を追加
+  - `TOML11_ENABLE_ACCESS_CHECK`が定義されているときのみ有効
+- `toml::spec`に比較演算子を追加
+
+## Fixed
+
+- `is_same<T, void>`ではなく`is_void`を使用するように修正 (by Ken Matsui @ken-matsui)
+
+## Changed
+
+- `toml::parse`のパフォーマンスを約2倍向上
+- GitHub ActionsでUbuntu 20のイメージの使用を終了
+
 # v4.3.0
 
 ## Added

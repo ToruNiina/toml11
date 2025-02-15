@@ -127,7 +127,7 @@ include(FetchContent)
 FetchContent_Declare(
   toml11
   GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
-  GIT_TAG        v4.3.0
+  GIT_TAG        v4.4.0
 )
 FetchContent_MakeAvailable(toml11)
 
@@ -142,15 +142,17 @@ target_link_libraries(main PRIVATE toml11::toml11)
 ```cmake
 include(cmake/CPM.cmake)
 
-CPMAddPackage("gh:ToruNiina/toml11@4.3.0")
+CPMAddPackage("gh:ToruNiina/toml11@4.4.0")
 
 # OR
 
 CPMAddPackage(
     NAME toml11
     GITHUB_REPOSITORY "ToruNiina/toml11"
-    VERSION 4.3.0
-    OPTIONS "TOML11_PRECOMPILE ON" # to pre-compile
+    VERSION 4.4.0
+    OPTIONS
+    "TOML11_PRECOMPILE ON" # to pre-compile
+    "TOML11_ENABLE_ACCESS_CHECK ON" # to use value.accessed()
     )
 
 add_executable(main main.cpp)

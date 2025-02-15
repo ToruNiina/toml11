@@ -27,6 +27,47 @@ target_link_libraries(main PUBLIC toml11::toml11)
 
 `toml11`は自身がルートプロジェクトのときのみ、テストとインストールを行います。
 
+### CMake `FetchContent`
+
+CMakeの `FetchContent`を使用することで、`build`ディレクトリに自動でダウンロードすることができます。
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  toml11
+  GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
+  GIT_TAG        v4.4.0
+)
+FetchContent_MakeAvailable(toml11)
+
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE toml11::toml11)
+```
+
+### CMake Package Manager (CPM)
+
+[CMake package manager](https://github.com/cpm-cmake/CPM.cmake)を導入すると、以下のようにして使用することができます。
+
+```cmake
+include(cmake/CPM.cmake)
+
+CPMAddPackage("gh:ToruNiina/toml11@4.4.0")
+
+# OR
+
+CPMAddPackage(
+    NAME toml11
+    GITHUB_REPOSITORY "ToruNiina/toml11"
+    VERSION 4.4.0
+    OPTIONS
+    "TOML11_PRECOMPILE ON" # to pre-compile
+    "TOML11_ENABLE_ACCESS_CHECK ON" # to use value.accessed()
+    )
+
+add_executable(main main.cpp)
+target_link_libraries(main PUBLIC toml11::toml11)
+```
+
 ## `cmake`を使用してインストールする
 
 `toml11`をクローンしたのち、`cmake`を使ってインストールすることができます。

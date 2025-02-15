@@ -38,7 +38,7 @@ If not specified explicitly, `toml::spec::default_version()` is used to construc
 
 The default value depends on the version of toml11 and follows the latest version of the TOML language released at that time.
 
-As of v4.0.0, TOML v1.1.0 has not been released yet, so the default TOML version is v1.0.0.
+As of v4.4.0, TOML v1.1.0 has not been released yet, so the default TOML version is v1.0.0.
 
 {{<hint warning>}}
 

@@ -6,6 +6,25 @@ weight = 4
 
 # Change Log
 
+# v4.4.0
+
+## Added
+
+- Add `toml::find_or_default()` (#280) (by Ken Matsui @ken-matsui)
+- Add `erase` to `ordered_map` (#282) (#283) (by Sunlight @SunPodder)
+- Add `bool basic_value::accessed() const` to detect whether the value has been accessed
+  - enabled only if `TOML11_ENABLE_ACCESS_CHECK` is defined
+- Add compare operators to `toml::spec`
+
+## Fixed
+
+- Use `is_void<T>` instead of `is_same<T, void>` (#281) (by Ken Matsui @ken-matsui)
+
+## Changed
+
+- Improve `toml::parse` performance by 2x
+- Stop using deprecated Ubuntu 20 image on GitHub Actions
+
 # v4.3.0
 
 ## Added
