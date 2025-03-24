@@ -90,7 +90,7 @@ Parses the content of the given `std::istream&`.
 
 Open a stream in binary mode by passing `std::ios::binary` to avoid inconsistency between the file size and the number of characters due to automatic conversion of newline characters by the standard library.
 
-The filename information is taken as the third argument. If the filename is not provided, it defaults to `"unknown file"`.
+The filename information is taken as the second argument. If the filename is not provided, it defaults to `"unknown file"`.
 
 ### `parse(FILE*, std::string filename, toml::spec)`
 
