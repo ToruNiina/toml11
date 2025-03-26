@@ -735,5 +735,27 @@ TEST_CASE("test_optional_conversion_via_macro")
         CHECK(v2 == v);
     }
 }
+
+TEST_CASE("test_optional_conversion_via_find")
+{
+    {
+        const toml::value v(toml::table{
+            {"foo", toml::value(toml::table{{"a", 42}}) }
+        });
+
+        const auto foo = toml::find<extlib4::foo>(v, "foo");
+        CHECK(foo.a.value() == 42);
+        CHECK(foo.b == std::nullopt);
+    }
+    {
+        const toml::ordered_value v(toml::ordered_table{
+            { "foo", toml::ordered_value(toml::ordered_table{{"b", "baz"}}) }
+        });
+
+        const auto foo = toml::find<extlib4::foo>(v, "foo");
+        CHECK(foo.a == std::nullopt);
+        CHECK(foo.b.value() == "baz");
+    }
+}
 #endif // TOML11_HAS_OPTIONAL
 #endif // TOML11_WITHOUT_DEFINE_NON_INTRUSIVE
