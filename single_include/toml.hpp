@@ -3807,14 +3807,14 @@ struct is_std_tuple_impl<std::tuple<Ts...>> : std::true_type{};
 template<typename T>
 using is_std_tuple = is_std_tuple_impl<cxx::remove_cvref_t<T>>;
 
-#if TOML11_CPLUSPLUS_STANDARD_VERSION >= TOML11_CXX17_VALUE
-#  if __has_include(<optional>)
+#if defined(TOML11_HAS_OPTIONAL)
 template<typename T> struct is_std_optional_impl : std::false_type{};
 template<typename T>
 struct is_std_optional_impl<std::optional<T>> : std::true_type{};
 template<typename T>
 using is_std_optional = is_std_optional_impl<cxx::remove_cvref_t<T>>;
-#  endif // <optional>
+#else
+template<typename T> struct is_std_optional : std::false_type{};
 #endif // > C++17
 
 template<typename T> struct is_std_array_impl : std::false_type{};
@@ -3853,6 +3853,11 @@ template<typename V, typename S>
 struct is_string_view_of : std::false_type {};
 template<typename C, typename T>
 struct is_string_view_of<std::basic_string_view<C, T>, std::basic_string<C, T>> : std::true_type {};
+#else
+template<typename T>
+struct is_std_basic_string_view : std::false_type {};
+template<typename V, typename S>
+struct is_string_view_of : std::false_type {};
 #endif
 
 template<typename T> struct is_chrono_duration_impl: std::false_type{};
@@ -9471,21 +9476,24 @@ namespace toml
 // find<T>(value, key);
 
 template<typename T, typename TC>
-decltype(::toml::get<T>(std::declval<basic_value<TC> const&>()))
+cxx::enable_if_t<cxx::negation<detail::is_std_optional<T>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<TC> const&>()))>
 find(const basic_value<TC>& v, const typename basic_value<TC>::key_type& ky)
 {
     return ::toml::get<T>(v.at(ky));
 }
 
 template<typename T, typename TC>
-decltype(::toml::get<T>(std::declval<basic_value<TC>&>()))
+cxx::enable_if_t<cxx::negation<detail::is_std_optional<T>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<TC>&>()))>
 find(basic_value<TC>& v, const typename basic_value<TC>::key_type& ky)
 {
     return ::toml::get<T>(v.at(ky));
 }
 
 template<typename T, typename TC>
-decltype(::toml::get<T>(std::declval<basic_value<TC>&&>()))
+cxx::enable_if_t<cxx::negation<detail::is_std_optional<T>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<TC>&&>()))>
 find(basic_value<TC>&& v, const typename basic_value<TC>::key_type& ky)
 {
     return ::toml::get<T>(std::move(v.at(ky)));
@@ -9495,19 +9503,22 @@ find(basic_value<TC>&& v, const typename basic_value<TC>::key_type& ky)
 // find<T>(value, idx)
 
 template<typename T, typename TC>
-decltype(::toml::get<T>(std::declval<basic_value<TC> const&>()))
+cxx::enable_if_t<cxx::negation<detail::is_std_optional<T>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<TC> const&>()))>
 find(const basic_value<TC>& v, const std::size_t idx)
 {
     return ::toml::get<T>(v.at(idx));
 }
 template<typename T, typename TC>
-decltype(::toml::get<T>(std::declval<basic_value<TC>&>()))
+cxx::enable_if_t<cxx::negation<detail::is_std_optional<T>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<TC>&>()))>
 find(basic_value<TC>& v, const std::size_t idx)
 {
     return ::toml::get<T>(v.at(idx));
 }
 template<typename T, typename TC>
-decltype(::toml::get<T>(std::declval<basic_value<TC>&&>()))
+cxx::enable_if_t<cxx::negation<detail::is_std_optional<T>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<TC>&&>()))>
 find(basic_value<TC>&& v, const std::size_t idx)
 {
     return ::toml::get<T>(std::move(v.at(idx)));
@@ -9716,19 +9727,22 @@ find(basic_value<TC>&& v, const K1& k1, const K2& k2, const Ks& ... ks)
 // find<T>(v, keys...)
 
 template<typename T, typename TC, typename K1, typename K2, typename ... Ks>
-decltype(::toml::get<T>(std::declval<const basic_value<TC>&>()))
+cxx::enable_if_t<cxx::negation<detail::is_std_optional<T>>::value,
+    decltype(::toml::get<T>(std::declval<const basic_value<TC>&>()))>
 find(const basic_value<TC>& v, const K1& k1, const K2& k2, const Ks& ... ks)
 {
     return find<T>(v.at(detail::key_cast<TC>(k1)), detail::key_cast<TC>(k2), ks...);
 }
 template<typename T, typename TC, typename K1, typename K2, typename ... Ks>
-decltype(::toml::get<T>(std::declval<basic_value<TC>&>()))
+cxx::enable_if_t<cxx::negation<detail::is_std_optional<T>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<TC>&>()))>
 find(basic_value<TC>& v, const K1& k1, const K2& k2, const Ks& ... ks)
 {
     return find<T>(v.at(detail::key_cast<TC>(k1)), detail::key_cast<TC>(k2), ks...);
 }
 template<typename T, typename TC, typename K1, typename K2, typename ... Ks>
-decltype(::toml::get<T>(std::declval<basic_value<TC>&&>()))
+cxx::enable_if_t<cxx::negation<detail::is_std_optional<T>>::value,
+    decltype(::toml::get<T>(std::declval<basic_value<TC>&&>()))>
 find(basic_value<TC>&& v, const K1& k1, const K2& k2, const Ks& ... ks)
 {
     return find<T>(std::move(v.at(detail::key_cast<TC>(k1))), detail::key_cast<TC>(k2), ks...);
