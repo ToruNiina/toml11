@@ -165,14 +165,14 @@ struct is_std_tuple_impl<std::tuple<Ts...>> : std::true_type{};
 template<typename T>
 using is_std_tuple = is_std_tuple_impl<cxx::remove_cvref_t<T>>;
 
-#if TOML11_CPLUSPLUS_STANDARD_VERSION >= TOML11_CXX17_VALUE
-#  if __has_include(<optional>)
+#if defined(TOML11_HAS_OPTIONAL)
 template<typename T> struct is_std_optional_impl : std::false_type{};
 template<typename T>
 struct is_std_optional_impl<std::optional<T>> : std::true_type{};
 template<typename T>
 using is_std_optional = is_std_optional_impl<cxx::remove_cvref_t<T>>;
-#  endif // <optional>
+#else
+template<typename T> struct is_std_optional : std::false_type{};
 #endif // > C++17
 
 template<typename T> struct is_std_array_impl : std::false_type{};
@@ -211,6 +211,11 @@ template<typename V, typename S>
 struct is_string_view_of : std::false_type {};
 template<typename C, typename T>
 struct is_string_view_of<std::basic_string_view<C, T>, std::basic_string<C, T>> : std::true_type {};
+#else
+template<typename T>
+struct is_std_basic_string_view : std::false_type {};
+template<typename V, typename S>
+struct is_string_view_of : std::false_type {};
 #endif
 
 template<typename T> struct is_chrono_duration_impl: std::false_type{};
