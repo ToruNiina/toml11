@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>features on toml11</title><link>https://toruniina.github.io/toml11/ja/docs/features/</link><description>Recent content in features on toml11</description><generator>Hugo</generator><language>ja</language><atom:link href="https://toruniina.github.io/toml11/ja/docs/features/index.xml" rel="self" type="application/rss+xml"/><item><title>parsing files</title><link>https://toruniina.github.io/toml11/ja/docs/features/parsing_files/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/parsing_files/</guid><description>&lt;h1 id="ファイル文字列をパースする">
+ ファイル・文字列をパースする
+ &lt;a class="anchor" href="#%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e6%96%87%e5%ad%97%e5%88%97%e3%82%92%e3%83%91%e3%83%bc%e3%82%b9%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h1>
+&lt;p>toml11では、&lt;code>toml::parse&lt;/code> や &lt;code>toml::try_parse&lt;/code> を使って、ファイルや文字列、バイト列をパースすることができます。&lt;/p>
+&lt;p>これらは成功時に &lt;code>toml::value&lt;/code> を返します。
+ファイルは常にテーブルになりますが、返り値が &lt;code>toml::table&lt;/code> でないことに気を付けてください。
+&lt;code>toml::value&lt;/code> はファイルに関するメタデータを持っており、
+&lt;code>toml::table&lt;/code> は &lt;code>std::unordered_map&amp;lt;std::stirng, toml::value&amp;gt;&lt;/code> のエイリアスでしかありません。
+メタデータを返すために、 &lt;code>toml::table&lt;/code> ではなく &lt;code>toml::value&lt;/code> を返しています。
+ファイルのルートに対応する &lt;code>toml::value&lt;/code> は常に &lt;code>table_type&lt;/code> を持ちます。&lt;/p>
+&lt;h2 id="ファイルをパースする">
+ ファイルをパースする
+ &lt;a class="anchor" href="#%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e3%82%92%e3%83%91%e3%83%bc%e3%82%b9%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h2>
+&lt;p>ファイルをパースする際は、
+&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse">&lt;code>toml::parse&lt;/code>&lt;/a>
+または
+&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/parser/#try_parse">&lt;code>toml::try_parse&lt;/code>&lt;/a>
+を使います。&lt;/p>
+&lt;h3 id="tomlparse">
+ &lt;code>toml::parse&lt;/code>
+ &lt;a class="anchor" href="#tomlparse">#&lt;/a>
+&lt;/h3>
+&lt;h4 id="stdstringでファイル名を指定する">
+ &lt;code>std::string&lt;/code>でファイル名を指定する
+ &lt;a class="anchor" href="#stdstring%e3%81%a7%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e5%90%8d%e3%82%92%e6%8c%87%e5%ae%9a%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h4>
+&lt;p>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse">&lt;code>toml::parse&lt;/code>&lt;/a>
+は、文字列でファイル名を受け取り、そのファイルを開いてパースします。&lt;/p>
+&lt;p>以下のサンプルは、&lt;code>input.toml&lt;/code>というファイルをパースし、&lt;code>title&lt;/code>という変数を文字列として取り出し、出力するコードです。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;iostream&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value input &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>parse(&lt;span style="color:#e6db74">&amp;#34;input.toml&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>cout &lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span> input.at(&lt;span style="color:#e6db74">&amp;#34;title&amp;#34;&lt;/span>).as_string() &lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>endl;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="stdfilesystempathでファイルを指定する">
+ &lt;code>std::filesystem::path&lt;/code>でファイルを指定する
+ &lt;a class="anchor" href="#stdfilesystempath%e3%81%a7%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e3%82%92%e6%8c%87%e5%ae%9a%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h4>
+&lt;p>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse">&lt;code>toml::parse&lt;/code>&lt;/a>
+には、&lt;code>std::filesystem::path&lt;/code>を渡すことも可能です。&lt;/p>
+&lt;p>当然ですが、&lt;code>&amp;lt;filesystem&amp;gt;&lt;/code>がサポートされるC++17以降でなければ使用できません。&lt;/p>
+&lt;h4 id="stdistreamで入力ストリームを指定する">
+ &lt;code>std::istream&lt;/code>で入力ストリームを指定する
+ &lt;a class="anchor" href="#stdistream%e3%81%a7%e5%85%a5%e5%8a%9b%e3%82%b9%e3%83%88%e3%83%aa%e3%83%bc%e3%83%a0%e3%82%92%e6%8c%87%e5%ae%9a%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h4>
+&lt;p>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/parser/#parse">&lt;code>toml::parse&lt;/code>&lt;/a>
+には、&lt;code>std::istream&lt;/code>を渡すことも可能です。&lt;/p></description></item><item><title>getting values</title><link>https://toruniina.github.io/toml11/ja/docs/features/value/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/value/</guid><description>&lt;h1 id="値を取り出す">
+ 値を取り出す
+ &lt;a class="anchor" href="#%e5%80%a4%e3%82%92%e5%8f%96%e3%82%8a%e5%87%ba%e3%81%99">#&lt;/a>
+&lt;/h1>
+&lt;p>ここでは、 &lt;code>toml::value&lt;/code> が格納している値にアクセスする方法を説明します。&lt;/p>
+&lt;h2 id="メンバ関数を使って値にアクセスする">
+ メンバ関数を使って値にアクセスする
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e9%96%a2%e6%95%b0%e3%82%92%e4%bd%bf%e3%81%a3%e3%81%a6%e5%80%a4%e3%81%ab%e3%82%a2%e3%82%af%e3%82%bb%e3%82%b9%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="is_something-と-as_something">
+ &lt;code>is_something&lt;/code> と &lt;code>as_something&lt;/code>
+ &lt;a class="anchor" href="#is_something-%e3%81%a8-as_something">#&lt;/a>
+&lt;/h3>
+&lt;p>&lt;code>toml::value&lt;/code> は &lt;code>is_boolean()&lt;/code> や &lt;code>is_integer()&lt;/code> などのメンバ関数を持っており、
+これらを使うと持っている型を調べることができます。&lt;/p>
+&lt;p>また、 &lt;code>as_boolean()&lt;/code>, &lt;code>as_integer()&lt;/code> などのメンバ関数も持っており、
+これらを使ってその型にアクセスすることができます。&lt;/p>
+&lt;p>完全なリストは &lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/value/#is_xxx">&lt;code>toml::value&lt;/code> のリファレンス&lt;/a> を参照してください。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>toml&lt;span style="color:#f92672">::&lt;/span>value v &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#75715e">/* ... */&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">if&lt;/span>(v.is_integer())
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>cout &lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span> v.as_integer() &lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>endl;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>指定された値と異なる型が格納されていた場合、 &lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/value/#tomltype_error">&lt;code>toml::type_error&lt;/code>&lt;/a> が送出されます。&lt;/p>
+&lt;p>その &lt;code>what()&lt;/code> は以下のようなメッセージを含みます。&lt;/p>
+&lt;pre tabindex="0">&lt;code>[error] toml::value::as_string(): bad_cast to string
+ --&amp;gt; input.toml
+ |
+ 1 | a = 123_456
+ | ^^^^^^^-- the actual type is integer
+&lt;/code>&lt;/pre>&lt;h3 id="tomlvalue_t">
+ &lt;code>toml::value_t&lt;/code>
+ &lt;a class="anchor" href="#tomlvalue_t">#&lt;/a>
+&lt;/h3>
+&lt;p>型情報は &lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/value_t/">&lt;code>enum class toml::value_t&lt;/code>&lt;/a> で識別できます。&lt;/p></description></item><item><title>error message</title><link>https://toruniina.github.io/toml11/ja/docs/features/error_message/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/error_message/</guid><description>&lt;h1 id="エラーメッセージを出力する">
+ エラーメッセージを出力する
+ &lt;a class="anchor" href="#%e3%82%a8%e3%83%a9%e3%83%bc%e3%83%a1%e3%83%83%e3%82%bb%e3%83%bc%e3%82%b8%e3%82%92%e5%87%ba%e5%8a%9b%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h1>
+&lt;p>toml11は &lt;code>toml::parse&lt;/code> や &lt;code>toml::get&amp;lt;T&amp;gt;/find&amp;lt;T&amp;gt;&lt;/code>, &lt;code>as_integer()&lt;/code> などから
+ファイル内の位置情報を含んだエラーメッセージを出力します。&lt;/p>
+&lt;p>例えば、パース時に整数の文法エラーを発見した場合、&lt;/p>
+&lt;pre tabindex="0">&lt;code>[error] bad integer: `_` must be surrounded by digits
+ --&amp;gt; internal string at line 64 in file main.cpp
+ |
+ 1 | a = 123__456
+ | ^-- invalid underscore
+Hint: valid : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755
+Hint: invalid: _42, 1__000, 0123
+&lt;/code>&lt;/pre>&lt;p>あるいは実際に格納されている型と異なる型を要求した場合&lt;/p>
+&lt;pre tabindex="0">&lt;code>[error] toml::value::as_string(): bad_cast to string
+ --&amp;gt; input.toml
+ |
+ 1 | a = 123_456
+ | ^^^^^^^-- the actual type is integer
+&lt;/code>&lt;/pre>&lt;p>toml11は &lt;code>toml::value&lt;/code> からこのようなエラーメッセージを作成する方法を提供します。&lt;/p></description></item><item><title>serializing values</title><link>https://toruniina.github.io/toml11/ja/docs/features/serialize/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/serialize/</guid><description>&lt;h1 id="tomlファイルを出力する">
+ TOMLファイルを出力する
+ &lt;a class="anchor" href="#toml%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e3%82%92%e5%87%ba%e5%8a%9b%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml::format&lt;/code> を使うと、 &lt;code>toml::value&lt;/code> を文字列にすることができます。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;cassert&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value v(toml&lt;span style="color:#f92672">::&lt;/span>table{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>, &lt;span style="color:#ae81ff">42&lt;/span>},
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;foo&amp;#34;&lt;/span>},
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string s &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>format(v);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value u &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>parse_str(s);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(u.at(&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>).as_integer() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">42&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(u.at(&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>).as_string() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#e6db74">&amp;#34;foo&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>table_type&lt;/code> を格納している &lt;code>toml::value&lt;/code> が渡されると、それがファイルのルートテーブルとして解釈されます。&lt;/p>
+&lt;p>もし &lt;code>table_type&lt;/code> 以外を格納している &lt;code>toml::value&lt;/code> が渡されると、その値だけがフォーマットされます。&lt;/p>
+&lt;p>一部のフォーマット指定では、キーが渡されていないとフォーマットできないことがあります。
+例えば、 &lt;code>toml::array_format::array_of_tables&lt;/code> は &lt;code>[[array.of.tables]]&lt;/code> の形でフォーマットするので、
+キーへのアクセスを要求します。&lt;/p>
+&lt;p>キーを要求するフォーマット指定の値がキーなしで渡された場合、 &lt;code>toml::serialization_error&lt;/code> が送出されます。&lt;/p>
+&lt;p>他にも、フォーマット指定と矛盾する値が含まれる場合には、 &lt;code>toml::serialization_error&lt;/code> が送出されます。
+例えば、 &lt;code>integer_format::hex&lt;/code> が指定された整数が負の値を持っている場合や、
+&lt;code>string_format::literal&lt;/code> が指定された文字列が改行を含んでいる場合などです。&lt;/p>
+&lt;p>フォーマットの指定方法は後述します。&lt;/p>
+&lt;h2 id="キーを渡して出力する">
+ キーを渡して出力する
+ &lt;a class="anchor" href="#%e3%82%ad%e3%83%bc%e3%82%92%e6%b8%a1%e3%81%97%e3%81%a6%e5%87%ba%e5%8a%9b%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h2>
+&lt;p>&lt;code>toml::format&lt;/code> には &lt;code>std::string&lt;/code> としてキーを渡すことが可能です。&lt;/p></description></item><item><title>configuring types</title><link>https://toruniina.github.io/toml11/ja/docs/features/configure_types/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/configure_types/</guid><description>&lt;h1 id="型をカスタマイズする">
+ 型をカスタマイズする
+ &lt;a class="anchor" href="#%e5%9e%8b%e3%82%92%e3%82%ab%e3%82%b9%e3%82%bf%e3%83%9e%e3%82%a4%e3%82%ba%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml::value&lt;/code> は &lt;code>integer_type&lt;/code> として &lt;code>std::int64_t&lt;/code> を、
+&lt;code>table_type&lt;/code> として &lt;code>std::unordered_map&amp;lt;key_type, value_type&amp;gt;&lt;/code> を使用します。&lt;/p>
+&lt;p>しかし、場合によっては &lt;code>boost::multiprecision::int128_t&lt;/code> や、 &lt;code>std::map&lt;/code> を使用したい場合もあります。&lt;/p>
+&lt;p>そのため、 &lt;code>toml::value&lt;/code> は &lt;code>template&lt;/code> 引数を取って格納する型を変えられるように実装されています。&lt;/p>
+&lt;p>&lt;code>std::string&lt;/code> が実際には &lt;code>std::basic_string&amp;lt;char, std::char_traits&amp;lt;char&amp;gt;, std::allocator&amp;lt;char&amp;gt;&amp;gt;&lt;/code> の
+エイリアスであるように、 &lt;code>toml::value&lt;/code> は実際には &lt;code>toml::basic_value&amp;lt;toml::type_config&amp;gt;&lt;/code> のエイリアスです。&lt;/p>
+&lt;p>ここでは、 &lt;code>toml::type_config&lt;/code> が持つ型と、異なる &lt;code>config&lt;/code> 型を定義する方法を説明します。&lt;/p>
+&lt;h2 id="type_config">
+ &lt;code>type_config&lt;/code>
+ &lt;a class="anchor" href="#type_config">#&lt;/a>
+&lt;/h2>
+&lt;p>&lt;code>type_config&lt;/code> は、以下のメンバ型と&lt;code>static&lt;/code>メンバ関数を持つクラスです。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">type_config&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> comment_type &lt;span style="color:#f92672">=&lt;/span> preserve_comments;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> boolean_type &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> integer_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">int64_t&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> floating_type &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">double&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> string_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> array_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>T&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> K, &lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> table_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>unordered_map&lt;span style="color:#f92672">&amp;lt;&lt;/span>K, T&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> result&lt;span style="color:#f92672">&amp;lt;&lt;/span>integer_type, error_info&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> parse_int(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> str, &lt;span style="color:#66d9ef">const&lt;/span> source_location src, &lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span> base);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> result&lt;span style="color:#f92672">&amp;lt;&lt;/span>floating_type, error_info&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> parse_float(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> str, &lt;span style="color:#66d9ef">const&lt;/span> source_location src, &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> is_hex);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>toml::basic_value&amp;lt;TypeConfig&amp;gt;&lt;/code> は、格納する &lt;code>boolean_type&lt;/code> を &lt;code>TypeConfig::boolean_type&lt;/code>、
+格納する &lt;code>integer_type&lt;/code> を &lt;code>TypeConfig::integer_type&lt;/code> 、のようにして定義しています。&lt;/p></description></item><item><title>toml literal</title><link>https://toruniina.github.io/toml11/ja/docs/features/literal/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/literal/</guid><description>&lt;h1 id="_tomlリテラル">
+ &lt;code>_toml&lt;/code>リテラル
+ &lt;a class="anchor" href="#_toml%e3%83%aa%e3%83%86%e3%83%a9%e3%83%ab">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>&amp;quot;&amp;quot;_toml&lt;/code>リテラルによって、TOMLファイルをその場でフォーマットできます。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> &lt;span style="color:#66d9ef">namespace&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>literals&lt;span style="color:#f92672">::&lt;/span>toml_literals;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> v &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;a = 42&amp;#34;&lt;/span>_toml;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>).as_integer() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">42&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>改行を含む場合、生文字列リテラルが便利です。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> &lt;span style="color:#66d9ef">namespace&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>literals&lt;span style="color:#f92672">::&lt;/span>toml_literals;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> v &lt;span style="color:#f92672">=&lt;/span> R&lt;span style="color:#e6db74">&amp;#34;(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> a &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">42&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> b &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;foo&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )&lt;span style="color:#e6db74">&amp;#34;_toml;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>).as_integer() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">42&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>).as_string() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#e6db74">&amp;#34;foo&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>値が単体で書かれていた場合、その値が返されます。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> &lt;span style="color:#66d9ef">namespace&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>literals&lt;span style="color:#f92672">::&lt;/span>toml_literals;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> a &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;42&amp;#34;&lt;/span>_toml;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> b &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;12:34:56&amp;#34;&lt;/span>_toml;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>).as_integer() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">42&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>).as_local_time().hour &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">12&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>).as_local_time().minute &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">34&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>).as_local_time().second &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">56&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>TOMLは数値のみからなるキーを許可しています。
+よって、&lt;code>[1]&lt;/code>はテーブル名として合法です。&lt;/p></description></item><item><title>toml spec</title><link>https://toruniina.github.io/toml11/ja/docs/features/toml_spec/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/toml_spec/</guid><description>&lt;h1 id="toml言語バージョン">
+ TOML言語バージョン
+ &lt;a class="anchor" href="#toml%e8%a8%80%e8%aa%9e%e3%83%90%e3%83%bc%e3%82%b8%e3%83%a7%e3%83%b3">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/spec/#tomlspec">&lt;code>toml::spec&lt;/code>&lt;/a>
+によって、 &lt;code>toml::parse&lt;/code> や &lt;code>toml::format&lt;/code> で使用するTOML言語のバージョンや、個別の機能フラグを指定することができます。&lt;/p>
+&lt;h2 id="tomlのバージョンを指定する">
+ TOMLのバージョンを指定する
+ &lt;a class="anchor" href="#toml%e3%81%ae%e3%83%90%e3%83%bc%e3%82%b8%e3%83%a7%e3%83%b3%e3%82%92%e6%8c%87%e5%ae%9a%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h2>
+&lt;p>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/spec/#tomlspec">&lt;code>toml::spec&lt;/code>&lt;/a>
+は
+&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/spec/#tomlsemantic_version">&lt;code>toml::semantic_version&lt;/code>&lt;/a>
+から構築できます。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> toml&lt;span style="color:#f92672">::&lt;/span>spec spec(toml&lt;span style="color:#f92672">::&lt;/span>semantic_version(&lt;span style="color:#ae81ff">1&lt;/span>, &lt;span style="color:#ae81ff">1&lt;/span>, &lt;span style="color:#ae81ff">0&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>ですがこれは長いので、&lt;code>toml::spec::v()&lt;/code>関数が用意されています。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> toml&lt;span style="color:#f92672">::&lt;/span>spec spec &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>spec&lt;span style="color:#f92672">::&lt;/span>v(&lt;span style="color:#ae81ff">1&lt;/span>, &lt;span style="color:#ae81ff">1&lt;/span>, &lt;span style="color:#ae81ff">0&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>特に指定しない場合、デフォルトの値で構築する &lt;code>toml::spec::default_version()&lt;/code> が使用されます。&lt;/p>
+&lt;p>デフォルトの値はtoml11のバージョンによって変わりますが、その時点でリリースされているTOML言語の最新バージョンに追従します。&lt;/p>
+&lt;p>v4.4.0現在、TOML v1.1.0はまだリリースされていないため、デフォルトのTOMLバージョンはv1.0.0です。&lt;/p>
+&lt;blockquote class="book-hint warning">
+ &lt;p>TOML v1.1.0の一部の機能にはかなり長い議論が続いており、まだ差し戻される可能性があります。&lt;/p>
+&lt;p>実際に差し戻された場合、toml11はマイナーバージョンアップでそれらの機能を削除、もしくは対応するそれ以降のバージョンに移動します。&lt;/p>
+&lt;p>そのような意味で、将来のバージョンに関する機能は全て不安定なものと考えてください。&lt;/p>
+
+&lt;/blockquote>
+
+&lt;h3 id="バージョン指定でパースする">
+ バージョン指定でパースする
+ &lt;a class="anchor" href="#%e3%83%90%e3%83%bc%e3%82%b8%e3%83%a7%e3%83%b3%e6%8c%87%e5%ae%9a%e3%81%a7%e3%83%91%e3%83%bc%e3%82%b9%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h3>
+&lt;p>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/parser/">&lt;code>toml::parse&lt;/code>&lt;/a>
+のオーバーロードは、ファイル名に続いて&lt;code>toml::spec&lt;/code>を受け取ります。&lt;/p>
+&lt;p>これによって、使用するTOMLバージョンを変更できます。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> toml&lt;span style="color:#f92672">::&lt;/span>value input &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>parse(&lt;span style="color:#e6db74">&amp;#34;input.toml&amp;#34;&lt;/span>, toml&lt;span style="color:#f92672">::&lt;/span>spec&lt;span style="color:#f92672">::&lt;/span>v(&lt;span style="color:#ae81ff">1&lt;/span>, &lt;span style="color:#ae81ff">1&lt;/span>, &lt;span style="color:#ae81ff">0&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="バージョン指定でシリアライズする">
+ バージョン指定でシリアライズする
+ &lt;a class="anchor" href="#%e3%83%90%e3%83%bc%e3%82%b8%e3%83%a7%e3%83%b3%e6%8c%87%e5%ae%9a%e3%81%a7%e3%82%b7%e3%83%aa%e3%82%a2%e3%83%a9%e3%82%a4%e3%82%ba%e3%81%99%e3%82%8b">#&lt;/a>
+&lt;/h3>
+&lt;p>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/serializer/">&lt;code>toml::format&lt;/code>&lt;/a>
+のオーバーロードは、 &lt;code>toml::value&lt;/code> に続いて &lt;code>toml::spec&lt;/code> を受け取ります。&lt;/p></description></item><item><title>extension</title><link>https://toruniina.github.io/toml11/ja/docs/features/extension/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/features/extension/</guid><description>&lt;h1 id="toml言語拡張">
+ TOML言語拡張
+ &lt;a class="anchor" href="#toml%e8%a8%80%e8%aa%9e%e6%8b%a1%e5%bc%b5">#&lt;/a>
+&lt;/h1>
+&lt;p>TOML言語は現在 v1.0.0 が最新版ですが、その後もいくつかの新機能が議論の末マージされ、
+v1.1.0に向けて議論が続いています。&lt;/p>
+&lt;p>そこで議論された機能の中には、有用なケースが少ないと考えられたものや、
+提案された際の方向性では導入が難しいもの、導入がされなかったものも多くあります。&lt;/p>
+&lt;p>toml11では、そのような機能のなかからいくつかを選んで、実験的に実装を行っています。
+これらはtoml11ではサポートされていますが、他のパーサではサポートされておらず、また
+サポートされる予定もないことに注意してください。&lt;/p>
+&lt;p>また、これらの機能はデフォルトで使用されない設定になっており、
+使用するためには機能フラグをそれぞれ &lt;code>true&lt;/code> にしなければなりません。
+非標準の機能なので、あえて明示的に書かなければ使えないように設計しています。&lt;/p>
+&lt;p>いくつかの機能は今後TOML言語自体に新機能としてマージされる可能性があります。
+もし以下の拡張機能を完全に置き換えられる機能が導入された場合、拡張機能は
+本来の機能の実装後にマイナーバージョンアップで削除される可能性があります。&lt;/p>
+&lt;h2 id="null">
+ &lt;code>null&lt;/code>
+ &lt;a class="anchor" href="#null">#&lt;/a>
+&lt;/h2>
+&lt;p>TOMLファイル内で値として&lt;code>null&lt;/code>を使えるようになります。&lt;/p>
+&lt;pre tabindex="0">&lt;code>a = null
+b = [ 1, 2, 3, null, 5]
+&lt;/code>&lt;/pre>&lt;p>これを使用するには、 &lt;code>toml::spec&lt;/code> の &lt;code>ext_null_value&lt;/code> を &lt;code>true&lt;/code> にします。&lt;/p>
+&lt;p>パースすると、デフォルト構築した場合と同様の &lt;code>toml::value_t::empty&lt;/code> となります。
+ただし、ファイル内の位置情報は設定されます。&lt;/p>
+&lt;p>&lt;code>null&lt;/code> は値の文脈でのみパースされるので、キーに &lt;code>null&lt;/code> を使用した際はこれまで通り
+&lt;code>&amp;quot;null&amp;quot;&lt;/code> という文字列のキーとして解釈されます。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> toml&lt;span style="color:#f92672">::&lt;/span>spec spec;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> spec.ext_null_value &lt;span style="color:#f92672">=&lt;/span> true;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> v &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>parse_str(&lt;span style="color:#e6db74">&amp;#34;a = null&amp;#34;&lt;/span>, spec);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>).is_empty());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>).is(toml&lt;span style="color:#f92672">::&lt;/span>value_t&lt;span style="color:#f92672">::&lt;/span>empty));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="浮動小数点数の16進数フォーマット">
+ 浮動小数点数の16進数フォーマット
+ &lt;a class="anchor" href="#%e6%b5%ae%e5%8b%95%e5%b0%8f%e6%95%b0%e7%82%b9%e6%95%b0%e3%81%ae16%e9%80%b2%e6%95%b0%e3%83%95%e3%82%a9%e3%83%bc%e3%83%9e%e3%83%83%e3%83%88">#&lt;/a>
+&lt;/h2>
+&lt;p>TOMLファイル内で浮動小数点数に16進数フォーマットを使用できるようになります。&lt;/p></description></item></channel></rss>
