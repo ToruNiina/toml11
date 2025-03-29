@@ -71,6 +71,30 @@ bool operator==(const integer_format_info&, const integer_format_info&) noexcept
 bool operator!=(const integer_format_info&, const integer_format_info&) noexcept;
 ```
 
+## 例
+
+```cpp
+#include <toml.hpp>
+#include <iostream>
+
+int main()
+{
+    toml::value v(0xDEADBEEF);
+    std::cout << v << std::endl; // 3735928559
+
+    v.as_integer_fmt().uppercase = true;
+    v.as_integer_fmt().fmt = toml::integer_format::hex;
+    std::cout << v << std::endl; // 0xDEADBEEF
+
+    v.as_integer_fmt().spacer = 4;
+    std::cout << v << std::endl; // 0xDEAD_BEEF
+
+    v.as_integer_fmt().spacer = 8;
+    v.as_integer_fmt().width = 16;
+    std::cout << v << std::endl; // 0x00000000_DEADBEEF
+}
+```
+
 ## メンバ変数
 
 ### `integer_format fmt`
@@ -101,7 +125,7 @@ bool operator!=(const integer_format_info&, const integer_format_info&) noexcept
 
 toml11拡張の`spec::ext_num_suffix`を`true`にしている場合、その`suffix`がここに保存されます。
 
-参考：[spec.hpp]({{<ref "spec.md">}})
+参考：[spec.hpp]({{<ref "spec.md#ext_num_suffix">}})
 
 # `floating_format`
 
@@ -138,6 +162,39 @@ bool operator==(const floating_format_info&, const floating_format_info&) noexce
 bool operator!=(const floating_format_info&, const floating_format_info&) noexcept;
 ```
 
+## 例
+
+```cpp
+#include <toml.hpp>
+#include <iostream>
+
+int main()
+{
+    toml::value pi(3.141592653589793);
+    std::cout << pi << std::endl; // 3.14159
+
+    pi.as_floating_fmt().fmt = toml::floating_format::fixed;
+    std::cout << pi << std::endl; // 3.141593
+
+    pi.as_floating_fmt().prec = 16;
+    std::cout << pi << std::endl; // 3.1415926535897931
+
+    toml::value na(6.02214076e+23);
+    std::cout << na << std::endl; // 6.022e+23
+
+    na.as_floating_fmt().fmt = toml::floating_format::fixed;
+    std::cout << na << std::endl; // 602214075999999987023872.000000
+
+    na.as_floating_fmt().fmt = toml::floating_format::scientific;
+    std::cout << na << std::endl; // 6.022141e+23
+
+    na.as_floating_fmt().prec = 16;
+    std::cout << na << std::endl; // 6.0221407599999999e+23
+
+    return 0;
+}
+```
+
 ## メンバ変数
 
 ### `floating_format fmt`
@@ -152,7 +209,7 @@ bool operator!=(const floating_format_info&, const floating_format_info&) noexce
 
 toml11拡張の`spec::ext_num_suffix`を`true`にしている場合、その`suffix`がここに保存されます。
 
-参考：[spec.hpp]({{<ref "spec.md">}})
+参考：[spec.hpp]({{<ref "spec.md#ext_num_suffix">}})
 
 # `string_format`
 
@@ -181,6 +238,49 @@ struct string_format_info
 
 bool operator==(const string_format_info&, const string_format_info&) noexcept;
 bool operator!=(const string_format_info&, const string_format_info&) noexcept;
+```
+
+## 例
+
+```cpp
+#include <toml.hpp>
+#include <iostream>
+
+int main()
+{
+    toml::value s("foo");
+
+    std::cout << s << std::endl; // "foo"
+
+    s.as_string_fmt().fmt = toml::string_format::literal;
+    std::cout << s << std::endl; // 'foo'
+
+    s.as_string_fmt().fmt = toml::string_format::multiline_basic;
+    std::cout << s << std::endl; // """foo"""
+
+    s.as_string_fmt().fmt = toml::string_format::multiline_literal;
+    std::cout << s << std::endl; // '''foo'''
+
+    toml::value multiline("foo\nbar");
+
+    std::cout << multiline << std::endl; // "foo\nbar"
+
+    multiline.as_string_fmt().fmt = toml::string_format::multiline_basic;
+    std::cout << multiline << std::endl; // """foo
+                                         // bar"""
+
+    multiline.as_string_fmt().start_with_newline = true;
+    std::cout << multiline << std::endl; // """
+                                         // foo
+                                         // bar"""
+
+    multiline.as_string_fmt().fmt = toml::string_format::multiline_literal;
+    std::cout << multiline << std::endl; // '''
+                                         // foo
+                                         // bar'''
+
+    return 0;
+}
 ```
 
 ## メンバ変数
@@ -222,6 +322,34 @@ struct offset_datetime_format_info
 
 bool operator==(const offset_datetime_format_info&, const offset_datetime_format_info&) noexcept;
 bool operator!=(const offset_datetime_format_info&, const offset_datetime_format_info&) noexcept;
+```
+
+## 例
+
+```cpp
+#include <toml.hpp>
+#include <iostream>
+
+int main()
+{
+    toml::value v(toml::offset_datetime(
+            toml::local_date(2025, toml::month_t::Mar, 29),
+            toml::local_time(1, 23, 45, /*ms=*/678, /*us=*/901, /*ns=*/234),
+            toml::time_offset(9, 0)
+        ));
+    std::cout << v << std::endl; // 2025-03-29T01:23:45.678901+09:00
+
+    v.as_offset_datetime_fmt().subsecond_precision = 9;
+    std::cout << v << std::endl; // 2025-03-29T01:23:45.678901234+09:00
+
+    v.as_offset_datetime_fmt().has_seconds = false;
+    std::cout << v << std::endl; // 2025-03-29T01:23+09:00
+
+    v.as_offset_datetime_fmt().delimiter = toml::datetime_delimiter_kind::space;
+    std::cout << v << std::endl; // 2025-03-29 01:23+09:00
+
+    return 0;
+}
 ```
 
 ## メンバ変数
@@ -342,6 +470,40 @@ bool operator==(const array_format_info&, const array_format_info&) noexcept;
 bool operator!=(const array_format_info&, const array_format_info&) noexcept;
 ```
 
+## 例
+
+```cpp
+#include <toml.hpp>
+#include <iostream>
+
+int main()
+{
+    toml::value a(toml::array{ 3, 1, 4 });
+
+    a.as_array_fmt().fmt = toml::array_format::oneline;
+    std::cout << "a = " << a << std::endl; // a = [3, 1, 4]
+
+    a.as_array_fmt().fmt = toml::array_format::multiline;
+    std::cout << "a = " << a << std::endl;
+    // a = [
+    //     3,
+    //     1,
+    //     4,
+    // ]
+
+    a.as_array_fmt().body_indent = 4;
+    a.as_array_fmt().closing_indent = 2;
+    std::cout << "a = " << a << std::endl;
+    // a = [
+    //     3,
+    //     1,
+    //     4,
+    //   ]
+
+    return 0;
+}
+```
+
 ## メンバ変数
 
 ### `array_format fmt`
@@ -423,6 +585,56 @@ struct table_format_info
 
 bool operator==(const table_format_info&, const table_format_info&) noexcept;
 bool operator!=(const table_format_info&, const table_format_info&) noexcept;
+```
+
+## 例
+
+```cpp
+#include <toml.hpp>
+#include <iostream>
+
+int main()
+{
+    toml::value t(toml::table{
+        {"a",   42},
+        {"pi",  3.14},
+        {"foo", "bar"},
+        {
+            "table", toml::table{
+                {"a",   42},
+                {"pi",  3.14},
+                {"foo", "bar"}
+            }
+        },
+    });
+
+    std::cout << t << std::endl;
+    // pi = 3.14
+    // foo = "bar"
+    // a = 42
+    //
+    // [table]
+    // pi = 3.14
+    // foo = "bar"
+    // a = 42
+
+    // root table cannot be dotted.
+    // t.as_table_fmt().fmt = toml::table_format::dotted;
+    t.at("table").as_table_fmt().fmt = toml::table_format::dotted;
+    std::cout << t << std::endl;
+    // table.pi = 3.14
+    // table.foo = "bar"
+    // table.a = 42
+    // pi = 3.14
+    // foo = "bar"
+    // a = 42
+
+    t.as_table_fmt().fmt = toml::table_format::oneline;
+    std::cout << t << std::endl;
+    // {table = {pi = 3.14, foo = "bar", a = 42}, pi = 3.14, foo = "bar", a = 42}
+
+    return 0;
+}
 ```
 
 ## メンバ変数
