@@ -405,7 +405,7 @@ template<typename T, typename TC>
 cxx::enable_if_t<toml::detail::is_unordered_set<T>::value, T>
 get(const basic_value<TC>& v)
 {
-    using value_type = T;
+    using value_type = typename T::value_type;
     const auto& a = v.as_array();
 
     std::unordered_set<T> container;
