@@ -408,7 +408,7 @@ get(const basic_value<TC>& v)
     using value_type = typename T::value_type;
     const auto& a = v.as_array();
 
-    std::unordered_set<T> container;
+    T container;
     for (const auto& elem : a)
     {
         container.insert(get<value_type>(elem));
