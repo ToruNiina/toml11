@@ -167,8 +167,8 @@ template<typename T>
 using is_std_tuple = is_std_tuple_impl<cxx::remove_cvref_t<T>>;
 
 template<typename T> struct is_unordered_set_impl : std::false_type {};
-template<typename T, typename Hash, typename KeyEqual, typename Alloc>
-struct is_unordered_set_impl<std::unordered_set<T, Hash, KeyEqual, Alloc>> : std::true_type {};
+template<typename T>
+struct is_unordered_set_impl<std::unordered_set<T>> : std::true_type {};
 template<typename T>
 using is_unordered_set = is_unordered_set_impl<cxx::remove_cvref_t<T>>;
 
