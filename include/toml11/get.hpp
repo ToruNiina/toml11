@@ -399,6 +399,25 @@ get(const basic_value<TC>& v)
 }
 
 // ============================================================================
+// std::unordered_set
+
+template<typename T, typename TC>
+cxx::enable_if_t<toml::detail::is_unordered_set<T>::value, T>
+get(const basic_value<TC>& v)
+{
+    using value_type = typename T::value_type;
+    const auto& a = v.as_array();
+
+    T container;
+    for (const auto& elem : a)
+    {
+        container.insert(get<value_type>(elem));
+    }
+    return container;
+}
+
+
+// ============================================================================
 // map-like types; most likely STL map, like std::map or std::unordered_map.
 
 // key is convertible from toml::value::key_type

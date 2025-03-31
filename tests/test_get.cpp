@@ -406,6 +406,44 @@ TEST_CASE("testing toml::get<array-of-arrays>")
     }
 }
 
+TEST_CASE("testing toml::get<unordered_set>")
+{
+    using value_type = toml::value;
+
+    {
+        const value_type v(toml::array{1, 2, 3, 4});
+        const std::unordered_set<int> uset = toml::get<std::unordered_set<int>>(v);
+
+        CHECK_EQ(uset.size(), 4u);
+        CHECK(uset.count(1) == 1);
+        CHECK(uset.count(2) == 1);
+        CHECK(uset.count(3) == 1);
+        CHECK(uset.count(4) == 1);
+    }
+
+    {
+        const value_type v(toml::array{"alpha", "beta", "delta"});
+        const std::unordered_set<std::string> uset = toml::get<std::unordered_set<std::string>>(v);
+
+        CHECK_EQ(uset.size(), 3u);
+        CHECK(uset.count("alpha") == 1);
+        CHECK(uset.count("beta") == 1);
+        CHECK(uset.count("delta") == 1);
+    }
+
+    {
+        value_type v(toml::array{42, 42, 54, 69});
+        const std::unordered_set<int> uset = toml::get<std::unordered_set<int>>(std::move(v));
+
+        // Set will only have one "42"
+        CHECK_EQ(uset.size(), 3u);
+        CHECK(uset.count(42) == 1);
+        CHECK(uset.count(54) == 1);
+        CHECK(uset.count(69) == 1);
+    }
+}
+
+
 TEST_CASE("testing toml::get<table-like>")
 {
     using value_type = toml::value;

@@ -11,6 +11,7 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 
 #if defined(TOML11_HAS_STRING_VIEW)
@@ -164,6 +165,12 @@ template<typename ... Ts>
 struct is_std_tuple_impl<std::tuple<Ts...>> : std::true_type{};
 template<typename T>
 using is_std_tuple = is_std_tuple_impl<cxx::remove_cvref_t<T>>;
+
+template<typename T> struct is_unordered_set_impl : std::false_type {};
+template<typename T>
+struct is_unordered_set_impl<std::unordered_set<T>> : std::true_type {};
+template<typename T>
+using is_unordered_set = is_unordered_set_impl<cxx::remove_cvref_t<T>>;
 
 #if defined(TOML11_HAS_OPTIONAL)
 template<typename T> struct is_std_optional_impl : std::false_type{};
