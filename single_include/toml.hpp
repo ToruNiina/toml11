@@ -3653,6 +3653,7 @@ struct from;
 #include <string>
 #include <tuple>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 
 #if defined(TOML11_HAS_STRING_VIEW)
@@ -3806,6 +3807,12 @@ template<typename ... Ts>
 struct is_std_tuple_impl<std::tuple<Ts...>> : std::true_type{};
 template<typename T>
 using is_std_tuple = is_std_tuple_impl<cxx::remove_cvref_t<T>>;
+
+template<typename T> struct is_unordered_set_impl : std::false_type {};
+template<typename T>
+struct is_unordered_set_impl<std::unordered_set<T>> : std::true_type {};
+template<typename T>
+using is_unordered_set = is_unordered_set_impl<cxx::remove_cvref_t<T>>;
 
 #if defined(TOML11_HAS_OPTIONAL)
 template<typename T> struct is_std_optional_impl : std::false_type{};
@@ -9226,6 +9233,25 @@ get(const basic_value<TC>& v)
     return detail::get_tuple_impl<T>(ar,
             cxx::make_index_sequence<std::tuple_size<T>::value>{});
 }
+
+// ============================================================================
+// std::unordered_set
+
+template<typename T, typename TC>
+cxx::enable_if_t<toml::detail::is_unordered_set<T>::value, T>
+get(const basic_value<TC>& v)
+{
+    using value_type = typename T::value_type;
+    const auto& a = v.as_array();
+
+    T container;
+    for (const auto& elem : a)
+    {
+        container.insert(get<value_type>(elem));
+    }
+    return container;
+}
+
 
 // ============================================================================
 // map-like types; most likely STL map, like std::map or std::unordered_map.
