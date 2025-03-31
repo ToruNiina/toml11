@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>features on toml11</title><link>https://toruniina.github.io/toml11/docs/features/</link><description>Recent content in features on toml11</description><generator>Hugo</generator><language>en</language><atom:link href="https://toruniina.github.io/toml11/docs/features/index.xml" rel="self" type="application/rss+xml"/><item><title>parsing files</title><link>https://toruniina.github.io/toml11/docs/features/parsing_files/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/features/parsing_files/</guid><description>&lt;h1 id="parsing-files-and-strings">
+ Parsing Files and Strings
+ &lt;a class="anchor" href="#parsing-files-and-strings">#&lt;/a>
+&lt;/h1>
+&lt;p>In toml11, you can parse files, strings, and byte arrays using &lt;code>toml::parse&lt;/code> or &lt;code>toml::try_parse&lt;/code>.&lt;/p>
+&lt;p>Upon success, these functions return a &lt;code>toml::value&lt;/code>.
+Although the parsed file is always a table, the return type is not &lt;code>toml::table&lt;/code>.
+This is because &lt;code>toml::value&lt;/code> contains metadata about the file, whereas &lt;code>toml::table&lt;/code> is merely an alias for &lt;code>std::unordered_map&amp;lt;std::string, toml::value&amp;gt;&lt;/code>.
+To include metadata, a &lt;code>toml::value&lt;/code> is returned instead of a &lt;code>toml::table&lt;/code>.
+The &lt;code>toml::value&lt;/code> corresponding to the root of the file will always hold a &lt;code>table_type&lt;/code>.&lt;/p></description></item><item><title>getting values</title><link>https://toruniina.github.io/toml11/docs/features/value/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/features/value/</guid><description>&lt;h1 id="retrieving-values">
+ Retrieving Values
+ &lt;a class="anchor" href="#retrieving-values">#&lt;/a>
+&lt;/h1>
+&lt;p>This section explains how to access the values stored in &lt;code>toml::value&lt;/code>.&lt;/p>
+&lt;h2 id="accessing-values-using-member-functions">
+ Accessing Values Using Member Functions
+ &lt;a class="anchor" href="#accessing-values-using-member-functions">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="is_something-and-as_something">
+ &lt;code>is_something&lt;/code> and &lt;code>as_something&lt;/code>
+ &lt;a class="anchor" href="#is_something-and-as_something">#&lt;/a>
+&lt;/h3>
+&lt;p>&lt;code>toml::value&lt;/code> has member functions like &lt;code>is_boolean()&lt;/code> and &lt;code>is_integer()&lt;/code> which allow you to check the type of the stored value.&lt;/p>
+&lt;p>Additionally, it has member functions like &lt;code>as_boolean()&lt;/code> and &lt;code>as_integer()&lt;/code> that allow you to access the value of that type.&lt;/p>
+&lt;p>For a complete list, refer to the &lt;a href="https://toruniina.github.io/toml11/docs/reference/value/#is_xxx">&lt;code>toml::value&lt;/code> reference&lt;/a>.&lt;/p></description></item><item><title>error message</title><link>https://toruniina.github.io/toml11/docs/features/error_message/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/features/error_message/</guid><description>&lt;h1 id="outputting-error-messages">
+ Outputting Error Messages
+ &lt;a class="anchor" href="#outputting-error-messages">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml11&lt;/code> provides error messages that include location information within the file when using functions like &lt;code>toml::parse&lt;/code>, &lt;code>toml::get&amp;lt;T&amp;gt;/find&amp;lt;T&amp;gt;&lt;/code>, and &lt;code>as_integer()&lt;/code>, among others.&lt;/p>
+&lt;p>For instance, if a syntax error in an integer is detected during parsing, an error message might look like this:&lt;/p>
+&lt;pre tabindex="0">&lt;code>[error] bad integer: `_` must be surrounded by digits
+ --&amp;gt; internal string at line 64 in file main.cpp
+ |
+ 1 | a = 123__456
+ | ^-- invalid underscore
+Hint: valid : -42, 1_000, 1_2_3_4_5, 0xC0FFEE, 0b0010, 0o755
+Hint: invalid: _42, 1__000, 0123
+&lt;/code>&lt;/pre>&lt;p>Or, if a type different from the one actually stored is requested:&lt;/p></description></item><item><title>serializing values</title><link>https://toruniina.github.io/toml11/docs/features/serialize/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/features/serialize/</guid><description>&lt;h1 id="outputting-toml-files">
+ Outputting TOML Files
+ &lt;a class="anchor" href="#outputting-toml-files">#&lt;/a>
+&lt;/h1>
+&lt;p>Using &lt;code>toml::format&lt;/code>, you can convert a &lt;code>toml::value&lt;/code> to a string.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;cassert&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value v(toml&lt;span style="color:#f92672">::&lt;/span>table{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>, &lt;span style="color:#ae81ff">42&lt;/span>},
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>, &lt;span style="color:#e6db74">&amp;#34;foo&amp;#34;&lt;/span>},
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> });
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string s &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>format(v);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value u &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>parse_str(s);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(u.at(&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>).as_integer() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">42&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(u.at(&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>).as_string() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#e6db74">&amp;#34;foo&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If the &lt;code>toml::value&lt;/code> contains a &lt;code>table_type&lt;/code>, it is interpreted as the root table of the file.&lt;/p>
+&lt;p>If a &lt;code>toml::value&lt;/code> containing anything other than &lt;code>table_type&lt;/code> is passed, only that value is formatted.&lt;/p></description></item><item><title>configuring types</title><link>https://toruniina.github.io/toml11/docs/features/configure_types/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/features/configure_types/</guid><description>&lt;h1 id="customizing-types">
+ Customizing Types
+ &lt;a class="anchor" href="#customizing-types">#&lt;/a>
+&lt;/h1>
+&lt;p>The &lt;code>toml::value&lt;/code> class uses &lt;code>std::int64_t&lt;/code> for &lt;code>integer_type&lt;/code> and &lt;code>std::unordered_map&amp;lt;key_type, value_type&amp;gt;&lt;/code> for &lt;code>table_type&lt;/code>.&lt;/p>
+&lt;p>However, in some cases, you may want to use &lt;code>boost::multiprecision::int128_t&lt;/code> or &lt;code>std::map&lt;/code>.&lt;/p>
+&lt;p>To accommodate this, &lt;code>toml::value&lt;/code> is implemented with template parameters that allow you to change the stored types.&lt;/p>
+&lt;p>Just as &lt;code>std::string&lt;/code> is actually an alias for &lt;code>std::basic_string&amp;lt;char, std::char_traits&amp;lt;char&amp;gt;, std::allocator&amp;lt;char&amp;gt;&amp;gt;&lt;/code>, &lt;code>toml::value&lt;/code> is an alias for &lt;code>toml::basic_value&amp;lt;toml::type_config&amp;gt;&lt;/code>.&lt;/p>
+&lt;p>Here, we will explain the types contained in &lt;code>toml::type_config&lt;/code> and how to define a different &lt;code>config&lt;/code> type.&lt;/p></description></item><item><title>toml literal</title><link>https://toruniina.github.io/toml11/docs/features/literal/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/features/literal/</guid><description>&lt;h1 id="_toml-literal">
+ &lt;code>_toml&lt;/code> Literal
+ &lt;a class="anchor" href="#_toml-literal">#&lt;/a>
+&lt;/h1>
+&lt;p>With the &lt;code>&amp;quot;&amp;quot;_toml&lt;/code> literal, you can format TOML files inline.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> &lt;span style="color:#66d9ef">namespace&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>literals&lt;span style="color:#f92672">::&lt;/span>toml_literals;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> v &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;a = 42&amp;#34;&lt;/span>_toml;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>).as_integer() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">42&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>When including line breaks, raw string literals come in handy.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> &lt;span style="color:#66d9ef">namespace&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>literals&lt;span style="color:#f92672">::&lt;/span>toml_literals;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> v &lt;span style="color:#f92672">=&lt;/span> R&lt;span style="color:#e6db74">&amp;#34;(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> a &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">42&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> b &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;foo&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )&lt;span style="color:#e6db74">&amp;#34;_toml;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>).as_integer() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#ae81ff">42&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> assert(v.at(&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>).as_string() &lt;span style="color:#f92672">==&lt;/span> &lt;span style="color:#e6db74">&amp;#34;foo&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If a value is written on its own, that value is returned.&lt;/p></description></item><item><title>toml spec</title><link>https://toruniina.github.io/toml11/docs/features/toml_spec/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/features/toml_spec/</guid><description>&lt;h1 id="toml-language-version">
+ TOML Language Version
+ &lt;a class="anchor" href="#toml-language-version">#&lt;/a>
+&lt;/h1>
+&lt;p>You can specify the version of the TOML language and individual feature flags to use with &lt;code>toml::parse&lt;/code> or &lt;code>toml::format&lt;/code> through &lt;a href="https://toruniina.github.io/toml11/docs/reference/spec/#tomlspec">&lt;code>toml::spec&lt;/code>&lt;/a>.&lt;/p>
+&lt;h2 id="specifying-toml-version">
+ Specifying TOML Version
+ &lt;a class="anchor" href="#specifying-toml-version">#&lt;/a>
+&lt;/h2>
+&lt;p>You can construct a &lt;a href="https://toruniina.github.io/toml11/docs/reference/spec/#tomlspec">&lt;code>toml::spec&lt;/code>&lt;/a> from &lt;a href="https://toruniina.github.io/toml11/docs/reference/spec/#tomlsemantic_version">&lt;code>toml::semantic_version&lt;/code>&lt;/a>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> toml&lt;span style="color:#f92672">::&lt;/span>spec spec(toml&lt;span style="color:#f92672">::&lt;/span>semantic_version(&lt;span style="color:#ae81ff">1&lt;/span>, &lt;span style="color:#ae81ff">1&lt;/span>, &lt;span style="color:#ae81ff">0&lt;/span>));
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>However, to make this shorter, the &lt;code>toml::spec::v()&lt;/code> function is provided.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> toml&lt;span style="color:#f92672">::&lt;/span>spec spec &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>spec&lt;span style="color:#f92672">::&lt;/span>v(&lt;span style="color:#ae81ff">1&lt;/span>, &lt;span style="color:#ae81ff">1&lt;/span>, &lt;span style="color:#ae81ff">0&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If not specified explicitly, &lt;code>toml::spec::default_version()&lt;/code> is used to construct with default values.&lt;/p></description></item><item><title>extension</title><link>https://toruniina.github.io/toml11/docs/features/extension/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/docs/features/extension/</guid><description>&lt;h1 id="toml-language-extensions">
+ TOML Language Extensions
+ &lt;a class="anchor" href="#toml-language-extensions">#&lt;/a>
+&lt;/h1>
+&lt;p>The TOML language is currently at version v1.0.0, but several new features have been discussed and merged, with ongoing discussions for v1.1.0.&lt;/p>
+&lt;p>Among the proposed features, some were deemed to have limited use cases, some faced implementation challenges in their proposed form, and others were not adopted at all.&lt;/p>
+&lt;p>In toml11, we have experimentally implemented a selection of these features. Please note that these features are supported in toml11 but are not supported by other parsers and are unlikely to be supported in the future.&lt;/p></description></item></channel></rss>
