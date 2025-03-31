@@ -230,7 +230,7 @@ template<typename T, typename TC>
 T get(basic_value<TC>& v);
 ```
 
-条件：
+Condition：
 - `T` is `std::array<U, N>`
 
 If the `toml::value` holds an `array`, this function retrieves the value and converts it to the specified container type, returning the result.
