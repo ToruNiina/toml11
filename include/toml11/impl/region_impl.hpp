@@ -3,6 +3,7 @@
 
 #include "../fwd/region_fwd.hpp"
 #include "../utility.hpp"
+#include "../version.hpp"
 
 #include <algorithm>
 #include <iterator>
@@ -12,6 +13,8 @@
 #include <cassert>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -242,5 +245,6 @@ TOML11_INLINE std::vector<std::pair<std::string, std::size_t>> region::as_lines(
 }
 
 } // namespace detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 #endif // TOML11_REGION_IMPL_HPP

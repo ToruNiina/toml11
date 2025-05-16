@@ -19,6 +19,8 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 class discard_comments;
 class preserve_comments;
 
@@ -84,5 +86,6 @@ using ordered_value = basic_value<ordered_type_config>;
 
 enum class value_t : std::uint8_t;
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif// TOML11_TOML_HPP

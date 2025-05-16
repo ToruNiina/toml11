@@ -1,12 +1,15 @@
 #include <toml11/parser.hpp>
 #include <toml11/skip.hpp>
 #include <toml11/types.hpp>
+#include <toml11/version.hpp>
 
 #if ! defined(TOML11_COMPILE_SOURCES)
 #error "Define `TOML11_COMPILE_SOURCES` before compiling source code!"
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 namespace detail
@@ -34,4 +37,5 @@ template void skip_key_value_pair        <ordered_type_config>(location& loc, co
 template void skip_until_next_table      <ordered_type_config>(location& loc, const context<ordered_type_config>&);
 
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml

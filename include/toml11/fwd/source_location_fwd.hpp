@@ -2,12 +2,15 @@
 #define TOML11_SOURCE_LOCATION_FWD_HPP
 
 #include "../region.hpp"
+#include "../version.hpp"
 
 #include <sstream>
 #include <string>
 #include <vector>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 //
@@ -144,5 +147,6 @@ std::string format_location(
     return detail::format_location_rec(lnw, f, loc, msg, tail...);
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_SOURCE_LOCATION_FWD_HPP

@@ -4,8 +4,11 @@
 #include "exception.hpp"
 #include "traits.hpp"
 #include "value.hpp"
+#include "version.hpp"
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 namespace detail
@@ -132,5 +135,6 @@ visit(Visitor&& visitor, Args&& ... args)
     return detail::visit_impl(std::forward<Visitor>(visitor), std::forward<Args>(args)...);
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_VISIT_HPP

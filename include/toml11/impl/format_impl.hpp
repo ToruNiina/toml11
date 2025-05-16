@@ -9,6 +9,8 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 
 // toml types with serialization info
 
@@ -293,5 +295,6 @@ TOML11_INLINE bool operator!=(const table_format_info& lhs, const table_format_i
     return !(lhs == rhs);
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 #endif // TOML11_FORMAT_IMPL_HPP

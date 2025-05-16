@@ -5,12 +5,15 @@
 
 #include "get.hpp"
 #include "value.hpp"
+#include "version.hpp"
 
 #if defined(TOML11_HAS_STRING_VIEW)
 #include <string_view>
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 // ----------------------------------------------------------------------------
@@ -584,5 +587,6 @@ find_or_default(const basic_value<TC>& v, K1&& k1, Ks&& ... keys) noexcept(std::
     }
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_FIND_HPP

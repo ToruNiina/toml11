@@ -9,6 +9,25 @@
 #    error "__cplusplus is not defined"
 #endif
 
+/*
+ * Defines a name for an inline namespace that includes the current version
+ * number. This becomes necessary if multiple software packages use toml11 as an
+ * internal build-time dependency, since multiple packages will in general not
+ * use the same version of toml11. An inline namespace with a version number
+ * ensures that the symbols emitted by compiling toml11 into downstream
+ * applications will be distinguished by the specific used version of toml11,
+ * making it possible to link multiple packages that internally use toml11 in
+ * different versions.
+ */
+#define TOML11_CONCAT(a, b, c, d, e, f) a##b##c##d##e##f
+
+#define TOML11_GENERATE_INLINE_VERSION_NAMESPACE(major, minor, patch)          \
+    TOML11_CONCAT(toml11_, major, _, minor, _, patch)
+
+#define TOML11_INLINE_VERSION_NAMESPACE                                        \
+    TOML11_GENERATE_INLINE_VERSION_NAMESPACE(                                  \
+        TOML11_VERSION_MAJOR, TOML11_VERSION_MINOR, TOML11_VERSION_PATCH)
+
 // Since MSVC does not define `__cplusplus` correctly unless you pass
 // `/Zc:__cplusplus` when compiling, the workaround macros are added.
 //
@@ -91,6 +110,8 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 
 inline const char* license_notice() noexcept
 {
@@ -117,5 +138,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.)";
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_VERSION_HPP

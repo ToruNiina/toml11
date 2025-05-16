@@ -10,6 +10,7 @@
 #include "types.hpp"
 #include "utility.hpp"
 #include "value.hpp"
+#include "version.hpp"
 
 #include <iomanip>
 #include <iterator>
@@ -19,6 +20,8 @@
 #include <cstdio>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 struct serialization_error final : public ::toml::exception
@@ -1233,10 +1236,13 @@ std::ostream& operator<<(std::ostream& os, const basic_value<TC>& v)
     return os;
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 #if defined(TOML11_COMPILE_SOURCES)
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 struct type_config;
 struct ordered_type_config;
@@ -1268,6 +1274,7 @@ namespace detail
 extern template class serializer<::toml::type_config>;
 extern template class serializer<::toml::ordered_type_config>;
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_COMPILE_SOURCES
 

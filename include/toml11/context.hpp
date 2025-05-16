@@ -8,6 +8,8 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 namespace detail
 {
 
@@ -50,10 +52,13 @@ class context
 };
 
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 #if defined(TOML11_COMPILE_SOURCES)
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 struct type_config;
 struct ordered_type_config;
@@ -62,6 +67,7 @@ namespace detail
 extern template class context<::toml::type_config>;
 extern template class context<::toml::ordered_type_config>;
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_COMPILE_SOURCES
 

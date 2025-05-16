@@ -6,10 +6,13 @@
 #include "scanner.hpp"
 #include "syntax.hpp"
 #include "types.hpp"
+#include "version.hpp"
 
 #include <cassert>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -353,10 +356,13 @@ void skip_until_next_table(location& loc, const context<TC>& ctx)
 }
 
 } // namespace detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 
 #if defined(TOML11_COMPILE_SOURCES)
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 struct type_config;
 struct ordered_type_config;
@@ -386,6 +392,7 @@ extern template void skip_key_value_pair        <ordered_type_config>(location& 
 extern template void skip_until_next_table      <ordered_type_config>(location& loc, const context<ordered_type_config>&);
 
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_COMPILE_SOURCES
 

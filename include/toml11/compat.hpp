@@ -63,6 +63,8 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 namespace cxx
 {
 
@@ -81,6 +83,7 @@ std::unique_ptr<T> make_unique(Ts&& ... args)
 #endif // TOML11_HAS_STD_MAKE_UNIQUE
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------
@@ -94,6 +97,8 @@ std::unique_ptr<T> make_unique(Ts&& ... args)
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -112,6 +117,7 @@ std::reverse_iterator<Iterator> make_reverse_iterator(Iterator iter)
 #endif // TOML11_HAS_STD_MAKE_REVERSE_ITERATOR
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------
@@ -125,6 +131,8 @@ std::reverse_iterator<Iterator> make_reverse_iterator(Iterator iter)
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -144,6 +152,7 @@ T clamp(const T& x, const T& low, const T& high) noexcept
 #endif // TOML11_HAS_STD_CLAMP
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------
@@ -157,6 +166,8 @@ T clamp(const T& x, const T& low, const T& high) noexcept
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -183,6 +194,7 @@ U bit_cast(const T& x) noexcept
 #endif // TOML11_HAS_STD_BIT_CAST
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------
@@ -197,6 +209,8 @@ U bit_cast(const T& x) noexcept
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -220,6 +234,7 @@ using remove_cvref_t = typename remove_cvref<T>::type;
 #endif // TOML11_HAS_STD_REMOVE_CVREF
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------
@@ -234,6 +249,8 @@ using remove_cvref_t = typename remove_cvref<T>::type;
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -265,6 +282,7 @@ struct negation : std::integral_constant<bool, !static_cast<bool>(T::value)>{};
 #endif // TOML11_HAS_STD_CONJUNCTION
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------
@@ -279,6 +297,8 @@ struct negation : std::integral_constant<bool, !static_cast<bool>(T::value)>{};
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -324,6 +344,7 @@ using make_index_sequence = typename index_sequence_maker<N>::type;
 #endif // TOML11_HAS_STD_INTEGER_SEQUENCE
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------
@@ -339,6 +360,8 @@ using make_index_sequence = typename index_sequence_maker<N>::type;
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 namespace cxx
 {
 #if defined(TOML11_HAS_STD_ENABLE_IF_T)
@@ -353,6 +376,7 @@ using enable_if_t = typename std::enable_if<B, T>::type;
 #endif // TOML11_HAS_STD_ENABLE_IF_T
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------
@@ -367,6 +391,8 @@ using enable_if_t = typename std::enable_if<B, T>::type;
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -384,6 +410,7 @@ using return_type_of_t = typename std::result_of<F(Args...)>::type;
 #endif // TOML11_HAS_STD_INVOKE_RESULT
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------
@@ -399,6 +426,8 @@ using return_type_of_t = typename std::result_of<F(Args...)>::type;
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 namespace cxx
 {
 #if defined(TOML11_HAS_STD_VOID_T)
@@ -413,6 +442,7 @@ using void_t = void;
 #endif // TOML11_HAS_STD_VOID_T
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ----------------------------------------------------------------------------
@@ -457,6 +487,8 @@ using void_t = void;
 #include <source_location>
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 namespace cxx
 {
 using source_location = std::source_location;
@@ -477,10 +509,13 @@ inline std::string to_string(const source_location& loc)
 }
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #elif defined(TOML11_HAS_EXPERIMENTAL_SOURCE_LOCATION)
 #include <experimental/source_location>
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -502,9 +537,12 @@ inline std::string to_string(const source_location& loc)
 }
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #elif defined(TOML11_HAS_BUILTIN_FILE_LINE)
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -546,9 +584,12 @@ inline std::string to_string(const source_location& loc)
 }
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #else // no builtin
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -562,6 +603,7 @@ inline std::string to_string(const source_location&)
     return std::string("");
 }
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_HAS_STD_SOURCE_LOCATION
 
@@ -586,6 +628,8 @@ inline std::string to_string(const source_location&)
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 namespace cxx
 {
 using std::optional;
@@ -601,11 +645,14 @@ operator<<(std::basic_ostream<charT, traitsT>& os, const std::nullopt_t&)
 }
 
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 #else // TOML11_HAS_STD_OPTIONAL
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace cxx
 {
@@ -804,6 +851,7 @@ class optional
     };
 };
 } // cxx
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_HAS_STD_OPTIONAL
 

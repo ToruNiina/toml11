@@ -3,10 +3,13 @@
 
 #include "../fwd/error_info_fwd.hpp"
 #include "../fwd/color_fwd.hpp"
+#include "../version.hpp"
 
 #include <sstream>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 TOML11_INLINE std::string format_error(const std::string& errkind, const error_info& err)
@@ -71,5 +74,6 @@ TOML11_INLINE std::ostream& operator<<(std::ostream& os, const error_info& e)
     return os;
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_ERROR_INFO_IMPL_HPP

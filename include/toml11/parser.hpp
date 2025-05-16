@@ -10,6 +10,7 @@
 #include "skip.hpp"
 #include "syntax.hpp"
 #include "value.hpp"
+#include "version.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -22,6 +23,8 @@
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 struct syntax_error final : public ::toml::exception
@@ -3786,10 +3789,13 @@ parse(FILE* fp, std::string filename, spec s = spec::default_version())
     }
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 
 #if defined(TOML11_COMPILE_SOURCES)
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 struct type_config;
 struct ordered_type_config;
@@ -3825,6 +3831,7 @@ extern template cxx::enable_if_t<std::is_same<std::filesystem::path, std::filesy
 extern template cxx::enable_if_t<std::is_same<std::filesystem::path, std::filesystem::path>::value, basic_value<ordered_type_config>                                 > parse    <ordered_type_config, std::filesystem::path>(const std::filesystem::path&, spec);
 #endif // filesystem
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_COMPILE_SOURCES
 

@@ -2,8 +2,11 @@
 #define TOML11_STORAGE_HPP
 
 #include "compat.hpp"
+#include "version.hpp"
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -45,5 +48,6 @@ struct storage
 };
 
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_STORAGE_HPP

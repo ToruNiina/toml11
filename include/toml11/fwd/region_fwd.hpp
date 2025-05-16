@@ -2,6 +2,7 @@
 #define TOML11_REGION_FWD_HPP
 
 #include "../location.hpp"
+#include "../version.hpp"
 
 #include <string>
 #include <vector>
@@ -9,6 +10,8 @@
 #include <cassert>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -106,5 +109,6 @@ class region
 };
 
 } // namespace detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 #endif // TOML11_REGION_FWD_HPP

@@ -3,7 +3,11 @@
 
 #include <exception>
 
+#include "version.hpp"
+
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 struct exception : public std::exception
@@ -13,5 +17,6 @@ struct exception : public std::exception
     virtual const char* what() const noexcept override {return "";}
 };
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOMl11_EXCEPTION_HPP

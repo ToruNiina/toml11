@@ -4,6 +4,7 @@
 #include "from.hpp"
 #include "into.hpp"
 #include "compat.hpp"
+#include "version.hpp"
 
 #include <array>
 #include <chrono>
@@ -23,6 +24,8 @@
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 template<typename TypeConcig>
 class basic_value;
@@ -262,5 +265,6 @@ template<typename T>
 using is_basic_value = is_basic_value_impl<cxx::remove_cvref_t<T>>;
 
 }// detail
-}//toml
+} // TOML11_INLINE_VERSION_NAMESPACE
+} // toml
 #endif // TOML11_TRAITS_HPP

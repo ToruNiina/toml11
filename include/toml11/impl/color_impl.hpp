@@ -8,6 +8,8 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 namespace color
 {
 // put ANSI escape sequence to ostream
@@ -72,5 +74,6 @@ TOML11_INLINE std::ostream& white  (std::ostream& os)
 
 } // ansi
 } // color
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_COLOR_IMPL_HPP

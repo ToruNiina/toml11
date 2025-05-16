@@ -2,12 +2,15 @@
 #define TOML11_VALUE_T_IMPL_HPP
 
 #include "../fwd/value_t_fwd.hpp"
+#include "../version.hpp"
 
 #include <ostream>
 #include <sstream>
 #include <string>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 TOML11_INLINE std::ostream& operator<<(std::ostream& os, value_t t)
@@ -36,5 +39,6 @@ TOML11_INLINE std::string to_string(value_t t)
     return oss.str();
 }
 
+} //TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 #endif // TOML11_VALUE_T_IMPL_HPP
