@@ -76,6 +76,8 @@ struct corge
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 template<>
 struct from<extlib::foo>
 {
@@ -113,6 +115,7 @@ struct into<extlib::qux>
         return toml::basic_value<TC>(typename toml::basic_value<TC>::table_type{{"a", f.a}, {"b", f.b}});
     }
 };
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------
@@ -167,6 +170,8 @@ struct foobar
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 template<>
 struct from<extlib2::foo>
 {
@@ -209,6 +214,7 @@ struct into<extlib2::qux>
         };
     }
 };
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 // ---------------------------------------------------------------------------

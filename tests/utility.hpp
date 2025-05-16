@@ -86,6 +86,8 @@ void toml11_test_parse_failure(F fn, std::string in, toml::detail::context<TC> c
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 std::ostream& operator<<(std::ostream& os, const integer_format_info&);
 std::ostream& operator<<(std::ostream& os, const floating_format_info&);
 std::ostream& operator<<(std::ostream& os, const string_format_info&);
@@ -96,5 +98,6 @@ std::ostream& operator<<(std::ostream& os, const local_time_format_info&);
 std::ostream& operator<<(std::ostream& os, const array_format_info&);
 std::ostream& operator<<(std::ostream& os, const table_format_info&);
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif// TOML11_TEST_UTILITY_HPP

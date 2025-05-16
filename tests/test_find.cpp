@@ -19,11 +19,14 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 namespace detail
 {
 std::tm localtime_s(const std::time_t* src);
 std::tm gmtime_s(const std::time_t* src);
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 TEST_CASE("testing toml::find with toml type")
