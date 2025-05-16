@@ -181,7 +181,7 @@ void assign_member_variable_to_value(const T& obj, basic_value<TC>& v, const cha
 
 #define TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(NAME, ...)\
     namespace toml {                                                                     \
-    namespace TOML11_INLINE_VERSION_NAMESPACE {                                          \
+    inline namespace TOML11_INLINE_VERSION_NAMESPACE {                                          \
     template<>                                                                           \
     struct from<NAME>                                                                    \
     {                                                                                    \
