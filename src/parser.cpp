@@ -1,11 +1,14 @@
 #include <toml11/parser.hpp>
 #include <toml11/types.hpp>
+#include <toml11/version.hpp>
 
 #if ! defined(TOML11_COMPILE_SOURCES)
 #error "Define `TOML11_COMPILE_SOURCES` before compiling source code!"
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 template result<basic_value<type_config>, std::vector<error_info>> try_parse<type_config>(std::vector<unsigned char>, std::string, spec);
@@ -39,4 +42,5 @@ template cxx::enable_if_t<std::is_same<std::filesystem::path, std::filesystem::p
 template cxx::enable_if_t<std::is_same<std::filesystem::path, std::filesystem::path>::value, basic_value<ordered_type_config>                                 > parse    <ordered_type_config, std::filesystem::path>(const std::filesystem::path&, spec);
 #endif // filesystem
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml

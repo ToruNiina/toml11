@@ -7,6 +7,8 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 
 namespace detail
 {
@@ -29,5 +31,6 @@ inline namespace toml_literals
 
 } // toml_literals
 } // literals
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_LITERAL_FWD_HPP

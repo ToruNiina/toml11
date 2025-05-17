@@ -25,6 +25,8 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 template<typename TypeConfig>
 class basic_value;
 
@@ -2506,5 +2508,6 @@ void unset_access_flag_recursively(basic_value<TC>& v)
 #endif
 
 } // namespace detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 #endif // TOML11_VALUE_HPP

@@ -8,7 +8,11 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "../version.hpp"
+
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 // toml types with serialization info
@@ -246,5 +250,6 @@ struct value_with_format
 };
 } // detail
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 #endif // TOML11_FORMAT_FWD_HPP

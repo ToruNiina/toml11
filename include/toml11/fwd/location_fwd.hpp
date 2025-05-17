@@ -2,12 +2,15 @@
 #define TOML11_LOCATION_FWD_HPP
 
 #include "../result.hpp"
+#include "../version.hpp"
 
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -145,5 +148,6 @@ std::size_t count(const location& first, const location& last,
                   const location::char_type& c);
 
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_LOCATION_FWD_HPP

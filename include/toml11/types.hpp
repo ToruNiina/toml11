@@ -7,6 +7,7 @@
 #include "format.hpp"
 #include "ordered_map.hpp"
 #include "value.hpp"
+#include "version.hpp"
 
 #include <ostream>
 #include <sstream>
@@ -19,6 +20,8 @@
 #include <cstdio>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 // forward decl
@@ -361,13 +364,17 @@ using is_type_config = cxx::conjunction<
     >;
 
 } // namespace detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 
 #if defined(TOML11_COMPILE_SOURCES)
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 extern template class basic_value<type_config>;
 extern template class basic_value<ordered_type_config>;
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_COMPILE_SOURCES
 

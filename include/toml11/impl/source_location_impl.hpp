@@ -5,6 +5,7 @@
 
 #include "../color.hpp"
 #include "../utility.hpp"
+#include "../version.hpp"
 
 #include <iomanip>
 #include <sstream>
@@ -14,6 +15,8 @@
 #include <cctype>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 TOML11_INLINE source_location::source_location(const detail::region& r)
@@ -207,5 +210,6 @@ TOML11_INLINE std::string format_location_impl(const std::size_t lnw,
 }
 
 } // namespace detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_SOURCE_LOCATION_IMPL_HPP

@@ -3,8 +3,11 @@
 
 #include "../source_location.hpp"
 #include "../utility.hpp"
+#include "../version.hpp"
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 // error info returned from parser.
@@ -93,5 +96,6 @@ std::string format_error(std::string title,
 
 std::ostream& operator<<(std::ostream& os, const error_info& e);
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_ERROR_INFO_FWD_HPP

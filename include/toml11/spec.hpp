@@ -9,7 +9,11 @@
 
 #include <cstdint>
 
+#include "version.hpp"
+
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 struct semantic_version
@@ -165,5 +169,6 @@ inline bool operator>=(const spec& lhs, const spec& rhs) noexcept
     return detail::to_tuple(lhs) >= detail::to_tuple(rhs);
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 #endif // TOML11_SPEC_HPP

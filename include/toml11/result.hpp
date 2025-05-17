@@ -3,6 +3,7 @@
 
 #include "compat.hpp"
 #include "exception.hpp"
+#include "version.hpp"
 
 #include <ostream>
 #include <string>
@@ -12,6 +13,8 @@
 #include <cassert>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 struct bad_result_access final : public ::toml::exception
@@ -482,5 +485,6 @@ inline failure<detail::none_t> err() noexcept
     return failure<detail::none_t>(detail::none_t{});
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_RESULT_HPP

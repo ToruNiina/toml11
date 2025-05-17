@@ -4,12 +4,15 @@
 #include "find.hpp"
 #include "from.hpp" // IWYU pragma: keep
 #include "into.hpp" // IWYU pragma: keep
+#include "version.hpp"
 
 #if defined(TOML11_HAS_OPTIONAL)
 
 #include <optional>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -57,11 +60,14 @@ void assign_member_variable_to_value(const T& obj, basic_value<TC>& v, const cha
 }
 
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 #else
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -79,6 +85,7 @@ void assign_member_variable_to_value(const T& obj, basic_value<TC>& v, const cha
 }
 
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 
 #endif // optional
@@ -174,6 +181,7 @@ void assign_member_variable_to_value(const T& obj, basic_value<TC>& v, const cha
 
 #define TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(NAME, ...)\
     namespace toml {                                                                     \
+    inline namespace TOML11_INLINE_VERSION_NAMESPACE {                                          \
     template<>                                                                           \
     struct from<NAME>                                                                    \
     {                                                                                    \
@@ -196,6 +204,7 @@ void assign_member_variable_to_value(const T& obj, basic_value<TC>& v, const cha
             return v;                                                                    \
         }                                                                                \
     };                                                                                   \
+    } /* TOML11_INLINE_VERSION_NAMESPACE */                                              \
     } /* toml */
 
 #endif// TOML11_WITHOUT_DEFINE_NON_INTRUSIVE

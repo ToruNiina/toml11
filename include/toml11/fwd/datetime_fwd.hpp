@@ -9,7 +9,11 @@
 #include <cstdlib>
 #include <ctime>
 
+#include "../version.hpp"
+
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 enum class month_t : std::uint8_t
@@ -257,5 +261,6 @@ std::ostream& operator<<(std::ostream& os, const offset_datetime& dt);
 
 std::string to_string(const offset_datetime& dt);
 
-}//toml
+} // TOML11_INLINE_VERSION_NAMESPACE
+} // toml
 #endif // TOML11_DATETIME_FWD_HPP

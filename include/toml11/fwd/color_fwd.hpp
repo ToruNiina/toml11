@@ -3,6 +3,8 @@
 
 #include <iosfwd>
 
+#include "../version.hpp"
+
 #ifdef TOML11_COLORIZE_ERROR_MESSAGE
 #define TOML11_ERROR_MESSAGE_COLORIZED true
 #else
@@ -16,6 +18,8 @@
 #endif
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace color
 {
@@ -84,5 +88,6 @@ inline bool should_color()
 }
 
 } // color
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_COLOR_FWD_HPP

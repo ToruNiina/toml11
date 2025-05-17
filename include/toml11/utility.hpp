@@ -3,6 +3,7 @@
 
 #include "result.hpp"
 #include "traits.hpp"
+#include "version.hpp"
 
 #include <array>
 #include <sstream>
@@ -12,6 +13,8 @@
 #include <cstring>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -166,5 +169,6 @@ string_conv(const char (&s)[N])
 }
 
 } // namespace detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 #endif // TOML11_UTILITY_HPP

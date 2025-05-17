@@ -23,6 +23,8 @@
 // error whenever you access to the element.
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 class discard_comments; // forward decl
 
 class preserve_comments
@@ -447,5 +449,6 @@ inline void swap(const discard_comments&, const discard_comments&) noexcept {ret
 
 inline std::ostream& operator<<(std::ostream& os, const discard_comments&) {return os;}
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml11
 #endif // TOML11_COMMENTS_FWD_HPP

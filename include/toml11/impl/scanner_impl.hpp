@@ -3,8 +3,11 @@
 
 #include "../fwd/scanner_fwd.hpp"
 #include "../utility.hpp"
+#include "../version.hpp"
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -468,5 +471,6 @@ TOML11_INLINE std::string maybe::name() const
 }
 
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_SCANNER_IMPL_HPP

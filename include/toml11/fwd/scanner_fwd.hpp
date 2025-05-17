@@ -2,6 +2,7 @@
 #define TOML11_SCANNER_FWD_HPP
 
 #include "../region.hpp"
+#include "../version.hpp"
 
 #include <memory>
 #include <string>
@@ -13,6 +14,8 @@
 #include <cctype>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -362,5 +365,6 @@ class maybe final: public scanner_base
 };
 
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_SCANNER_FWD_HPP

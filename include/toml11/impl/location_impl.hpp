@@ -7,6 +7,8 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 namespace detail
 {
 
@@ -205,5 +207,6 @@ count(const location& first, const location& last, const location::char_type& c)
 }
 
 } // detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml
 #endif // TOML11_LOCATION_HPP

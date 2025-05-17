@@ -25,6 +25,8 @@ void test_scan_failure(const toml::detail::scanner_base& s,
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 
 std::ostream& operator<<(std::ostream& os, const integer_format_info& fmt)
 {
@@ -102,4 +104,5 @@ std::ostream& operator<<(std::ostream& os, const table_format_info& fmt)
     return os;
 }
 
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // toml

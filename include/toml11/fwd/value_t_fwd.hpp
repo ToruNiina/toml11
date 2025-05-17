@@ -3,6 +3,7 @@
 
 #include "../compat.hpp"
 #include "../format.hpp"
+#include "../version.hpp"
 
 #include <iosfwd>
 #include <string>
@@ -11,6 +12,8 @@
 #include <cstdint>
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 
 // forward decl
@@ -113,5 +116,6 @@ template<typename T, typename V> struct is_exact_toml_type: is_exact_toml_type0<
 template<typename T, typename V> struct is_not_toml_type : cxx::negation<is_exact_toml_type<T, V>> {};
 
 } // namespace detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 #endif // TOML11_VALUE_T_FWD_HPP

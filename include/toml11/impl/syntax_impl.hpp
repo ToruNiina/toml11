@@ -4,8 +4,11 @@
 #include "../fwd/syntax_fwd.hpp"
 #include "../scanner.hpp"
 #include "../spec.hpp"
+#include "../version.hpp"
 
 namespace toml
+{
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
 {
 namespace detail
 {
@@ -885,5 +888,6 @@ TOML11_INLINE literal const& null_value(const spec&)
 
 } // namespace syntax
 } // namespace detail
+} // TOML11_INLINE_VERSION_NAMESPACE
 } // namespace toml
 #endif // TOML11_SYNTAX_IMPL_HPP

@@ -15,6 +15,8 @@
 
 namespace toml
 {
+inline namespace TOML11_INLINE_VERSION_NAMESPACE
+{
 
 // To avoid non-threadsafe std::localtime. In C11 (not C++11!), localtime_s is
 // provided in the absolutely same purpose, but C++11 is actually not compatible
@@ -514,5 +516,6 @@ TOML11_INLINE std::string to_string(const offset_datetime& dt)
     return oss.str();
 }
 
-}//toml
+} // TOML11_INLINE_VERSION_NAMESPACE
+} // toml
 #endif // TOML11_DATETIME_IMPL_HPP
