@@ -1,0 +1,1132 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>reference on toml11</title><link>https://toruniina.github.io/toml11/ja/docs/reference/</link><description>Recent content in reference on toml11</description><generator>Hugo</generator><language>ja</language><atom:link href="https://toruniina.github.io/toml11/ja/docs/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>color.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/color/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/color/</guid><description>&lt;h1 id="colorhpp">
+ color.hpp
+ &lt;a class="anchor" href="#colorhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>color.hpp&lt;/code>では、エラーメッセージの色付けに関する関数が定義されます。&lt;/p>
+&lt;p>色はANSIエスケープシーケンスによって指定されます。
+ANSIエスケープシーケンスをサポートしていないターミナルやその他の出力先では、読みにくくなる可能性があります。&lt;/p>
+&lt;h2 id="マクロ">
+ マクロ
+ &lt;a class="anchor" href="#%e3%83%9e%e3%82%af%e3%83%ad">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="toml11_colorize_error_message">
+ &lt;code>TOML11_COLORIZE_ERROR_MESSAGE&lt;/code>
+ &lt;a class="anchor" href="#toml11_colorize_error_message">#&lt;/a>
+&lt;/h3>
+&lt;p>コンパイル時にこのマクロが定義されていた場合（&lt;code>-DTOML11_COLORIZE_ERROR_MESASGE&lt;/code>）、
+デフォルトでエラーメッセージに色が付きます。&lt;/p>
+&lt;p>定義されていなかった場合、デフォルトでは色は付きません。以下の &lt;code>toml::color::enable()&lt;/code> を
+使用して指定する必要があります。&lt;/p>
+&lt;h3 id="toml11_use_thread_local_colorization">
+ &lt;code>TOML11_USE_THREAD_LOCAL_COLORIZATION&lt;/code>
+ &lt;a class="anchor" href="#toml11_use_thread_local_colorization">#&lt;/a>
+&lt;/h3>
+&lt;p>コンパイル時にこのマクロが定義されていた場合（&lt;code>-DTOML11_COLORIZE_ERROR_MESASGE&lt;/code>）、
+&lt;code>toml::color::enable&lt;/code>の設定が&lt;code>thread_local&lt;/code>になります。
+この場合、&lt;code>toml::color::enable()&lt;/code>や&lt;code>toml::color::disable()&lt;/code>は、それを呼び出したスレッドでの設定しか変更しません。
+つまり、新しいスレッドを起動した際にデフォルトと異なる設定にしたい場合は、再度設定が必要になります。
+その代わり、&lt;code>toml::color::enable()&lt;/code>や&lt;code>toml::color::disable()&lt;/code>はスレッドセーフになります。&lt;/p>
+&lt;p>デフォルトでは設定はグローバルです。
+グローバルの場合、一つのスレッドが&lt;code>toml::color::enable()&lt;/code>を実行した場合、すべてのスレッドで色が付きます。
+ただし、あるスレッドが&lt;code>enable()&lt;/code>または&lt;code>disable()&lt;/code>を実行している間に別のスレッドが&lt;code>enable()&lt;/code>、&lt;code>disable()&lt;/code>、&lt;code>should_color()&lt;/code>を実行した場合、その結果は未定義です。&lt;/p>
+&lt;h2 id="関数">
+ 関数
+ &lt;a class="anchor" href="#%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="enable">
+ &lt;code>enable()&lt;/code>
+ &lt;a class="anchor" href="#enable">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> color {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">enable&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// color
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>ANSIエスケープシーケンスによる色付けを行うよう設定します。&lt;/p>
+&lt;h4 id="例">
+ 例
+ &lt;a class="anchor" href="#%e4%be%8b">#&lt;/a>
+&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> toml&lt;span style="color:#f92672">::&lt;/span>color&lt;span style="color:#f92672">::&lt;/span>enable(); &lt;span style="color:#75715e">// この後の全てのエラーがカラーになります。
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> input &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>parse(&lt;span style="color:#e6db74">&amp;#34;input.toml&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="disable">
+ &lt;code>disable()&lt;/code>
+ &lt;a class="anchor" href="#disable">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> color {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">disable&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// color
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>ANSIエスケープシーケンスによる色付けを行わないよう設定します。&lt;/p></description></item><item><title>comments.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/comments/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/comments/</guid><description>&lt;h1 id="commentshpp">
+ comments.hpp
+ &lt;a class="anchor" href="#commentshpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>color.hpp&lt;/code>では、コメントを保持するクラスが提供されます。&lt;/p>
+&lt;h1 id="tomlpreserve_comments">
+ &lt;code>toml::preserve_comments&lt;/code>
+ &lt;a class="anchor" href="#tomlpreserve_comments">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>preserve_comments&lt;/code>は、コメントを保持するコンテナです。&lt;/p>
+&lt;p>&lt;code>std::vector&amp;lt;std::string&amp;gt;&lt;/code>が持つメンバ関数を全て持っています。&lt;/p>
+&lt;p>コメントは&lt;code>std::string&lt;/code>として保持されます。
+先頭が&lt;code>#&lt;/code>でない場合、出力時に&lt;code>#&lt;/code>が補われます。コンテナに要素として追加する段階では補われません。
+スペースは補われないため、&lt;code>#&lt;/code>の直後にスペースを入れたい場合、コメントをスペースから始めるか、&lt;code>#&lt;/code>を含めたコメントを渡す必要があります。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">preserve_comments&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">==&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">!=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">swap&lt;/span>(preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>, preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">swap&lt;/span>(preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>, std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">swap&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> preserve_comments&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">//toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="メンバ型">
+ メンバ型
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e5%9e%8b">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> container_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> size_type &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>size_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> difference_type &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>difference_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> value_type &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>value_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> reference &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>reference;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> const_reference &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>const_reference;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> pointer &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>pointer;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> const_pointer &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>const_pointer;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> iterator &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>iterator;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> const_iterator &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>const_iterator;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> reverse_iterator &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>reverse_iterator;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> const_reverse_iterator &lt;span style="color:#f92672">=&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>const_reverse_iterator;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="メンバ関数">
+ メンバ関数
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="デフォルトコンストラクタ">
+ デフォルトコンストラクタ
+ &lt;a class="anchor" href="#%e3%83%87%e3%83%95%e3%82%a9%e3%83%ab%e3%83%88%e3%82%b3%e3%83%b3%e3%82%b9%e3%83%88%e3%83%a9%e3%82%af%e3%82%bf">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>preserve_comments() &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>空の&lt;code>preserve_comments&lt;/code>を構築します。&lt;/p></description></item><item><title>conversion.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/conversion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/conversion/</guid><description>&lt;h1 id="conversionhpp">
+ conversion.hpp
+ &lt;a class="anchor" href="#conversionhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml::get&lt;/code>や&lt;code>toml::find&lt;/code>でユーザー定義型をサポートするための変換関数を自動定義するマクロを提供します。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(NAME, ...)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="例">
+ 例
+ &lt;a class="anchor" href="#%e4%be%8b">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> foo
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">Foo&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string s;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">double&lt;/span> d;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">int&lt;/span> i;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// foo
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(foo&lt;span style="color:#f92672">::&lt;/span>Foo, s, d, i)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="関連項目">
+ 関連項目
+ &lt;a class="anchor" href="#%e9%96%a2%e9%80%a3%e9%a0%85%e7%9b%ae">#&lt;/a>
+&lt;/h1>
+&lt;ul>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/from/">from.hpp&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/into/">into.hpp&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>datetime.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/datetime/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/datetime/</guid><description>&lt;h1 id="datetimehpp">
+ datetime.hpp
+ &lt;a class="anchor" href="#datetimehpp">#&lt;/a>
+&lt;/h1>
+&lt;p>TOMLの&lt;code>datetime&lt;/code>で使用される、日時情報を保存するクラスを定義します。&lt;/p>
+&lt;h1 id="enum-class-month_t">
+ &lt;code>enum class month_t&lt;/code>
+ &lt;a class="anchor" href="#enum-class-month_t">#&lt;/a>
+&lt;/h1>
+&lt;p>月を指定する&lt;code>enum class&lt;/code>です。&lt;/p>
+&lt;p>&lt;code>std::tm&lt;/code>との関係で、&lt;code>local_date&lt;/code>は1月を&lt;code>0&lt;/code>としています。
+混乱を避けるため、月の名前で指定できるよう&lt;code>month_t&lt;/code>が用意されています。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">month_t&lt;/span> &lt;span style="color:#f92672">:&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Jan &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Feb &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Mar &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">2&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Apr &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">3&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> May &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">4&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Jun &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">5&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Jul &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">6&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Aug &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">7&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Sep &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">8&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Oct &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">9&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Nov &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">10&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Dec &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">11&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="local_date">
+ &lt;code>local_date&lt;/code>
+ &lt;a class="anchor" href="#local_date">#&lt;/a>
+&lt;/h1>
+&lt;p>日付を保持する構造体です。&lt;/p>
+&lt;p>&lt;code>year&lt;/code>は西暦を、&lt;code>month&lt;/code>は&lt;code>std::tm&lt;/code>との対応のため1月を&lt;code>0&lt;/code>として、&lt;code>day&lt;/code>は日付を保持します。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">local_date&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">int16_t&lt;/span> year;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span> month;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span> day;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_date() &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">~&lt;/span>local_date() &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_date(local_date &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_date(local_date&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">=&lt;/span>(local_date &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">=&lt;/span>(local_date&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_date(&lt;span style="color:#66d9ef">int&lt;/span> y, month_t m, &lt;span style="color:#66d9ef">int&lt;/span> d);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> &lt;span style="color:#a6e22e">local_date&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>tm&lt;span style="color:#f92672">&amp;amp;&lt;/span> t);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> &lt;span style="color:#a6e22e">local_date&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>chrono&lt;span style="color:#f92672">::&lt;/span>system_clock&lt;span style="color:#f92672">::&lt;/span>time_point&lt;span style="color:#f92672">&amp;amp;&lt;/span> tp);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> &lt;span style="color:#a6e22e">local_date&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>time_t t);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">operator&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>chrono&lt;span style="color:#f92672">::&lt;/span>system_clock&lt;span style="color:#f92672">::&lt;/span>time_point() &lt;span style="color:#66d9ef">const&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">operator&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>time_t() &lt;span style="color:#66d9ef">const&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">==&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">!=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, &lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span> date);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string to_string(&lt;span style="color:#66d9ef">const&lt;/span> local_date&lt;span style="color:#f92672">&amp;amp;&lt;/span> date);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="メンバ変数">
+ メンバ変数
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e5%a4%89%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="year">
+ &lt;code>year&lt;/code>
+ &lt;a class="anchor" href="#year">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">int16_t&lt;/span> year;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>西暦です。オフセットはありません。&lt;code>2024&lt;/code>年は&lt;code>2024&lt;/code>です。&lt;/p></description></item><item><title>error_info.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/error_info/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/error_info/</guid><description>&lt;h1 id="error_infohpp">
+ error_info.hpp
+ &lt;a class="anchor" href="#error_infohpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>error_info.hpp&lt;/code>では、&lt;code>error_info&lt;/code>と、それをフォーマットする関数が定義されます。&lt;/p>
+&lt;h1 id="tomlerror_info">
+ &lt;code>toml::error_info&lt;/code>
+ &lt;a class="anchor" href="#tomlerror_info">#&lt;/a>
+&lt;/h1>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">error_info&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> error_info(std&lt;span style="color:#f92672">::&lt;/span>string t, source_location l, std&lt;span style="color:#f92672">::&lt;/span>string m, std&lt;span style="color:#f92672">::&lt;/span>string s &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> error_info(std&lt;span style="color:#f92672">::&lt;/span>string t, std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>pair&lt;span style="color:#f92672">&amp;lt;&lt;/span>source_location, std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&amp;gt;&lt;/span> l, std&lt;span style="color:#f92672">::&lt;/span>string s &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> title() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#f92672">&amp;amp;&lt;/span> title() &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>pair&lt;span style="color:#f92672">&amp;lt;&lt;/span>source_location, std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&amp;gt;&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> locations() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">add_locations&lt;/span>(source_location loc, std&lt;span style="color:#f92672">::&lt;/span>string msg) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> suffix() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#f92672">&amp;amp;&lt;/span> suffix() &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> ... Ts&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>error_info make_error_info(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string title, source_location loc, std&lt;span style="color:#f92672">::&lt;/span>string msg, Ts&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> ... tail);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format_error(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> errkind, &lt;span style="color:#66d9ef">const&lt;/span> error_info&lt;span style="color:#f92672">&amp;amp;&lt;/span> err);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format_error(&lt;span style="color:#66d9ef">const&lt;/span> error_info&lt;span style="color:#f92672">&amp;amp;&lt;/span> err);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> ... Ts&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format_error(std&lt;span style="color:#f92672">::&lt;/span>string title,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> source_location loc, std&lt;span style="color:#f92672">::&lt;/span>string msg, Ts&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> ... tail);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, &lt;span style="color:#66d9ef">const&lt;/span> error_info&lt;span style="color:#f92672">&amp;amp;&lt;/span> e);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="メンバ関数">
+ メンバ関数
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="コンストラクタtitle-loc-msg-suffix">
+ コンストラクタ(&lt;code>title, loc, msg, suffix&lt;/code>)
+ &lt;a class="anchor" href="#%e3%82%b3%e3%83%b3%e3%82%b9%e3%83%88%e3%83%a9%e3%82%af%e3%82%bftitle-loc-msg-suffix">#&lt;/a>
+&lt;/h3>
+&lt;p>指定されたタイトル、位置情報、メッセージ、suffixから&lt;code>error_info&lt;/code>を構築します。&lt;/p></description></item><item><title>exception.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/exception/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/exception/</guid><description>&lt;h1 id="exceptionhpp">
+ exception.hpp
+ &lt;a class="anchor" href="#exceptionhpp">#&lt;/a>
+&lt;/h1>
+&lt;h1 id="tomlexception">
+ &lt;code>toml::exception&lt;/code>
+ &lt;a class="anchor" href="#tomlexception">#&lt;/a>
+&lt;/h1>
+&lt;p>toml11で定義される例外型の基底クラスです。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">exception&lt;/span> &lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#66d9ef">public&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>exception
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span>&lt;span style="color:#f92672">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">virtual&lt;/span> &lt;span style="color:#f92672">~&lt;/span>exception() &lt;span style="color:#66d9ef">noexcept&lt;/span> &lt;span style="color:#66d9ef">override&lt;/span> &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">virtual&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">*&lt;/span> &lt;span style="color:#a6e22e">what&lt;/span>() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span> &lt;span style="color:#66d9ef">override&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="メンバ関数">
+ メンバ関数
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="デストラクタ">
+ デストラクタ
+ &lt;a class="anchor" href="#%e3%83%87%e3%82%b9%e3%83%88%e3%83%a9%e3%82%af%e3%82%bf">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">virtual&lt;/span> &lt;span style="color:#f92672">~&lt;/span>exception() &lt;span style="color:#66d9ef">noexcept&lt;/span> &lt;span style="color:#66d9ef">override&lt;/span> &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>派生する際に上書きします。&lt;/p>
+&lt;h3 id="what">
+ &lt;code>what&lt;/code>
+ &lt;a class="anchor" href="#what">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">virtual&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">*&lt;/span> &lt;span style="color:#a6e22e">what&lt;/span>() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span> &lt;span style="color:#66d9ef">override&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>エラーメッセージを返します。派生する際に上書きします。&lt;/p></description></item><item><title>find.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/find/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/find/</guid><description>&lt;h1 id="findhpp">
+ find.hpp
+ &lt;a class="anchor" href="#findhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml::value&lt;/code>から値を検索し、同時に（必要な場合）型変換を行う関数です。&lt;/p>
+&lt;blockquote class="book-hint info">
+ &lt;code>toml::value&lt;/code> は格納する型を変更でき、&lt;code>toml::find&lt;/code>はそれらに対応しているので、
+厳密には全て &lt;code>toml::basic_value&amp;lt;TC&amp;gt;&lt;/code> が使われています。ただしこれでは冗長なので、
+関数の宣言と特に区別しなければならない場合を除いて、簡単のため説明文では &lt;code>toml::value&lt;/code> と書きます。
+説明文では、テンプレートパラメータ&lt;code>TC&lt;/code>を変更して型が変更されていれば
+&lt;code>toml::value::integer_type&lt;/code> などの型は追従して変更されると解釈してください。
+&lt;/blockquote>
+
+&lt;h1 id="tomlfind">
+ &lt;code>toml::find&lt;/code>
+ &lt;a class="anchor" href="#tomlfind">#&lt;/a>
+&lt;/h1>
+&lt;h2 id="概要">
+ 概要
+ &lt;a class="anchor" href="#%e6%a6%82%e8%a6%81">#&lt;/a>
+&lt;/h2>
+&lt;p>&lt;code>toml::find&lt;/code>には、取り出したい型をテンプレート引数で、検索したい値のキーを引数で与えます。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T, &lt;span style="color:#66d9ef">typename&lt;/span> TC, &lt;span style="color:#66d9ef">typename&lt;/span> ... Keys&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>T find(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> v, Keys ... keys);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>サポートされている &lt;code>T&lt;/code> の種類と変換の挙動に関しては、 &lt;code>toml::get&lt;/code> と同様です。&lt;/p>
+&lt;p>&lt;code>T&lt;/code> が指定されなかった場合、 &lt;code>toml::value&lt;/code> が返されます。&lt;/p>
+&lt;p>キーは、 &lt;code>toml::value::key_type&lt;/code> または &lt;code>std::size_t&lt;/code> です。
+複数個のキーが与えられた場合は、サブテーブルや配列に対して再帰的に検索が行われます。
+&lt;code>toml::value::key_type&lt;/code> が与えられた場合は &lt;code>toml::table&lt;/code> として、 &lt;code>std::size_t&lt;/code> が与えられた場合は &lt;code>toml::array&lt;/code> として解釈されます。&lt;/p>
+&lt;h3 id="再帰的な検索に関しての注意">
+ 再帰的な検索に関しての注意
+ &lt;a class="anchor" href="#%e5%86%8d%e5%b8%b0%e7%9a%84%e3%81%aa%e6%a4%9c%e7%b4%a2%e3%81%ab%e9%96%a2%e3%81%97%e3%81%a6%e3%81%ae%e6%b3%a8%e6%84%8f">#&lt;/a>
+&lt;/h3>
+&lt;p>TOMLには通常の bare key の他に、 &lt;code>&amp;quot;&lt;/code> や &lt;code>'&lt;/code> で囲まれた quoted key というものがあります。
+quoted key を使うと、 &lt;code>&amp;quot;foo.bar&amp;quot; = &amp;quot;baz&amp;quot;&lt;/code> というようなキーを書くことができ、この場合はサブテーブルは構築されず、キーは &lt;code>foo.bar&lt;/code>となります。
+このようなパターンに対応するため、toml11ではキーの中に&lt;code>.&lt;/code>が含まれていても分割は行わず、そのままの文字列で検索を行います。&lt;/p></description></item><item><title>format.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/format/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/format/</guid><description>&lt;h1 id="formathpp">
+ format.hpp
+ &lt;a class="anchor" href="#formathpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml::value&lt;/code>のフォーマット情報を持つ構造体と列挙型を定義します。&lt;/p>
+&lt;h1 id="indent_char">
+ &lt;code>indent_char&lt;/code>
+ &lt;a class="anchor" href="#indent_char">#&lt;/a>
+&lt;/h1>
+&lt;p>インデント情報を表す列挙体です。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">indent_char&lt;/span> &lt;span style="color:#f92672">:&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> space, &lt;span style="color:#75715e">// use space
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> tab, &lt;span style="color:#75715e">// use tab
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> none &lt;span style="color:#75715e">// no indent
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, &lt;span style="color:#66d9ef">const&lt;/span> indent_char&lt;span style="color:#f92672">&amp;amp;&lt;/span> c);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string to_string(&lt;span style="color:#66d9ef">const&lt;/span> indent_char);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>none&lt;/code>を選んだ場合、super tableでの値によらず、インデントは使用されません。&lt;/p>
+&lt;p>シリアライズ対象の値のなかに&lt;code>space&lt;/code>と&lt;code>tab&lt;/code>を指定する値が同時に存在していた場合、その動作は未規定で、指定していない方の文字が出現する可能性があります。&lt;/p>
+&lt;h1 id="boolean_format_info">
+ &lt;code>boolean_format_info&lt;/code>
+ &lt;a class="anchor" href="#boolean_format_info">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>boolean&lt;/code>のフォーマット情報です。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">boolean_format_info&lt;/span> {};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">==&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> boolean_format_info&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> boolean_format_info&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">!=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> boolean_format_info&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> boolean_format_info&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>boolean&lt;/code>のフォーマット方法は一通りしかないため、設定できる値を持ちません。&lt;/p>
+&lt;h1 id="integer_format">
+ &lt;code>integer_format&lt;/code>
+ &lt;a class="anchor" href="#integer_format">#&lt;/a>
+&lt;/h1>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">integer_format&lt;/span> &lt;span style="color:#f92672">:&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> dec &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> bin &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> oct &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">2&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> hex &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">3&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, &lt;span style="color:#66d9ef">const&lt;/span> integer_format f);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string to_string(&lt;span style="color:#66d9ef">const&lt;/span> integer_format);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>integer&lt;/code>の基数を指定します。&lt;/p></description></item><item><title>from.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/from/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/from/</guid><description>&lt;h1 id="fromhpp">
+ from.hpp
+ &lt;a class="anchor" href="#fromhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml::get&lt;/code>や&lt;code>toml::find&lt;/code>で使用する、&lt;code>toml::value&lt;/code>からの変換を定義する構造体です。&lt;/p>
+&lt;p>メンバ関数に&lt;code>from_toml&lt;/code>を追加することによっても同じ機能を追加できますが、メンバ関数を追加できないクラスに対しては&lt;code>from&amp;lt;T&amp;gt;&lt;/code>を使用してください。&lt;/p>
+&lt;p>このファイルでは特定の実装は提供しません。使用する際に、この構造体を特殊化してください。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">from&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="例">
+ 例
+ &lt;a class="anchor" href="#%e4%be%8b">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> extlib
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">foo&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">int&lt;/span> a;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string b;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// extlib
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml11/from.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">from&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>extlib&lt;span style="color:#f92672">::&lt;/span>foo&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> extlib&lt;span style="color:#f92672">::&lt;/span>foo from_toml(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> v)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> extlib&lt;span style="color:#f92672">::&lt;/span>foo{toml&lt;span style="color:#f92672">::&lt;/span>find&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">int&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span>(v, &lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>), toml&lt;span style="color:#f92672">::&lt;/span>find&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&lt;/span>(v, &lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>)};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="関連項目">
+ 関連項目
+ &lt;a class="anchor" href="#%e9%96%a2%e9%80%a3%e9%a0%85%e7%9b%ae">#&lt;/a>
+&lt;/h1>
+&lt;ul>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/conversion/">conversion.hpp&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/into/">into.hpp&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>get.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/get/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/get/</guid><description>&lt;h1 id="gethpp">
+ get.hpp
+ &lt;a class="anchor" href="#gethpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml::value&lt;/code>から値を取り出し、同時に（必要な場合）型変換を行う関数です。&lt;/p>
+&lt;blockquote class="book-hint info">
+ &lt;code>toml::value&lt;/code> は格納する型を変更でき、&lt;code>toml::get&lt;/code>はそれらに対応しているので、
+厳密には全て &lt;code>toml::basic_value&amp;lt;TC&amp;gt;&lt;/code> が使われています。ただしこれでは冗長なので、
+関数の宣言と特に区別しなければならない場合を除いて、簡単のため説明文では &lt;code>toml::value&lt;/code> と書きます。
+説明文では、テンプレートパラメータ&lt;code>TC&lt;/code>を変更して型が変更されていれば
+&lt;code>toml::value::integer_type&lt;/code> などの型は追従して変更されると解釈してください。
+&lt;/blockquote>
+
+&lt;h1 id="tomlgett">
+ &lt;code>toml::get&amp;lt;T&amp;gt;&lt;/code>
+ &lt;a class="anchor" href="#tomlgett">#&lt;/a>
+&lt;/h1>
+&lt;h2 id="概要">
+ 概要
+ &lt;a class="anchor" href="#%e6%a6%82%e8%a6%81">#&lt;/a>
+&lt;/h2>
+&lt;p>基本的に、&lt;code>toml::get&lt;/code>は以下のような関数として振る舞います。
+&lt;code>T&lt;/code>は&lt;code>toml::get&amp;lt;int&amp;gt;(v)&lt;/code>のようにして与えます。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T, &lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>T get(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> v);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>ただし、&lt;code>T&lt;/code>がどのような型であるかによって、&lt;code>toml::get&lt;/code>は異なる挙動をします。&lt;/p>
+&lt;p>&lt;code>T&lt;/code>の型の種類は、&lt;/p>
+&lt;ol>
+&lt;li>変換が必要ない型&lt;/li>
+&lt;li>変換する必要がある型&lt;/li>
+&lt;/ol>
+&lt;p>に分けられます。&lt;/p>
+&lt;p>細かい条件と、特別にサポートしている具体的な型については後述します。&lt;/p>
+&lt;h3 id="変換が必要ない型">
+ 変換が必要ない型
+ &lt;a class="anchor" href="#%e5%a4%89%e6%8f%9b%e3%81%8c%e5%bf%85%e8%a6%81%e3%81%aa%e3%81%84%e5%9e%8b">#&lt;/a>
+&lt;/h3>
+&lt;p>変換が必要ないのは、渡された &lt;code>toml::value&lt;/code> が格納している型です。
+例えば、 &lt;code>toml::value::integer_type&lt;/code> は &lt;code>std::int64_t&lt;/code> のエイリアスなので、
+&lt;code>toml::get&amp;lt;std::int64_t&amp;gt;(v)&lt;/code> は変換を必要としません。
+この場合、 &lt;code>toml:get&lt;/code> は &lt;code>integer&lt;/code> の値を &lt;code>toml::value&lt;/code> から取り出し、その参照を返します。&lt;/p>
+&lt;p>渡された&lt;code>toml::value&lt;/code>が可変参照(&lt;code>&amp;amp;&lt;/code>)である場合、返す値も可変参照(&lt;code>&amp;amp;&lt;/code>)です。
+不変参照(&lt;code>const&amp;amp;&lt;/code>)の場合、返す値も不変参照(&lt;code>const&amp;amp;&lt;/code>)となります。
+可変参照を返した場合、その参照を通して&lt;code>toml::value&lt;/code>に格納されている値に上書きできます。&lt;/p>
+&lt;h3 id="変換が必要な型">
+ 変換が必要な型
+ &lt;a class="anchor" href="#%e5%a4%89%e6%8f%9b%e3%81%8c%e5%bf%85%e8%a6%81%e3%81%aa%e5%9e%8b">#&lt;/a>
+&lt;/h3>
+&lt;p>上記の型以外については変換が必要です。
+例えば、&lt;code>toml::value::integer_type&lt;/code>は&lt;code>std::int64_t&lt;/code>のエイリアスなので、&lt;code>toml::get&amp;lt;std::size_t&amp;gt;(toml::value&amp;amp;)&lt;/code>は変換が必要です。
+この場合、&lt;code>toml:get&lt;/code>は&lt;code>integer&lt;/code>の値を&lt;code>toml::value&lt;/code>から取り出し、それをキャストして返します。&lt;/p>
+&lt;p>toml11は簡単なキャストだけでなく、
+&lt;code>toml::array&lt;/code>からや&lt;code>std::tuple&amp;lt;int, double, std::string&amp;gt;&lt;/code>や&lt;code>std::array&amp;lt;double, 4&amp;gt;&lt;/code>、
+&lt;code>toml::table&lt;/code>から&lt;code>std::map&amp;lt;std::string, int&amp;gt;&lt;/code>などの複雑な型変換をサポートします。
+具体的には、続くセクションを参照してください。&lt;/p></description></item><item><title>into.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/into/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/into/</guid><description>&lt;h1 id="intohpp">
+ into.hpp
+ &lt;a class="anchor" href="#intohpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml::value&lt;/code>のコンストラクタで使用する、ユーザー定義型からの変換を定義する構造体です。&lt;/p>
+&lt;p>メンバ関数に&lt;code>into_toml&lt;/code>を追加することによっても同じ機能を追加できますが、メンバ関数を追加できないクラスに対しては&lt;code>into&amp;lt;T&amp;gt;&lt;/code>を使用してください。&lt;/p>
+&lt;p>このファイルでは特定の実装は提供しません。使用する際に、この構造体を特殊化してください。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">into&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="例">
+ 例
+ &lt;a class="anchor" href="#%e4%be%8b">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> extlib
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">foo&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">int&lt;/span> a;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string b;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// extlib
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml11/into.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">into&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>extlib&lt;span style="color:#f92672">::&lt;/span>foo&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&lt;/span> into_toml(&lt;span style="color:#66d9ef">const&lt;/span> extlib&lt;span style="color:#f92672">::&lt;/span>foo&lt;span style="color:#f92672">&amp;amp;&lt;/span> f)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> value_type &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> table_type &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> value_type&lt;span style="color:#f92672">::&lt;/span>table_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#a6e22e">value_type&lt;/span>(table_type{{&lt;span style="color:#e6db74">&amp;#34;a&amp;#34;&lt;/span>, f.a}, {&lt;span style="color:#e6db74">&amp;#34;b&amp;#34;&lt;/span>, f.b}});
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="関連項目">
+ 関連項目
+ &lt;a class="anchor" href="#%e9%96%a2%e9%80%a3%e9%a0%85%e7%9b%ae">#&lt;/a>
+&lt;/h1>
+&lt;ul>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/conversion/">conversion.hpp&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/from/">from.hpp&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>literal.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/literal/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/literal/</guid><description>&lt;h1 id="literalhpp">
+ literal.hpp
+ &lt;a class="anchor" href="#literalhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>literal.hpp&lt;/code>では、&lt;code>_toml&lt;/code>リテラルが定義されます。&lt;/p>
+&lt;p>&lt;code>_toml&lt;/code>リテラルは、文字列リテラルをパースして&lt;code>toml::value&lt;/code>に変換します。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">inline&lt;/span> &lt;span style="color:#66d9ef">namespace&lt;/span> literals
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">inline&lt;/span> &lt;span style="color:#66d9ef">namespace&lt;/span> toml_literals
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>toml&lt;span style="color:#f92672">::&lt;/span>value &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span> _toml(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">*&lt;/span> str, std&lt;span style="color:#f92672">::&lt;/span>size_t len);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>toml&lt;span style="color:#f92672">::&lt;/span>value &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span> _toml(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char8_t&lt;/span>&lt;span style="color:#f92672">*&lt;/span> str, std&lt;span style="color:#f92672">::&lt;/span>size_t len); &lt;span style="color:#75715e">// C++20以降
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>} &lt;span style="color:#75715e">// toml_literals
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>} &lt;span style="color:#75715e">// literals
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="自由関数">
+ 自由関数
+ &lt;a class="anchor" href="#%e8%87%aa%e7%94%b1%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="operator-_tomlchar">
+ &lt;code>operator&amp;quot;&amp;quot; _toml(char)&lt;/code>
+ &lt;a class="anchor" href="#operator-_tomlchar">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>toml&lt;span style="color:#f92672">::&lt;/span>value &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&amp;#34;&lt;/span> _toml(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">*&lt;/span> str, std&lt;span style="color:#f92672">::&lt;/span>size_t len);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>文字列リテラルをパースして&lt;code>toml::value&lt;/code>に変換します。&lt;/p>
+&lt;p>通常のTOMLファイルの場合、&lt;code>toml::parse&lt;/code>と同等の処理が行われます。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> v1 &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;a = &amp;#39;foo&amp;#39;&amp;#34;&lt;/span>_toml; &lt;span style="color:#75715e">// v1: {a = &amp;#39;foo&amp;#39;}
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>改行を含む場合、生文字列リテラルが便利です。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> v1 &lt;span style="color:#f92672">=&lt;/span> R&lt;span style="color:#e6db74">&amp;#34;(&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> a &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">42&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> b &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;foo&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>)&lt;span style="color:#e6db74">&amp;#34;_toml;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>値が単体で書かれていた場合、その値になります。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> v2 &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;&amp;#39;foo&amp;#39;&amp;#34;&lt;/span>_toml; &lt;span style="color:#75715e">// v2: &amp;#39;foo&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>TOMLは数値のみからなるキーを許可しています。
+&lt;code>[1]&lt;/code>のように、テーブル定義と配列の区別がつかない場合、テーブル定義が優先されます。&lt;/p>
+&lt;p>配列として解釈させるには、trailing commaを使用してください。&lt;/p></description></item><item><title>ordered_map.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/ordered_map/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/ordered_map/</guid><description>&lt;h1 id="ordered_maphpp">
+ ordered_map.hpp
+ &lt;a class="anchor" href="#ordered_maphpp">#&lt;/a>
+&lt;/h1>
+&lt;p>ファイル中の値の順番を維持するために使用する&lt;code>toml::ordered_map&lt;/code>を定義します。&lt;/p>
+&lt;h1 id="class-ordered_map">
+ &lt;code>class ordered_map&lt;/code>
+ &lt;a class="anchor" href="#class-ordered_map">#&lt;/a>
+&lt;/h1>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> Key, &lt;span style="color:#66d9ef">typename&lt;/span> Val, &lt;span style="color:#66d9ef">typename&lt;/span> Cmp &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>equal_to&lt;span style="color:#f92672">&amp;lt;&lt;/span>Key&lt;span style="color:#f92672">&amp;gt;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">typename&lt;/span> Allocator &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>allocator&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>pair&lt;span style="color:#f92672">&amp;lt;&lt;/span>Key, Val&lt;span style="color:#f92672">&amp;gt;&amp;gt;&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">ordered_map&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>ordered_map&lt;/code>は、値を追加した順序を保ったまま値を保持し、その順でイテレートできる &lt;code>map&lt;/code> 型です。&lt;/p>
+&lt;p>線形コンテナなので、検索には要素数に対して &lt;code>O(n)&lt;/code> の時間がかかります。
+検索を行う機会が少なく、値の順序を守る必要がある場合に使用してください。&lt;/p>
+&lt;h2 id="非メンバ型">
+ 非メンバ型
+ &lt;a class="anchor" href="#%e9%9d%9e%e3%83%a1%e3%83%b3%e3%83%90%e5%9e%8b">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">ordered_type_config&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> ordered_value &lt;span style="color:#f92672">=&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>ordered_type_config&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> ordered_table &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> ordered_value&lt;span style="color:#f92672">::&lt;/span>table_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> ordered_array &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> ordered_value&lt;span style="color:#f92672">::&lt;/span>array_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>toml::type_config&lt;/code> と &lt;code>toml::value&lt;/code> の代わりに使用します。&lt;/p>
+&lt;blockquote class="book-hint info">
+ &lt;p>&lt;code>toml::parse&lt;/code> はデフォルトで &lt;code>type_config&lt;/code> を使用するので、パースする際に&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">auto&lt;/span> input &lt;span style="color:#f92672">=&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>parse&lt;span style="color:#f92672">&amp;lt;&lt;/span>toml&lt;span style="color:#f92672">::&lt;/span>ordered_type_config&lt;span style="color:#f92672">&amp;gt;&lt;/span>(&lt;span style="color:#e6db74">&amp;#34;input.toml&amp;#34;&lt;/span>);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>としてください。&lt;/p>
+
+&lt;/blockquote>
+
+&lt;h2 id="メンバ型">
+ メンバ型
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e5%9e%8b">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> key_type &lt;span style="color:#f92672">=&lt;/span> Key;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> mapped_type &lt;span style="color:#f92672">=&lt;/span> Val;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> value_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>pair&lt;span style="color:#f92672">&amp;lt;&lt;/span>Key, Val&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> key_compare &lt;span style="color:#f92672">=&lt;/span> Cmp;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> allocator_type &lt;span style="color:#f92672">=&lt;/span> Allocator;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> container_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>value_type, Allocator&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> reference &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>reference;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> pointer &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>pointer;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> const_reference &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>const_reference;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> const_pointer &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>const_pointer;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> iterator &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>iterator;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> const_iterator &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>const_iterator;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> size_type &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>size_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> difference_type &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> container_type&lt;span style="color:#f92672">::&lt;/span>difference_type;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="メンバ関数">
+ メンバ関数
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="コンストラクタ">
+ コンストラクタ
+ &lt;a class="anchor" href="#%e3%82%b3%e3%83%b3%e3%82%b9%e3%83%88%e3%83%a9%e3%82%af%e3%82%bf">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>ordered_map() &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>空の &lt;code>ordered_map&lt;/code> を構築します。&lt;/p></description></item><item><title>parser.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/parser/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/parser/</guid><description>&lt;h1 id="parserhpp">
+ parser.hpp
+ &lt;a class="anchor" href="#parserhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>ファイルまたは文字列をパースする関数と、それが用いる例外を定義します。&lt;/p>
+&lt;p>&lt;code>parse&lt;/code>は失敗した場合に例外を送出しますが、&lt;code>try_parse&lt;/code>はエラー情報を返します。&lt;/p>
+&lt;h1 id="parse">
+ &lt;code>parse&lt;/code>
+ &lt;a class="anchor" href="#parse">#&lt;/a>
+&lt;/h1>
+&lt;p>与えられたファイルの内容をパースし、&lt;code>toml::basic_value&lt;/code>を返します。&lt;/p>
+&lt;p>失敗した場合は&lt;code>toml::syntax_error&lt;/code>が送出されます。&lt;/p>
+&lt;p>&lt;code>basic_value&lt;/code>の持つ型情報は&lt;code>template&lt;/code>で、TOML言語のバージョンは&lt;code>toml::spec&lt;/code>で指定します。&lt;/p>
+&lt;h3 id="parsestdstring-filename-tomlspec">
+ &lt;code>parse(std::string filename, toml::spec)&lt;/code>
+ &lt;a class="anchor" href="#parsestdstring-filename-tomlspec">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC &lt;span style="color:#f92672">=&lt;/span> type_config&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>parse(std&lt;span style="color:#f92672">::&lt;/span>string fname,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> spec s &lt;span style="color:#f92672">=&lt;/span> spec&lt;span style="color:#f92672">::&lt;/span>default_version());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>ファイル名を受け取って、その内容をパースします。&lt;/p>
+&lt;p>ファイルの読み込みに失敗した場合、&lt;code>file_io_error&lt;/code>が送出されます。&lt;/p>
+&lt;p>パースに失敗した場合、&lt;code>syntax_error&lt;/code>が送出されます。&lt;/p>
+&lt;h3 id="parseconst-char-n-filename-tomlspec">
+ &lt;code>parse(const char (&amp;amp;)[N] filename, toml::spec)&lt;/code>
+ &lt;a class="anchor" href="#parseconst-char-n-filename-tomlspec">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC &lt;span style="color:#f92672">=&lt;/span> type_config, std&lt;span style="color:#f92672">::&lt;/span>size_t N&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>parse(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span> (&lt;span style="color:#f92672">&amp;amp;&lt;/span>fname)[N],
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> spec s &lt;span style="color:#f92672">=&lt;/span> spec&lt;span style="color:#f92672">::&lt;/span>default_version());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>文字列リテラルを受け取って、そのファイルの内容をパースします。&lt;/p>
+&lt;p>ファイルの読み込みに失敗した場合、&lt;code>file_io_error&lt;/code>が送出されます。&lt;/p>
+&lt;p>パースに失敗した場合、&lt;code>syntax_error&lt;/code>が送出されます。&lt;/p>
+&lt;h3 id="parsestdfilesystempath-tomlspec">
+ &lt;code>parse(std::filesystem::path, toml::spec)&lt;/code>
+ &lt;a class="anchor" href="#parsestdfilesystempath-tomlspec">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC &lt;span style="color:#f92672">=&lt;/span> type_config&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>parse(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>filesystem&lt;span style="color:#f92672">::&lt;/span>path&lt;span style="color:#f92672">&amp;amp;&lt;/span> fpath,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> spec s &lt;span style="color:#f92672">=&lt;/span> spec&lt;span style="color:#f92672">::&lt;/span>default_version());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>&amp;lt;filesystem&amp;gt;&lt;/code>が利用可能な場合のみ定義されます。&lt;/p></description></item><item><title>result.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/result/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/result/</guid><description>&lt;h1 id="resulthpp">
+ result.hpp
+ &lt;a class="anchor" href="#resulthpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>result.hpp&lt;/code>は、成功値か失敗値かのどちらかを持つ&lt;code>result&lt;/code>型を定義します。&lt;/p>
+&lt;p>これは、例外を投げない&lt;code>toml::try_parse&lt;/code>の返り値として使用されます。&lt;/p>
+&lt;h1 id="success">
+ success
+ &lt;a class="anchor" href="#success">#&lt;/a>
+&lt;/h1>
+&lt;p>成功値を持つ型です。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">success&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> value_type &lt;span style="color:#f92672">=&lt;/span> T;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> &lt;span style="color:#a6e22e">success&lt;/span>(value_type v);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">~&lt;/span>success() &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> success(&lt;span style="color:#66d9ef">const&lt;/span> success&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> success(success&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> success&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> success&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> success&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">=&lt;/span>(success&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> U&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> success(U&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> v);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> U&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> success(success&lt;span style="color:#f92672">&amp;lt;&lt;/span>U&lt;span style="color:#f92672">&amp;gt;&lt;/span> v);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> value_type&lt;span style="color:#f92672">&amp;amp;&lt;/span> get() &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> value_type &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> get() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>success&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>decay&lt;span style="color:#f92672">&amp;lt;&lt;/span>T&lt;span style="color:#f92672">&amp;gt;::&lt;/span>type&lt;span style="color:#f92672">&amp;gt;&lt;/span> ok(T&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> v);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>size_t N&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>success&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&lt;/span> ok(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span> (&lt;span style="color:#f92672">&amp;amp;&lt;/span>literal)[N])
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="メンバ型">
+ メンバ型
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e5%9e%8b">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> value_type &lt;span style="color:#f92672">=&lt;/span> T;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>成功値の型です。&lt;/p></description></item><item><title>serializer.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/serializer/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/serializer/</guid><description>&lt;h1 id="serializerhpp">
+ serializer.hpp
+ &lt;a class="anchor" href="#serializerhpp">#&lt;/a>
+&lt;/h1>
+&lt;h1 id="format">
+ &lt;code>format&lt;/code>
+ &lt;a class="anchor" href="#format">#&lt;/a>
+&lt;/h1>
+&lt;p>シリアライズを行います。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> v,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> spec s &lt;span style="color:#f92672">=&lt;/span> spec&lt;span style="color:#f92672">::&lt;/span>default_version());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format(&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;::&lt;/span>key_type&lt;span style="color:#f92672">&amp;amp;&lt;/span> k,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> v,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> spec s &lt;span style="color:#f92672">=&lt;/span> spec&lt;span style="color:#f92672">::&lt;/span>default_version());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;::&lt;/span>key_type&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> ks,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span> v,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">const&lt;/span> spec s &lt;span style="color:#f92672">=&lt;/span> spec&lt;span style="color:#f92672">::&lt;/span>default_version());
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>フォーマット情報と&lt;code>spec&lt;/code>が矛盾する場合、例えば&lt;code>v1.0.0&lt;/code>で&lt;code>table_format::multiline_oneline&lt;/code>が指定されているときなどは、&lt;code>spec&lt;/code>が優先されます。&lt;/p>
+&lt;h3 id="formatv-spec">
+ &lt;code>format(v, spec)&lt;/code>
+ &lt;a class="anchor" href="#formatv-spec">#&lt;/a>
+&lt;/h3>
+&lt;p>&lt;code>toml::value&lt;/code>を、それが持つフォーマット情報と&lt;code>spec&lt;/code>に従ってフォーマットします。&lt;/p>
+&lt;p>&lt;code>table_type&lt;/code>だった場合、それがルートであるとしてフォーマットします。
+それ以外の値だった場合、値のみをフォーマットします。&lt;/p>
+&lt;h3 id="formatk-v-spec">
+ &lt;code>format(k, v, spec)&lt;/code>
+ &lt;a class="anchor" href="#formatk-v-spec">#&lt;/a>
+&lt;/h3>
+&lt;p>&lt;code>toml::value&lt;/code>を、与えられたキーと同時にフォーマットします。&lt;/p>
+&lt;p>&lt;code>v&lt;/code>はそのキー以下に定義されていると解釈されます。&lt;/p>
+&lt;h3 id="formatk-v-spec-1">
+ &lt;code>format([k,...], v, spec)&lt;/code>
+ &lt;a class="anchor" href="#formatk-v-spec-1">#&lt;/a>
+&lt;/h3>
+&lt;p>&lt;code>v&lt;/code>はそのキー以下に定義されていると解釈されます。
+キーが複数与えられた場合、再帰的に定義されたテーブルとして解釈されます。&lt;/p></description></item><item><title>source_location.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/source_location/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/source_location/</guid><description>&lt;h1 id="source_locationhpp">
+ source_location.hpp
+ &lt;a class="anchor" href="#source_locationhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>source_location.hpp&lt;/code>では、TOMLファイル内のある領域を指すクラスが定義されます。&lt;/p>
+&lt;p>このクラスは、エラーメッセージで問題の箇所を指摘するために使われます。&lt;/p>
+&lt;h1 id="tomlsource_location">
+ &lt;code>toml::source_location&lt;/code>
+ &lt;a class="anchor" href="#tomlsource_location">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>source_location&lt;/code>は、TOMLファイル内のある領域を指すクラスです。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">source_location&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">public&lt;/span>&lt;span style="color:#f92672">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">explicit&lt;/span> source_location(&lt;span style="color:#75715e">/* implementation-defined */&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">~&lt;/span>source_location() &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> source_location(source_location &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> source_location(source_location &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> source_location&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">=&lt;/span>(source_location &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> source_location&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">=&lt;/span>(source_location &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span>) &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">default&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#a6e22e">is_ok&lt;/span>() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t length() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t first_line_number() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t first_column_number() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t last_line_number() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t last_column_number() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> file_name() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>size_t num_lines() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> first_line() &lt;span style="color:#66d9ef">const&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> last_line() &lt;span style="color:#66d9ef">const&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;gt;&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span>&lt;span style="color:#f92672">&amp;amp;&lt;/span> lines() &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> ... Ts&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string format_location(&lt;span style="color:#66d9ef">const&lt;/span> source_location&lt;span style="color:#f92672">&amp;amp;&lt;/span> loc, &lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> msg, &lt;span style="color:#66d9ef">const&lt;/span> Ts&lt;span style="color:#f92672">&amp;amp;&lt;/span> ... locs_and_msgs);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">//toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="メンバ関数">
+ メンバ関数
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="コンストラクタ">
+ コンストラクタ
+ &lt;a class="anchor" href="#%e3%82%b3%e3%83%b3%e3%82%b9%e3%83%88%e3%83%a9%e3%82%af%e3%82%bf">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">explicit&lt;/span> &lt;span style="color:#a6e22e">source_location&lt;/span>(&lt;span style="color:#75715e">/* implementation-defined */&lt;/span>);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>toml::source_location&lt;/code>を&lt;code>toml::parse&lt;/code>または&lt;code>_toml&lt;/code>リテラル以外で構築することはできません。&lt;/p></description></item><item><title>spec.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/spec/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/spec/</guid><description>&lt;h1 id="spechpp">
+ spec.hpp
+ &lt;a class="anchor" href="#spechpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>spec.hpp&lt;/code>では、TOMLのバージョンを指定するためのクラスが定義されます。&lt;/p>
+&lt;h1 id="tomlsemantic_version">
+ &lt;code>toml::semantic_version&lt;/code>
+ &lt;a class="anchor" href="#tomlsemantic_version">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>semantic_version&lt;/code>は、バージョン情報を格納するクラスです。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">semantic_version&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#a6e22e">semantic_version&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> mjr, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> mnr, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> p) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> major;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> minor;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> patch;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> semantic_version
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">make_semver&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> major, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> minor, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> patch) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">==&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">!=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, &lt;span style="color:#66d9ef">const&lt;/span> semantic_version&lt;span style="color:#f92672">&amp;amp;&lt;/span> ver);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">//toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="メンバ関数">
+ メンバ関数
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="コンストラクタ">
+ コンストラクタ
+ &lt;a class="anchor" href="#%e3%82%b3%e3%83%b3%e3%82%b9%e3%83%88%e3%83%a9%e3%82%af%e3%82%bf">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">constexpr&lt;/span> &lt;span style="color:#a6e22e">semantic_version&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> mjr, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> mnr, std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint32_t&lt;/span> p) &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>major&lt;/code>, &lt;code>minor&lt;/code>, &lt;code>patch&lt;/code>バージョンを指定して構築します。&lt;/p></description></item><item><title>toml_fwd.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/toml_fwd/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/toml_fwd/</guid><description>&lt;h1 id="toml_fwdhpp">
+ toml_fwd.hpp
+ &lt;a class="anchor" href="#toml_fwdhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml_fwd.hpp&lt;/code>は、toml11で定義される構造体の前方宣言と、マクロ定義を持ちます。&lt;/p>
+&lt;p>toml11の構造体についての前方宣言しか必要なく実装が必要ない場合、
+&lt;code>toml.hpp&lt;/code> のかわりにこちらを &lt;code>include&lt;/code> することでコンパイル時間を短縮できます。&lt;/p>
+&lt;blockquote class="book-hint warning">
+ このファイルには前方宣言しか含まれていないため、
+&lt;code>toml::basic_value&amp;lt;toml::type_config&amp;gt;::table_type&lt;/code> として定義される
+&lt;code>toml::table&lt;/code> と、同様に定義される &lt;code>toml::array&lt;/code> は使用できません。
+それらには &lt;code>basic_value&lt;/code> の実装が必要だからです。
+&lt;/blockquote>
+
+&lt;p>このヘッダファイルと &lt;code>toml.hpp&lt;/code> は &lt;code>${TOML11_INCLUDE_DIR}/&lt;/code> 以下に、
+他のヘッダファイルは &lt;code>${TOML11_INCLUDE_DIR}/toml11/&lt;/code> 以下にあります。&lt;/p></description></item><item><title>toml.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/toml/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/toml/</guid><description>&lt;h1 id="tomlhpp">
+ toml.hpp
+ &lt;a class="anchor" href="#tomlhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>toml.hpp&lt;/code>は、他の全てのヘッダを &lt;code>include&lt;/code> します。&lt;/p>
+&lt;p>これによって、toml11の全機能が使用可能になります。&lt;/p>
+&lt;p>このヘッダファイルと &lt;code>toml_fwd.hpp&lt;/code> は &lt;code>${TOML11_INCLUDE_DIR}/&lt;/code> 以下に、
+他のヘッダファイルは &lt;code>${toml11_include_dir}/toml11/&lt;/code> 以下にあります。&lt;/p></description></item><item><title>types.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/types/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/types/</guid><description>&lt;h1 id="typeshpp">
+ types.hpp
+ &lt;a class="anchor" href="#typeshpp">#&lt;/a>
+&lt;/h1>
+&lt;p>型情報を与えるクラスが定義されます。&lt;/p>
+&lt;h1 id="type_config">
+ &lt;code>type_config&lt;/code>
+ &lt;a class="anchor" href="#type_config">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>type_config&lt;/code>は、&lt;code>toml::basic_value&lt;/code>に与えられるパラメータをまとめた型です。&lt;/p>
+&lt;p>&lt;code>toml::basic_value&amp;lt;T&amp;gt;&lt;/code>内で異なる型を使用する場合、これを別に定義して渡します。
+記載のある要素は全て必須の要素です。&lt;/p>
+&lt;p>通常のストリーム演算子を使用できない数値型を使用する場合、&lt;code>read_int&lt;/code>、&lt;code>read_float&lt;/code>に相当するものを定義し、置き換えてください。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">type_config&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> comment_type &lt;span style="color:#f92672">=&lt;/span> preserve_comments;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> boolean_type &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> integer_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">int64_t&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> floating_type &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">double&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> string_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> array_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>vector&lt;span style="color:#f92672">&amp;lt;&lt;/span>T&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> K, &lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">using&lt;/span> table_type &lt;span style="color:#f92672">=&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>unordered_map&lt;span style="color:#f92672">&amp;lt;&lt;/span>K, T&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> result&lt;span style="color:#f92672">&amp;lt;&lt;/span>integer_type, error_info&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> parse_int(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> str, &lt;span style="color:#66d9ef">const&lt;/span> source_location src, &lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span> base);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> result&lt;span style="color:#f92672">&amp;lt;&lt;/span>floating_type, error_info&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> parse_float(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> str, &lt;span style="color:#66d9ef">const&lt;/span> source_location src, &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">bool&lt;/span> is_hex);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> value &lt;span style="color:#f92672">=&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>type_config&lt;span style="color:#f92672">&amp;gt;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> table &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> value&lt;span style="color:#f92672">::&lt;/span>table_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">using&lt;/span> array &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">typename&lt;/span> value&lt;span style="color:#f92672">::&lt;/span>array_type;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="static-メンバ関数">
+ &lt;code>static&lt;/code> メンバ関数
+ &lt;a class="anchor" href="#static-%e3%83%a1%e3%83%b3%e3%83%90%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="parse_intstr-src-base">
+ &lt;code>parse_int(str, src, base)&lt;/code>
+ &lt;a class="anchor" href="#parse_intstr-src-base">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">static&lt;/span> result&lt;span style="color:#f92672">&amp;lt;&lt;/span>integer_type, error_info&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>parse_int(&lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>string&lt;span style="color:#f92672">&amp;amp;&lt;/span> str, &lt;span style="color:#66d9ef">const&lt;/span> source_location src, &lt;span style="color:#66d9ef">const&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span> base);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>通常のストリーム演算子などを使用できない型を&lt;code>integer_type&lt;/code>として使用する場合、この関数を実装してください。&lt;/p></description></item><item><title>value_t.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/value_t/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/value_t/</guid><description>&lt;h1 id="value_thpp">
+ value_t.hpp
+ &lt;a class="anchor" href="#value_thpp">#&lt;/a>
+&lt;/h1>
+&lt;p>型情報を表す列挙型です。&lt;/p>
+&lt;h1 id="value_t">
+ &lt;code>value_t&lt;/code>
+ &lt;a class="anchor" href="#value_t">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>value_t&lt;/code>は、&lt;code>toml::value&lt;/code>が持つ型情報を扱う際に使用します。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">enum&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">value_t&lt;/span> &lt;span style="color:#f92672">:&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>&lt;span style="color:#66d9ef">uint8_t&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> empty &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> boolean &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> integer &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">2&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> floating &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">3&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> string &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">4&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> offset_datetime &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">5&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_datetime &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">6&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_date &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">7&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> local_time &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">8&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> array &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">9&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> table &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">10&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, value_t t);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string to_string(value_t t);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="非メンバ関数">
+ 非メンバ関数
+ &lt;a class="anchor" href="#%e9%9d%9e%e3%83%a1%e3%83%b3%e3%83%90%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="ストリーム演算子">
+ ストリーム演算子
+ &lt;a class="anchor" href="#%e3%82%b9%e3%83%88%e3%83%aa%e3%83%bc%e3%83%a0%e6%bc%94%e7%ae%97%e5%ad%90">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span>(std&lt;span style="color:#f92672">::&lt;/span>ostream&lt;span style="color:#f92672">&amp;amp;&lt;/span> os, value_t t);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>value_t&lt;/code>の値を文字列化してストリームへ出力します。&lt;/p>
+&lt;h3 id="to_string">
+ &lt;code>to_string&lt;/code>
+ &lt;a class="anchor" href="#to_string">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>std&lt;span style="color:#f92672">::&lt;/span>string to_string(value_t t);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>value_t&lt;/code>の値を文字列化して返します。&lt;/p></description></item><item><title>value.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/value/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/value/</guid><description>&lt;h1 id="valuehpp">
+ value.hpp
+ &lt;a class="anchor" href="#valuehpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>value.hpp&lt;/code>では、&lt;code>basic_value&lt;/code>が定義されます。&lt;/p>
+&lt;h1 id="tomlbasic_value">
+ &lt;code>toml::basic_value&lt;/code>
+ &lt;a class="anchor" href="#tomlbasic_value">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>basic_value&lt;/code>は、TOMLの値を格納するクラスです。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span> &lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">TypeConfig&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">basic_value&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// 以下はtypes.hppで定義される
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// using value = basic_value&amp;lt;type_config&amp;gt;;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// using table = typename basic_value&amp;lt;type_config&amp;gt;::table_type;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// using array = typename basic_value&amp;lt;type_config&amp;gt;::array_type;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">==&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">!=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;lt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;&lt;/span> (&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> TC&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">bool&lt;/span> &lt;span style="color:#66d9ef">operator&lt;/span>&lt;span style="color:#f92672">&amp;gt;=&lt;/span>(&lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>, &lt;span style="color:#66d9ef">const&lt;/span> basic_value&lt;span style="color:#f92672">&amp;lt;&lt;/span>TC&lt;span style="color:#f92672">&amp;gt;&amp;amp;&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">//toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="メンバ型">
+ メンバ型
+ &lt;a class="anchor" href="#%e3%83%a1%e3%83%b3%e3%83%90%e5%9e%8b">#&lt;/a>
+&lt;/h2>
+&lt;p>以下のメンバ型が定義されます。&lt;/p></description></item><item><title>version.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/version/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/version/</guid><description>&lt;h1 id="versionhpp">
+ version.hpp
+ &lt;a class="anchor" href="#versionhpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>version.hpp&lt;/code>では、toml11とC++のバージョン情報に関係するマクロが定義されます。&lt;/p>
+&lt;h2 id="マクロ">
+ マクロ
+ &lt;a class="anchor" href="#%e3%83%9e%e3%82%af%e3%83%ad">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="toml11_version_major">
+ &lt;code>TOML11_VERSION_MAJOR&lt;/code>
+ &lt;a class="anchor" href="#toml11_version_major">#&lt;/a>
+&lt;/h3>
+&lt;p>toml11のメジャーバージョンです。&lt;/p>
+&lt;h3 id="toml11_version_minor">
+ &lt;code>TOML11_VERSION_MINOR&lt;/code>
+ &lt;a class="anchor" href="#toml11_version_minor">#&lt;/a>
+&lt;/h3>
+&lt;p>toml11のマイナーバージョンです。&lt;/p>
+&lt;h3 id="toml11_version_patch">
+ &lt;code>TOML11_VERSION_PATCH&lt;/code>
+ &lt;a class="anchor" href="#toml11_version_patch">#&lt;/a>
+&lt;/h3>
+&lt;p>toml11のパッチバージョンです。&lt;/p>
+&lt;h2 id="関数">
+ 関数
+ &lt;a class="anchor" href="#%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;h3 id="license_notice">
+ &lt;code>license_notice&lt;/code>
+ &lt;a class="anchor" href="#license_notice">#&lt;/a>
+&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">*&lt;/span> &lt;span style="color:#a6e22e">license_notice&lt;/span>() &lt;span style="color:#66d9ef">noexcept&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>ライセンス条項を返します。&lt;/p>
+&lt;p>ソースコードを公開せずに頒布する際の利便性のために用意されています。&lt;/p></description></item><item><title>visit.hpp</title><link>https://toruniina.github.io/toml11/ja/docs/reference/visit/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://toruniina.github.io/toml11/ja/docs/reference/visit/</guid><description>&lt;h1 id="visithpp">
+ visit.hpp
+ &lt;a class="anchor" href="#visithpp">#&lt;/a>
+&lt;/h1>
+&lt;p>&lt;code>visit.hpp&lt;/code>では、&lt;code>toml::visit&lt;/code>が定義されます。&lt;/p>
+&lt;h1 id="tomlvisit">
+ &lt;code>toml::visit&lt;/code>
+ &lt;a class="anchor" href="#tomlvisit">#&lt;/a>
+&lt;/h1>
+&lt;h2 id="関数">
+ 関数
+ &lt;a class="anchor" href="#%e9%96%a2%e6%95%b0">#&lt;/a>
+&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">namespace&lt;/span> toml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> Visitor, &lt;span style="color:#66d9ef">typename&lt;/span> ... Args&lt;span style="color:#f92672">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">/* visitor にArgsの中身を渡した際の返り値 */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>visit(Visitor&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> visitor, Args&lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> ... args);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>} &lt;span style="color:#75715e">// toml
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>basic_value&amp;lt;TC&amp;gt;&lt;/code>が保持している型に対応する&lt;code>Visitor&lt;/code>のオーバーロードを呼び出し、その結果を返します。&lt;/p>
+&lt;h4 id="条件">
+ 条件
+ &lt;a class="anchor" href="#%e6%9d%a1%e4%bb%b6">#&lt;/a>
+&lt;/h4>
+&lt;p>&lt;code>Visitor&lt;/code>は、&lt;code>basic_value&amp;lt;TC&amp;gt;&lt;/code>が保持している型のどれに対しても呼び出し可能な関数または関数オブジェクトでなければなりません。&lt;/p>
+&lt;p>また、それぞれのオーバーロードで返り値は同じであることが要求されます。&lt;/p>
+&lt;h4 id="例">
+ 例
+ &lt;a class="anchor" href="#%e4%be%8b">#&lt;/a>
+&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;toml.hpp&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#include&lt;/span> &lt;span style="color:#75715e">&amp;lt;iostream&amp;gt;&lt;/span>&lt;span style="color:#75715e">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">struct&lt;/span> &lt;span style="color:#a6e22e">type_name_of&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">operator&lt;/span>()(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value&lt;span style="color:#f92672">::&lt;/span>boolean_type &lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">const&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;boolean&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">operator&lt;/span>()(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value&lt;span style="color:#f92672">::&lt;/span>integer_type &lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">const&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;integer&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">operator&lt;/span>()(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value&lt;span style="color:#f92672">::&lt;/span>floating_type &lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">const&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;floating&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">operator&lt;/span>()(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value&lt;span style="color:#f92672">::&lt;/span>string_type &lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">const&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;string&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">operator&lt;/span>()(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value&lt;span style="color:#f92672">::&lt;/span>local_time_type &lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">const&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;local_time&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">operator&lt;/span>()(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value&lt;span style="color:#f92672">::&lt;/span>local_date_type &lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">const&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;local_date&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">operator&lt;/span>()(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value&lt;span style="color:#f92672">::&lt;/span>local_datetime_type &lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">const&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;local_datetime&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">operator&lt;/span>()(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value&lt;span style="color:#f92672">::&lt;/span>offset_datetime_type&lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">const&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;offset_datetime&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">operator&lt;/span>()(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value&lt;span style="color:#f92672">::&lt;/span>array_type &lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">const&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;array&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>string &lt;span style="color:#66d9ef">operator&lt;/span>()(&lt;span style="color:#66d9ef">const&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>value&lt;span style="color:#f92672">::&lt;/span>table_type &lt;span style="color:#f92672">&amp;amp;&lt;/span>) &lt;span style="color:#66d9ef">const&lt;/span> {&lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#e6db74">&amp;#34;table&amp;#34;&lt;/span>;}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> &lt;span style="color:#a6e22e">main&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> toml&lt;span style="color:#f92672">::&lt;/span>value v(&lt;span style="color:#ae81ff">3.14&lt;/span>);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> std&lt;span style="color:#f92672">::&lt;/span>cout &lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span> toml&lt;span style="color:#f92672">::&lt;/span>visit(type_name_of{}, v) &lt;span style="color:#f92672">&amp;lt;&amp;lt;&lt;/span> std&lt;span style="color:#f92672">::&lt;/span>endl; &lt;span style="color:#75715e">// floating
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#ae81ff">0&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="関連項目">
+ 関連項目
+ &lt;a class="anchor" href="#%e9%96%a2%e9%80%a3%e9%a0%85%e7%9b%ae">#&lt;/a>
+&lt;/h1>
+&lt;ul>
+&lt;li>&lt;a href="https://toruniina.github.io/toml11/ja/docs/reference/value/">value.hpp&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>
