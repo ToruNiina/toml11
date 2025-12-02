@@ -1706,7 +1706,7 @@ parse_simple_key(location& loc, const context<TC>& ctx)
     else
     {
         std::string postfix;
-        if(spec.v1_1_0_allow_non_english_in_bare_keys)
+        if(spec.ext_allow_non_english_in_bare_keys)
         {
             postfix = "Hint: Not all Unicode characters are allowed as bare key.\n";
         }

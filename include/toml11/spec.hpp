@@ -95,13 +95,13 @@ struct spec
 
     constexpr explicit spec(const semantic_version& semver) noexcept
         : version{semver},
-          v1_1_0_allow_control_characters_in_comments {semantic_version{1, 1, 0} <= semver},
           v1_1_0_allow_newlines_in_inline_tables      {semantic_version{1, 1, 0} <= semver},
           v1_1_0_allow_trailing_comma_in_inline_tables{semantic_version{1, 1, 0} <= semver},
-          v1_1_0_allow_non_english_in_bare_keys       {semantic_version{1, 1, 0} <= semver},
           v1_1_0_add_escape_sequence_e                {semantic_version{1, 1, 0} <= semver},
           v1_1_0_add_escape_sequence_x                {semantic_version{1, 1, 0} <= semver},
           v1_1_0_make_seconds_optional                {semantic_version{1, 1, 0} <= semver},
+          ext_allow_control_characters_in_comments{false},
+          ext_allow_non_english_in_bare_keys{false},
           ext_hex_float {false},
           ext_num_suffix{false},
           ext_null_value{false}
@@ -110,13 +110,15 @@ struct spec
     semantic_version version; // toml version
 
     // diff from v1.0.0 -> v1.1.0
-    bool v1_1_0_allow_control_characters_in_comments;
     bool v1_1_0_allow_newlines_in_inline_tables;
     bool v1_1_0_allow_trailing_comma_in_inline_tables;
-    bool v1_1_0_allow_non_english_in_bare_keys;
     bool v1_1_0_add_escape_sequence_e;
     bool v1_1_0_add_escape_sequence_x;
     bool v1_1_0_make_seconds_optional;
+
+    // discussed in toml-lang, but currently not in it
+    bool ext_allow_control_characters_in_comments;
+    bool ext_allow_non_english_in_bare_keys;
 
     // library extensions
     bool ext_hex_float;  // allow hex float (in C++ style)
@@ -130,13 +132,13 @@ inline std::pair<const semantic_version&, std::array<bool, 10>>
 to_tuple(const spec& s) noexcept
 {
     return std::make_pair(std::cref(s.version), std::array<bool, 10>{{
-            s.v1_1_0_allow_control_characters_in_comments,
             s.v1_1_0_allow_newlines_in_inline_tables,
             s.v1_1_0_allow_trailing_comma_in_inline_tables,
-            s.v1_1_0_allow_non_english_in_bare_keys,
             s.v1_1_0_add_escape_sequence_e,
             s.v1_1_0_add_escape_sequence_x,
             s.v1_1_0_make_seconds_optional,
+            s.ext_allow_control_characters_in_comments,
+            s.ext_allow_non_english_in_bare_keys,
             s.ext_hex_float,
             s.ext_num_suffix,
             s.ext_null_value

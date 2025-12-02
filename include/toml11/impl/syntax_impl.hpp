@@ -121,7 +121,7 @@ TOML11_INLINE either const& newline(const spec&)
 TOML11_INLINE either const& allowed_comment_char(const spec& sp)
 {
     static thread_local auto cache = make_cache([](const spec& s){
-            if(s.v1_1_0_allow_control_characters_in_comments)
+            if(s.ext_allow_control_characters_in_comments)
             {
                 return either(
                     character_in_range(0x01, 0x09),
@@ -688,7 +688,7 @@ TOML11_INLINE either const& string(const spec& sp)
 // to keep `expected_chars` simple
 TOML11_INLINE non_ascii_key_char::non_ascii_key_char(const spec& s) noexcept
 {
-    assert(s.v1_1_0_allow_non_english_in_bare_keys);
+    assert(s.ext_allow_non_english_in_bare_keys);
     (void)s; // for NDEBUG
 }
 
@@ -800,7 +800,7 @@ TOML11_INLINE repeat_at_least const& unquoted_key(const spec& sp)
 {
     static thread_local auto cache = make_cache([](const spec& s) {
         const auto keychar = [&s] {
-            if(s.v1_1_0_allow_non_english_in_bare_keys)
+            if(s.ext_allow_non_english_in_bare_keys)
             {
                 return either(alpha(s), digit(s), character{0x2D}, character{0x5F},
                               non_ascii_key_char(s));
