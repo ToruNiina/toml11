@@ -2473,13 +2473,13 @@ using void_t = void;
 // ----------------------------------------------------------------------------
 // (subset of) source_location
 
-#if TOML11_CPLUSPLUS_STANDARD_VERSION >= 202002L
+#if ! defined(TOML11_DISABLE_SOURCE_LOCATION) && TOML11_CPLUSPLUS_STANDARD_VERSION >= 202002L
 #  if __has_include(<source_location>)
 #    define TOML11_HAS_STD_SOURCE_LOCATION
 #  endif // has_include
 #endif // c++20
 
-#if ! defined(TOML11_HAS_STD_SOURCE_LOCATION)
+#if ! defined(TOML11_DISABLE_SOURCE_LOCATION) && ! defined(TOML11_HAS_STD_SOURCE_LOCATION)
 #  if defined(__GNUC__) && ! defined(__clang__)
 #    if TOML11_CPLUSPLUS_STANDARD_VERSION >= TOML11_CXX14_VALUE
 #      if __has_include(<experimental/source_location>)
@@ -2489,7 +2489,7 @@ using void_t = void;
 #  endif // GNU g++
 #endif // not TOML11_HAS_STD_SOURCE_LOCATION
 
-#if ! defined(TOML11_HAS_STD_SOURCE_LOCATION) && ! defined(TOML11_HAS_EXPERIMENTAL_SOURCE_LOCATION)
+#if ! defined(TOML11_DISABLE_SOURCE_LOCATION) && ! defined(TOML11_HAS_STD_SOURCE_LOCATION) && ! defined(TOML11_HAS_EXPERIMENTAL_SOURCE_LOCATION)
 #  if defined(__GNUC__) && ! defined(__clang__)
 #    if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9))
 #      define TOML11_HAS_BUILTIN_FILE_LINE 1
