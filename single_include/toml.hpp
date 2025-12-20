@@ -1787,14 +1787,16 @@ TOML11_INLINE local_datetime::local_datetime(const std::chrono::system_clock::ti
 
     // std::tm lacks subsecond information, so diff between tp and tm
     // can be used to get millisecond & microsecond information.
-    const auto t_diff = tp -
+    auto t_diff = tp -
         std::chrono::system_clock::from_time_t(std::mktime(&ltime));
-    this->time.millisecond = static_cast<std::uint16_t>(
-      std::chrono::duration_cast<std::chrono::milliseconds>(t_diff).count());
-    this->time.microsecond = static_cast<std::uint16_t>(
-      std::chrono::duration_cast<std::chrono::microseconds>(t_diff).count());
-    this->time.nanosecond = static_cast<std::uint16_t>(
-      std::chrono::duration_cast<std::chrono::nanoseconds >(t_diff).count());
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_diff);
+    t_diff -= ms;
+    const auto us = std::chrono::duration_cast<std::chrono::microseconds>(t_diff);
+    t_diff -= us;
+    const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t_diff);
+    this->time.millisecond = static_cast<std::uint16_t>(ms.count());
+    this->time.microsecond = static_cast<std::uint16_t>(us.count());
+    this->time.nanosecond = static_cast<std::uint16_t>(ns.count());
 }
 
 TOML11_INLINE local_datetime::local_datetime(const std::time_t t)
