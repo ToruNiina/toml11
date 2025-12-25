@@ -149,7 +149,7 @@ operator""_toml(const char* str, std::size_t len)
 // value of u8"" literal has been changed from char to char8_t and char8_t is
 // NOT compatible to char
 TOML11_INLINE ::toml::value
-operator"" _toml(const char8_t* str, std::size_t len)
+operator""_toml(const char8_t* str, std::size_t len)
 {
     if(len == 0)
     {

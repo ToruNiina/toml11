@@ -26,7 +26,7 @@ inline namespace toml_literals
 #if defined(TOML11_HAS_CHAR8_T)
 // value of u8"" literal has been changed from char to char8_t and char8_t is
 // NOT compatible to char
-::toml::value operator"" _toml(const char8_t* str, std::size_t len);
+::toml::value operator""_toml(const char8_t* str, std::size_t len);
 #endif
 
 } // toml_literals
