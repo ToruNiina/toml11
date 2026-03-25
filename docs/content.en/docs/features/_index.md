@@ -9,7 +9,7 @@ bookCollapseSection = true
 
 This section explains the main features provided by toml11, with examples.
 
-## [Parsing Files and Strings](parsing_files)
+## [Parsing Files and Strings](parsing_files.md)
 
 Describes the functions for parsing files and strings, and how to handle the errors they produce.
 
@@ -22,7 +22,7 @@ Includes:
 - Parsing strings without throwing exceptions
 - Parsing byte arrays without throwing exceptions
 
-## [Extracting Values from `toml::value`](value)
+## [Extracting Values from `toml::value`](value.md)
 
 Explains how to examine, extract, and convert the data types held by `toml::value`.
 
@@ -41,7 +41,7 @@ Includes:
 - Applying functions with `toml::visit`
 - Constructing `toml::value`
 
-## [Creating Error Messages](error_message)
+## [Creating Error Messages](error_message.md)
 
 Explains how to generate error messages with location information from a TOML file using `toml::value`.
 
@@ -51,7 +51,7 @@ Includes:
 - Constructing error messages
 - Adding color to the output
 
-## [Serializing TOML Files](serialize)
+## [Serializing TOML Files](serialize.md)
 
 Describes how to format the values of `toml::value` and the available formatting options.
 
@@ -60,7 +60,7 @@ Includes:
 - Specifying formats for each value of `toml::value`
 - Formatting `toml::value` into a string
 
-## [Configuring Types of `toml::value`](configure_types)
+## [Configuring Types of `toml::value`](configure_types.md)
 
 Explains how to customize the types stored in `toml::value` (such as `integer_type` and `table_type`).
 
@@ -72,7 +72,7 @@ Includes:
 - Using different containers like `std::deque`
 - Using different numeric types like `boost::multiprecision`
 
-## [TOML Literals](literal)
+## [TOML Literals](literal.md)
 
 Explains the `_toml` literal for embedding TOML files directly in C++ code.
 
@@ -80,7 +80,7 @@ Includes:
 
 - Using TOML literals
 
-## [TOML Language Version](toml_spec)
+## [TOML Language Version](toml_spec.md)
 
 Describes the versions of the TOML language supported by toml11 and how to control language features added in TOML-v1.1.0.
 
@@ -89,7 +89,7 @@ Includes:
 - Using TOML language version 1.1.0
 - Using specific features of TOML language version 1.1.0
 
-## [TOML Language Extensions](extension)
+## [TOML Language Extensions](extension.md)
 
 Explains the custom extensions to the TOML language provided by toml11.
 
