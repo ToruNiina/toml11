@@ -2042,10 +2042,10 @@ parse_array(location& loc, context<TC>& ctx)
         loc.advance();
     }
     // any error reported from this function
-    if(num_errors != ctx.errors().size())
+    if(num_errors < ctx.errors().size())
     {
         assert(ctx.has_error()); // already reported
-        return err(ctx.errors().back());
+        return err(ctx.pop_last_error());
     }
 
     return ok(basic_value<TC>(
