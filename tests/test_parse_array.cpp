@@ -139,4 +139,17 @@ TEST_CASE("testing invalid arrays")
             std::cerr << toml::format_error(e) << std::endl;
         }
     }
+
+    {
+        // Issue #312: an invalid array element must be reported exactly once.
+        // parse_array must hand its error up via pop_last_error (like the other
+        // finalizers), otherwise the caller re-reporting the returned error
+        // leaves a duplicate in the error list and the message is shown twice.
+        toml::detail::context<toml::type_config> ctx(toml::spec::v(1,0,0));
+        auto loc = toml::detail::make_temporary_location("[ hoge ]");
+        const auto res = parse_array(loc, ctx);
+        CHECK_UNARY(res.is_err());
+        ctx.report_error(res.unwrap_err()); // mimic the caller (e.g. parse_key_value_pair)
+        CHECK_EQ(ctx.errors().size(), 1u);
+    }
 }
