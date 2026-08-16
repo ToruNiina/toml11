@@ -1127,11 +1127,14 @@ parse_offset_datetime(location& loc, const context<TC>& ctx)
         assert(ofs_str.at(0) == char_type('Z') || ofs_str.at(0) == char_type('z'));
     }
 
+    // The minute of an offset is a minute, so 59 is its largest value. Allowing
+    // 60 let `+12:60` through, and time_offset then carried it as 13 hours
+    // exactly, so the document came back with an offset it never contained.
     if (offset.hour   < -24 || 24 < offset.hour ||
-        offset.minute < -60 || 60 < offset.minute)
+        offset.minute < -59 || 59 < offset.minute)
     {
         return err(make_error_info("toml::parse_offset_datetime: "
-            "too large offset: |hour| <= 24, |minute| <= 60",
+            "too large offset: |hour| <= 24, |minute| <= 59",
             source_location(region(first, loc)), "here"));
     }
 
