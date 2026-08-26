@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.16)
+# the ...<max> part sets the policy version, it is not an upper version limit
+cmake_minimum_required(VERSION 3.16...4.4)
 
 # project_source_dir has not been set yet
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/include/toml11/version.hpp" TOML11_MAJOR_VERSION_STRING
@@ -19,27 +20,31 @@ include(CTest) # to use ${BUILD_TESTING}
 option(TOML11_PRECOMPILE "precompile toml11 library" OFF)
 option(TOML11_ENABLE_ACCESS_CHECK "enable access check feature (beta)" OFF)
 
-include(CMakeDependentOption)
-cmake_policy(PUSH)
-if(POLICY CMP0127)
-cmake_policy(SET CMP0127 OLD) # syntax of condition changed in 3.22
+# PROJECT_IS_TOP_LEVEL is set by project() since CMake 3.21.
+if(DEFINED PROJECT_IS_TOP_LEVEL)
+    set(TOML11_IS_TOP_LEVEL ${PROJECT_IS_TOP_LEVEL})
+elseif(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(TOML11_IS_TOP_LEVEL ON)
+else()
+    set(TOML11_IS_TOP_LEVEL OFF)
 endif()
+
+include(CMakeDependentOption)
 cmake_dependent_option(TOML11_INSTALL "install toml11 library" ON
-    "${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}" OFF)
+    "TOML11_IS_TOP_LEVEL" OFF)
 cmake_dependent_option(TOML11_BUILD_EXAMPLES "build toml11 examples" OFF
-    "${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}" OFF)
+    "TOML11_IS_TOP_LEVEL" OFF)
 cmake_dependent_option(TOML11_BUILD_TESTS "build toml11 unit tests" OFF
-    "${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}; ${BUILD_TESTING}" OFF)
+    "TOML11_IS_TOP_LEVEL;BUILD_TESTING" OFF)
 cmake_dependent_option(TOML11_BUILD_TOML_TESTS "build toml11 toml-test encoder & decoder" OFF
-    "${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}" OFF)
-cmake_policy(POP)
+    "TOML11_IS_TOP_LEVEL" OFF)
 
-cmake_dependent_option(TOML11_TEST_WITH_ASAN  "build toml11 unit tests with asan" OFF
-    "${TOML11_BUILD_TESTS}" OFF)
-cmake_dependent_option(TOML11_TEST_WITH_UBSAN "build toml11 unit tests with ubsan" OFF
-    "${TOML11_BUILD_TESTS}" OFF)
+cmake_dependent_option(TOML11_TEST_WITH_ASAN  "build toml11 tests with asan" OFF
+    "TOML11_BUILD_TESTS OR TOML11_BUILD_TOML_TESTS" OFF)
+cmake_dependent_option(TOML11_TEST_WITH_UBSAN "build toml11 tests with ubsan" OFF
+    "TOML11_BUILD_TESTS OR TOML11_BUILD_TOML_TESTS" OFF)
 
-if(${TOML11_TEST_WITH_ASAN} AND ${TOML11_TEST_WITH_UBSAN})
+if(TOML11_TEST_WITH_ASAN AND TOML11_TEST_WITH_UBSAN)
     message(FATAL_ERROR "trying to build tests with BOTH asan and ubsan")
 endif()
 
@@ -66,7 +71,7 @@ set(TOML11_CONFIG              ${TOML11_CONFIG_DIR}/toml11Config.cmake)
 set(TOML11_CONFIG_VERSION      ${TOML11_CONFIG_DIR}/toml11ConfigVersion.cmake)
 
 # root project?
-if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
+if(TOML11_IS_TOP_LEVEL)
     if(NOT DEFINED CMAKE_CXX_STANDARD)
         set(CMAKE_CXX_STANDARD 11)
     endif()
@@ -77,11 +82,11 @@ if(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME})
         set(CMAKE_CXX_STANDARD_REQUIRED ON)
     endif()
 
-    if(${TOML11_BUILD_TESTS} OR ${TOML11_BUILD_TOML_TESTS})
+    if(TOML11_BUILD_TESTS OR TOML11_BUILD_TOML_TESTS)
         add_subdirectory(tests)
     endif()
 
-    if(${TOML11_BUILD_EXAMPLES})
+    if(TOML11_BUILD_EXAMPLES)
         add_subdirectory(examples)
     endif()
 endif()
