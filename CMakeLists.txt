@@ -39,10 +39,10 @@ cmake_dependent_option(TOML11_BUILD_TESTS "build toml11 unit tests" OFF
 cmake_dependent_option(TOML11_BUILD_TOML_TESTS "build toml11 toml-test encoder & decoder" OFF
     "TOML11_IS_TOP_LEVEL" OFF)
 
-cmake_dependent_option(TOML11_TEST_WITH_ASAN  "build toml11 unit tests with asan" OFF
-    "TOML11_BUILD_TESTS" OFF)
-cmake_dependent_option(TOML11_TEST_WITH_UBSAN "build toml11 unit tests with ubsan" OFF
-    "TOML11_BUILD_TESTS" OFF)
+cmake_dependent_option(TOML11_TEST_WITH_ASAN  "build toml11 tests with asan" OFF
+    "TOML11_BUILD_TESTS OR TOML11_BUILD_TOML_TESTS" OFF)
+cmake_dependent_option(TOML11_TEST_WITH_UBSAN "build toml11 tests with ubsan" OFF
+    "TOML11_BUILD_TESTS OR TOML11_BUILD_TOML_TESTS" OFF)
 
 if(TOML11_TEST_WITH_ASAN AND TOML11_TEST_WITH_UBSAN)
     message(FATAL_ERROR "trying to build tests with BOTH asan and ubsan")
