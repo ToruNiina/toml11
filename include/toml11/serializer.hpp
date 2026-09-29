@@ -1080,7 +1080,7 @@ class serializer
 
         // check the key can be a bare (unquoted) key
         auto loc = detail::make_temporary_location(string_conv<std::string>(key));
-        auto reg = detail::syntax::unquoted_key(this->spec_).scan(loc);
+        auto reg = detail::syntax::unquoted_key_v2(this->spec_).scan(loc);
         if(reg.is_ok() && loc.eof())
         {
             return key;

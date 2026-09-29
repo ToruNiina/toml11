@@ -108,7 +108,7 @@ parse_comment_line(location& loc, context<TC>& ctx)
 
     skip_whitespace(loc, ctx);
 
-    const auto com_reg = syntax::comment(spec).scan(loc);
+    const auto com_reg = syntax::comment_line(spec,true,false).scan(loc);
     if(com_reg.is_ok())
     {
         // once comment started, newline must follow (or reach EOF).
@@ -1128,10 +1128,10 @@ parse_offset_datetime(location& loc, const context<TC>& ctx)
     }
 
     if (offset.hour   < -24 || 24 < offset.hour ||
-        offset.minute < -60 || 60 < offset.minute)
+        offset.minute < -59 || 59 < offset.minute)
     {
         return err(make_error_info("toml::parse_offset_datetime: "
-            "too large offset: |hour| <= 24, |minute| <= 60",
+            "too large offset: |hour| <= 24, |minute| <= 59",
             source_location(region(first, loc)), "here"));
     }
 
@@ -1699,7 +1699,7 @@ parse_simple_key(location& loc, const context<TC>& ctx)
 
     // bare key.
 
-    if(const auto bare = syntax::unquoted_key(spec).scan(loc))
+    if(const auto bare = syntax::unquoted_key_v2(spec).scan(loc))
     {
         return ok(string_conv<key_type>(bare.as_string()));
     }
@@ -1716,7 +1716,7 @@ parse_simple_key(location& loc, const context<TC>& ctx)
         }
         return err(make_syntax_error("toml::parse_simple_key: "
             "invalid key: key must be \"quoted\", 'quoted-literal', or bare key.",
-            syntax::unquoted_key(spec), loc, postfix));
+            syntax::unquoted_key_v2(spec), loc, postfix));
     }
 }
 
@@ -1845,7 +1845,7 @@ skip_multiline_spacer(location& loc, context<TC>& ctx, const bool newline_found 
     bool spacer_found = false;
     while( ! loc.eof())
     {
-        if(auto comm = sequence(syntax::comment(spec), syntax::newline(spec)).scan(loc))
+        if(auto comm = syntax::comment_line(spec,true,true).scan(loc))
         {
             spacer.newline_found = true;
             auto comment = comm.as_string();

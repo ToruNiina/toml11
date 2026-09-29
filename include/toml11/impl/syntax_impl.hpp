@@ -151,6 +151,184 @@ TOML11_INLINE sequence const& comment(const spec& sp)
     return cache.at(sp);
 }
 
+// optional('#') + allowed comment chars + optional('\n' or '\r\n')
+TOML11_INLINE comment_line_scanner const& comment_line(const spec &sp, const bool include_comment_symbol, const bool include_newline)
+{
+    if (include_comment_symbol)
+    {
+        if (include_newline)
+        {
+            static thread_local auto cache = make_cache([](const spec& s) {
+                return comment_line_scanner(s, true, true);
+            });
+            return cache.at(sp);
+        }
+        else
+        {
+            static thread_local auto cache = make_cache([](const spec& s) {
+                return comment_line_scanner(s, true, false);
+            });
+            return cache.at(sp);
+        }
+    }
+    else
+    {
+        if (include_newline)
+        {
+            static thread_local auto cache = make_cache([](const spec& s) {
+                return comment_line_scanner(s, false, true);
+            });
+            return cache.at(sp);
+        }
+        else
+        {
+            static thread_local auto cache = make_cache([](const spec& s) {
+                return comment_line_scanner(s, false, false);
+            });
+            return cache.at(sp);
+        }
+    }
+}
+
+TOML11_INLINE region comment_line_scanner::scan(location &loc) const
+{
+    if (loc.eof())
+    {
+        return region{};
+    }
+    if (include_comment_symbol_)
+    {
+        const auto c_comment_symbol = loc.current();
+        if (c_comment_symbol != '#')
+        {
+            return region {};
+        }
+    }
+
+    const auto first = loc;
+    loc.advance(1);
+
+    while (!loc.eof())
+    {
+        const auto c = loc.current();
+
+        // in ascii range
+        if (c < 0x80)
+        {
+            if (ext_allow_control_characters_in_comments_)
+            {
+                // toml11 ext allow 0x01-0x09, 0x0E-0x7F
+                if ((c >= 0x01 && c <= 0x09) || (c >= 0x0E && c <= 0x7F))
+                {
+                    loc.advance(1);
+                    continue;
+                }
+            }
+            else
+            {
+                // v1.0.0 allow 0x09, 0x20-0x7E
+                if (c == 0x09 || (c >= 0x20 && c <= 0x7E))
+                {
+                    loc.advance(1);
+                    continue;
+                }
+            }
+
+            if (!include_newline_) { break; }
+            if (c == '\n')
+            {
+                loc.advance(1);
+            }
+            else if (c == '\r')
+            {
+                loc.advance(1); if (loc.eof()|| loc.current() != '\n') { loc = first; break; }
+                loc.advance(1);
+            }
+            break;
+        }
+
+        // utf-8 multi bytes
+        if (!try_advance_multi_utf8(loc, c))
+            break;
+    }
+
+    if (loc.get_location() == first.get_location())
+    {
+        return region{};
+    }
+    return region(first, loc);
+}
+
+TOML11_INLINE const bool comment_line_scanner::try_advance_multi_utf8(location &loc, location::char_type c1) const
+{
+    if (c1 < 0xC2) { return false; }
+
+    const auto first = loc;
+    loc.advance(1);
+    if (loc.eof()) { loc = first; return false; }
+
+    const auto c2 = loc.current();
+
+    if (c1 <= 0xDF)
+    {
+        // 2 bytes: [0xC2, 0xDF][0x80, 0xBF]
+        if (c2 < 0x80 || c2 > 0xBF) { loc = first; return false; }
+        loc.advance(1);
+        return true;
+    }
+
+    if (c1 <= 0xEF)
+    {
+        // 3 bytes: [0xE0][0xA0, 0xBF][0x80, 0xBF] | [0xE1, 0xEC][0x80, 0xBF][0x80, 0xBF] | [0xED][0x80, 0x9F][0x80, 0xBF] | [0xEE, 0xEF][0x80, 0xBF][0x80, 0xBF]
+        bool ok = false;
+        if (c1 == 0xE0)
+            ok = (c2 >= 0xA0 && c2 <= 0xBF);
+        else if (c1 == 0xED)
+            ok = (c2 >= 0x80 && c2 <= 0x9F);
+        else
+            ok = (c2 >= 0x80 && c2 <= 0xBF);
+
+        if (!ok) { loc = first; return false; }
+
+        loc.advance(1);
+        if (loc.eof()) { loc = first; return false; }
+
+        const auto c3 = loc.current();
+        if (c3 < 0x80 || c3 > 0xBF) { loc = first; return false; }
+        loc.advance(1);
+        return true;
+    }
+
+    if (c1 <= 0xF4)
+    {
+        // 4 bytes: [0xF0][0x90, 0xBF][0x80, 0xBF][0x80, 0xBF] | [0xF1, 0xF3][0x80, 0xBF][0x80, 0xBF][0x80, 0xBF] | [0xF4][0x80, 0x8F][0x80, 0xBF][0x80, 0xBF]
+        bool ok = false;
+        if (c1 == 0xF0)
+            ok = (c2 >= 0x90 && c2 <= 0xBF);
+        else if (c1 == 0xF4)
+            ok = (c2 >= 0x80 && c2 <= 0x8F);
+        else
+            ok = (c2 >= 0x80 && c2 <= 0xBF);
+
+        if (!ok) { loc = first; return false; }
+
+        loc.advance(1); if (loc.eof()) { loc = first; return false; }
+
+        const auto c3 = loc.current();
+        if (c3 < 0x80 || c3 > 0xBF) { loc = first; return false; }
+        loc.advance(1); if (loc.eof()) { loc = first; return false; }
+
+        const auto c4 = loc.current();
+        if (c4 < 0x80 || c4 > 0xBF) { loc = first; return false; }
+        loc.advance(1);
+        return true;
+    }
+
+    // only c1 > 0xF4 reaches here.
+    // kept out of the early check to keep the common path to one compare.
+    return false;
+}
+
 // ===========================================================================
 // Boolean
 
@@ -768,6 +946,7 @@ TOML11_INLINE region non_ascii_key_char::scan(location& loc) const
 
     if(cp == 0xFFFFFFFF)
     {
+        loc = first;
         return region{};
     }
 
@@ -796,6 +975,101 @@ TOML11_INLINE region non_ascii_key_char::scan(location& loc) const
     return region{};
 }
 
+// when error: no rollback
+// when success: advance
+// don't check if first byte is EOF
+// code from non_ascii_key_char::read_utf8
+TOML11_INLINE const std::uint32_t bare_key_scanner::advance_multi_utf8_bytes(location& loc) const {
+    // U+0000   ... U+0079  ; 0xxx_xxxx
+    // U+0080   ... U+07FF  ; 110y_yyyx 10xx_xxxx;
+    // U+0800   ... U+FFFF  ; 1110_yyyy 10yx_xxxx 10xx_xxxx
+    // U+010000 ... U+10FFFF; 1111_0yyy 10yy_xxxx 10xx_xxxx 10xx_xxxx
+
+    const char_type b1 = loc.current();
+    assert(b1 >= 0x80);
+
+    loc.advance(1);
+    if (loc.eof()) { return 0xFFFFFFFF; }
+
+    if ((b1 >> 5) == 6) // 0b110 == 6
+    {
+        const auto b2 = loc.current(); loc.advance(1);
+
+        const std::uint32_t c1 = b1 & ((1 << 5) - 1);
+        const std::uint32_t c2 = b2 & ((1 << 6) - 1);
+        const std::uint32_t codep = (c1 << 6) + c2;
+
+        if (codep < 0x80) { return 0xFFFFFFFF; }
+        return codep;
+    } else if ((b1 >> 4) == 14) // 0b1110 == 14
+    {
+        const auto b2 = loc.current(); loc.advance(1); if (loc.eof()) { return 0xFFFFFFFF; }
+        const auto b3 = loc.current(); loc.advance(1);
+
+        const std::uint32_t c1 = b1 & ((1 << 4) - 1);
+        const std::uint32_t c2 = b2 & ((1 << 6) - 1);
+        const std::uint32_t c3 = b3 & ((1 << 6) - 1);
+
+        const std::uint32_t codep = (c1 << 12) + (c2 << 6) + c3;
+        if (codep < 0x80) { return 0xFFFFFFFF; }
+
+        return codep;
+    } else if ((b1 >> 3) == 30) // 0b11110 == 30
+    {
+        const auto b2 = loc.current(); loc.advance(1); if (loc.eof()) { return 0xFFFFFFFF; }
+        const auto b3 = loc.current(); loc.advance(1); if (loc.eof()) { return 0xFFFFFFFF; }
+        const auto b4 = loc.current(); loc.advance(1);
+
+        const std::uint32_t c1 = b1 & ((1 << 3) - 1);
+        const std::uint32_t c2 = b2 & ((1 << 6) - 1);
+        const std::uint32_t c3 = b3 & ((1 << 6) - 1);
+        const std::uint32_t c4 = b4 & ((1 << 6) - 1);
+        const std::uint32_t codep = (c1 << 18) + (c2 << 12) + (c3 << 6) + c4;
+        if (codep < 0x80) { return 0xFFFFFFFF; }
+
+        return codep;
+    } else // not a Unicode codepoint in UTF-8
+    {
+        return 0xFFFFFFFF;
+    }
+}
+
+// when error: rollback
+// when success: advance
+// don't check if first byte is EOF
+TOML11_INLINE const bool bare_key_scanner::try_advance(location& loc) const
+{
+    const char_type c = loc.current();
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == 0x2D) || (c == 0x5F))
+    {
+        loc.advance(1);
+        return true;
+    }
+
+    if (this->ext_allow_non_english_in_bare_keys_ && c >= 0x80)
+    {
+        const auto first = loc;
+        const std::uint32_t cp = advance_multi_utf8_bytes(loc);
+        // see non_ascii_key_char::scan
+        if (cp == 0xB2 || cp == 0xB3 || cp == 0xB9 || (0xBC <= cp && cp <= 0xBE) ||
+            (0xC0 <= cp && cp <= 0xD6) || (0xD8 <= cp && cp <= 0xF6) ||
+            (0xF8 <= cp && cp <= 0x37D) || (0x37F <= cp && cp <= 0x1FFF) ||
+            (0x200C <= cp && cp <= 0x200D) || (0x203F <= cp && cp <= 0x2040) ||
+            (0x2070 <= cp && cp <= 0x218F) || (0x2460 <= cp && cp <= 0x24FF) ||
+            (0x2C00 <= cp && cp <= 0x2FEF) || (0x3001 <= cp && cp <= 0xD7FF) ||
+            (0xF900 <= cp && cp <= 0xFDCF) || (0xFDF0 <= cp && cp <= 0xFFFD) ||
+            (0x10000 <= cp && cp <= 0xEFFFF))
+        {
+            return true;
+        }
+
+        loc = first;
+        return false;
+    }
+
+    return false;
+}
+
 TOML11_INLINE repeat_at_least const& unquoted_key(const spec& sp)
 {
     static thread_local auto cache = make_cache([](const spec& s) {
@@ -815,6 +1089,14 @@ TOML11_INLINE repeat_at_least const& unquoted_key(const spec& sp)
     return cache.at(sp);
 }
 
+TOML11_INLINE bare_key_scanner const& unquoted_key_v2(const spec& sp)
+{
+    static thread_local auto cache = make_cache([](const spec& s) {
+        return bare_key_scanner(s);
+    });
+    return cache.at(sp);
+}
+
 TOML11_INLINE either const& quoted_key(const spec& sp)
 {
     static thread_local auto cache = make_cache([](const spec& s) {
@@ -826,7 +1108,7 @@ TOML11_INLINE either const& quoted_key(const spec& sp)
 TOML11_INLINE either const& simple_key(const spec& sp)
 {
     static thread_local auto cache = make_cache([](const spec& s) {
-        return either(unquoted_key(s), quoted_key(s));
+        return either(unquoted_key_v2(s), quoted_key(s));
     });
     return cache.at(sp);
 }

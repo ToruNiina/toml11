@@ -73,7 +73,7 @@ void skip_empty_or_comment_lines(location& loc, const context<TC>& ctx)
     const auto& spec = ctx.toml_spec();
     repeat_at_least(0, sequence(
             syntax::ws(spec),
-            maybe(syntax::comment(spec)),
+            maybe(syntax::comment_line(spec,true,false)),
             syntax::newline(spec))
         ).scan(loc);
     return ;

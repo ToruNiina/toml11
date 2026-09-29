@@ -97,7 +97,50 @@ either const& newline(const spec&);
 either const& allowed_comment_char(const spec& s);
 
 // XXX Note that it does not take newline
+//TOML11_DEPRECATED("maybe use comment_line()")
 sequence const& comment(const spec& s);
+
+// Add this class to improve comment parsing performance
+// Combines optional '#' detection, content scanning, and optional newline handling
+class comment_line_scanner final : public scanner_base
+{
+public:
+    explicit comment_line_scanner(const spec &s,const bool include_comment_symbol, const bool include_newline) noexcept :
+        ext_allow_control_characters_in_comments_(s.ext_allow_control_characters_in_comments)
+        , include_comment_symbol_(include_comment_symbol), include_newline_(include_newline) { }
+
+    ~comment_line_scanner() override = default;
+
+    region scan(location &loc) const override;
+
+    std::string expected_chars(location &) const override
+    {
+        if (include_comment_symbol_)
+        {
+            return include_newline_ ? "# + comment chars(toml allowed) + \\n or \\r\\n" : "# + comment chars(toml allowed)";
+        }
+        else
+        {
+            return include_newline_ ? "comment chars(toml allowed) + \\n or \\r\\n" : "comment chars(toml allowed)";
+        }
+    }
+    scanner_base *clone() const override
+    {
+        return new comment_line_scanner(*this);
+    }
+    std::string name() const override
+    {
+        return "comment line";
+    }
+
+private:
+    const bool try_advance_multi_utf8(location &loc, location::char_type c1) const;
+    bool ext_allow_control_characters_in_comments_;
+    bool include_comment_symbol_;
+    bool include_newline_;
+};
+
+comment_line_scanner const& comment_line(const spec& sp, const bool include_comment_symbol, const bool include_newline);
 
 // ===========================================================================
 // Boolean
@@ -343,8 +386,55 @@ class non_ascii_key_char final : public scanner_base
     std::uint32_t read_utf8(location& loc) const;
 };
 
+// add this class to improve bare_key parsing performance
+class bare_key_scanner final : public scanner_base
+{
+    public:
+    using char_type = location::char_type;
 
+    explicit bare_key_scanner(const spec& sp) noexcept : ext_allow_non_english_in_bare_keys_(sp.ext_allow_non_english_in_bare_keys) {}
+    ~bare_key_scanner() override = default;
+
+    region scan(location& loc) const override
+    {
+        if (loc.eof()) { return region {}; }
+        const auto first = loc;
+
+        // at least once
+        if (!try_advance(loc))
+        {
+            return region {};
+        }
+
+        while (!loc.eof() && try_advance(loc)) {}
+
+        return region(first, loc);
+    }
+
+    std::string expected_chars(location&) const override
+    {
+        return "bare key script";
+    }
+
+    scanner_base* clone() const override
+    {
+        return new bare_key_scanner(*this);
+    }
+
+    std::string name() const override
+    {
+        return "bare key";
+    }
+
+private:
+    const std::uint32_t advance_multi_utf8_bytes(location& loc) const;
+    const bool try_advance(location& loc) const;
+    bool ext_allow_non_english_in_bare_keys_;
+};
+
+TOML11_DEPRECATED("maybe use unquoted_key_v2()")
 repeat_at_least const& unquoted_key(const spec& s);
+bare_key_scanner const& unquoted_key_v2(const spec& s);
 either   const& quoted_key(const spec& s);
 either   const& simple_key(const spec& s);
 sequence const& dot_sep(const spec& s);
