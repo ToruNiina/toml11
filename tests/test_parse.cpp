@@ -4,6 +4,49 @@
 #include <toml.hpp>
 
 #include <clocale>
+#include <fstream>
+#include <sstream>
+
+TEST_CASE("testing toml::parse with an unopened stream")
+{
+    std::ifstream ifs;
+    SUBCASE("default constructed") {}
+    SUBCASE("failed to open")
+    {
+        ifs.open("nonexistent_test_parse.toml", std::ios::binary);
+        REQUIRE_FALSE(ifs.is_open());
+    }
+
+    CHECK(toml::try_parse(ifs, "nonexistent_test_parse.toml").is_err());
+    CHECK_THROWS_AS(toml::parse(ifs, "nonexistent_test_parse.toml"), toml::syntax_error);
+}
+
+TEST_CASE("testing toml::parse with a failed stream")
+{
+    std::istringstream iss("answer = 42");
+    iss.setstate(std::ios::failbit);
+
+    CHECK(toml::try_parse(iss).is_err());
+    CHECK_THROWS_AS(toml::parse(iss), toml::syntax_error);
+}
+
+TEST_CASE("testing toml::parse with an empty stream")
+{
+    std::istringstream iss;
+    const auto result = toml::try_parse(iss);
+    REQUIRE(result.is_ok());
+    CHECK(result.unwrap().as_table().empty());
+
+    std::istringstream empty;
+    CHECK(toml::parse(empty).as_table().empty());
+}
+
+TEST_CASE("testing toml::parse from the current stream position")
+{
+    std::istringstream iss("skip\nanswer = 42");
+    iss.seekg(5);
+    CHECK_EQ(toml::find<int>(toml::parse(iss), "answer"), 42);
+}
 
 TEST_CASE("testing toml::parse(file)")
 {

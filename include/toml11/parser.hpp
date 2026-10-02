@@ -3523,6 +3523,12 @@ result<basic_value<TC>, std::vector<error_info>>
 try_parse(std::istream& is, std::string fname = "unknown file", spec s = spec::default_version())
 {
     const auto beg = is.tellg();
+    if(beg == std::istream::pos_type(-1))
+    {
+        std::vector<error_info> e;
+        e.push_back(error_info("toml::parse: Error reading file \"" + fname + "\"", {}));
+        return err(std::move(e));
+    }
     is.seekg(0, std::ios::end);
     const auto end = is.tellg();
     const auto fsize = end - beg;
