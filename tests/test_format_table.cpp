@@ -76,3 +76,27 @@ TEST_CASE("testing multiline table")
         CHECK_EQ(v, toml::parse_str(toml::format(v)));
     }
 }
+
+TEST_CASE_TEMPLATE("testing multiline inline table keys", Value,
+                   toml::value, toml::ordered_value)
+{
+    const auto spec = toml::spec::v(1, 1, 0);
+    const std::vector<std::pair<std::string, std::string>> keys = {
+        {"bare-key", "bare-key"},
+        {"a.b", "\"a.b\""},
+        {"two words", "\"two words\""},
+        {"", "\"\""},
+        {"a\"b", "\"a\\\"b\""},
+        {"a\\b", "\"a\\\\b\""},
+        {"a\nb", "\"a\\nb\""},
+    };
+    for(const auto& key : keys)
+    {
+        Value inner(typename Value::table_type{{key.first, 42}});
+        inner.as_table_fmt().fmt = toml::table_format::multiline_oneline;
+        const Value root(typename Value::table_type{{"config", inner}});
+        const auto text = toml::format(root, spec);
+        CHECK(text.find(key.second + " = 42") != std::string::npos);
+        CHECK_EQ(toml::parse_str<typename Value::config_type>(text, spec), root);
+    }
+}

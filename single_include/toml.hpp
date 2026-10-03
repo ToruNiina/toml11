@@ -12160,7 +12160,7 @@ class serializer
             this->force_inline_ = true;
             retval += format_comments(kv.second.comments(), fmt.indent_type);
             retval += format_indent(fmt.indent_type);
-            retval += kv.first;
+            retval += this->format_key(kv.first);
             retval += string_conv<string_type>(" = ");
 
             this->force_inline_ = true;
