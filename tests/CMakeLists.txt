@@ -1,3 +1,16 @@
+option(TOML11_TEST_SINGLE_HEADER "Test the single_include header instead of modular implementations" OFF)
+if(TOML11_TEST_SINGLE_HEADER)
+    if(TOML11_PRECOMPILE)
+        message(FATAL_ERROR "Single-header tests require TOML11_PRECOMPILE=OFF")
+    endif()
+    # Its include guards suppress modular implementations included by upstream tests.
+    if(MSVC)
+        add_compile_options("/FI${PROJECT_SOURCE_DIR}/single_include/toml.hpp")
+    else()
+        add_compile_options(-include "${PROJECT_SOURCE_DIR}/single_include/toml.hpp")
+    endif()
+endif()
+
 set(TOML11_TEST_NAMES
     test_comments
     test_datetime

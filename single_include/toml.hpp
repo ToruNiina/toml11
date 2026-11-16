@@ -4060,7 +4060,7 @@ class location
   public:
 
     location(source_ptr src, std::string src_name)
-        : source_(std::move(src)), source_name_(std::move(src_name)),
+        : source_(std::move(src)), source_name_(std::make_shared<const std::string>(std::move(src_name))),
           location_(0), line_number_(1), column_number_(1)
     {}
 
@@ -4096,7 +4096,11 @@ class location
     std::string get_line() const;
 
     source_ptr const&  source()      const noexcept {return this->source_;}
-    std::string const& source_name() const noexcept {return this->source_name_;}
+    std::string const& source_name() const noexcept
+    {
+        static const std::string empty;
+        return this->source_name_ ? *this->source_name_ : empty;
+    }
 
   private:
 
@@ -4111,7 +4115,8 @@ class location
   private:
 
     source_ptr  source_;
-    std::string source_name_;
+    // Scanner locations are copied frequently; share the immutable diagnostic name.
+    std::shared_ptr<const std::string> source_name_;
     std::size_t location_; // std::vector<>::difference_type is signed
     std::size_t line_number_;
     std::size_t column_number_;
@@ -4431,7 +4436,7 @@ class region
 
     // a value that is constructed manually does not have input stream info
     region()
-        : source_(nullptr), source_name_(""), length_(0),
+        : source_(nullptr), source_name_(nullptr), length_(0),
           first_(0), first_line_(0), first_column_(0), last_(0), last_line_(0),
           last_column_(0)
     {}
@@ -4483,7 +4488,11 @@ class region
     std::vector<std::pair<std::string, std::size_t>> as_lines() const;
 
     source_ptr const&  source()      const noexcept {return this->source_;}
-    std::string const& source_name() const noexcept {return this->source_name_;}
+    std::string const& source_name() const noexcept
+    {
+        static const std::string empty;
+        return this->source_name_ ? *this->source_name_ : empty;
+    }
 
   private:
 
@@ -4493,7 +4502,7 @@ class region
   private:
 
     source_ptr  source_;
-    std::string source_name_;
+    std::shared_ptr<const std::string> source_name_;
     std::size_t length_;
     std::size_t first_;
     std::size_t first_line_;
@@ -4530,7 +4539,7 @@ namespace detail
 // a value defined in [first, last).
 // Those source must be the same. Instread, `region` does not make sense.
 TOML11_INLINE region::region(const location& first, const location& last)
-    : source_(first.source()), source_name_(first.source_name()),
+    : source_(first.source()), source_name_(first.source_name_),
       length_(last.get_location() - first.get_location()),
       first_(first.get_location()),
       first_line_(first.line_number()),
@@ -4545,7 +4554,7 @@ TOML11_INLINE region::region(const location& first, const location& last)
 
     // shorthand of [loc, loc+1)
 TOML11_INLINE region::region(const location& loc)
-    : source_(loc.source()), source_name_(loc.source_name()), length_(0),
+    : source_(loc.source()), source_name_(loc.source_name_), length_(0),
       first_line_(0), first_column_(0), last_line_(0), last_column_(0)
 {
     // if the file ends with LF, the resulting region points no char.
@@ -5626,6 +5635,36 @@ namespace syntax
 
 using char_type = location::char_type;
 
+template<typename F>
+struct syntax_cache
+{
+    using value_type = cxx::return_type_of_t<F, const spec&>;
+    static_assert(std::is_base_of<scanner_base, value_type>::value, "");
+
+    explicit syntax_cache(F f)
+        : func_(std::move(f)), cache_(cxx::make_nullopt())
+    {}
+
+    value_type const& at(const spec& s)
+    {
+        if( ! this->cache_.has_value() || this->cache_.value().first != s)
+        {
+            this->cache_ = std::make_pair(s, func_(s));
+        }
+        return this->cache_.value().second;
+    }
+
+  private:
+    F func_;
+    cxx::optional<std::pair<spec, value_type>> cache_;
+};
+
+template<typename F>
+syntax_cache<cxx::remove_cvref_t<F>> make_cache(F&& f)
+{
+    return syntax_cache<cxx::remove_cvref_t<F>>(std::forward<F>(f));
+}
+
 // ===========================================================================
 // UTF-8
 
@@ -6043,36 +6082,6 @@ namespace syntax
 {
 
 using char_type = location::char_type;
-
-template<typename F>
-struct syntax_cache
-{
-    using value_type = cxx::return_type_of_t<F, const spec&>;
-    static_assert(std::is_base_of<scanner_base, value_type>::value, "");
-
-    explicit syntax_cache(F f)
-        : func_(std::move(f)), cache_(cxx::make_nullopt())
-    {}
-
-    value_type const& at(const spec& s)
-    {
-        if( ! this->cache_.has_value() || this->cache_.value().first != s)
-        {
-            this->cache_ = std::make_pair(s, func_(s));
-        }
-        return this->cache_.value().second;
-    }
-
-  private:
-    F func_;
-    cxx::optional<std::pair<spec, value_type>> cache_;
-};
-
-template<typename F>
-syntax_cache<cxx::remove_cvref_t<F>> make_cache(F&& f)
-{
-    return syntax_cache<cxx::remove_cvref_t<F>>(std::forward<F>(f));
-}
 
 // ===========================================================================
 // UTF-8
@@ -16183,6 +16192,15 @@ skip_multiline_spacer(location& loc, context<TC>& ctx, const bool newline_found 
 {
     const auto& spec = ctx.toml_spec();
 
+    // Reuse the owning scanner graph, rebuilding it when syntax flags change.
+    static thread_local auto comment_cache = syntax::make_cache([](const toml::spec& s)
+    {
+        return sequence(syntax::comment(s), syntax::newline(s));
+    });
+    const auto& comment_line = comment_cache.at(spec);
+    static thread_local const repeat_at_least spaces(1, character(cxx::bit_cast<location::char_type>(' ')));
+    static thread_local const repeat_at_least tabs(1, character(cxx::bit_cast<location::char_type>('\t')));
+
     multiline_spacer<TC> spacer;
     spacer.newline_found = newline_found;
     spacer.indent_type   = indent_char::none;
@@ -16192,7 +16210,7 @@ skip_multiline_spacer(location& loc, context<TC>& ctx, const bool newline_found 
     bool spacer_found = false;
     while( ! loc.eof())
     {
-        if(auto comm = sequence(syntax::comment(spec), syntax::newline(spec)).scan(loc))
+        if(auto comm = comment_line.scan(loc))
         {
             spacer.newline_found = true;
             auto comment = comm.as_string();
@@ -16218,16 +16236,16 @@ skip_multiline_spacer(location& loc, context<TC>& ctx, const bool newline_found 
             spacer.indent = 0;
             spacer_found = true;
         }
-        else if(auto sp = repeat_at_least(1, character(cxx::bit_cast<location::char_type>(' '))).scan(loc))
+        else if(auto sp = spaces.scan(loc))
         {
             spacer.indent_type = indent_char::space;
             spacer.indent      = static_cast<std::int32_t>(sp.length());
             spacer_found = true;
         }
-        else if(auto tabs = repeat_at_least(1, character(cxx::bit_cast<location::char_type>('\t'))).scan(loc))
+        else if(auto tab = tabs.scan(loc))
         {
             spacer.indent_type = indent_char::tab;
-            spacer.indent      = static_cast<std::int32_t>(tabs.length());
+            spacer.indent      = static_cast<std::int32_t>(tab.length());
             spacer_found = true;
         }
         else
@@ -17419,6 +17437,11 @@ parse_table(location& loc, context<TC>& ctx, basic_value<TC>& table)
 
     const auto num_errors = ctx.errors().size();
     const auto& spec = ctx.toml_spec();
+    static thread_local auto table_prefix_cache = syntax::make_cache([](const toml::spec& s)
+    {
+        return sequence(syntax::ws(s), character('['));
+    });
+    const auto& table_prefix = table_prefix_cache.at(spec);
 
     // clear indent info
     table.as_table_fmt().indent_type = indent_char::none;
@@ -17436,7 +17459,7 @@ parse_table(location& loc, context<TC>& ctx, basic_value<TC>& table)
             break;
         }
         // if next table is comming, return.
-        if(sequence(syntax::ws(spec), character('[')).scan(loc).is_ok())
+        if(table_prefix.scan(loc).is_ok())
         {
             loc = start;
             break;

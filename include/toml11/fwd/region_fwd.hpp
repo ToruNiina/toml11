@@ -36,7 +36,7 @@ class region
 
     // a value that is constructed manually does not have input stream info
     region()
-        : source_(nullptr), source_name_(""), length_(0),
+        : source_(nullptr), source_name_(nullptr), length_(0),
           first_(0), first_line_(0), first_column_(0), last_(0), last_line_(0),
           last_column_(0)
     {}
@@ -88,7 +88,11 @@ class region
     std::vector<std::pair<std::string, std::size_t>> as_lines() const;
 
     source_ptr const&  source()      const noexcept {return this->source_;}
-    std::string const& source_name() const noexcept {return this->source_name_;}
+    std::string const& source_name() const noexcept
+    {
+        static const std::string empty;
+        return this->source_name_ ? *this->source_name_ : empty;
+    }
 
   private:
 
@@ -98,7 +102,7 @@ class region
   private:
 
     source_ptr  source_;
-    std::string source_name_;
+    std::shared_ptr<const std::string> source_name_;
     std::size_t length_;
     std::size_t first_;
     std::size_t first_line_;
