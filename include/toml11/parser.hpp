@@ -3482,6 +3482,44 @@ parse_impl(std::vector<location::char_type> cs, std::string fname, const spec& s
     return parse_file(loc, ctx);
 }
 
+inline result<std::vector<location::char_type>, std::string>
+read_stream(std::istream& is)
+{
+    const auto beg = is.tellg();
+    if(beg == std::istream::pos_type(-1))
+    {
+        return err("Failed to access input stream");
+    }
+
+    is.seekg(0, std::ios::end);
+    if(!is.good())
+    {
+        return err("Failed to seek input stream");
+    }
+
+    const auto end = is.tellg();
+    if(end == std::istream::pos_type(-1) || end < beg)
+    {
+        return err("Invalid input stream size");
+    }
+
+    is.seekg(beg);
+    if(!is.good())
+    {
+        return err("Failed to seek input stream");
+    }
+
+    const auto fsize = end - beg;
+    std::vector<location::char_type> letters(static_cast<std::size_t>(fsize));
+    is.read(reinterpret_cast<char*>(letters.data()), static_cast<std::streamsize>(fsize));
+    if(!is.good() || is.gcount() != fsize)
+    {
+        return err("Failed to read input stream; make sure it is in binary mode "
+                   "to avoid LF <-> CRLF conversion");
+    }
+    return ok(std::move(letters));
+}
+
 } // detail
 
 // -----------------------------------------------------------------------------
@@ -3522,37 +3560,24 @@ template<typename TC = type_config>
 result<basic_value<TC>, std::vector<error_info>>
 try_parse(std::istream& is, std::string fname = "unknown file", spec s = spec::default_version())
 {
-    const auto beg = is.tellg();
-    is.seekg(0, std::ios::end);
-    const auto end = is.tellg();
-    const auto fsize = end - beg;
-    is.seekg(beg);
-
-    // read whole file as a sequence of char
-    assert(fsize >= 0);
-    std::vector<detail::location::char_type> letters(static_cast<std::size_t>(fsize), '\0');
-    is.read(reinterpret_cast<char*>(letters.data()), static_cast<std::streamsize>(fsize));
-
-    return detail::parse_impl<TC>(std::move(letters), std::move(fname), std::move(s));
+    auto content = detail::read_stream(is);
+    if(content.is_err())
+    {
+        return err(std::vector<error_info>{error_info(
+            content.unwrap_err() + " \"" + fname + "\"", {})});
+    }
+    return detail::parse_impl<TC>(std::move(content.unwrap()), std::move(fname), std::move(s));
 }
 
 template<typename TC = type_config>
 basic_value<TC> parse(std::istream& is, std::string fname = "unknown file", spec s = spec::default_version())
 {
-    auto res = try_parse<TC>(is, std::move(fname), std::move(s));
-    if(res.is_ok())
+    auto content = detail::read_stream(is);
+    if(content.is_err())
     {
-        return res.unwrap();
+        throw file_io_error(content.unwrap_err(), fname);
     }
-    else
-    {
-        std::string msg;
-        for(const auto& err : res.unwrap_err())
-        {
-            msg += format_error(err);
-        }
-        throw syntax_error(std::move(msg), std::move(res.unwrap_err()));
-    }
+    return parse<TC>(std::move(content.unwrap()), std::move(fname), std::move(s));
 }
 
 // -----------------------------------------------------------------------------
