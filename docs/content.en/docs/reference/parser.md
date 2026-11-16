@@ -92,6 +92,10 @@ Open a stream in binary mode by passing `std::ios::binary` to avoid inconsistenc
 
 The filename information is taken as the second argument. If the filename is not provided, it defaults to `"unknown file"`.
 
+The stream must support seeking. Parsing starts at its current position, and a valid empty stream is accepted.
+If positioning or reading the stream fails, `toml::file_io_error` is thrown.
+Exceptions enabled on the stream itself still propagate as standard library exceptions.
+
 ### `parse(FILE*, std::string filename, toml::spec)`
 
 ```cpp
@@ -243,7 +247,10 @@ Open a stream in binary mode by passing `std::ios::binary` to avoid inconsistenc
 
 The file name information is taken as the second argument. If a file name is not provided, it defaults to `"unknown file"`.
 
-If parsing fails, a `result` holding the error type `std::vector<error_info>` is returned.
+The stream must support seeking. Parsing starts at its current position, and a valid empty stream is accepted.
+
+If positioning, reading, or parsing fails, a `result` holding the error type `std::vector<error_info>` is returned.
+Exceptions enabled on the stream itself still propagate as standard library exceptions.
 
 If successful, a `result` holding a `basic_value` is returned.
 
