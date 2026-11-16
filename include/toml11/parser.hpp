@@ -1836,6 +1836,15 @@ skip_multiline_spacer(location& loc, context<TC>& ctx, const bool newline_found 
 {
     const auto& spec = ctx.toml_spec();
 
+    // Reuse the owning scanner graph, rebuilding it when syntax flags change.
+    static thread_local auto comment_cache = syntax::make_cache([](const toml::spec& s)
+    {
+        return sequence(syntax::comment(s), syntax::newline(s));
+    });
+    const auto& comment_line = comment_cache.at(spec);
+    static thread_local const repeat_at_least spaces(1, character(cxx::bit_cast<location::char_type>(' ')));
+    static thread_local const repeat_at_least tabs(1, character(cxx::bit_cast<location::char_type>('\t')));
+
     multiline_spacer<TC> spacer;
     spacer.newline_found = newline_found;
     spacer.indent_type   = indent_char::none;
@@ -1845,7 +1854,7 @@ skip_multiline_spacer(location& loc, context<TC>& ctx, const bool newline_found 
     bool spacer_found = false;
     while( ! loc.eof())
     {
-        if(auto comm = sequence(syntax::comment(spec), syntax::newline(spec)).scan(loc))
+        if(auto comm = comment_line.scan(loc))
         {
             spacer.newline_found = true;
             auto comment = comm.as_string();
@@ -1871,16 +1880,16 @@ skip_multiline_spacer(location& loc, context<TC>& ctx, const bool newline_found 
             spacer.indent = 0;
             spacer_found = true;
         }
-        else if(auto sp = repeat_at_least(1, character(cxx::bit_cast<location::char_type>(' '))).scan(loc))
+        else if(auto sp = spaces.scan(loc))
         {
             spacer.indent_type = indent_char::space;
             spacer.indent      = static_cast<std::int32_t>(sp.length());
             spacer_found = true;
         }
-        else if(auto tabs = repeat_at_least(1, character(cxx::bit_cast<location::char_type>('\t'))).scan(loc))
+        else if(auto tab = tabs.scan(loc))
         {
             spacer.indent_type = indent_char::tab;
-            spacer.indent      = static_cast<std::int32_t>(tabs.length());
+            spacer.indent      = static_cast<std::int32_t>(tab.length());
             spacer_found = true;
         }
         else
@@ -3072,6 +3081,11 @@ parse_table(location& loc, context<TC>& ctx, basic_value<TC>& table)
 
     const auto num_errors = ctx.errors().size();
     const auto& spec = ctx.toml_spec();
+    static thread_local auto table_prefix_cache = syntax::make_cache([](const toml::spec& s)
+    {
+        return sequence(syntax::ws(s), character('['));
+    });
+    const auto& table_prefix = table_prefix_cache.at(spec);
 
     // clear indent info
     table.as_table_fmt().indent_type = indent_char::none;
@@ -3089,7 +3103,7 @@ parse_table(location& loc, context<TC>& ctx, basic_value<TC>& table)
             break;
         }
         // if next table is comming, return.
-        if(sequence(syntax::ws(spec), character('[')).scan(loc).is_ok())
+        if(table_prefix.scan(loc).is_ok())
         {
             loc = start;
             break;
