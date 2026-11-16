@@ -16,6 +16,36 @@ namespace syntax
 
 using char_type = location::char_type;
 
+template<typename F>
+struct syntax_cache
+{
+    using value_type = cxx::return_type_of_t<F, const spec&>;
+    static_assert(std::is_base_of<scanner_base, value_type>::value, "");
+
+    explicit syntax_cache(F f)
+        : func_(std::move(f)), cache_(cxx::make_nullopt())
+    {}
+
+    value_type const& at(const spec& s)
+    {
+        if( ! this->cache_.has_value() || this->cache_.value().first != s)
+        {
+            this->cache_ = std::make_pair(s, func_(s));
+        }
+        return this->cache_.value().second;
+    }
+
+  private:
+    F func_;
+    cxx::optional<std::pair<spec, value_type>> cache_;
+};
+
+template<typename F>
+syntax_cache<cxx::remove_cvref_t<F>> make_cache(F&& f)
+{
+    return syntax_cache<cxx::remove_cvref_t<F>>(std::forward<F>(f));
+}
+
 // ===========================================================================
 // UTF-8
 
