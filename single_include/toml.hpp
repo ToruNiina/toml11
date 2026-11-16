@@ -4060,7 +4060,7 @@ class location
   public:
 
     location(source_ptr src, std::string src_name)
-        : source_(std::move(src)), source_name_(std::move(src_name)),
+        : source_(std::move(src)), source_name_(std::make_shared<const std::string>(std::move(src_name))),
           location_(0), line_number_(1), column_number_(1)
     {}
 
@@ -4096,7 +4096,11 @@ class location
     std::string get_line() const;
 
     source_ptr const&  source()      const noexcept {return this->source_;}
-    std::string const& source_name() const noexcept {return this->source_name_;}
+    std::string const& source_name() const noexcept
+    {
+        static const std::string empty;
+        return this->source_name_ ? *this->source_name_ : empty;
+    }
 
   private:
 
@@ -4111,7 +4115,8 @@ class location
   private:
 
     source_ptr  source_;
-    std::string source_name_;
+    // Scanner locations are copied frequently; share the immutable diagnostic name.
+    std::shared_ptr<const std::string> source_name_;
     std::size_t location_; // std::vector<>::difference_type is signed
     std::size_t line_number_;
     std::size_t column_number_;
@@ -4431,7 +4436,7 @@ class region
 
     // a value that is constructed manually does not have input stream info
     region()
-        : source_(nullptr), source_name_(""), length_(0),
+        : source_(nullptr), source_name_(nullptr), length_(0),
           first_(0), first_line_(0), first_column_(0), last_(0), last_line_(0),
           last_column_(0)
     {}
@@ -4483,7 +4488,11 @@ class region
     std::vector<std::pair<std::string, std::size_t>> as_lines() const;
 
     source_ptr const&  source()      const noexcept {return this->source_;}
-    std::string const& source_name() const noexcept {return this->source_name_;}
+    std::string const& source_name() const noexcept
+    {
+        static const std::string empty;
+        return this->source_name_ ? *this->source_name_ : empty;
+    }
 
   private:
 
@@ -4493,7 +4502,7 @@ class region
   private:
 
     source_ptr  source_;
-    std::string source_name_;
+    std::shared_ptr<const std::string> source_name_;
     std::size_t length_;
     std::size_t first_;
     std::size_t first_line_;
@@ -4530,7 +4539,7 @@ namespace detail
 // a value defined in [first, last).
 // Those source must be the same. Instread, `region` does not make sense.
 TOML11_INLINE region::region(const location& first, const location& last)
-    : source_(first.source()), source_name_(first.source_name()),
+    : source_(first.source()), source_name_(first.source_name_),
       length_(last.get_location() - first.get_location()),
       first_(first.get_location()),
       first_line_(first.line_number()),
@@ -4545,7 +4554,7 @@ TOML11_INLINE region::region(const location& first, const location& last)
 
     // shorthand of [loc, loc+1)
 TOML11_INLINE region::region(const location& loc)
-    : source_(loc.source()), source_name_(loc.source_name()), length_(0),
+    : source_(loc.source()), source_name_(loc.source_name_), length_(0),
       first_line_(0), first_column_(0), last_line_(0), last_column_(0)
 {
     // if the file ends with LF, the resulting region points no char.

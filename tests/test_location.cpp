@@ -2,6 +2,7 @@
 #include "doctest.h"
 
 #include <toml11/location.hpp>
+#include <toml11/region.hpp>
 
 TEST_CASE("testing location")
 {
@@ -61,3 +62,29 @@ TEST_CASE("testing multiline location")
     CHECK_EQ(loc.line_number(), 2);
     CHECK_EQ(loc.column_number(), 5);
 }
+
+TEST_CASE("source name survives copies of locations and regions")
+{
+    const auto loc = toml::detail::make_temporary_location("x");
+    const auto copied_loc = loc;
+    CHECK_EQ(copied_loc.source_name(), "internal temporary");
+
+    const auto next = toml::detail::next(loc);
+    const toml::detail::region span(loc, next);
+    CHECK_EQ(span.source_name(), "internal temporary");
+
+    const toml::detail::region point(loc);
+    CHECK_EQ(point.source_name(), "internal temporary");
+
+    const toml::detail::region manual;
+    CHECK_EQ(manual.source_name(), "");
+
+    const auto span_x = [] {
+        const auto loc = toml::detail::make_temporary_location("x");
+        const auto next = toml::detail::next(loc);
+        return toml::detail::region(loc, next);
+    }();
+
+    CHECK_EQ(span_x.source_name(), "internal temporary");
+}
+

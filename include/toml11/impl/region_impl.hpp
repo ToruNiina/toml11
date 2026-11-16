@@ -22,7 +22,7 @@ namespace detail
 // a value defined in [first, last).
 // Those source must be the same. Instread, `region` does not make sense.
 TOML11_INLINE region::region(const location& first, const location& last)
-    : source_(first.source()), source_name_(first.source_name()),
+    : source_(first.source()), source_name_(first.source_name_),
       length_(last.get_location() - first.get_location()),
       first_(first.get_location()),
       first_line_(first.line_number()),
@@ -37,7 +37,7 @@ TOML11_INLINE region::region(const location& first, const location& last)
 
     // shorthand of [loc, loc+1)
 TOML11_INLINE region::region(const location& loc)
-    : source_(loc.source()), source_name_(loc.source_name()), length_(0),
+    : source_(loc.source()), source_name_(loc.source_name_), length_(0),
       first_line_(0), first_column_(0), last_line_(0), last_column_(0)
 {
     // if the file ends with LF, the resulting region points no char.

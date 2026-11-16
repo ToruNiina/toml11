@@ -33,7 +33,7 @@ class location
   public:
 
     location(source_ptr src, std::string src_name)
-        : source_(std::move(src)), source_name_(std::move(src_name)),
+        : source_(std::move(src)), source_name_(std::make_shared<const std::string>(std::move(src_name))),
           location_(0), line_number_(1), column_number_(1)
     {}
 
@@ -69,7 +69,11 @@ class location
     std::string get_line() const;
 
     source_ptr const&  source()      const noexcept {return this->source_;}
-    std::string const& source_name() const noexcept {return this->source_name_;}
+    std::string const& source_name() const noexcept
+    {
+        static const std::string empty;
+        return this->source_name_ ? *this->source_name_ : empty;
+    }
 
   private:
 
@@ -84,7 +88,8 @@ class location
   private:
 
     source_ptr  source_;
-    std::string source_name_;
+    // Scanner locations are copied frequently; share the immutable diagnostic name.
+    std::shared_ptr<const std::string> source_name_;
     std::size_t location_; // std::vector<>::difference_type is signed
     std::size_t line_number_;
     std::size_t column_number_;
